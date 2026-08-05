@@ -23,50 +23,141 @@ The resulting package must replace all documentation-example functionality curre
 
 Do not stop after writing a design document. Implement the first working version, test it thoroughly, and integrate it with the local Yumemi repositories when they are available.
 
-## Clean-room restriction
+## Clean-room policy
 
-This restriction is non-negotiable.
+This policy is non-negotiable. Akashi must remain clean-room with respect to competing PHP doctest implementations, but
+the coding agent may consult official, public, user-facing documentation for the platforms and standards Akashi
+integrates with. The permissions below do not permit implementation review where it is otherwise prohibited.
 
-Do **not** inspect, clone, install for inspection, browse, open, search, or otherwise examine the implementation code of any existing documentation-test framework, including:
+The allowed-reference list below is exhaustive for the MVP. Except for user-owned projects explicitly allowed below,
+implementation code, internal tests, and implementation-oriented materials from any documentation-test framework
+remain prohibited.
 
-* `testflowlabs/doctest`
-* `texthtml/doctest`
-* `monadial/phpunit-docrunner`
-* `hoaproject/Kitab`
-* Cargo or rustdoc’s doctest implementation
-* any other PHP doctest package discovered during the task
+### Allowed reference materials
 
-Do not:
+Official, public, user-facing documentation and specifications may be reviewed for:
 
-* open their source files on GitHub;
-* inspect their installed files under `vendor/`;
-* copy their tests;
-* use code search against their repositories;
-* ask another agent to inspect or summarize their implementation;
-* derive class structures or algorithms from their source;
-* indirectly obtain implementation details from generated summaries, mirrors, package archives, or another model.
+* PHP;
+* PHPUnit;
+* PHPStan;
+* Composer;
+* CommonMark;
+* selected general-purpose dependencies used by Akashi;
+* Cargo; and
+* rustdoc.
 
-Their names are provided only as prior-art labels for the deferred feature list below. Work entirely from the requirements in this prompt.
+Normal third-party parser or process libraries may be used, provided they are not competing documentation-test
+frameworks and their implementation is not copied. Record any selected dependency and the official documentation
+consulted for it in the clean-room record.
 
-You **may** inspect and adapt code from projects owned by the user, particularly:
+Official Cargo and rustdoc documentation may be used to understand:
 
-* `jbboehr/yumemi.php`
-* `jbboehr/yumemi-apocrypha.php`
+* observable behavior;
+* terminology;
+* documented user-facing features;
+* compatibility considerations; and
+* deferred capabilities.
 
-You may also consult official documentation and specifications for PHP, PHPUnit, PHPStan, Composer, CommonMark, and ordinary supporting libraries.
+Examples of permitted behavioral concepts include:
 
-Using normal third-party parser or process libraries is allowed, provided you are not using an existing doctest framework or copying its implementation.
+* hidden supporting lines;
+* ignored examples;
+* compile-only or non-running examples;
+* expected runtime failure;
+* expected compilation failure; and
+* how documentation examples behave from the user's perspective.
 
-Create `docs/CLEAN_ROOM.md` recording:
+Copying or adapting high-level Rust doctest idioms is acceptable where they map cleanly to PHP. However:
 
-* the prohibited projects;
-* that none of their implementation code was consulted;
-* the allowed reference materials actually used;
-* any dependencies introduced;
-* why each dependency does not violate this restriction;
-* any accidental exposure to prohibited implementation details, should one occur.
+* do not mechanically copy Rust-specific APIs or terminology;
+* prefer PHP, PHPUnit, Composer, and PHPStan idioms where appropriate;
+* prefer designs that are explicit, sound, statically analyzable, and type-safe; and
+* treat Rust-style names such as `should_panic`, `no_run`, and `compile_fail` as descriptive placeholders rather than
+  required Akashi API names.
 
-If prohibited implementation code is accidentally encountered, stop, record exactly what was seen, and report it before proceeding.
+The coding agent may inspect and adapt code from projects owned by the user, particularly:
+
+* `jbboehr/yumemi.php`; and
+* `jbboehr/yumemi-apocrypha.php`.
+
+Akashi's implementation and public API should be independently derived from these actual compatibility requirements,
+the requirements in this handoff, and established PHP ecosystem conventions.
+
+### Prohibited Rust materials
+
+Do not inspect:
+
+* rustdoc source code;
+* Cargo source code related to doctest implementation;
+* compiler internals;
+* internal rustdoc or compiler tests;
+* implementation-oriented design documents;
+* source-level architecture descriptions intended for rustc contributors;
+* generated summaries of those implementation details; or
+* another agent's analysis of those implementations.
+
+Rust documentation review must remain limited to public behavior and user-facing contracts. Do not derive Akashi class
+structures, algorithms, or source-level architecture from Rust implementation material.
+
+### Competing PHP doctest projects
+
+During the initial Akashi implementation, both source-code review and documentation review remain prohibited for:
+
+* `testflowlabs/doctest`;
+* `texthtml/doctest`;
+* `monadial/phpunit-docrunner`;
+* `hoaproject/Kitab`; and
+* any other competing PHP documentation-test framework discovered during the work.
+
+Do not inspect their:
+
+* source code;
+* tests;
+* package archives;
+* installed Composer files;
+* READMEs;
+* public documentation;
+* examples;
+* CLI help;
+* configuration references;
+* issue discussions describing architecture; or
+* summaries produced by another agent or model.
+
+Do not clone or install these projects for inspection, browse their repositories, use code search against them, ask
+another agent to inspect them, or indirectly obtain their implementation or documentation through mirrors or generated
+summaries. Their high-level capabilities are already represented in this handoff as deferred requirements. Akashi's
+initial architecture and public API must emerge independently from Yumemi's actual requirements and established PHP
+ecosystem conventions.
+
+### Later comparative review
+
+After the MVP architecture and public API have been implemented and recorded, a separate documentation-only comparative
+review of competing PHP doctest projects may be performed. That later review is not part of the current implementation
+task and must:
+
+* be explicitly requested as a separate task;
+* inspect public user-facing documentation only;
+* avoid implementation code and internal tests;
+* record every external document consulted;
+* distinguish observed behavior from independently designed Akashi decisions; and
+* avoid silently changing foundational APIs merely to match another project.
+
+### Clean-room record
+
+Create and maintain `docs/CLEAN_ROOM.md` so it records:
+
+* every external document consulted;
+* whether each document was a specification, integration guide, or user-facing behavioral reference;
+* the allowed user-owned implementation materials consulted;
+* every dependency introduced and why it does not violate this policy;
+* confirmation that no prohibited implementation code was examined;
+* confirmation that no competing PHP doctest documentation was examined during the MVP;
+* any accidental exposure, including exactly what was seen and what mitigation was taken;
+* which Rust or rustdoc behaviors influenced the roadmap or terminology; and
+* which Akashi implementation decisions were independently derived from Yumemi and PHP ecosystem requirements.
+
+If prohibited material is accidentally encountered, stop, record exactly what was seen and the mitigation taken, and
+report the exposure before proceeding.
 
 ## Repository and compatibility constraints
 
@@ -91,7 +182,9 @@ Do not require PHP 8.4-only syntax or dependencies.
 
 ## Design philosophy
 
-Rust doctest terminology and behavior may be used as inspiration where it maps cleanly to PHP.
+Official Cargo and rustdoc user-facing documentation may inform observable behavior, terminology, compatibility
+considerations, and deferred features where they map cleanly to PHP. Rust implementation code, internal tests, and
+implementation-oriented architecture material remain prohibited by the clean-room policy.
 
 Do not mechanically reproduce Rust-specific idioms, architecture, syntax, or naming.
 
@@ -491,7 +584,9 @@ Create `docs/ROADMAP.md`.
 
 All of the following high-level capabilities must be acknowledged and assigned a plausible future phase or extension point, but they must **not** be implemented now unless the current Yumemi behavior strictly requires them.
 
-Do not inspect the prior-art libraries to determine how they implemented these features.
+Do not inspect prohibited prior-art material to determine how these features are implemented. Official Cargo and rustdoc
+user-facing documentation may clarify observable behavior and terminology, but competing PHP doctest documentation and
+all prohibited implementation material remain outside the MVP clean-room boundary.
 
 ### Additional sources
 
@@ -746,8 +841,10 @@ Keep the README practical. Put deeper architecture and roadmap material under `d
 * Do not replace working project-specific consumer tests with weaker unit tests.
 * Do not weaken exact PHPStan diagnostic assertions.
 * Do not change the default execution mode to subprocess isolation.
-* Do not inspect prohibited prior-art implementations.
-* Do not claim clean-room independence without recording the materials actually consulted.
+* Do not inspect prohibited prior-art implementations or competing PHP doctest documentation during the MVP.
+* Consult Cargo and rustdoc only through allowed official user-facing documentation, never implementation material.
+* Do not claim clean-room independence without recording every external document and allowed implementation material
+  actually consulted.
 * Prefer PHP idioms over Rust idioms where PHP offers a clearer, sounder, or more type-safe design.
 * Do not overengineer a generalized plugin system during the MVP.
 * Do not broaden Akashi into a documentation generator.
@@ -793,7 +890,8 @@ The initial task is complete when:
 11. Both projects retain PHP 8.2 compatibility.
 12. Existing relevant consumer workflows remain intact.
 13. Deferred prior-art features are documented but not implemented.
-14. `docs/CLEAN_ROOM.md` confirms that prohibited implementation code was not consulted.
+14. `docs/CLEAN_ROOM.md` confirms that prohibited implementation code and competing PHP doctest documentation were not
+    consulted during the MVP.
 15. All executed tests and remaining gaps are reported honestly.
 16. The architecture uses PHP-idiomatic, sound, and type-safe designs rather than mechanically copying Rust.
 
@@ -809,4 +907,5 @@ At the end, provide a summary containing:
 * compatibility limitations;
 * deferred work;
 * unresolved design questions;
-* confirmation that no prohibited source code was examined.
+* confirmation that no prohibited implementation code or competing PHP doctest documentation was examined during the
+  MVP.
