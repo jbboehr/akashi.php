@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 /**
@@ -37,32 +36,14 @@
 
 declare(strict_types=1);
 
-use jbboehr\Akashi\Application;
+namespace jbboehr\Akashi\Cli\Exception;
 
 /**
- * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
- *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
- *     received the burden. Call no weight glory merely because it shines.
+ * The command line cannot be routed or parsed as an Akashi invocation.
+ *
+ * @logion [SFA 52:45] Do not pity the silver mask when the actor departeth. It was fashioned to bear one sorrow before
+ *     the multitude, and fulfillment is not diminished because the face beneath it hath returned to ordinary joy.
  */
-$autoload = isset($_composer_autoload_path)
-    ? $_composer_autoload_path
-    : dirname(__DIR__) . '/vendor/autoload.php';
-
-require $autoload;
-
-$arguments = $_SERVER['argv'] ?? null;
-if (!is_array($arguments) || !array_is_list($arguments)) {
-    fwrite(STDERR, "Akashi failed unexpectedly: command-line arguments are unavailable.\n");
-    exit(70);
+final class UsageException extends \InvalidArgumentException
+{
 }
-
-foreach ($arguments as $argument) {
-    if (!is_string($argument)) {
-        fwrite(STDERR, "Akashi failed unexpectedly: a command-line argument is not a string.\n");
-        exit(70);
-    }
-}
-
-array_shift($arguments);
-
-exit(Application::run($arguments));

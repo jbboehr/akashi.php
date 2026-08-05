@@ -24,13 +24,18 @@ Akashi domain algorithm or architecture.
 
 These local materials are allowed inputs rather than external clean-room references:
 
-| Material                                                   | Purpose                                                                                |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `tmp/imm.php` (`jbboehr/yumemi`)                           | Generic project scaffold and the current documentation-test behavior to migrate        |
-| `tmp/yumemi-apocrypha.php` (`jbboehr/yumemi-apocrypha`)    | Generic project scaffold and the second current documentation-test behavior to migrate |
-| `tmp/imm.php/tests/Documentation/MarkdownExamples.php`     | Yumemi's document-manifest discovery behavior                                          |
-| `tmp/imm.php/tests/Documentation/MarkdownExamplesTest.php` | Manifest ordering, extension filtering, and exclusion fixtures                         |
-| `docs/IMPLEMENTATION_HANDOFF.md`                           | Project scope, requirements, compatibility targets, and clean-room policy              |
+| Material                                                                                        | Purpose                                                                                |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `tmp/imm.php` (`jbboehr/yumemi`)                                                                | Generic project scaffold and the current documentation-test behavior to migrate        |
+| `tmp/yumemi-apocrypha.php` (`jbboehr/yumemi-apocrypha`)                                         | Generic project scaffold and the second current documentation-test behavior to migrate |
+| `tmp/imm.php/tests/Documentation/MarkdownExamples.php`                                          | Yumemi's document-manifest discovery behavior                                          |
+| `tmp/imm.php/tests/Documentation/MarkdownExamplesTest.php`                                      | Manifest ordering, extension filtering, and exclusion fixtures                         |
+| `tmp/yumemi-apocrypha.php/tests/Documentation/MarkedCodeBlockExtractor.php`                     | Legacy marked-extraction and final-newline behavior                                    |
+| `tmp/yumemi-apocrypha.php/tests/Documentation/MarkedCodeBlockExtractorTest.php`                 | Legacy extraction examples and failure expectations                                    |
+| `tmp/yumemi-apocrypha.php/tests/Documentation/extract-markdown-example.php`                     | Legacy CLI stream and exit-status behavior                                             |
+| `tmp/yumemi-apocrypha.php/tests/Consumer/run`                                                   | The eight current marked-example consumer invocations                                  |
+| `tmp/yumemi-apocrypha.php/{README.md,docs/pages/getting-started.md,docs/pages/integrations.md}` | Byte-for-byte extraction compatibility corpus                                          |
+| `docs/IMPLEMENTATION_HANDOFF.md`                                                                | Project scope, requirements, compatibility targets, and clean-room policy              |
 
 The behavior inventory and independently derived compatibility decisions are recorded in `MIGRATING_YUMEMI.md`.
 
@@ -88,6 +93,7 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | User-facing behavioral reference | Testing deliberate violations of narrowed PHPDoc contracts                  |
 | 2026-08-05 | [`new.resultUnused`](https://phpstan.org/error-identifiers/new.resultUnused)                                 | User-facing behavioral reference | Retaining observable construction results in negative tests                 |
 | 2026-08-05 | [`staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType) | User-facing behavioral reference | Avoiding redundant assertion calls in contract-violation tests              |
+| 2026-08-05 | [`nullCoalesce.variable`](https://phpstan.org/error-identifiers/nullCoalesce.variable)                       | User-facing behavioral reference | Removing a redundant fallback after nonempty CLI routing                    |
 
 ### Composer
 

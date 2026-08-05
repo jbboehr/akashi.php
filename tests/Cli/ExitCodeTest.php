@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 /**
@@ -37,32 +36,26 @@
 
 declare(strict_types=1);
 
-use jbboehr\Akashi\Application;
+namespace jbboehr\Akashi\Tests\Cli;
 
-/**
- * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
- *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
- *     received the burden. Call no weight glory merely because it shines.
- */
-$autoload = isset($_composer_autoload_path)
-    ? $_composer_autoload_path
-    : dirname(__DIR__) . '/vendor/autoload.php';
+use jbboehr\Akashi\Cli\ExitCode;
+use PHPUnit\Framework\TestCase;
 
-require $autoload;
+final class ExitCodeTest extends TestCase
+{
+    public function testExposesTheStableProcessStatuses(): void
+    {
+        $actual = [];
 
-$arguments = $_SERVER['argv'] ?? null;
-if (!is_array($arguments) || !array_is_list($arguments)) {
-    fwrite(STDERR, "Akashi failed unexpectedly: command-line arguments are unavailable.\n");
-    exit(70);
-}
+        foreach ((new \ReflectionEnum(ExitCode::class))->getCases() as $case) {
+            $actual[$case->getName()] = $case->getBackingValue();
+        }
 
-foreach ($arguments as $argument) {
-    if (!is_string($argument)) {
-        fwrite(STDERR, "Akashi failed unexpectedly: a command-line argument is not a string.\n");
-        exit(70);
+        self::assertSame([
+            'Success' => 0,
+            'ExtractionFailure' => 1,
+            'UsageError' => 2,
+            'SoftwareError' => 70,
+        ], $actual);
     }
 }
-
-array_shift($arguments);
-
-exit(Application::run($arguments));

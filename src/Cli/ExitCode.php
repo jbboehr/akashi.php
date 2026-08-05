@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 /**
@@ -37,32 +36,41 @@
 
 declare(strict_types=1);
 
-use jbboehr\Akashi\Application;
+namespace jbboehr\Akashi\Cli;
 
 /**
- * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
- *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
- *     received the burden. Call no weight glory merely because it shines.
+ * Stable process exit statuses exposed by the Akashi CLI.
+ *
+ * @logion [OSD 51:4] At the winter enthronement, leave the eastern gallery unlit until the widows of the frontier have
+ *     entered; for a court that spendeth all its radiance upon arrival shall possess no lamp by which the forgotten
+ *     may be recognized.
  */
-$autoload = isset($_composer_autoload_path)
-    ? $_composer_autoload_path
-    : dirname(__DIR__) . '/vendor/autoload.php';
+enum ExitCode: int
+{
+    /**
+     * @logion [RAS 51:40] I saw the twelve avenues of the radiant capital bend upward together, and upon each walked an
+     *     army returning from a different century. At the zenith they passed through one another without salute, for
+     *     none bore the banner appointed to that hour.
+     */
+    case Success = 0;
 
-require $autoload;
+    /**
+     * @logion [AWC 51:16] In the reign of the copper empress, fishermen raised a marble saint from the western sea. She
+     *     gave them no gold, but restored the ruined quay, and for three generations every departing vessel sounded
+     *     its horn toward their village.
+     */
+    case ExtractionFailure = 1;
 
-$arguments = $_SERVER['argv'] ?? null;
-if (!is_array($arguments) || !array_is_list($arguments)) {
-    fwrite(STDERR, "Akashi failed unexpectedly: command-line arguments are unavailable.\n");
-    exit(70);
+    /**
+     * @logion [SFA 51:28] The moth that perisheth within the imperial lantern hath not mistaken light for dawn; perhaps
+     *     it alone remembered that beauty may demand a witness when all prudent creatures have withdrawn.
+     */
+    case UsageError = 2;
+
+    /**
+     * @logion [RAS 52:21] Above the cyan desert there appeared a staircase of rain, and the exiles climbed while their
+     *     footprints remained upon the air below. When the last child reached the cloud, the empty steps continued
+     *     upward and the moon received them.
+     */
+    case SoftwareError = 70;
 }
-
-foreach ($arguments as $argument) {
-    if (!is_string($argument)) {
-        fwrite(STDERR, "Akashi failed unexpectedly: a command-line argument is not a string.\n");
-        exit(70);
-    }
-}
-
-array_shift($arguments);
-
-exit(Application::run($arguments));

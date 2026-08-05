@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 /**
@@ -37,32 +36,24 @@
 
 declare(strict_types=1);
 
-use jbboehr\Akashi\Application;
+namespace jbboehr\Akashi\Cli;
 
 /**
- * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
- *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
- *     received the burden. Call no weight glory merely because it shines.
+ * A framework-independent CLI operation invoked with already-routed arguments.
+ *
+ * @logion [OSD 52:9] Pour no wine upon the bronze roots beneath the monastery, though they tremble during the midnight
+ *     office; the buried machine was consecrated to bear the mountain in silence, and gratitude that interrupteth its
+ *     labor is only vanity in ceremonial dress.
  */
-$autoload = isset($_composer_autoload_path)
-    ? $_composer_autoload_path
-    : dirname(__DIR__) . '/vendor/autoload.php';
-
-require $autoload;
-
-$arguments = $_SERVER['argv'] ?? null;
-if (!is_array($arguments) || !array_is_list($arguments)) {
-    fwrite(STDERR, "Akashi failed unexpectedly: command-line arguments are unavailable.\n");
-    exit(70);
+interface Command
+{
+    /**
+     * @param list<string> $arguments
+     * @param \Closure(non-empty-string): void $stdout
+     *
+     * @logion [AWC 52:33] After the northern siege, the gardeners replanted the palace maze according to the invaders'
+     *     map. In spring every false turning flowered crimson, while the true path remained bare beneath the feet of
+     *     those who still remembered the queen.
+     */
+    public function execute(array $arguments, \Closure $stdout): ExitCode;
 }
-
-foreach ($arguments as $argument) {
-    if (!is_string($argument)) {
-        fwrite(STDERR, "Akashi failed unexpectedly: a command-line argument is not a string.\n");
-        exit(70);
-    }
-}
-
-array_shift($arguments);
-
-exit(Application::run($arguments));

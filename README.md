@@ -6,8 +6,8 @@
 
 Akashi is a PHP project for testing examples embedded in documentation.
 
-**Status:** the immutable model, deterministic Markdown discovery, CommonMark PHP-fence extraction, configurable
-markers, and execution directives are implemented. The extraction CLI, source transformation, execution, and
+**Status:** the immutable model, deterministic Markdown discovery, CommonMark PHP-fence extraction, configurable markers
+and execution directives, and marked-example extraction CLI are implemented. Source transformation, execution, and
 verification integrations remain under development.
 
 ## Installation
@@ -22,6 +22,15 @@ Composer installs the command as:
 
 ```shell
 vendor/bin/akashi
+```
+
+Extract an explicitly marked PHP fence without adding decorative output:
+
+```shell
+vendor/bin/akashi extract \
+    --marker-name=akashi-example \
+    docs/pages/getting-started.md \
+    hello-world
 ```
 
 ## Documentation

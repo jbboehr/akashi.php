@@ -18,9 +18,31 @@ Composer exposes the package executable at:
 vendor/bin/akashi
 ```
 
-The library can discover PHP examples, associate configurable markers and execution directives, and select marked
-examples programmatically. The command still prints the short project name; the extraction command is the next planned
-CLI slice.
+With no arguments or `--help`, the command prints its supported invocation. `--version` reports the installed Composer
+package version.
+
+The source for the following fence places `<!-- akashi-example: hello-world -->` immediately before it:
+
+<!-- akashi-example: hello-world -->
+
+```php
+<?php
+
+echo "Hello from Akashi!\n";
+```
+
+Write that explicitly marked PHP fence to stdout with:
+
+```shell
+vendor/bin/akashi extract \
+    --marker-name=akashi-example \
+    docs/pages/getting-started.md \
+    hello-world
+```
+
+The marker name is explicit so the generic command is not tied to Yumemi's comment convention. A successful extraction
+writes only PHP source to stdout and preserves the opening tag. Diagnostics use stderr. Exit status `1` means a document
+or extraction failure, `2` means invalid command usage, and `70` means an unexpected internal failure.
 
 ## Development
 

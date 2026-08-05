@@ -213,6 +213,9 @@ source-versus-archive test modes.
 
 ## Migration sequence and gates
 
+The first three gates are implemented in Akashi. The local compatibility test invokes Apocrypha's legacy extractor and
+compares all eight marked outputs byte-for-byte with the Akashi CLI application.
+
 1. Implement and test Akashi's immutable document and example models.
 2. Implement discovery and a fence scanner against synthetic fixtures plus reduced Yumemi examples.
 3. Implement configurable marked selection and the extraction CLI; prove byte equality for all eight Apocrypha markers.
@@ -228,6 +231,6 @@ work. They remain in both projects.
 ## Inventory verification
 
 The file lists, marker locations, consumer call sites, document count, PHP fence count, and expectation count were
-checked directly at the reference commits above. The reference PHPUnit suites were not executed during this inventory
-because neither local checkout has installed `vendor/` dependencies. Their tests and consumer suites must be run during
-the actual migrations after dependencies are available.
+checked directly at the reference commits above. Akashi's compatibility test now executes the legacy marked extractor
+directly without requiring either reference package's Composer dependencies. The reference projects' full PHPUnit and
+consumer suites must still be run during the actual migrations after their dependencies are available.
