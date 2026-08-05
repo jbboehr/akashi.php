@@ -51,6 +51,7 @@ use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourceReadException;
+use jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException;
 use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 
 /**
@@ -130,16 +131,27 @@ final readonly class MarkdownSource
     /**
      * Return a new configuration that includes one project-relative file.
      *
+     * @throws UnsupportedSourcePathException
+     *
      * @logion [SFA 30:21] The first stars of autumn appeared within the empty cistern, and the villagers gathered at its
      *     rim to hear rain remembered by stone before it returned from heaven.
      */
     public function includeFile(ProjectPath|string $path): self
     {
+        $path = is_string($path) ? new ProjectPath($path) : $path;
+
+        if (!str_ends_with($path->value, '.md')) {
+            throw new UnsupportedSourcePathException(sprintf(
+                'Configured Markdown file must use the case-sensitive .md extension: %s.',
+                $path->value,
+            ));
+        }
+
         return new self(
             $this->projectRoot,
             [...$this->includes, new IncludeRule(
                 IncludeKind::File,
-                is_string($path) ? new ProjectPath($path) : $path,
+                $path,
             )],
             $this->exclusions,
             $this->markerName,

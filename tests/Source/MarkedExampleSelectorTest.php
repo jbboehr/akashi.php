@@ -93,6 +93,9 @@ final class MarkedExampleSelectorTest extends TestCase
         $this->selector->select($this->corpus, 'missing');
     }
 
+    /**
+     * @param positive-int $ordinal
+     */
     private function example(string $id, int $ordinal, ?string $markerId = null): Example
     {
         $contents = "```php\necho 1;\n```\n";

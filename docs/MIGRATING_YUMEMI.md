@@ -66,7 +66,7 @@ At the reference snapshot, the manifest contains 10 documents and 37 PHP fences:
 | `docs/pages/reference/unit-syntax.md` |          1 |
 
 The current implicit identity is
-`example-{first 12 hexadecimal characters of sha1(project-relative document path)}-{two-digit one-based block ordinal}`.
+`example-{first 12 hexadecimal characters of sha1(project-relative document path)}-{one-based decimal block ordinal padded to at least two digits}`.
 Its label is `{project-relative document path} PHP example {ordinal}`. Akashi must preserve compatible deterministic
 identity behavior while retaining an explicit marker ID as separate metadata.
 

@@ -87,14 +87,16 @@ final class SourceLocationTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new SourceLocation(
+        $unexpectedLocation = (new \ReflectionClass(SourceLocation::class))->newInstanceArgs([
             $opening,
             $first,
             $last,
             $closing,
             new SourceSpan(0, 10),
             new SourceSpan(2, $last === null ? 2 : 8),
-        );
+        ]);
+
+        self::fail('Unexpectedly constructed ' . $unexpectedLocation::class . '.');
     }
 
     /**
@@ -134,6 +136,10 @@ final class SourceLocationTest extends TestCase
         new SourceLocation(1, 2, null, 2, new SourceSpan(4, 20), new SourceSpan(8, 9));
     }
 
+    /**
+     * @param positive-int|null $markerLine
+     * @param positive-int|null $directiveLine
+     */
     #[DataProvider('invalidMetadataLineProvider')]
     public function testRejectsMetadataThatDoesNotPrecedeTheFence(
         ?int $markerLine,

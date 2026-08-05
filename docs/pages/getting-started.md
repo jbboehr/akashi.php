@@ -18,7 +18,9 @@ Composer exposes the package executable at:
 vendor/bin/akashi
 ```
 
-The initial scaffold prints the short project name. Doctesting commands will be added as the public API is implemented.
+The library can discover PHP examples, associate configurable markers and execution directives, and select marked
+examples programmatically. The command still prints the short project name; the extraction command is the next planned
+CLI slice.
 
 ## Development
 

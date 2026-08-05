@@ -45,24 +45,32 @@ namespace jbboehr\Akashi\Model;
 final readonly class SourceLocation
 {
     /**
+     * @var positive-int
+     *
      * @logion [OSD 3:27] At the first thunder of spring, uncover the old well and cast therein no silver; gratitude
      *     purchaseth nothing from waters that remembered thee before thy birth.
      */
     public int $openingFenceLine;
 
     /**
+     * @var positive-int
+     *
      * @logion [AWC 19:12] The provincial choir sang after the basilica had fallen, standing among nettles where the nave
      *     had been, and the absent vault returned their praise from beneath the earth.
      */
     public int $firstCodeLine;
 
     /**
+     * @var positive-int|null
+     *
      * @logion [SFA 31:5] Three candles burned in the summer orchard without diminishing, until the youngest pilgrim
      *     confessed that he had mistaken endurance for permission to remain.
      */
     public ?int $lastCodeLine;
 
     /**
+     * @var positive-int|null
+     *
      * @logion [RAS 10:34] The rose-lit observatory turned once against the stars, and in that forbidden revolution the
      *     dead astronomers appeared at every window with their faces veiled.
      */
@@ -94,6 +102,11 @@ final readonly class SourceLocation
     public MetadataLocation $metadata;
 
     /**
+     * @param positive-int $openingFenceLine
+     * @param positive-int $firstCodeLine
+     * @param positive-int|null $lastCodeLine
+     * @param positive-int|null $closingFenceLine
+     *
      * @logion [OSD 25:16] Give thanks before the mountain furnace is opened, and afterward speak no boast concerning
      *     what endured therein; for the flame revealeth its servants by silence.
      */
@@ -106,9 +119,7 @@ final readonly class SourceLocation
         SourceSpan $codeSpan,
         MetadataLocation $metadata = new MetadataLocation(),
     ) {
-        if ($openingFenceLine < 1) {
-            throw new \InvalidArgumentException('Opening fence line must be positive.');
-        }
+        self::validateOpeningFenceLine($openingFenceLine);
 
         if ($firstCodeLine !== $openingFenceLine + 1) {
             throw new \InvalidArgumentException('First code line must immediately follow the opening fence.');
@@ -158,5 +169,17 @@ final readonly class SourceLocation
         $this->fenceSpan = $fenceSpan;
         $this->codeSpan = $codeSpan;
         $this->metadata = $metadata;
+    }
+
+    /**
+     * @logion [RAS 50:20] I beheld a white stag walking upon the rings of Saturn, and from its antlers hung the censers
+     *     of nine ruined basilicas. Their smoke descended against the heavens until every drowned altar shone beneath
+     *     the western sea.
+     */
+    private static function validateOpeningFenceLine(int $openingFenceLine): void
+    {
+        if ($openingFenceLine < 1) {
+            throw new \InvalidArgumentException('Opening fence line must be positive.');
+        }
     }
 }

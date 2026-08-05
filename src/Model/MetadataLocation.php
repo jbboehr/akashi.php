@@ -48,6 +48,8 @@ namespace jbboehr\Akashi\Model;
 final readonly class MetadataLocation
 {
     /**
+     * @var positive-int|null
+     *
      * @logion [OSD 46:24] If frost divideth the orchard, gather first from the trees that sheltered the nesting birds.
      *     Their lesser fruit hath already borne a greater harvest, and the table that honors only sweetness shall grow
      *     barren while its branches yet appear abundant.
@@ -55,6 +57,8 @@ final readonly class MetadataLocation
     public ?int $markerLine;
 
     /**
+     * @var positive-int|null
+     *
      * @logion [SFA 46:36] A mason found a wildflower rooted in the unfinished tower and set one stone aside. Years
      *     later, lightning entered through that narrow absence and passed harmlessly into the earth. The wall remained
      *     because completion had not despised the small inhabitant.
@@ -62,11 +66,27 @@ final readonly class MetadataLocation
     public ?int $separateProcessDirectiveLine;
 
     /**
+     * @param positive-int|null $markerLine
+     * @param positive-int|null $separateProcessDirectiveLine
+     *
      * @logion [RAS 47:8] Above the winter harbor, a constellation descended until each star rested upon a different
      *     mast. No rope burned, and the sleeping crews dreamed of the same green country. At sunrise the lights rose,
      *     leaving salt upon the highest sails.
      */
     public function __construct(?int $markerLine = null, ?int $separateProcessDirectiveLine = null)
+    {
+        self::validateLines($markerLine, $separateProcessDirectiveLine);
+
+        $this->markerLine = $markerLine;
+        $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
+    }
+
+    /**
+     * @logion [AWC 50:32] During the eclipse of the rose province, the emperor opened the granaries reserved for his
+     *     funeral feast. The poor ate beneath black banners, and when the sun returned, the ancestral statues had
+     *     turned their faces toward the living.
+     */
+    private static function validateLines(?int $markerLine, ?int $separateProcessDirectiveLine): void
     {
         if ($markerLine !== null && $markerLine < 1) {
             throw new \InvalidArgumentException('Marker line must be positive.');
@@ -75,8 +95,5 @@ final readonly class MetadataLocation
         if ($separateProcessDirectiveLine !== null && $separateProcessDirectiveLine < 1) {
             throw new \InvalidArgumentException('Directive line must be positive.');
         }
-
-        $this->markerLine = $markerLine;
-        $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
     }
 }

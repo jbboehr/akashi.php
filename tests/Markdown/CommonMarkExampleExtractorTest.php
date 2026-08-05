@@ -229,6 +229,23 @@ final class CommonMarkExampleExtractorTest extends TestCase
         self::assertNull($examples[0]->explicitMarkerId);
     }
 
+    public function testKeepsExampleIdentitiesUniqueBeyondTwoDigitOrdinals(): void
+    {
+        $document = new Document(
+            'docs/many-examples.md',
+            str_repeat("```php\necho 1;\n```\n\n", 100),
+        );
+        $examples = $this->extractor->extract($document);
+        $ids = array_map(static fn (Example $example): string => $example->id->value, $examples);
+
+        self::assertCount(100, $examples);
+        self::assertSame(99, $examples[98]->ordinal);
+        self::assertSame(100, $examples[99]->ordinal);
+        self::assertStringEndsWith('-99', $ids[98]);
+        self::assertStringEndsWith('-100', $ids[99]);
+        self::assertCount(100, array_unique($ids));
+    }
+
     private function fixture(string $path, string $file): Document
     {
         $contents = file_get_contents(__DIR__ . '/../Fixtures/Markdown/' . $file);

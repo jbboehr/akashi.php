@@ -107,16 +107,18 @@ final class ExampleTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new Example(
-            id: new ExampleId('example-01'),
-            label: $label,
-            document: new Document('docs/guide.md', ''),
-            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
-            language: new Language('php'),
-            code: new ExampleCode("echo 1;\n"),
-            fence: new FenceMetadata('php', '`', 3, 0),
-            ordinal: $ordinal,
-        );
+        $unexpectedExample = (new \ReflectionClass(Example::class))->newInstanceArgs([
+            new ExampleId('example-01'),
+            $label,
+            new Document('docs/guide.md', ''),
+            new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
+            new Language('php'),
+            new ExampleCode("echo 1;\n"),
+            new FenceMetadata('php', '`', 3, 0),
+            $ordinal,
+        ]);
+
+        self::fail('Unexpectedly constructed ' . $unexpectedExample::class . '.');
     }
 
     /**

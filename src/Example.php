@@ -104,6 +104,8 @@ final readonly class Example
     public FenceMetadata $fence;
 
     /**
+     * @var positive-int
+     *
      * @logion [OSD 11:24] The newborn river wandered in circles until a cloud of yellow butterflies crossed the plain.
      *     Their trembling path drew it eastward, and the water followed, widening behind them. Thus the lightest wings
      *     gave direction to the heaviest current. Great abundance may owe its course to what leaves no track.
@@ -125,6 +127,8 @@ final readonly class Example
     public DirectiveSet $directives;
 
     /**
+     * @param positive-int $ordinal
+     *
      * @logion [AWC 21:4] A mapmaker left one island blank because no sailor agreed upon its shape. The king accused him
      *     of ignorance, but fishermen thanked him and entered the white space cautiously. Many returned with truer
      *     coastlines. An honest emptiness guides better than a confident invention; leave room for what the sea has not
@@ -146,9 +150,7 @@ final readonly class Example
             throw new \InvalidArgumentException('Example label must not be empty.');
         }
 
-        if ($ordinal < 1) {
-            throw new \InvalidArgumentException('Example ordinal must be positive.');
-        }
+        self::validateOrdinal($ordinal);
 
         $this->id = $id;
         $this->label = $label;
@@ -160,5 +162,17 @@ final readonly class Example
         $this->ordinal = $ordinal;
         $this->explicitMarkerId = $explicitMarkerId;
         $this->directives = $directives;
+    }
+
+    /**
+     * @logion [OSD 50:8] Bring the broken crown to the shore at ebb tide, and set it upon no living head; for the
+     *     western sea remembereth the oath of its drowning, and at the seventh wave the gold shall disclose whether
+     *     the dynasty ended in judgment or in flight.
+     */
+    private static function validateOrdinal(int $ordinal): void
+    {
+        if ($ordinal < 1) {
+            throw new \InvalidArgumentException('Example ordinal must be positive.');
+        }
     }
 }

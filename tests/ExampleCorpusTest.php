@@ -126,6 +126,9 @@ final class ExampleCorpusTest extends TestCase
         );
     }
 
+    /**
+     * @param positive-int $ordinal
+     */
     private function example(string $id, string $path, int $ordinal, ?string $markerId = null): Example
     {
         return new Example(

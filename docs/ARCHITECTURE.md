@@ -98,17 +98,21 @@ not public mutable properties and not routine failure output.
 
 ### Runtime dependencies
 
-The proposed runtime dependencies are:
+The runtime dependencies are:
 
-| Package                | Proposed constraint | Purpose                                                                        |
-| ---------------------- | ------------------- | ------------------------------------------------------------------------------ |
-| `league/commonmark`    | `^2.8.3`            | Standards-compliant CommonMark block parsing and fenced-code AST nodes         |
-| `nikic/php-parser`     | `^5.8`              | PHP parsing, locations, AST validation, name resolution, and source transforms |
-| `symfony/process`      | `^7.4`              | Portable argument escaping, output capture, exit status, and process timeout   |
-| `composer-runtime-api` | `^2.2`              | Reliable Composer autoloader discovery from the installed CLI proxy            |
+| Package                | Constraint | Purpose                                                                        |
+| ---------------------- | ---------- | ------------------------------------------------------------------------------ |
+| `league/commonmark`    | `^2.8.3`   | Standards-compliant CommonMark block parsing and fenced-code AST nodes         |
+| `nikic/php-parser`     | `^5.8`     | PHP parsing, locations, AST validation, name resolution, and source transforms |
+| `symfony/process`      | `^7.4`     | Portable argument escaping, output capture, exit status, and process timeout   |
+| `composer-runtime-api` | `^2.2`     | Reliable Composer autoloader discovery from the installed CLI proxy            |
 
-The exact constraints must be validated through Composer before changing `composer.json`. They all support PHP 8.2 at
-the reviewed versions. Use caret constraints so compatible fixes remain installable.
+The constraints were validated through Composer before being added to `composer.json`. They all support PHP 8.2 at the
+reviewed versions. Caret constraints keep compatible fixes installable.
+
+`nikic/php-parser` and `symfony/process` were intentionally installed during the dependency slice before their first
+imports. This keeps the accepted MVP dependency set under continuous Composer and lowest-version validation;
+`nikic/php-parser` first becomes active in the transform slice and `symfony/process` in the separate-process slice.
 
 `league/commonmark` is intentionally preferred over a new Markdown implementation. Akashi needs CommonMark container,
 fence, info-string, and line-location behavior, not merely a regular expression that passes the current corpus. Akashi
@@ -243,9 +247,10 @@ Compatibility accessors for the current integer properties may remain until the 
 - examples are in deterministic document-path and block-ordinal order; and
 - the corpus is nonempty.
 
-It provides typed selection and filtering methods without exposing mutable arrays. Predicates use
-`Closure(Example): bool` PHPDoc signatures checked at PHPStan's maximum project level. Source loaders report an empty
-requested PHP corpus as a source error rather than constructing an invalid collection.
+`MarkedExampleSelector` provides the typed selection currently required by extraction consumers without exposing mutable
+arrays. General-purpose corpus filtering remains deferred until a concrete runtime or analyzer consumer establishes how
+an empty selection should be represented without weakening the corpus's nonempty invariant. Source loaders report an
+empty requested PHP corpus as a source error rather than constructing an invalid collection.
 
 ## Source and discovery design
 
@@ -268,21 +273,29 @@ nonempty ordered list of typed include and exclude rules.
 Discovery rules are:
 
 - explicit files and recursive directories are supported;
+- explicit file paths without the case-sensitive `.md` extension are rejected during configuration, while recursive
+  directory scans silently ignore non-Markdown files;
 - exclusion paths match either one project-relative path or an entire directory subtree and must exist when loaded;
 - only files ending in `.md`, compared case-sensitively, are selected in the MVP;
 - symlinked directories are not followed;
 - every resolved file must remain within the project root by default;
-- duplicate physical files reached through multiple includes are rejected rather than silently run twice;
+- duplicate physical files reached through multiple includes are rejected rather than silently run twice, subject to the
+  platform limitation below;
 - paths are normalized to `/` and sorted with bytewise lexical comparison; and
 - read, missing-root, duplicate, and empty-corpus failures have separate exception types.
 
 The owner accepted rejecting documentation outside the configured project root and not following directory symlinks for
 the MVP. Revisit this policy if a concrete monorepo integration requires shared documentation trees.
 
+Physical identity normally uses the device and inode reported by `stat()`. On platforms that report inode `0`, Akashi
+falls back to the canonical real path: duplicate paths still fail, but two distinct hard-link aliases to the same file
+may not be recognized as duplicates. A portable Windows file-index implementation remains deferred until Akashi has a
+Windows discovery test environment.
+
 The generated identity strategy remains compatible with Yumemi:
 
 ```text
-example-{first 12 hex characters of sha1(project-relative path)}-{two-digit ordinal}
+example-{first 12 hex characters of sha1(project-relative path)}-{decimal ordinal padded to at least two digits}
 ```
 
 The ordinal is per Markdown document and counts selected PHP fences as the existing harness does. An explicit marker ID

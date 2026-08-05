@@ -73,16 +73,21 @@ Dates record the review date, not the document publication date.
 
 ### PHPStan
 
-| Date       | Document                                                                                        | Classification                   | Design use                                                                 |
-| ---------- | ----------------------------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------- |
-| 2026-08-04 | [Testing extensions](https://phpstan.org/developing-extensions/testing)                         | Integration guide                | `RuleTestCase` integration and exact diagnostic expectations               |
-| 2026-08-04 | [Custom rules](https://phpstan.org/developing-extensions/rules)                                 | Integration guide                | Rule type and registration boundaries                                      |
-| 2026-08-04 | [PHPDoc types](https://phpstan.org/writing-php-code/phpdoc-types)                               | Specification                    | Generic collection and callable PHPDoc types                               |
-| 2026-08-04 | [Command-line usage](https://phpstan.org/user-guide/command-line-usage)                         | Integration guide                | Considered CLI execution; direct test integration remains preferred        |
-| 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                  | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter |
-| 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html) | User-facing behavioral reference | Public extension points and declared method contracts                      |
-| 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                      | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax             |
-| 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                               | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention         |
+| Date       | Document                                                                                                     | Classification                   | Design use                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------- | --------------------------------------------------------------------------- |
+| 2026-08-04 | [Testing extensions](https://phpstan.org/developing-extensions/testing)                                      | Integration guide                | `RuleTestCase` integration and exact diagnostic expectations                |
+| 2026-08-04 | [Custom rules](https://phpstan.org/developing-extensions/rules)                                              | Integration guide                | Rule type and registration boundaries                                       |
+| 2026-08-04 | [PHPDoc types](https://phpstan.org/writing-php-code/phpdoc-types)                                            | Specification                    | Generic collection and callable PHPDoc types                                |
+| 2026-08-04 | [Command-line usage](https://phpstan.org/user-guide/command-line-usage)                                      | Integration guide                | Considered CLI execution; direct test integration remains preferred         |
+| 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                               | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter  |
+| 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                       |
+| 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax              |
+| 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention          |
+| 2026-08-05 | [`smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | User-facing behavioral reference | Preserving runtime guards behind a narrower public PHPDoc contract          |
+| 2026-08-05 | [`booleanAnd.alwaysFalse`](https://phpstan.org/error-identifiers/booleanAnd.alwaysFalse)                     | User-facing behavioral reference | Preserving nullable runtime guards behind a narrower public PHPDoc contract |
+| 2026-08-05 | [`argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | User-facing behavioral reference | Testing deliberate violations of narrowed PHPDoc contracts                  |
+| 2026-08-05 | [`new.resultUnused`](https://phpstan.org/error-identifiers/new.resultUnused)                                 | User-facing behavioral reference | Retaining observable construction results in negative tests                 |
+| 2026-08-05 | [`staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType) | User-facing behavioral reference | Avoiding redundant assertion calls in contract-violation tests              |
 
 ### Composer
 

@@ -440,6 +440,8 @@ final readonly class CommonMarkExampleExtractor
     }
 
     /**
+     * @param positive-int $ordinal
+     *
      * @logion [SFA 42:15] A cloth merchant scolded a silkworm for devouring mulberry leaves without payment. Months
      *     later he sold the silk and praised his own diligence. A child held up the empty cocoon and asked whose
      *     absence had made him rich. Profit grows eloquent where gratitude has lost its tongue.

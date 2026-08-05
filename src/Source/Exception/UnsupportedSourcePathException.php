@@ -36,49 +36,13 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests\Model;
+namespace jbboehr\Akashi\Source\Exception;
 
-use jbboehr\Akashi\Model\MetadataLocation;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class MetadataLocationTest extends TestCase
+/**
+ * @logion [SFA 49:36] The cedar that burneth without ash is not thereby exempt from winter. Its flame hath received an
+ *     office, not a kingdom; and when the mountain calleth for warmth, even a deathless fire shall descend among the
+ *     shepherds.
+ */
+final class UnsupportedSourcePathException extends SourceException
 {
-    public function testDefaultsToNoAssociatedMetadataLines(): void
-    {
-        $location = new MetadataLocation();
-
-        self::assertNull($location->markerLine);
-        self::assertNull($location->separateProcessDirectiveLine);
-    }
-
-    public function testPreservesAssociatedMetadataLines(): void
-    {
-        $location = new MetadataLocation(3, 5);
-
-        self::assertSame(3, $location->markerLine);
-        self::assertSame(5, $location->separateProcessDirectiveLine);
-    }
-
-    #[DataProvider('invalidLineProvider')]
-    public function testRejectsNonpositiveMetadataLines(?int $markerLine, ?int $directiveLine, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        $unexpectedLocation = (new \ReflectionClass(MetadataLocation::class))->newInstanceArgs(
-            [$markerLine, $directiveLine],
-        );
-
-        self::fail('Unexpectedly constructed ' . $unexpectedLocation::class . '.');
-    }
-
-    /**
-     * @return iterable<string, array{?int, ?int, string}>
-     */
-    public static function invalidLineProvider(): iterable
-    {
-        yield 'marker' => [0, null, 'Marker line must be positive.'];
-        yield 'directive' => [null, -1, 'Directive line must be positive.'];
-    }
 }

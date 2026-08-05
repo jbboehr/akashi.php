@@ -51,8 +51,10 @@ use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourceReadException;
+use jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException;
 use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 use jbboehr\Akashi\Source\MarkdownSource;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class MarkdownSourceTest extends TestCase
@@ -222,16 +224,38 @@ final class MarkdownSourceTest extends TestCase
             ->loadDocuments();
     }
 
+    #[DataProvider('unsupportedConfiguredFileProvider')]
+    public function testRejectsConfiguredFilesWithoutTheCaseSensitiveMarkdownExtension(string $path): void
+    {
+        $this->expectException(UnsupportedSourcePathException::class);
+        $this->expectExceptionMessage(
+            'Configured Markdown file must use the case-sensitive .md extension: ' . $path . '.',
+        );
+
+        MarkdownSource::forProject($this->projectRoot)->includeFile($path);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsupportedConfiguredFileProvider(): iterable
+    {
+        yield 'non-Markdown extension' => ['docs/notes.txt'];
+        yield 'uppercase extension' => ['docs/UPPER.MD'];
+        yield 'extensionless path' => ['docs/guide'];
+        yield 'project root' => ['.'];
+    }
+
     public function testRejectsAConfiguredFileThatIsADirectory(): void
     {
-        self::assertTrue(mkdir($this->projectRoot . '/docs'));
+        self::assertTrue(mkdir($this->projectRoot . '/docs.md'));
 
         $this->expectException(SourcePathNotFoundException::class);
         $this->expectExceptionMessage(
-            'Configured Markdown file does not exist or is not a file: docs.',
+            'Configured Markdown file does not exist or is not a file: docs.md.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeFile('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->includeFile('docs.md')->loadDocuments();
     }
 
     public function testRejectsAMissingConfiguredDirectory(): void
