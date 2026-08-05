@@ -10,7 +10,8 @@ Akashi is a PHP project for testing examples embedded in documentation.
 
 ## Status
 
-The repository scaffold and package identities are established. The public doctesting API is under development.
+The package now has its immutable core model and deterministic Markdown document discovery. CommonMark extraction and
+the execution and verification integrations remain under development.
 
 ## Start Here
 

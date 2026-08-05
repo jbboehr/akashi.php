@@ -190,6 +190,8 @@ The value types have narrow purposes:
 
 - `DocumentPath` stores a slash-normalized, project-relative display path and rejects NUL bytes and traversal outside
   the configured root.
+- `ProjectPath` applies the same containment rules to configured files and directories and permits `.` for the project
+  root; discovery converts selected files to `DocumentPath` values.
 - `ExampleId` validates a deterministic file-safe identity.
 - `MarkerId` validates lowercase kebab-case author identities.
 - `MarkerName` validates configurable names such as `yumemi-example`.
@@ -266,6 +268,7 @@ nonempty ordered list of typed include and exclude rules.
 Discovery rules are:
 
 - explicit files and recursive directories are supported;
+- exclusion paths match either one project-relative path or an entire directory subtree and must exist when loaded;
 - only files ending in `.md`, compared case-sensitively, are selected in the MVP;
 - symlinked directories are not followed;
 - every resolved file must remain within the project root by default;

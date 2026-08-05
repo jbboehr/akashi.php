@@ -23,11 +23,13 @@ influence Akashi's design.
 
 These local materials are allowed inputs rather than external clean-room references:
 
-| Material                                                | Purpose                                                                                |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `tmp/imm.php` (`jbboehr/yumemi`)                        | Generic project scaffold and the current documentation-test behavior to migrate        |
-| `tmp/yumemi-apocrypha.php` (`jbboehr/yumemi-apocrypha`) | Generic project scaffold and the second current documentation-test behavior to migrate |
-| `docs/IMPLEMENTATION_HANDOFF.md`                        | Project scope, requirements, compatibility targets, and clean-room policy              |
+| Material                                                   | Purpose                                                                                |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `tmp/imm.php` (`jbboehr/yumemi`)                           | Generic project scaffold and the current documentation-test behavior to migrate        |
+| `tmp/yumemi-apocrypha.php` (`jbboehr/yumemi-apocrypha`)    | Generic project scaffold and the second current documentation-test behavior to migrate |
+| `tmp/imm.php/tests/Documentation/MarkdownExamples.php`     | Yumemi's document-manifest discovery behavior                                          |
+| `tmp/imm.php/tests/Documentation/MarkdownExamplesTest.php` | Manifest ordering, extension filtering, and exclusion fixtures                         |
+| `docs/IMPLEMENTATION_HANDOFF.md`                           | Project scope, requirements, compatibility targets, and clean-room policy              |
 
 The behavior inventory and independently derived compatibility decisions are recorded in `MIGRATING_YUMEMI.md`.
 
