@@ -42,3 +42,7 @@ technical documentation and assigned references. References must use one of `OSD
 `BOOK C:V`, and must be unique in this repository.
 
 Do not add or revise a logion on a preexisting declaration unless the user explicitly requests a doctrine pass.
+
+The logia introduced or revised by commit `899ac420055502e3e0c12c3f9980f1863d0e13b9` are designated higher-effort logia.
+Preserve their prose and assigned references during future general, repository-wide, or corpus-balancing rewrite passes.
+Do not submit them for regeneration unless the user explicitly instructs that those higher-effort logia are in scope.
