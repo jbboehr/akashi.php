@@ -41,6 +41,7 @@ namespace jbboehr\Akashi;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -88,6 +89,12 @@ final readonly class Example
     public ExampleCode $code;
 
     /**
+     * @logion [AWC 41:14] The queen's youngest gardener planted rosemary among the marble lions, and by winter each
+     *     silent mouth sheltered a nest of singing wrens.
+     */
+    public FenceMetadata $fence;
+
+    /**
      * @logion [OSD 11:24] A ring of blue salt surrounded the sleeping lion; at dawn the circle was unbroken, but the
      *     beast had vanished.
      */
@@ -116,6 +123,7 @@ final readonly class Example
         SourceLocation $location,
         Language $language,
         ExampleCode $code,
+        FenceMetadata $fence,
         int $ordinal,
         ?MarkerId $explicitMarkerId = null,
         DirectiveSet $directives = new DirectiveSet(),
@@ -134,6 +142,7 @@ final readonly class Example
         $this->location = $location;
         $this->language = $language;
         $this->code = $code;
+        $this->fence = $fence;
         $this->ordinal = $ordinal;
         $this->explicitMarkerId = $explicitMarkerId;
         $this->directives = $directives;

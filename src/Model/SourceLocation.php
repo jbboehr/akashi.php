@@ -69,6 +69,22 @@ final readonly class SourceLocation
     public ?int $closingFenceLine;
 
     /**
+     * Raw bytes from the opening line's start through the final block line's authored terminator, when present.
+     *
+     * @logion [OSD 41:20] The bronze lion before the western archive opened its mouth at midnight, and a flock of
+     *     sparrows emerged bearing grains from a harvest three centuries past.
+     */
+    public SourceSpan $fenceSpan;
+
+    /**
+     * Raw bytes for the code-content lines, including Markdown container prefixes and authored line terminators.
+     *
+     * @logion [RAS 41:2] At the ford of yellow stones, the ambassador removed his jeweled shoes and found the river
+     *     warmer than the bath prepared for him at the capital.
+     */
+    public SourceSpan $codeSpan;
+
+    /**
      * @logion [OSD 25:16] Give thanks before the mountain furnace is opened, and afterward speak no boast concerning
      *     what endured therein; for the flame revealeth its servants by silence.
      */
@@ -77,6 +93,8 @@ final readonly class SourceLocation
         int $firstCodeLine,
         ?int $lastCodeLine,
         ?int $closingFenceLine,
+        SourceSpan $fenceSpan,
+        SourceSpan $codeSpan,
     ) {
         if ($openingFenceLine < 1) {
             throw new \InvalidArgumentException('Opening fence line must be positive.');
@@ -97,9 +115,26 @@ final readonly class SourceLocation
             throw new \InvalidArgumentException('Closing fence line must immediately follow the code content.');
         }
 
+        if ($fenceSpan->startOffset === $fenceSpan->endOffsetExclusive) {
+            throw new \InvalidArgumentException('Fence source span must not be empty.');
+        }
+
+        if (
+            $codeSpan->startOffset < $fenceSpan->startOffset
+            || $codeSpan->endOffsetExclusive > $fenceSpan->endOffsetExclusive
+        ) {
+            throw new \InvalidArgumentException('Code source span must be contained within the fence source span.');
+        }
+
+        if ($lastCodeLine === null && $codeSpan->startOffset !== $codeSpan->endOffsetExclusive) {
+            throw new \InvalidArgumentException('An empty code location must have an empty source span.');
+        }
+
         $this->openingFenceLine = $openingFenceLine;
         $this->firstCodeLine = $firstCodeLine;
         $this->lastCodeLine = $lastCodeLine;
         $this->closingFenceLine = $closingFenceLine;
+        $this->fenceSpan = $fenceSpan;
+        $this->codeSpan = $codeSpan;
     }
 }

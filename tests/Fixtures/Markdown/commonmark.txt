@@ -1,0 +1,28 @@
+# CommonMark fence corpus
+
+````php extra
+<?php
+echo "```";
+`````
+
+   ~~~PHP container-metadata
+   <?php
+   echo 'indented';
+   ~~~~~
+
+> ```php quote
+> <?php
+> echo 'quoted';
+> ````
+
+```php8
+ignored();
+```
+
+```javascript
+ignored();
+```
+
+`````php unclosed
+<?php
+echo "```";

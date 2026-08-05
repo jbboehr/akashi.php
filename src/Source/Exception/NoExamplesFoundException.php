@@ -36,43 +36,12 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi;
-
-use jbboehr\Akashi\Model\DocumentPath;
-use jbboehr\Akashi\Model\LineIndex;
+namespace jbboehr\Akashi\Source\Exception;
 
 /**
- * @logion [OSD 4:18] Beneath the winter cedar, seven lamps endured the snow; when the thaw came, no hand could say who
- *     had tended them through the long darkness.
+ * @logion [AWC 43:22] The keeper of the desert shrine swept its threshold after every sandstorm, though no pilgrim had
+ *     crossed the surrounding waste within his lifetime.
  */
-final readonly class Document
+final class NoExamplesFoundException extends SourceException
 {
-    /**
-     * @logion [AWC 6:11] The bronze birds descended at noon, each bearing a scarlet thread; yet the youngest among them
-     *     cast hers into the sea and was not reproved.
-     */
-    public DocumentPath $path;
-
-    /**
-     * @logion [SFA 12:3] Three witnesses kept silence before the eastern fire, and their shadows alone answered the
-     *     questions of the assembled princes.
-     */
-    public string $contents;
-
-    /**
-     * @logion [SFA 40:8] A white fox crossed the vineyard at midsummer, and every vine it passed gave the scent of rain
-     *     upon stone though the sky remained cloudless.
-     */
-    public LineIndex $lines;
-
-    /**
-     * @logion [RAS 8:29] When the pale moon rested upon the orchard wall, the keeper opened every gate, for the fruit
-     *     had ripened beyond the reach of thieves.
-     */
-    public function __construct(DocumentPath|string $path, string $contents)
-    {
-        $this->path = is_string($path) ? new DocumentPath($path) : $path;
-        $this->contents = $contents;
-        $this->lines = new LineIndex($contents);
-    }
 }

@@ -39,6 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Model;
 
 use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -46,17 +47,21 @@ final class SourceLocationTest extends TestCase
 {
     public function testRepresentsAClosedNonemptyFence(): void
     {
-        $location = new SourceLocation(4, 5, 7, 8);
+        $location = new SourceLocation(4, 5, 7, 8, new SourceSpan(10, 50), new SourceSpan(20, 40));
 
         self::assertSame(4, $location->openingFenceLine);
         self::assertSame(5, $location->firstCodeLine);
         self::assertSame(7, $location->lastCodeLine);
         self::assertSame(8, $location->closingFenceLine);
+        self::assertSame(10, $location->fenceSpan->startOffset);
+        self::assertSame(50, $location->fenceSpan->endOffsetExclusive);
+        self::assertSame(20, $location->codeSpan->startOffset);
+        self::assertSame(40, $location->codeSpan->endOffsetExclusive);
     }
 
     public function testRepresentsAClosedEmptyFence(): void
     {
-        $location = new SourceLocation(4, 5, null, 5);
+        $location = new SourceLocation(4, 5, null, 5, new SourceSpan(10, 30), new SourceSpan(20, 20));
 
         self::assertNull($location->lastCodeLine);
         self::assertSame(5, $location->closingFenceLine);
@@ -64,7 +69,7 @@ final class SourceLocationTest extends TestCase
 
     public function testRepresentsAnUnclosedFence(): void
     {
-        $location = new SourceLocation(4, 5, 7, null);
+        $location = new SourceLocation(4, 5, 7, null, new SourceSpan(10, 40), new SourceSpan(20, 40));
 
         self::assertSame(7, $location->lastCodeLine);
         self::assertNull($location->closingFenceLine);
@@ -81,7 +86,14 @@ final class SourceLocationTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new SourceLocation($opening, $first, $last, $closing);
+        new SourceLocation(
+            $opening,
+            $first,
+            $last,
+            $closing,
+            new SourceSpan(0, 10),
+            new SourceSpan(2, $last === null ? 2 : 8),
+        );
     }
 
     /**
@@ -95,5 +107,29 @@ final class SourceLocationTest extends TestCase
         yield 'empty fence gap' => [1, 2, null, 3, 'Closing fence line must immediately follow the code content.'];
         yield 'closing fence gap' => [1, 2, 2, 4, 'Closing fence line must immediately follow the code content.'];
         yield 'closing fence overlaps code' => [1, 2, 3, 3, 'Closing fence line must immediately follow the code content.'];
+    }
+
+    public function testRejectsAnEmptyFenceSpan(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Fence source span must not be empty.');
+
+        new SourceLocation(1, 2, null, 2, new SourceSpan(4, 4), new SourceSpan(4, 4));
+    }
+
+    public function testRejectsACodeSpanOutsideTheFenceSpan(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Code source span must be contained within the fence source span.');
+
+        new SourceLocation(1, 2, 2, 3, new SourceSpan(4, 20), new SourceSpan(3, 12));
+    }
+
+    public function testRejectsANonemptySpanForAnEmptyCodeLocation(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('An empty code location must have an empty source span.');
+
+        new SourceLocation(1, 2, null, 2, new SourceSpan(4, 20), new SourceSpan(8, 9));
     }
 }

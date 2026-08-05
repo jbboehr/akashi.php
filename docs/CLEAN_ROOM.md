@@ -164,6 +164,13 @@ PHPStan is an explicitly allowed integration platform, not a competing doctest f
 unnecessary for this design task. The excerpt was disregarded; no implementation detail from it was incorporated. The
 architecture relies only on PHPStan's official testing guide and public class API listed above.
 
+On 2026-08-05, a broad local symbol search intended to locate League CommonMark's installed public node types also
+returned source filenames, public method declarations, and a few call-site lines mentioning `getStartLine()`,
+`getEndLine()`, `getInfo()`, `getInfoWords()`, and `getLiteral()`. No parser implementation was opened or analyzed, and
+no algorithm or implementation structure from those results was used. League CommonMark is an allowed general-purpose
+dependency, but the exposed source lines were disregarded; extraction work continued from its official documentation,
+the CommonMark specification, and runtime reflection of public APIs.
+
 No competing PHP doctest documentation or prohibited implementation material was accidentally exposed.
 
 ## Current dependency status

@@ -44,9 +44,11 @@ use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -57,9 +59,10 @@ final class ExampleTest extends TestCase
         $document = new Document('docs/guide.md', "```php\r\necho 1;\r\n```\r\n");
         $source = "<?php\r\n\r\necho 1;\r\n";
         $id = new ExampleId('example-a1b2c3-01');
-        $location = new SourceLocation(1, 2, 2, 3);
+        $location = new SourceLocation(1, 2, 2, 3, new SourceSpan(0, 25), new SourceSpan(8, 17));
         $language = new Language(' PHP ');
         $code = new ExampleCode($source);
+        $fence = new FenceMetadata('php extra', '`', 3, 0);
         $markerId = new MarkerId('selected-example');
         $directives = new DirectiveSet(Directive::SeparateProcess);
         $example = new Example(
@@ -69,6 +72,7 @@ final class ExampleTest extends TestCase
             location: $location,
             language: $language,
             code: $code,
+            fence: $fence,
             ordinal: 1,
             explicitMarkerId: $markerId,
             directives: $directives,
@@ -82,6 +86,7 @@ final class ExampleTest extends TestCase
         self::assertSame('php', $example->language->value);
         self::assertSame($code, $example->code);
         self::assertSame($source, $example->code->source);
+        self::assertSame($fence, $example->fence);
         self::assertSame(1, $example->ordinal);
         self::assertSame($markerId, $example->explicitMarkerId);
         self::assertSame($directives, $example->directives);
@@ -106,9 +111,10 @@ final class ExampleTest extends TestCase
             id: new ExampleId('example-01'),
             label: $label,
             document: new Document('docs/guide.md', ''),
-            location: new SourceLocation(1, 2, null, 2),
+            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
             language: new Language('php'),
             code: new ExampleCode("echo 1;\n"),
+            fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: $ordinal,
         );
     }
@@ -128,9 +134,10 @@ final class ExampleTest extends TestCase
             id: new ExampleId('example-guide-01'),
             label: 'docs/guide.md PHP example 1',
             document: new Document('docs/guide.md', ''),
-            location: new SourceLocation(1, 2, null, 2),
+            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
             language: new Language('php'),
             code: new ExampleCode("echo 1;\n"),
+            fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: 1,
         );
     }

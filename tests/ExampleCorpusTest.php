@@ -43,9 +43,11 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\TestCase;
 
 final class ExampleCorpusTest extends TestCase
@@ -130,9 +132,10 @@ final class ExampleCorpusTest extends TestCase
             id: new ExampleId($id),
             label: sprintf('%s PHP example %d', $path, $ordinal),
             document: new Document($path, ''),
-            location: new SourceLocation(1, 2, null, 2),
+            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
             language: new Language('php'),
             code: new ExampleCode("echo 1;\n"),
+            fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: $ordinal,
             explicitMarkerId: $markerId === null ? null : new MarkerId($markerId),
         );

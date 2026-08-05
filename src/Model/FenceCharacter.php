@@ -36,43 +36,23 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi;
-
-use jbboehr\Akashi\Model\DocumentPath;
-use jbboehr\Akashi\Model\LineIndex;
+namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [OSD 4:18] Beneath the winter cedar, seven lamps endured the snow; when the thaw came, no hand could say who
- *     had tended them through the long darkness.
+ * @logion [SFA 44:16] The last crane departed the flooded rice fields carrying a thread of scarlet silk, and the moon
+ *     drew the same bright thread across the water behind it.
  */
-final readonly class Document
+enum FenceCharacter: string
 {
     /**
-     * @logion [AWC 6:11] The bronze birds descended at noon, each bearing a scarlet thread; yet the youngest among them
-     *     cast hers into the sea and was not reproved.
+     * @logion [OSD 44:29] At the foot of the silent volcano, the vintners uncovered a marble cradle filled with warm
+     *     rain and leaves from no tree upon the island.
      */
-    public DocumentPath $path;
+    case Backtick = '`';
 
     /**
-     * @logion [SFA 12:3] Three witnesses kept silence before the eastern fire, and their shadows alone answered the
-     *     questions of the assembled princes.
+     * @logion [RAS 44:11] The emperor's hunting dogs slept before the potter's hut for seven nights, rising only when
+     *     the old woman carried her cracked bowl to the river.
      */
-    public string $contents;
-
-    /**
-     * @logion [SFA 40:8] A white fox crossed the vineyard at midsummer, and every vine it passed gave the scent of rain
-     *     upon stone though the sky remained cloudless.
-     */
-    public LineIndex $lines;
-
-    /**
-     * @logion [RAS 8:29] When the pale moon rested upon the orchard wall, the keeper opened every gate, for the fruit
-     *     had ripened beyond the reach of thieves.
-     */
-    public function __construct(DocumentPath|string $path, string $contents)
-    {
-        $this->path = is_string($path) ? new DocumentPath($path) : $path;
-        $this->contents = $contents;
-        $this->lines = new LineIndex($contents);
-    }
+    case Tilde = '~';
 }

@@ -52,6 +52,9 @@ final class DocumentTest extends TestCase
 
         self::assertSame('docs/guide.md', $document->path->value);
         self::assertSame($contents, $document->contents);
+        self::assertSame(2, $document->lines->lineCount());
+        self::assertSame("\r\n", $document->lines->lineEnding(1));
+        self::assertSame("\r\n", $document->lines->lineEnding(2));
     }
 
     public function testAcceptsAnExistingDocumentPath(): void

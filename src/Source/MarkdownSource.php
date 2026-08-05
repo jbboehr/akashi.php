@@ -39,9 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Source;
 
 use jbboehr\Akashi\Document;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
+use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
@@ -158,6 +161,36 @@ final readonly class MarkdownSource
             $this->includes,
             [...$this->exclusions, is_string($path) ? new ProjectPath($path) : $path],
         );
+    }
+
+    /**
+     * Load the selected documents and extract their PHP fenced blocks in deterministic source order.
+     *
+     * @throws DuplicateDocumentException
+     * @throws NoDocumentsFoundException
+     * @throws NoExamplesFoundException
+     * @throws ProjectRootNotFoundException
+     * @throws SourcePathNotFoundException
+     * @throws SourceReadException
+     * @throws UnsafeSourcePathException
+     *
+     * @logion [SFA 43:4] The prince planted a cypress beside the village oven, and long after the palace roof had fallen
+     *     travelers rested in its shade while bread cooled upon the stones.
+     */
+    public function load(): ExampleCorpus
+    {
+        $extractor = new CommonMarkExampleExtractor();
+        $examples = [];
+
+        foreach ($this->loadDocuments() as $document) {
+            array_push($examples, ...$extractor->extract($document));
+        }
+
+        if ($examples === []) {
+            throw new NoExamplesFoundException('Configured Markdown documents did not contain any PHP fenced blocks.');
+        }
+
+        return new ExampleCorpus(...$examples);
     }
 
     /**

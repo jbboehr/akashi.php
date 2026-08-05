@@ -36,43 +36,43 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi;
-
-use jbboehr\Akashi\Model\DocumentPath;
-use jbboehr\Akashi\Model\LineIndex;
+namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [OSD 4:18] Beneath the winter cedar, seven lamps endured the snow; when the thaw came, no hand could say who
- *     had tended them through the long darkness.
+ * A half-open byte range within a document.
+ *
+ * @logion [OSD 36:7] At the marriage feast a falcon descended bearing a sprig of myrtle, and the bride placed it
+ *     beside the untouched cup before any musician had entered the court.
  */
-final readonly class Document
+final readonly class SourceSpan
 {
     /**
-     * @logion [AWC 6:11] The bronze birds descended at noon, each bearing a scarlet thread; yet the youngest among them
-     *     cast hers into the sea and was not reproved.
+     * @logion [RAS 36:19] The shepherdess found a crown beneath the roots of the storm-felled oak, yet carried home
+     *     only the acorns that had fallen into her apron.
      */
-    public DocumentPath $path;
+    public int $startOffset;
 
     /**
-     * @logion [SFA 12:3] Three witnesses kept silence before the eastern fire, and their shadows alone answered the
-     *     questions of the assembled princes.
+     * @logion [AWC 36:31] Seven swans crossed the copper sky in silence, and their reflections remained upon the lake
+     *     until the first winter stars appeared.
      */
-    public string $contents;
+    public int $endOffsetExclusive;
 
     /**
-     * @logion [SFA 40:8] A white fox crossed the vineyard at midsummer, and every vine it passed gave the scent of rain
-     *     upon stone though the sky remained cloudless.
+     * @logion [SFA 36:12] Beneath the abandoned mint, children discovered a chamber of white sand where every footprint
+     *     vanished before the foot was lifted.
      */
-    public LineIndex $lines;
-
-    /**
-     * @logion [RAS 8:29] When the pale moon rested upon the orchard wall, the keeper opened every gate, for the fruit
-     *     had ripened beyond the reach of thieves.
-     */
-    public function __construct(DocumentPath|string $path, string $contents)
+    public function __construct(int $startOffset, int $endOffsetExclusive)
     {
-        $this->path = is_string($path) ? new DocumentPath($path) : $path;
-        $this->contents = $contents;
-        $this->lines = new LineIndex($contents);
+        if ($startOffset < 0) {
+            throw new \InvalidArgumentException('Source span start offset must not be negative.');
+        }
+
+        if ($endOffsetExclusive < $startOffset) {
+            throw new \InvalidArgumentException('Source span end offset must not precede its start offset.');
+        }
+
+        $this->startOffset = $startOffset;
+        $this->endOffsetExclusive = $endOffsetExclusive;
     }
 }

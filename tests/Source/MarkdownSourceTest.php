@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Document;
+use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
 use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
+use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourceReadException;
@@ -430,6 +432,37 @@ final class MarkdownSourceTest extends TestCase
         } finally {
             self::assertTrue(chmod($this->projectRoot . '/docs/private', 0o700));
         }
+    }
+
+    public function testLoadsADeterministicallyOrderedExampleCorpus(): void
+    {
+        $this->write('docs/z.md', "```php\necho 'z';\n```\n");
+        $this->write('docs/a.md', "```php\necho 'a1';\n```\n\n```PHP extra\necho 'a2';\n```\n");
+
+        $corpus = MarkdownSource::forProject($this->projectRoot)
+            ->includeDirectory('docs')
+            ->load();
+        $examples = iterator_to_array($corpus);
+
+        self::assertCount(3, $corpus);
+        self::assertSame(
+            ['docs/a.md PHP example 1', 'docs/a.md PHP example 2', 'docs/z.md PHP example 1'],
+            array_map(static fn (Example $example): string => $example->label, $examples),
+        );
+        self::assertSame(
+            ["echo 'a1';\n", "echo 'a2';\n", "echo 'z';\n"],
+            array_map(static fn (Example $example): string => $example->code->source, $examples),
+        );
+    }
+
+    public function testRejectsAnEmptyPhpExampleCorpusSeparatelyFromAnEmptyDocumentManifest(): void
+    {
+        $this->write('docs/guide.md', "# Guide\n\n```javascript\nignored();\n```\n");
+
+        $this->expectException(NoExamplesFoundException::class);
+        $this->expectExceptionMessage('Configured Markdown documents did not contain any PHP fenced blocks.');
+
+        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->load();
     }
 
     /**
