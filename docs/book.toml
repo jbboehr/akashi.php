@@ -1,0 +1,30 @@
+[book]
+title = "Akashi"
+authors = ["John Boehr and contributors"]
+description = "Executable documentation testing for PHP."
+language = "en"
+src = "pages"
+
+[build]
+build-dir = "../build/docs"
+create-missing = false
+
+[output.html]
+additional-css = ["theme/akashi.css"]
+additional-js = ["theme/akashi.js"]
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
+no-section-label = true
+git-repository-url = "https://github.com/jbboehr/akashi.php"
+git-repository-icon = "fab-github"
+edit-url-template = "https://github.com/jbboehr/akashi.php/edit/master/docs/{path}"
+site-url = "/akashi.php/"
+sidebar-header-nav = true
+
+[output.html.fold]
+enable = false
+
+[output.html.search]
+enable = true
+heading-split-level = 3
+use-boolean-and = true

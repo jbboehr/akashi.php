@@ -1,0 +1,27 @@
+* text=auto
+
+composer.lock linguist-generated
+
+.codex export-ignore
+.dvc export-ignore
+.editorconfig export-ignore
+.envrc export-ignore
+.gitattributes export-ignore
+.github export-ignore
+.gitignore export-ignore
+.php-cs-fixer.dist.php export-ignore
+AGENTS.md export-ignore
+composer.lock export-ignore
+docs/DOCTRINE-CODING-GUIDE.md export-ignore
+docs/DOCTRINE-IMAGE-GUIDE.md export-ignore
+docs/DOCTRINE-STYLE-GUIDE.md export-ignore
+docs/IMPLEMENTATION_HANDOFF.md export-ignore
+docs/development export-ignore
+docs/pages/images/logia export-ignore
+docs/pages/images/logia/** export-ignore
+infection.json5.dist export-ignore
+phpstan.neon.dist export-ignore
+phpunit.branch.xml.dist export-ignore
+phpunit.xml.dist export-ignore
+secrets export-ignore
+tests export-ignore

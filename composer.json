@@ -1,0 +1,102 @@
+{
+    "name": "jbboehr/akashi",
+    "description": "Executable documentation testing for PHP.",
+    "type": "library",
+    "license": "AGPL-3.0-only WITH romic-exception",
+    "homepage": "https://github.com/jbboehr/akashi.php",
+    "support": {
+        "issues": "https://github.com/jbboehr/akashi.php/issues",
+        "source": "https://github.com/jbboehr/akashi.php"
+    },
+    "authors": [
+        {
+            "name": "John Boehr",
+            "email": "jbboehr@gmail.com"
+        }
+    ],
+    "archive": {
+        "exclude": [
+            "/.codex",
+            "/.dvc",
+            "/.direnv",
+            "/.envrc",
+            "/.github",
+            "/.gitignore",
+            "/.idea",
+            "/.php-cs-fixer.cache",
+            "/.php-cs-fixer.dist.php",
+            "/.phpunit.cache",
+            "/.pre-commit-cache",
+            "/.pre-commit-config.yaml",
+            "/AGENTS.md",
+            "/Makefile",
+            "/build",
+            "/clover.xml",
+            "/composer.lock",
+            "/coverage",
+            "/docs/DOCTRINE-CODING-GUIDE.md",
+            "/docs/DOCTRINE-IMAGE-GUIDE.md",
+            "/docs/DOCTRINE-STYLE-GUIDE.md",
+            "/docs/IMPLEMENTATION_HANDOFF.md",
+            "/docs/book.toml",
+            "/docs/development",
+            "/docs/theme",
+            "/flake.lock",
+            "/flake.nix",
+            "/infection.json5.dist",
+            "/*.log",
+            "/phpstan.neon.dist",
+            "/phpunit.branch.xml.dist",
+            "/phpunit.xml.dist",
+            "/result*",
+            "/secrets",
+            "/tests",
+            "/tmp",
+            "/vendor"
+        ]
+    },
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "jbboehr\\Akashi\\": "src"
+        }
+    },
+    "bin": [
+        "bin/akashi"
+    ],
+    "require-dev": {
+        "ext-dom": "*",
+        "friendsofphp/php-cs-fixer": "^3",
+        "infection/infection": "^0.32.6",
+        "phpstan/phpstan": "^2.2.5",
+        "phpstan/phpstan-phpunit": "^2.0.13",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "jbboehr\\Akashi\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "coverage:branch": "make coverage-branch",
+        "cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+        "docs": "make docs",
+        "docs:check": "make docs-check",
+        "docs:serve": "make docs-serve",
+        "infection": "infection --no-progress",
+        "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90"
+    },
+    "_comment": [
+        "Think not that I am come to send peace on earth: I came not to send peace, but a sword. Matthew 10:34"
+    ],
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        },
+        "sort-packages": true
+    }
+}

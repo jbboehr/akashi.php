@@ -1,0 +1,812 @@
+# Build Akashi: Executable Documentation Testing for PHP
+
+You are implementing the initial usable version of a standalone PHP framework for testing code examples embedded in documentation.
+
+The project is provisionally named:
+
+> **Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜**
+
+Use the following package identity:
+
+* Repository: `akashi.php`
+* Composer package: `jbboehr/akashi`
+* PHP namespace: `jbboehr\Akashi`
+* CLI executable: `vendor/bin/akashi`
+* Short project name: **Akashi**
+
+The immediate objective is to extract and generalize the documentation-testing machinery currently duplicated or embedded in:
+
+* `jbboehr/yumemi.php`
+* `jbboehr/yumemi-apocrypha.php`
+
+The resulting package must replace all documentation-example functionality currently required by Yumemi and Yumemi Apocrypha while remaining generic enough for unrelated PHP projects.
+
+Do not stop after writing a design document. Implement the first working version, test it thoroughly, and integrate it with the local Yumemi repositories when they are available.
+
+## Clean-room restriction
+
+This restriction is non-negotiable.
+
+Do **not** inspect, clone, install for inspection, browse, open, search, or otherwise examine the implementation code of any existing documentation-test framework, including:
+
+* `testflowlabs/doctest`
+* `texthtml/doctest`
+* `monadial/phpunit-docrunner`
+* `hoaproject/Kitab`
+* Cargo or rustdoc’s doctest implementation
+* any other PHP doctest package discovered during the task
+
+Do not:
+
+* open their source files on GitHub;
+* inspect their installed files under `vendor/`;
+* copy their tests;
+* use code search against their repositories;
+* ask another agent to inspect or summarize their implementation;
+* derive class structures or algorithms from their source;
+* indirectly obtain implementation details from generated summaries, mirrors, package archives, or another model.
+
+Their names are provided only as prior-art labels for the deferred feature list below. Work entirely from the requirements in this prompt.
+
+You **may** inspect and adapt code from projects owned by the user, particularly:
+
+* `jbboehr/yumemi.php`
+* `jbboehr/yumemi-apocrypha.php`
+
+You may also consult official documentation and specifications for PHP, PHPUnit, PHPStan, Composer, CommonMark, and ordinary supporting libraries.
+
+Using normal third-party parser or process libraries is allowed, provided you are not using an existing doctest framework or copying its implementation.
+
+Create `docs/CLEAN_ROOM.md` recording:
+
+* the prohibited projects;
+* that none of their implementation code was consulted;
+* the allowed reference materials actually used;
+* any dependencies introduced;
+* why each dependency does not violate this restriction;
+* any accidental exposure to prohibited implementation details, should one occur.
+
+If prohibited implementation code is accidentally encountered, stop, record exactly what was seen, and report it before proceeding.
+
+## Repository and compatibility constraints
+
+Read every applicable `AGENTS.md` before modifying a repository.
+
+Respect existing package metadata, code style, licensing, and contributor instructions. Do not make a new licensing decision.
+
+Target:
+
+* PHP 8.2 and later;
+* PHPUnit 11.5 for the initial integration;
+* current PHPStan 2.x versions used by Yumemi;
+* strict types;
+* static analysis at the repository’s normal maximum level;
+* the coding standards already established in the repository.
+
+Configure CI for PHP 8.2 through the newest supported version where practical.
+
+Run all versions available in the local environment and configure the remaining matrix rather than pretending they were run.
+
+Do not require PHP 8.4-only syntax or dependencies.
+
+## Design philosophy
+
+Rust doctest terminology and behavior may be used as inspiration where it maps cleanly to PHP.
+
+Do not mechanically reproduce Rust-specific idioms, architecture, syntax, or naming.
+
+Prefer conventional PHP, Composer, PHPUnit, and PHPStan designs when they are:
+
+* clearer;
+* more ergonomic;
+* easier to integrate into existing PHP projects;
+* compatible with PHP’s runtime model;
+* statically analyzable;
+* sound and type-safe.
+
+Where multiple designs are plausible, favor the design that is explicit, sound, statically analyzable, and type-safe rather than the one that most closely resembles Rust.
+
+Rust-style names such as `should_panic`, `no_run`, and `compile_fail` are provisional descriptions of behavior, not mandated public API names. Choose PHP-idiomatic terminology when those features are eventually implemented.
+
+Avoid stringly typed internal APIs where enums, immutable value objects, discriminated object types, or explicit interfaces would be safer.
+
+Do not use PHPDoc generics as a substitute for a sound object model when a concrete type can reasonably represent the concept.
+
+## Core design principle
+
+Separate these concerns:
+
+1. **Sources** discover documentation examples.
+2. **Examples** represent extracted source code and metadata.
+3. **Transforms** prepare examples without deciding how they are executed.
+4. **Executors** run examples.
+5. **Verifiers** enforce runtime, static-analysis, or other contracts.
+6. **Integrations** expose results through PHPUnit, CLI tools, or future runners.
+
+Do not build a monolithic Markdown runner.
+
+A suitable central value object should contain at least:
+
+* stable generated ID;
+* human-readable label;
+* original file path;
+* start line;
+* end line;
+* language;
+* unmodified source code;
+* parsed directives or metadata;
+* optional explicit marker ID;
+* document-relative block ordinal.
+
+The exact class names are your decision.
+
+Prefer:
+
+* small immutable value objects;
+* explicit interfaces;
+* constructor validation;
+* readonly state where appropriate;
+* composition over inheritance;
+* public APIs that prevent invalid states where reasonably possible.
+
+Avoid:
+
+* a service container;
+* global mutable registries;
+* loosely structured associative arrays across public boundaries;
+* elaborate configuration frameworks;
+* speculative abstractions unsupported by a current use case.
+
+The same extracted example must be capable of being passed to multiple independent verifiers without reparsing the source document.
+
+## Required MVP functionality
+
+### 1. Markdown document discovery
+
+Provide a programmatic Markdown source capable of reproducing Yumemi’s current document manifest:
+
+* include the project-root `README.md`;
+* recursively include Markdown files under `docs/pages/`;
+* exclude `docs/pages/SUMMARY.md`;
+* ignore non-Markdown files;
+* return documents and examples in deterministic lexical order;
+* fail clearly when configured roots do not exist;
+* fail clearly when no PHP examples are found.
+
+Do not hardcode that layout into the core abstraction. It must be expressible through configured files, directories, and exclusions.
+
+Support the fenced PHP blocks actually present in Yumemi and Yumemi Apocrypha.
+
+Use a sufficiently correct Markdown parser or purpose-built fence scanner so that fence-like text inside another fenced block is not interpreted as a separate example.
+
+Preserve:
+
+* code exactly as documented;
+* original file location;
+* starting line;
+* ending line;
+* block ordinal within the document;
+* fence metadata needed by Akashi directives.
+
+Support ordinary `php` fenced blocks with or without an explicit `<?php` opening tag.
+
+Preserve Yumemi’s current deterministic implicit identity behavior where compatibility requires it, but retain explicit marker IDs separately.
+
+Document the distinction between:
+
+* an implicit generated example identity;
+* an explicit author-assigned marker identity.
+
+Generated identities should remain deterministic across runs when the relevant document structure has not changed.
+
+### 2. Marked-example extraction
+
+Replace the duplicated `MarkedCodeBlockExtractor` implementations and their CLI wrappers.
+
+The existing syntax must continue to work without modifying current documentation:
+
+```html
+<!-- yumemi-example: selected-example -->
+```
+
+followed by a PHP fence.
+
+Requirements:
+
+* marker names must be configurable rather than permanently hardcoding `yumemi-example` into the generic core;
+* IDs must follow the existing lowercase kebab-case rule;
+* extraction must require exactly one matching PHP block;
+* missing IDs must fail;
+* duplicate IDs must fail;
+* invalid IDs must fail before reading or searching the document;
+* a marker not followed by a suitable PHP block must fail clearly;
+* returned code must preserve its PHP opening tag;
+* returned code must end with exactly one newline;
+* expose both a programmatic selector and a CLI command;
+* stdout must contain only extracted code on success;
+* stderr must contain a useful error on failure;
+* CLI usage errors and extraction failures must have stable, distinct nonzero exit statuses.
+
+A target command may resemble:
+
+```console
+vendor/bin/akashi extract \
+    --marker-name=yumemi-example \
+    docs/pages/integrations.md \
+    illuminate-cache-invalid
+```
+
+The exact CLI spelling may be refined, but update the Yumemi consumer scripts consistently.
+
+Do not make the extractor depend on PHPUnit.
+
+### 3. Runtime verification
+
+Runtime examples must execute **in-process by default**.
+
+Provide a PHPUnit integration that allows each extracted example to appear as an independently named PHPUnit test or data set with useful source information.
+
+The in-process executor must reproduce Yumemi’s current guarantees:
+
+* parse the example before execution;
+* rewrite native `assert(EXPR)` calls into unconditional PHPUnit assertions so behavior does not depend on `zend.assertions`;
+* register rewritten assertions with PHPUnit;
+* preserve custom assertion descriptions where currently supported or reasonably possible;
+* isolate declarations from other examples using a deterministic unique namespace or an equivalently safe mechanism;
+* isolate top-level variables from `$GLOBALS`, such as by evaluating inside a closure;
+* capture output without leaking it into PHPUnit;
+* restore all output buffers correctly after success or failure;
+* catch `Throwable`;
+* report the original Markdown path, block identity, and source line on failure;
+* ensure examples containing no assertions are not reported as risky PHPUnit tests;
+* avoid collisions when two examples declare functions or classes with the same name;
+* use the project’s normal Composer bootstrap.
+
+Preserve user-authored imports and ordinary PHP name resolution as closely as practical.
+
+Add explicit tests for:
+
+* namespace-sensitive behavior;
+* qualified and unqualified names;
+* imported classes and functions;
+* examples containing declarations;
+* examples containing return statements or unsupported top-level control flow.
+
+Do not silently skip an example that cannot be transformed safely. Produce a precise unsupported-example error containing its source location.
+
+Keep transformed source available for debugging, but do not normally expose generated implementation details in user-facing output.
+
+### 4. Opt-in subprocess execution
+
+Implement a minimal subprocess executor as an alternative backend, but do **not** make it the default.
+
+An individual example or configured group must be able to opt into subprocess execution through:
+
+* programmatic configuration; and
+* one documented Markdown directive.
+
+Prefer an unobtrusive HTML comment immediately associated with the fence, for example:
+
+```html
+<!-- akashi: process -->
+```
+
+The exact directive grammar may be refined, but keep it small, deterministic, and documented.
+
+Do not use a Rust-specific directive name merely for familiarity.
+
+The initial subprocess backend only needs to:
+
+* use the current `PHP_BINARY`;
+* load the configured Composer or project bootstrap file;
+* execute the selected example;
+* capture stdout;
+* capture stderr;
+* capture exit status;
+* detect assertion failures;
+* set startup options so native assertions execute reliably;
+* report failures through the same high-level result abstraction as the in-process executor;
+* prevent `exit()` or `die()` in the example from killing PHPUnit;
+* clean temporary files after success and failure.
+
+Add a test proving subprocess execution actually uses another process, such as by comparing process IDs.
+
+Advanced process configuration is deferred.
+
+### 5. PHPStan documentation verification
+
+Provide a reusable PHPStan integration that reproduces Yumemi’s current documentation contract.
+
+Yumemi currently treats selected PHP fences as PHPStan fixtures.
+
+Within those blocks:
+
+```php
+//! expected diagnostic substring
+offendingCall();
+```
+
+means that PHPStan must report an error whose message or tip contains the supplied substring.
+
+Required behavior:
+
+* allow the consuming project to select PHPStan-relevant examples with a predicate or configured token list;
+* support Yumemi’s current relevance tokens:
+
+  * `unit_int<`
+  * `unit_float<`
+  * `Quantity<'`
+  * `@yumemi-`
+  * `//!`
+* extract ordered `//!` expectations;
+* analyze each example independently using the consumer’s real PHPStan container and configuration;
+* permit a consuming `RuleTestCase` to provide the rule being tested;
+* load Yumemi’s actual additional PHPStan configuration files;
+* preserve the current need to make example-local declarations visible to PHP reflection before analysis;
+* require the actual diagnostic count to equal the number of markers;
+* match every expected substring against the combined PHPStan message and tip;
+* require relevant examples without `//!` markers to analyze cleanly;
+* preserve expectation order where the current harness depends on it;
+* produce a useful report showing expected and actual diagnostics;
+* clean temporary files even when analysis fails.
+
+Keep PHPStan-specific code in an integration namespace or optional module.
+
+Do not make the core example model depend on PHPStan classes.
+
+The first integration may target `RuleTestCase` rather than every possible PHPStan entry point, but the design must leave a clear seam for a future general analyzer adapter.
+
+Do not weaken exact error-count or substring assertions merely to simplify implementation.
+
+### 6. PHPUnit integration
+
+The consuming repository should need only a thin project-specific test class, factory, trait, or configuration object.
+
+The framework should own generic behavior such as:
+
+* Markdown discovery;
+* data-provider construction;
+* example labeling;
+* marker parsing;
+* directive parsing;
+* runtime transformation;
+* execution selection;
+* output capture;
+* expectation parsing;
+* common failure reporting;
+* temporary-file cleanup.
+
+Yumemi should retain only genuinely project-specific choices such as:
+
+* document roots;
+* excluded documents;
+* bootstrap path;
+* PHPStan relevance predicate;
+* PHPStan configuration files;
+* PHPStan rule selection.
+
+Do not generate permanent PHP test files unless there is a compelling technical reason.
+
+In-process execution is the preferred path.
+
+Avoid requiring consumers to subclass a large Akashi base class when a small composable fixture or trait is sufficient.
+
+### 7. Akashi CLI
+
+The MVP CLI only needs to provide functionality currently required by the migrations.
+
+Required command:
+
+* marked-example extraction.
+
+The CLI architecture should permit later commands without requiring a rewrite, but do not implement a full standalone doctest runner in the MVP.
+
+Requirements:
+
+* stable exit codes;
+* no decorative output on stdout when stdout is used as generated source;
+* actionable stderr diagnostics;
+* `--help`;
+* `--version`;
+* deterministic behavior;
+* no dependency on an application framework.
+
+### 8. Migration of Yumemi
+
+When a local checkout is available, migrate `jbboehr/yumemi.php` to Akashi using a Composer path repository during development.
+
+Replace or substantially reduce the responsibilities currently held by:
+
+* `tests/Documentation/MarkdownExamples.php`
+* `tests/Documentation/DocumentationExamplesTest.php`
+* `tests/Documentation/DocumentationPhpStanExamplesTest.php`
+* `tests/Documentation/MarkdownExamplesTest.php`
+* `tests/Documentation/MarkedCodeBlockExtractor.php`
+* `tests/Documentation/extract-markdown-example.php`
+
+A thin Yumemi-specific PHPStan test subclass or configuration file is acceptable and expected.
+
+Update `tests/Consumer/run` so documentation examples are extracted through `vendor/bin/akashi` rather than the local duplicated script.
+
+Acceptance requirements:
+
+* every existing public PHP fence still executes;
+* native assertions remain unconditional;
+* duplicate declarations remain isolated;
+* every current `//!` diagnostic expectation remains enforced;
+* clean PHPStan examples remain clean;
+* marked consumer examples still produce byte-equivalent PHP fixture files;
+* existing PHPUnit suites remain green;
+* relevant consumer suites remain green;
+* support for PHP 8.2 is not weakened.
+
+Do not rewrite public documentation merely to accommodate Akashi unless an existing example exposes a genuine bug or ambiguity.
+
+Before deleting or replacing code, inventory its behavior in `docs/MIGRATING_YUMEMI.md`.
+
+### 9. Migration of Yumemi Apocrypha
+
+When a local checkout is available, migrate `jbboehr/yumemi-apocrypha.php`.
+
+Replace:
+
+* its duplicated `MarkedCodeBlockExtractor`;
+* its extractor test;
+* its `extract-markdown-example.php` wrapper.
+
+Update `tests/Consumer/run` to use the Akashi CLI for the marked examples currently extracted from:
+
+* `README.md`;
+* `docs/pages/getting-started.md`;
+* `docs/pages/integrations.md`.
+
+Preserve:
+
+* current marker IDs;
+* exact generated PHP contents;
+* current diagnostic substring checks;
+* both source-package and archive-package consumer workflows;
+* Laravel or Illuminate version-matrix behavior.
+
+Do not make Akashi responsible for:
+
+* Composer archive validation;
+* package installation validation;
+* the overall external consumer harness;
+* Yumemi-specific unit semantics.
+
+Before deleting or replacing code, inventory its behavior in the migration documentation.
+
+## Explicit non-goal
+
+The duplicated `GeneratedDocumentationLinkChecker` is not part of the initial Akashi extraction.
+
+Leave generated HTML link checking where it is for now.
+
+Mention a possible future generic documentation-validation module in the roadmap, but do not broaden this task into an mdBook, HTML, or link-validation framework.
+
+## Deferred features and roadmap
+
+Create `docs/ROADMAP.md`.
+
+All of the following high-level capabilities must be acknowledged and assigned a plausible future phase or extension point, but they must **not** be implemented now unless the current Yumemi behavior strictly requires them.
+
+Do not inspect the prior-art libraries to determine how they implemented these features.
+
+### Additional sources
+
+* PHPDoc-comment examples;
+* examples attached to classes, methods, functions, and interfaces;
+* attribute-based examples;
+* arbitrary source adapters;
+* non-Markdown documentation formats.
+
+### Additional example semantics
+
+* hidden setup lines;
+* hidden assertion expressions;
+* expected stdout;
+* expected stderr;
+* inline expected values;
+* expected exceptions;
+* panic-style or expected-failure runtime tests;
+* expected parse errors;
+* expected static-analysis failures as a generalized feature;
+* compile-failure examples;
+* ignored examples;
+* parse-only or do-not-run examples;
+* platform-conditional examples;
+* PHP-version-conditional examples.
+
+### Execution features
+
+* setup blocks;
+* teardown blocks;
+* shared-state groups or sessions;
+* suite-level bootstraps beyond MVP bootstrap support;
+* configurable PHP binaries;
+* PHP-version matrices;
+* custom INI settings;
+* environment variables;
+* working-directory overrides;
+* timeouts;
+* memory limits;
+* signals;
+* crash handling;
+* parallel execution;
+* process pools;
+* sandboxing.
+
+### Verification and analyzer features
+
+* general verifier or plugin registration;
+* declaratively applying multiple verifiers to the same example;
+* PHPStan outside `RuleTestCase`;
+* Psalm;
+* syntax-only verification;
+* arbitrary compiler or linter adapters;
+* analyzer-specific expected-diagnostic formats;
+* cross-version diagnostic normalization.
+
+The internal model must not prevent an example from being reused by multiple verifiers, but do not build a speculative plugin framework beyond what the MVP needs.
+
+### Runner and reporting features
+
+* standalone full-suite CLI runner;
+* Pest integration;
+* PHPUnit 12 support;
+* JUnit output;
+* machine-readable JSON output;
+* generated or cached PHPUnit test classes;
+* watch mode;
+* filtering by path, marker, tag, executor, or verifier;
+* snapshots;
+* update mode;
+* rich diffs;
+* CI annotations.
+
+### Extensibility
+
+* custom fenced-language handlers;
+* custom directives;
+* custom transforms;
+* custom execution backends;
+* custom result reporters;
+* generic generated-document link validation.
+
+For each deferred area, describe the architectural seam that should support it later.
+
+Do not implement speculative abstractions with no present use. Document the intended seam instead.
+
+## Testing requirements
+
+Build the package test-first around focused fixtures.
+
+At minimum, test:
+
+### Markdown discovery and parsing
+
+* deterministic recursive Markdown discovery;
+* excluded files;
+* missing configured files;
+* missing configured directories;
+* CRLF input;
+* LF input;
+* multiple PHP fences;
+* non-PHP fences;
+* nested or longer Markdown fences;
+* fence-like text inside another fence;
+* optional `<?php` opening tags;
+* correct source line tracking;
+* correct ending line tracking;
+* deterministic block ordinals;
+* deterministic generated IDs;
+* empty corpus failure.
+
+### Marked extraction
+
+* valid explicit marker IDs;
+* invalid explicit marker IDs;
+* duplicate explicit marker IDs;
+* missing marker IDs;
+* a marker not followed by a PHP block;
+* exact marked-example extraction;
+* preservation of `<?php`;
+* stable trailing-newline behavior;
+* configurable marker names;
+* CLI success output;
+* CLI usage failure;
+* CLI extraction failure;
+* stable CLI exit statuses.
+
+### In-process execution
+
+* two examples declaring the same function name;
+* two examples declaring the same class name;
+* top-level variable isolation;
+* unconditional rewritten `assert()`;
+* an assertion with a custom description;
+* a failing rewritten assertion;
+* examples without assertions;
+* output capture;
+* nested output buffers;
+* thrown runtime exceptions;
+* malformed PHP;
+* imports and namespace-sensitive names;
+* unsupported namespace constructs;
+* useful source-location reporting;
+* cleanup and output-buffer restoration after failure.
+
+### Subprocess execution
+
+* opt-in subprocess directive parsing;
+* programmatic process selection;
+* proof that another process was used;
+* bootstrap loading;
+* stdout capture;
+* stderr capture;
+* nonzero exit status;
+* reliable native assertions;
+* `exit()` in subprocess mode;
+* temporary-file cleanup.
+
+### PHPStan verification
+
+* relevance predicate selection;
+* current Yumemi relevance tokens;
+* clean PHPStan examples;
+* expected diagnostic substrings;
+* diagnostic tips as well as messages;
+* exact diagnostic counts;
+* too many diagnostics;
+* too few diagnostics;
+* missing expected substring;
+* multiple ordered expectations;
+* relevant examples without markers;
+* temporary-file cleanup after verifier failure;
+* visibility of example-local declarations where required.
+
+### Integration fixtures
+
+Add integration fixtures representing both Yumemi and Yumemi Apocrypha rather than relying only on synthetic unit tests.
+
+Where practical, use copies or minimal reductions of real current examples from those user-owned repositories.
+
+## Validation commands
+
+Run, as applicable:
+
+* Akashi PHPUnit suite;
+* Akashi PHPStan analysis;
+* Akashi coding-style checks;
+* mutation tests when configured and practical;
+* Yumemi’s normal test suite;
+* Yumemi’s documentation tests;
+* Yumemi’s relevant consumer suites;
+* Yumemi Apocrypha’s normal test suite;
+* Yumemi Apocrypha’s relevant consumer suites.
+
+Do not claim a suite passed unless it was actually executed.
+
+Report commands that could not be run and the concrete reason.
+
+Do not weaken or delete an existing consumer-level test merely because a new Akashi unit test covers similar code.
+
+## Documentation deliverables
+
+Produce:
+
+* `README.md`
+* `docs/ARCHITECTURE.md`
+* `docs/CLEAN_ROOM.md`
+* `docs/ROADMAP.md`
+* `docs/MIGRATING_YUMEMI.md`
+* API documentation for the source, example, executor, verifier, and PHPUnit integration
+* documentation for explicit marker directives
+* documentation for subprocess directives
+* documentation of known in-process limitations
+
+The README should include:
+
+* the full project title:
+
+  * `Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜`
+* installation;
+* a minimal Markdown example;
+* a minimal PHPUnit integration example;
+* marked-example extraction;
+* opt-in subprocess execution;
+* PHP version support.
+
+The README should emphasize:
+
+* in-process execution is the default;
+* subprocess execution is opt-in;
+* the same extracted example can be reused by runtime and static-analysis verification;
+* PHP 8.2 remains supported;
+* Akashi prefers PHP-idiomatic, sound, and type-safe designs rather than mechanically reproducing Rust doctests.
+
+Keep the README practical. Put deeper architecture and roadmap material under `docs/`.
+
+## Implementation discipline
+
+* Begin by inventorying the relevant code in Yumemi and Yumemi Apocrypha.
+* Write the inventory into the migration document before deleting anything.
+* Read all applicable repository instructions.
+* Keep the Akashi core generic.
+* No dimensional-analysis or Yumemi-specific concepts belong in the core.
+* Prefer programmatic PHP configuration for the MVP.
+* Preserve original source information throughout the pipeline.
+* Preserve original unmodified example source separately from transformed source.
+* Avoid global mutable registries.
+* Avoid public APIs built primarily from unvalidated arrays.
+* Avoid silently swallowing unsupported examples.
+* Do not implement deferred features opportunistically.
+* Keep commits small and coherent where repository workflow permits.
+* Do not replace working project-specific consumer tests with weaker unit tests.
+* Do not weaken exact PHPStan diagnostic assertions.
+* Do not change the default execution mode to subprocess isolation.
+* Do not inspect prohibited prior-art implementations.
+* Do not claim clean-room independence without recording the materials actually consulted.
+* Prefer PHP idioms over Rust idioms where PHP offers a clearer, sounder, or more type-safe design.
+* Do not overengineer a generalized plugin system during the MVP.
+* Do not broaden Akashi into a documentation generator.
+
+## Suggested implementation order
+
+Use this as guidance rather than an inflexible command sequence:
+
+1. Inventory Yumemi and Yumemi Apocrypha behavior.
+2. Establish package skeleton, CI, coding standards, and clean-room record.
+3. Implement immutable document and example models.
+4. Implement deterministic Markdown discovery and fenced-block extraction.
+5. Implement configurable explicit marker extraction.
+6. Implement the extraction CLI.
+7. Implement source transformation for in-process execution.
+8. Implement the default in-process executor.
+9. Implement PHPUnit integration.
+10. Implement minimal opt-in subprocess execution.
+11. Implement the PHPStan `RuleTestCase` integration.
+12. Add real-world compatibility fixtures.
+13. Migrate Yumemi.
+14. Migrate Yumemi Apocrypha.
+15. Complete architecture, migration, and roadmap documentation.
+16. Run all available validation suites.
+17. Report any remaining gaps honestly.
+
+Do not begin by designing every deferred feature.
+
+## Completion criteria
+
+The initial task is complete when:
+
+1. The standalone `jbboehr/akashi` package exists with PHP 8.2 support.
+2. It has a tested example-source model.
+3. Markdown examples execute in-process by default.
+4. Individual examples can opt into subprocess execution.
+5. Native `assert()` calls become unconditional PHPUnit assertions in in-process mode.
+6. Duplicate declarations and top-level variables are safely isolated.
+7. Yumemi’s PHPStan `//!` contract is supported.
+8. Configurable marked-example extraction replaces both duplicated implementations.
+9. Yumemi uses Akashi without losing documentation coverage.
+10. Yumemi Apocrypha uses Akashi for its marked consumer fixtures.
+11. Both projects retain PHP 8.2 compatibility.
+12. Existing relevant consumer workflows remain intact.
+13. Deferred prior-art features are documented but not implemented.
+14. `docs/CLEAN_ROOM.md` confirms that prohibited implementation code was not consulted.
+15. All executed tests and remaining gaps are reported honestly.
+16. The architecture uses PHP-idiomatic, sound, and type-safe designs rather than mechanically copying Rust.
+
+At the end, provide a summary containing:
+
+* architecture implemented;
+* important public API decisions;
+* files added and modified;
+* behavior migrated from Yumemi;
+* behavior migrated from Yumemi Apocrypha;
+* commands actually run;
+* test results;
+* compatibility limitations;
+* deferred work;
+* unresolved design questions;
+* confirmation that no prohibited source code was examined.

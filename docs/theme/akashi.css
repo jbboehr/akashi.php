@@ -1,0 +1,260 @@
+:root {
+    --content-max-width: 900px;
+    --akashi-heading: var(--fg);
+    --akashi-rule: var(--quote-border);
+    --akashi-section: var(--sidebar-active);
+    --akashi-code-bg: var(--quote-bg);
+    --akashi-sidebar-border: var(--sidebar-spacer);
+    --akashi-selection-bg: var(--search-mark-bg);
+    --akashi-selection-fg: var(--fg);
+}
+
+.light,
+html:not(.js) {
+    --bg: #f2f3f1;
+    --fg: #24242a;
+    --sidebar-bg: #18171c;
+    --sidebar-fg: #ddd7cc;
+    --sidebar-non-existant: #817a70;
+    --sidebar-active: #e8786e;
+    --sidebar-spacer: #554529;
+    --scrollbar: #776e62;
+    --icons: #6f695f;
+    --icons-hover: #8c2336;
+    --links: #60428f;
+    --inline-code-color: #7f233b;
+    --theme-popup-bg: #f0f1ee;
+    --theme-popup-border: #aa9259;
+    --theme-hover: #e0e1dd;
+    --quote-bg: #e9e9e4;
+    --quote-border: #a78336;
+    --warning-border: #98640f;
+    --table-border-color: #c9c5ba;
+    --table-header-bg: #dcdbd4;
+    --table-alternate-bg: #e9eae6;
+    --searchbar-border-color: #a4936b;
+    --searchbar-bg: #fafaf7;
+    --searchbar-fg: #24242a;
+    --searchbar-shadow-color: #a78336;
+    --searchresults-header-fg: #69645c;
+    --searchresults-border-color: #b5aa94;
+    --searchresults-li-bg: #e7e3d9;
+    --search-mark-bg: #e0ca79;
+    --footnote-highlight: #d8c15f;
+    --overlay-bg: rgb(36 36 42 / 24%);
+    --blockquote-note-color: #526b99;
+    --blockquote-tip-color: #3d7159;
+    --blockquote-important-color: #60428f;
+    --blockquote-warning-color: #98640f;
+    --blockquote-caution-color: #8c2336;
+    --sidebar-header-border-color: #a78336;
+    --akashi-heading: #3b252d;
+    --akashi-rule: #a78336;
+    --akashi-section: #dfb85f;
+    --akashi-code-bg: #e5e5e0;
+    --akashi-sidebar-border: #8c6b2d;
+    --akashi-selection-bg: #d9c374;
+    --akashi-selection-fg: #201e20;
+}
+
+.ayu {
+    --bg: #0d0e12;
+    --fg: #ded9cf;
+    --sidebar-bg: #17171c;
+    --sidebar-fg: #d7d1c6;
+    --sidebar-non-existant: #77716a;
+    --sidebar-active: #d0aa55;
+    --sidebar-spacer: #39343a;
+    --scrollbar: #8e8578;
+    --icons: #9a9185;
+    --icons-hover: #d0aa55;
+    --links: #c59add;
+    --inline-code-color: #dfb968;
+    --theme-popup-bg: #18191d;
+    --theme-popup-border: #705d35;
+    --theme-hover: #29262b;
+    --quote-bg: #1a1a20;
+    --quote-border: #806635;
+    --warning-border: #d39a46;
+    --table-border-color: #39353a;
+    --table-header-bg: #2a272c;
+    --table-alternate-bg: #16171b;
+    --searchbar-border-color: #705d35;
+    --searchbar-bg: #1b1c20;
+    --searchbar-fg: #e5dfd4;
+    --searchbar-shadow-color: #c7a04f;
+    --searchresults-header-fg: #aaa196;
+    --searchresults-border-color: #5b535a;
+    --searchresults-li-bg: #27242b;
+    --search-mark-bg: #8b642d;
+    --footnote-highlight: #6f4f87;
+    --overlay-bg: rgb(0 0 0 / 44%);
+    --blockquote-note-color: #83a0ce;
+    --blockquote-tip-color: #79a186;
+    --blockquote-important-color: #c59add;
+    --blockquote-warning-color: #d0aa55;
+    --blockquote-caution-color: #df7582;
+    --sidebar-header-border-color: #806b3c;
+    --akashi-heading: #f0e8db;
+    --akashi-rule: #92763d;
+    --akashi-section: #dfb75d;
+    --akashi-code-bg: #191a1e;
+    --akashi-sidebar-border: #705a30;
+    --akashi-selection-bg: #704f83;
+    --akashi-selection-fg: #fff8ed;
+}
+
+::selection {
+    color: var(--akashi-selection-fg);
+    background: var(--akashi-selection-bg);
+}
+
+main {
+    letter-spacing: 0;
+}
+
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
+    color: var(--akashi-heading);
+}
+
+main h1 {
+    padding-bottom: 0.2em;
+    border-bottom: 1px solid var(--akashi-rule);
+}
+
+main a:hover {
+    color: var(--sidebar-active);
+}
+
+.chapter li.part-title {
+    color: var(--akashi-section);
+}
+
+.sidebar {
+    border-right: 1px solid var(--akashi-sidebar-border);
+}
+
+[dir="rtl"] .sidebar {
+    border-right: 0;
+    border-left: 1px solid var(--akashi-sidebar-border);
+}
+
+.hljs {
+    background-color: var(--akashi-code-bg);
+}
+
+#mdbook-menu-bar {
+    position: sticky;
+    top: 0 !important;
+}
+
+main img[alt^="Probatio Verborum Viventium"] {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 2rem;
+    border-bottom: 1px solid var(--akashi-rule);
+}
+
+.akashi-page-outline {
+    margin-left: 34px;
+}
+
+.akashi-page-outline > ol {
+    padding-left: 0;
+}
+
+@media (min-width: 1081px) {
+    .nav-wide-wrapper {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        z-index: 102;
+        display: flex;
+        align-items: center;
+        width: 180px;
+        height: var(--menu-bar-height);
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+
+    html.sidebar-visible .nav-wide-wrapper {
+        left: calc(50% + var(--sidebar-width) / 2);
+    }
+
+    .nav-chapters {
+        position: absolute;
+        top: 50%;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        min-width: 32px;
+        max-width: 32px;
+        height: 32px;
+        margin: 0;
+        font-size: 1.4rem;
+        transform: translateY(-50%);
+        transition: color 0.5s;
+        pointer-events: auto;
+    }
+
+    .nav-chapters:hover {
+        background-color: transparent;
+    }
+
+    .nav-chapters.previous {
+        left: 0;
+    }
+
+    .nav-chapters.next {
+        right: 0;
+    }
+
+    #mdbook-sidebar-toggle-anchor:checked ~ .page-wrapper .nav-wide-wrapper {
+        display: flex;
+    }
+
+    .nav-chapters .fa-svg {
+        width: 0.65em;
+        height: 0.65em;
+    }
+}
+
+@media (max-width: 1080px) {
+    .nav-wrapper,
+    .nav-wide-wrapper {
+        display: none;
+    }
+}
+
+.logion {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+    gap: 2rem;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--akashi-rule);
+    border-bottom: 1px solid var(--akashi-rule);
+}
+
+.logion blockquote {
+    margin: 0;
+}
+
+.logion img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+@media (max-width: 700px) {
+    .logion {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
