@@ -166,6 +166,14 @@ No competing PHP doctest documentation or prohibited implementation material was
 
 ## Current dependency status
 
-At the time of this record, Akashi has no runtime dependencies beyond PHP 8.2 or later. PHPUnit, PHPStan and its
-extensions, PHP-CS-Fixer, and Infection are development-only dependencies. `ARCHITECTURE.md` proposes general-purpose
-runtime dependencies, but those must be validated and introduced in a later, working implementation chunk.
+Akashi requires PHP 8.2 or later and the following runtime dependencies:
+
+- `composer-runtime-api` 2.2 or later, for locating the project autoloader through Composer's generated binary proxy;
+- `league/commonmark` 2.8.3 or later within the 2.x series, for standards-conforming Markdown parsing;
+- `nikic/php-parser` 5.8 or later within the 5.x series, for PHP parsing and later source transformation; and
+- `symfony/process` 7.4 or later within the 7.x series, for later isolated example execution.
+
+These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
+documentation and package metadata are recorded above. No dependency source code or internal tests were consulted.
+PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and
+PHPStan are suggested optional integrations for consumers.

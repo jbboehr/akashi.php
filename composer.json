@@ -56,7 +56,15 @@
         ]
     },
     "require": {
-        "php": "^8.2"
+        "composer-runtime-api": "^2.2",
+        "league/commonmark": "^2.8.3",
+        "nikic/php-parser": "^5.8",
+        "php": "^8.2",
+        "symfony/process": "^7.4"
+    },
+    "suggest": {
+        "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 2.x).",
+        "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 11.5)."
     },
     "autoload": {
         "psr-4": {

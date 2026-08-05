@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi;
 
+use jbboehr\Akashi\Model\DocumentPath;
+
 /**
  * @logion [OSD 4:18] Beneath the winter cedar, seven lamps endured the snow; when the thaw came, no hand could say who
  *     had tended them through the long darkness.
@@ -48,7 +50,7 @@ final readonly class Document
      * @logion [AWC 6:11] The bronze birds descended at noon, each bearing a scarlet thread; yet the youngest among them
      *     cast hers into the sea and was not reproved.
      */
-    public string $path;
+    public DocumentPath $path;
 
     /**
      * @logion [SFA 12:3] Three witnesses kept silence before the eastern fire, and their shadows alone answered the
@@ -60,17 +62,9 @@ final readonly class Document
      * @logion [RAS 8:29] When the pale moon rested upon the orchard wall, the keeper opened every gate, for the fruit
      *     had ripened beyond the reach of thieves.
      */
-    public function __construct(string $path, string $contents)
+    public function __construct(DocumentPath|string $path, string $contents)
     {
-        if (trim($path) === '') {
-            throw new \InvalidArgumentException('Document path must not be empty.');
-        }
-
-        if (str_contains($path, "\0")) {
-            throw new \InvalidArgumentException('Document path must not contain NUL bytes.');
-        }
-
-        $this->path = $path;
+        $this->path = is_string($path) ? new DocumentPath($path) : $path;
         $this->contents = $contents;
     }
 }

@@ -36,48 +36,26 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [OSD 9:41] Let the orchard remain untended during the comet's passage, for fruit gathered beneath a wounded
+ *     heaven bringeth sweetness first and afterward a sleep from which no household awakeneth.
+ */
+final readonly class ExampleCode
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
+    /**
+     * @logion [AWC 29:3] The mariners returned with branches of black pine fastened to their masts, and all the harbor
+     *     lanterns inclined toward them though the evening air was still.
+     */
+    public string $source;
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [SFA 16:14] A small stone remained warm in the demolished cloister, and the exiles carried it through nine
+     *     winters without discovering the fire whose mercy it preserved.
      */
-    public static function invalidPathProvider(): iterable
+    public function __construct(string $source)
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        $this->source = $source;
     }
 }

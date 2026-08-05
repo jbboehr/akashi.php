@@ -36,48 +36,30 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [RAS 14:9] It was shown unto the widows of the eastern quarter that the abandoned organ yet breathed beneath
+ *     the flood, and their hymn caused the drowned windows to burn with morning light.
+ */
+final readonly class ExampleId
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
+    /**
+     * @logion [OSD 22:5] The lesser moon dimmed itself during the orphan's vigil; for splendor that refuseth sorrow is
+     *     unworthy to govern the night.
+     */
+    public string $value;
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [AWC 8:17] The bronze horse knelt before the empty pavilion at noon, and the court chronicler recorded the
+     *     obeisance without naming any rider.
      */
-    public static function invalidPathProvider(): iterable
+    public function __construct(string $value)
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        if (preg_match('/\A[a-z0-9]+(?:[._-][a-z0-9]+)*\z/', $value) !== 1) {
+            throw new \InvalidArgumentException('Example ID must be a lowercase file-safe identifier.');
+        }
+
+        $this->value = $value;
     }
 }

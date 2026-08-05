@@ -36,48 +36,61 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [OSD 6:14] The sailors kept vigil beneath an amber aurora, and offered the first catch unto the ruined
+ *     chapel; therefore the western sea withheld its winter anger from their children.
+ */
+final readonly class DocumentPath
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
+    /**
+     * @logion [SFA 18:7] A child set a bowl of rain before the bronze lion, and by morning the water had become clear
+     *     crystal, though the night was warm and no star had appeared.
+     */
+    public string $value;
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [AWC 11:23] In the reign of the veiled consort, the river froze upward from its bed, and the ferrymen
+     *     found ancient coins resting upon the ice like seeds after harvest.
      */
-    public static function invalidPathProvider(): iterable
+    public function __construct(string $value)
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        if (trim($value) === '') {
+            throw new \InvalidArgumentException('Document path must not be empty.');
+        }
+
+        if (str_contains($value, "\0")) {
+            throw new \InvalidArgumentException('Document path must not contain NUL bytes.');
+        }
+
+        $value = str_replace('\\', '/', $value);
+        if (str_starts_with($value, '/') || preg_match('/\A[a-zA-Z]:\//', $value) === 1) {
+            throw new \InvalidArgumentException('Document path must be project-relative.');
+        }
+
+        $segments = [];
+        foreach (explode('/', $value) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                if ($segments === []) {
+                    throw new \InvalidArgumentException('Document path must not traverse outside the project root.');
+                }
+
+                array_pop($segments);
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        if ($segments === []) {
+            throw new \InvalidArgumentException('Document path must identify a file within the project root.');
+        }
+
+        $this->value = implode('/', $segments);
     }
 }

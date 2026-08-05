@@ -36,48 +36,57 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\Language;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class DocumentTest extends TestCase
+final class ExampleCodeAndLanguageTest extends TestCase
 {
-    public function testPreservesPathAndContentsExactly(): void
+    public function testPreservesExampleCodeExactly(): void
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
+        $source = "<?php\r\n\r\necho 1;\r\n";
 
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
+        self::assertSame($source, (new ExampleCode($source))->source);
+        self::assertSame('', (new ExampleCode(''))->source);
     }
 
-    public function testAcceptsAnExistingDocumentPath(): void
+    #[DataProvider('languageProvider')]
+    public function testNormalizesLanguages(string $value, string $normalized): void
     {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
+        self::assertSame($normalized, (new Language($value))->value);
     }
 
     /**
      * @return iterable<string, array{string, string}>
      */
-    public static function invalidPathProvider(): iterable
+    public static function languageProvider(): iterable
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        yield 'PHP' => [' PHP ', 'php'];
+        yield 'version suffix' => ['PHP8', 'php8'];
+        yield 'punctuation' => ['C++', 'c++'];
+    }
+
+    #[DataProvider('invalidLanguageProvider')]
+    public function testRejectsInvalidLanguages(string $value): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Language must be a nonempty language identifier.');
+
+        new Language($value);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidLanguageProvider(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'whitespace' => ['   '];
+        yield 'starts with a number' => ['8php'];
+        yield 'contains whitespace' => ['php script'];
+        yield 'unsupported punctuation' => ['php.'];
     }
 }

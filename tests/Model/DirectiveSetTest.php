@@ -36,48 +36,33 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
+use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\DirectiveSet;
 use PHPUnit\Framework\TestCase;
 
-final class DocumentTest extends TestCase
+final class DirectiveSetTest extends TestCase
 {
-    public function testPreservesPathAndContentsExactly(): void
+    public function testDefaultsToAnEmptySet(): void
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
+        $set = new DirectiveSet();
 
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
+        self::assertFalse($set->contains(Directive::SeparateProcess));
     }
 
-    public function testAcceptsAnExistingDocumentPath(): void
+    public function testContainsAConfiguredDirective(): void
     {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
+        $set = new DirectiveSet(Directive::SeparateProcess);
 
-        self::assertSame($path, $document->path);
+        self::assertTrue($set->contains(Directive::SeparateProcess));
     }
 
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
+    public function testRejectsDuplicateDirectives(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessage('Duplicate directive separate-process.');
 
-        new Document($path, '');
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function invalidPathProvider(): iterable
-    {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        new DirectiveSet(Directive::SeparateProcess, Directive::SeparateProcess);
     }
 }

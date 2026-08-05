@@ -36,48 +36,66 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\MarkerId;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class DocumentTest extends TestCase
+final class IdentifierTest extends TestCase
 {
-    public function testPreservesPathAndContentsExactly(): void
+    public function testAcceptsFileSafeExampleIds(): void
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
+        self::assertSame('example-a1_b.c-2', (new ExampleId('example-a1_b.c-2'))->value);
     }
 
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
+    #[DataProvider('invalidExampleIdProvider')]
+    public function testRejectsInvalidExampleIds(string $value): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessage('Example ID must be a lowercase file-safe identifier.');
 
-        new Document($path, '');
+        new ExampleId($value);
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{string}>
      */
-    public static function invalidPathProvider(): iterable
+    public static function invalidExampleIdProvider(): iterable
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        yield 'empty' => [''];
+        yield 'uppercase' => ['Example-01'];
+        yield 'punctuation' => ['example-01!'];
+        yield 'repeated separator' => ['example--01'];
+        yield 'leading separator' => ['-example-01'];
+        yield 'trailing separator' => ['example-01_'];
+    }
+
+    public function testAcceptsKebabCaseMarkerIds(): void
+    {
+        self::assertSame('selected-example-2', (new MarkerId('selected-example-2'))->value);
+    }
+
+    #[DataProvider('invalidMarkerIdProvider')]
+    public function testRejectsInvalidMarkerIds(string $value): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Marker ID must use lowercase kebab-case.');
+
+        new MarkerId($value);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidMarkerIdProvider(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'uppercase' => ['Selected-example'];
+        yield 'underscore' => ['selected_example'];
+        yield 'repeated separator' => ['selected--example'];
+        yield 'leading separator' => ['-selected-example'];
+        yield 'trailing separator' => ['selected-example-'];
     }
 }

@@ -52,6 +52,8 @@ final class PackageMetadataTest extends TestCase
          *     name: string,
          *     type: string,
          *     license: string,
+         *     require: array<string, string>,
+         *     suggest: array<string, string>,
          *     autoload: array{'psr-4': array<string, string>},
          *     bin: list<string>
          * } $metadata
@@ -61,6 +63,13 @@ final class PackageMetadataTest extends TestCase
         self::assertSame('jbboehr/akashi', $metadata['name']);
         self::assertSame('library', $metadata['type']);
         self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
+        self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
+        self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
+        self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
+        self::assertSame('^8.2', $metadata['require']['php']);
+        self::assertSame('^7.4', $metadata['require']['symfony/process']);
+        self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
+        self::assertArrayHasKey('phpunit/phpunit', $metadata['suggest']);
         self::assertSame(['jbboehr\\Akashi\\' => 'src'], $metadata['autoload']['psr-4']);
         self::assertSame(['bin/akashi'], $metadata['bin']);
     }

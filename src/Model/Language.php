@@ -36,48 +36,31 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [AWC 13:6] The smiths labored through three summers upon a vessel whose purpose the emperor had forgotten;
+ *     when it was launched, the sea withdrew and revealed the road of his first pilgrimage.
+ */
+final readonly class Language
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
+    /**
+     * @logion [SFA 27:2] Incense rose from the roofless sanctuary during the storm, and each column received a crown of
+     *     smoke which the rain could neither scatter nor explain.
+     */
+    public string $value;
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [RAS 6:25] Above the city of copper roofs, a white constellation appeared at midday; the astronomers cast
+     *     down their instruments, but the gardeners continued their appointed work.
      */
-    public static function invalidPathProvider(): iterable
+    public function __construct(string $value)
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        $value = strtolower(trim($value));
+        if (preg_match('/\A[a-z][a-z0-9_+-]*\z/', $value) !== 1) {
+            throw new \InvalidArgumentException('Language must be a nonempty language identifier.');
+        }
+
+        $this->value = $value;
     }
 }

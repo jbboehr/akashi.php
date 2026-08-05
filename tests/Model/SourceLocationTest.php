@@ -36,48 +36,64 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
+use jbboehr\Akashi\Model\SourceLocation;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class DocumentTest extends TestCase
+final class SourceLocationTest extends TestCase
 {
-    public function testPreservesPathAndContentsExactly(): void
+    public function testRepresentsAClosedNonemptyFence(): void
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
+        $location = new SourceLocation(4, 5, 7, 8);
 
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
+        self::assertSame(4, $location->openingFenceLine);
+        self::assertSame(5, $location->firstCodeLine);
+        self::assertSame(7, $location->lastCodeLine);
+        self::assertSame(8, $location->closingFenceLine);
     }
 
-    public function testAcceptsAnExistingDocumentPath(): void
+    public function testRepresentsAClosedEmptyFence(): void
     {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
+        $location = new SourceLocation(4, 5, null, 5);
 
-        self::assertSame($path, $document->path);
+        self::assertNull($location->lastCodeLine);
+        self::assertSame(5, $location->closingFenceLine);
     }
 
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
+    public function testRepresentsAnUnclosedFence(): void
     {
+        $location = new SourceLocation(4, 5, 7, null);
+
+        self::assertSame(7, $location->lastCodeLine);
+        self::assertNull($location->closingFenceLine);
+    }
+
+    #[DataProvider('invalidLocationProvider')]
+    public function testRejectsInvalidLocations(
+        int $opening,
+        int $first,
+        ?int $last,
+        ?int $closing,
+        string $message,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new Document($path, '');
+        new SourceLocation($opening, $first, $last, $closing);
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{int, int, ?int, ?int, string}>
      */
-    public static function invalidPathProvider(): iterable
+    public static function invalidLocationProvider(): iterable
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        yield 'nonpositive opening' => [0, 1, null, 1, 'Opening fence line must be positive.'];
+        yield 'first line gap' => [1, 3, null, 3, 'First code line must immediately follow the opening fence.'];
+        yield 'last precedes first' => [1, 2, 1, null, 'Last code line must not precede the first code line.'];
+        yield 'empty fence gap' => [1, 2, null, 3, 'Closing fence line must immediately follow the code content.'];
+        yield 'closing fence gap' => [1, 2, 2, 4, 'Closing fence line must immediately follow the code content.'];
+        yield 'closing fence overlaps code' => [1, 2, 3, 3, 'Closing fence line must immediately follow the code content.'];
     }
 }

@@ -40,6 +40,13 @@ namespace jbboehr\Akashi\Tests;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\DirectiveSet;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\SourceLocation;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -49,93 +56,81 @@ final class ExampleTest extends TestCase
     {
         $document = new Document('docs/guide.md', "```php\r\necho 1;\r\n```\r\n");
         $source = "<?php\r\n\r\necho 1;\r\n";
+        $id = new ExampleId('example-a1b2c3-01');
+        $location = new SourceLocation(1, 2, 2, 3);
+        $language = new Language(' PHP ');
+        $code = new ExampleCode($source);
+        $markerId = new MarkerId('selected-example');
+        $directives = new DirectiveSet(Directive::SeparateProcess);
         $example = new Example(
-            id: 'example-a1b2c3-01',
+            id: $id,
             label: 'docs/guide.md PHP example 1',
             document: $document,
-            startLine: 2,
-            endLine: 4,
-            language: ' PHP ',
-            source: $source,
+            location: $location,
+            language: $language,
+            code: $code,
             ordinal: 1,
-            explicitMarkerId: 'selected-example',
+            explicitMarkerId: $markerId,
+            directives: $directives,
         );
 
-        self::assertSame('example-a1b2c3-01', $example->id);
+        self::assertSame($id, $example->id);
         self::assertSame('docs/guide.md PHP example 1', $example->label);
         self::assertSame($document, $example->document);
-        self::assertSame(2, $example->startLine);
-        self::assertSame(4, $example->endLine);
-        self::assertSame('php', $example->language);
-        self::assertSame($source, $example->source);
+        self::assertSame($location, $example->location);
+        self::assertSame($language, $example->language);
+        self::assertSame('php', $example->language->value);
+        self::assertSame($code, $example->code);
+        self::assertSame($source, $example->code->source);
         self::assertSame(1, $example->ordinal);
-        self::assertSame('selected-example', $example->explicitMarkerId);
+        self::assertSame($markerId, $example->explicitMarkerId);
+        self::assertSame($directives, $example->directives);
+        self::assertTrue($example->directives->contains(Directive::SeparateProcess));
     }
 
     public function testAllowsAnExampleWithoutAnExplicitMarker(): void
     {
         $example = $this->example();
 
-        self::assertSame(1, $example->startLine);
-        self::assertSame(1, $example->endLine);
         self::assertNull($example->explicitMarkerId);
+        self::assertFalse($example->directives->contains(Directive::SeparateProcess));
     }
 
     #[DataProvider('invalidExampleProvider')]
-    public function testRejectsInvalidMetadata(
-        string $id,
-        string $label,
-        int $startLine,
-        int $endLine,
-        string $language,
-        int $ordinal,
-        ?string $explicitMarkerId,
-        string $message,
-    ): void {
+    public function testRejectsInvalidMetadata(string $label, int $ordinal, string $message): void
+    {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
         new Example(
-            id: $id,
+            id: new ExampleId('example-01'),
             label: $label,
             document: new Document('docs/guide.md', ''),
-            startLine: $startLine,
-            endLine: $endLine,
-            language: $language,
-            source: "echo 1;\n",
+            location: new SourceLocation(1, 2, null, 2),
+            language: new Language('php'),
+            code: new ExampleCode("echo 1;\n"),
             ordinal: $ordinal,
-            explicitMarkerId: $explicitMarkerId,
         );
     }
 
     /**
-     * @return iterable<string, array{string, string, int, int, string, int, ?string, string}>
+     * @return iterable<string, array{string, int, string}>
      */
     public static function invalidExampleProvider(): iterable
     {
-        yield 'empty ID' => ['', 'Example', 3, 4, 'php', 1, null, 'Example ID must be a lowercase file-safe identifier.'];
-        yield 'uppercase ID' => ['Example-01', 'Example', 3, 4, 'php', 1, null, 'Example ID must be a lowercase file-safe identifier.'];
-        yield 'ID suffix' => ['example-01!', 'Example', 3, 4, 'php', 1, null, 'Example ID must be a lowercase file-safe identifier.'];
-        yield 'empty label' => ['example-01', '  ', 3, 4, 'php', 1, null, 'Example label must not be empty.'];
-        yield 'zero start line' => ['example-01', 'Example', 0, 4, 'php', 1, null, 'Example start line must be positive.'];
-        yield 'reversed lines' => ['example-01', 'Example', 5, 4, 'php', 1, null, 'Example end line must not precede its start line.'];
-        yield 'empty language' => ['example-01', 'Example', 3, 4, ' ', 1, null, 'Example language must be a nonempty language identifier.'];
-        yield 'invalid language' => ['example-01', 'Example', 3, 4, 'php script', 1, null, 'Example language must be a nonempty language identifier.'];
-        yield 'zero ordinal' => ['example-01', 'Example', 3, 4, 'php', 0, null, 'Example ordinal must be positive.'];
-        yield 'invalid marker' => ['example-01', 'Example', 3, 4, 'php', 1, 'Selected Example', 'Explicit marker ID must use lowercase kebab-case.'];
-        yield 'marker suffix' => ['example-01', 'Example', 3, 4, 'php', 1, 'selected-example!', 'Explicit marker ID must use lowercase kebab-case.'];
+        yield 'empty label' => ['  ', 1, 'Example label must not be empty.'];
+        yield 'zero ordinal' => ['Example', 0, 'Example ordinal must be positive.'];
     }
 
     private function example(): Example
     {
         return new Example(
-            id: 'example-guide-01',
+            id: new ExampleId('example-guide-01'),
             label: 'docs/guide.md PHP example 1',
             document: new Document('docs/guide.md', ''),
-            startLine: 1,
-            endLine: 1,
-            language: 'php',
-            source: "echo 1;\n",
+            location: new SourceLocation(1, 2, null, 2),
+            language: new Language('php'),
+            code: new ExampleCode("echo 1;\n"),
             ordinal: 1,
         );
     }

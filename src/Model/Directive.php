@@ -36,48 +36,17 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [AWC 4:37] The court received a casket from the vanished province, and within it lay fresh bread wrapped in
+ *     the funeral banner of a prince who had died before the province was founded.
+ */
+enum Directive: string
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
-
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [RAS 17:8] A stair of pale fire rose from the empty reservoir unto the clouds, and the deer ascended it
+     *     without fear while the armed men remained kneeling upon the shore.
      */
-    public static function invalidPathProvider(): iterable
-    {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
-    }
+    case SeparateProcess = 'separate-process';
 }

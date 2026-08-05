@@ -36,39 +36,38 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Model\DocumentPath;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class DocumentTest extends TestCase
+final class DocumentPathTest extends TestCase
 {
-    public function testPreservesPathAndContentsExactly(): void
+    #[DataProvider('normalizedPathProvider')]
+    public function testNormalizesProjectRelativePaths(string $path, string $normalized): void
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
+        self::assertSame($normalized, (new DocumentPath($path))->value);
     }
 
-    public function testAcceptsAnExistingDocumentPath(): void
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function normalizedPathProvider(): iterable
     {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
+        yield 'already normalized' => ['docs/guide.md', 'docs/guide.md'];
+        yield 'Windows separators' => ['docs\\guide.md', 'docs/guide.md'];
+        yield 'empty and dot segments' => ['docs//./guide.md', 'docs/guide.md'];
+        yield 'parent segment within root' => ['docs/drafts/../guide.md', 'docs/guide.md'];
     }
 
     #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
+    public function testRejectsUnsafeOrEmptyPaths(string $path, string $message): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new Document($path, '');
+        new DocumentPath($path);
     }
 
     /**
@@ -79,5 +78,12 @@ final class DocumentTest extends TestCase
         yield 'empty' => ['', 'Document path must not be empty.'];
         yield 'whitespace' => ['   ', 'Document path must not be empty.'];
         yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        yield 'Unix absolute' => ['/docs/guide.md', 'Document path must be project-relative.'];
+        yield 'Windows absolute' => ['C:\\docs\\guide.md', 'Document path must be project-relative.'];
+        yield 'UNC absolute' => ['\\\\server\\docs\\guide.md', 'Document path must be project-relative.'];
+        yield 'leading traversal' => ['../guide.md', 'Document path must not traverse outside the project root.'];
+        yield 'nested traversal' => ['docs/../../guide.md', 'Document path must not traverse outside the project root.'];
+        yield 'dot only' => ['.', 'Document path must identify a file within the project root.'];
+        yield 'normalizes to root' => ['docs/..', 'Document path must identify a file within the project root.'];
     }
 }

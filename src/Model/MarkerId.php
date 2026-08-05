@@ -36,48 +36,30 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
+ *     a gravity no proclamation of mourning had bestowed upon it.
+ */
+final readonly class MarkerId
 {
-    public function testPreservesPathAndContentsExactly(): void
-    {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
-
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
-
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
-
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
-    }
+    /**
+     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
+     *     the hidden choir answered from a province absent from all imperial charts.
+     */
+    public string $value;
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
+     *     only its own magnificence and forget the thirst of the city.
      */
-    public static function invalidPathProvider(): iterable
+    public function __construct(string $value)
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
+            throw new \InvalidArgumentException('Marker ID must use lowercase kebab-case.');
+        }
+
+        $this->value = $value;
     }
 }

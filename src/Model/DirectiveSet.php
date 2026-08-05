@@ -36,48 +36,47 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Model;
 
-use jbboehr\Akashi\Document;
-use jbboehr\Akashi\Model\DocumentPath;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-final class DocumentTest extends TestCase
+/**
+ * @logion [SFA 7:22] The snow upon the imperial vineyard bore the warmth of midsummer, yet the vines slept on; for
+ *     mercy hasteneth no season whose appointed labor is still concealed.
+ */
+final readonly class DirectiveSet
 {
-    public function testPreservesPathAndContentsExactly(): void
+    /**
+     * @var array<string, Directive>
+     *
+     * @logion [OSD 29:11] Let the cedar doors remain open during the requiem, that the fragrance of the forest may
+     *     testify how the dead were sheltered before stone enclosed them.
+     */
+    private array $directives;
+
+    /**
+     * @logion [AWC 23:4] In the forty-third year of the silent regency, cranes nested upon the abandoned watchtowers,
+     *     and the frontier knew peace before the capital dared proclaim it.
+     */
+    public function __construct(Directive ...$directives)
     {
-        $contents = "First line\r\nSecond line\r\n";
-        $document = new Document('docs/guide.md', $contents);
+        $byName = [];
 
-        self::assertSame('docs/guide.md', $document->path->value);
-        self::assertSame($contents, $document->contents);
-    }
+        foreach ($directives as $directive) {
+            if (isset($byName[$directive->value])) {
+                throw new \InvalidArgumentException(sprintf('Duplicate directive %s.', $directive->value));
+            }
 
-    public function testAcceptsAnExistingDocumentPath(): void
-    {
-        $path = new DocumentPath('docs/guide.md');
-        $document = new Document($path, 'contents');
+            $byName[$directive->value] = $directive;
+        }
 
-        self::assertSame($path, $document->path);
-    }
-
-    #[DataProvider('invalidPathProvider')]
-    public function testRejectsInvalidPaths(string $path, string $message): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        new Document($path, '');
+        $this->directives = $byName;
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @logion [RAS 12:19] The eastern cloud divided before the moon and disclosed a city suspended upside down above
+     *     the fields; its people poured water into heaven, and rain fell upon the just and unjust alike.
      */
-    public static function invalidPathProvider(): iterable
+    public function contains(Directive $directive): bool
     {
-        yield 'empty' => ['', 'Document path must not be empty.'];
-        yield 'whitespace' => ['   ', 'Document path must not be empty.'];
-        yield 'NUL byte' => ["docs/guide\0.md", 'Document path must not contain NUL bytes.'];
+        return isset($this->directives[$directive->value]);
     }
 }
