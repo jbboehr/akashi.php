@@ -40,6 +40,7 @@ namespace jbboehr\Akashi\Tests\Model;
 
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
+use jbboehr\Akashi\Model\MetadataLocation;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -131,5 +132,34 @@ final class SourceLocationTest extends TestCase
         $this->expectExceptionMessage('An empty code location must have an empty source span.');
 
         new SourceLocation(1, 2, null, 2, new SourceSpan(4, 20), new SourceSpan(8, 9));
+    }
+
+    #[DataProvider('invalidMetadataLineProvider')]
+    public function testRejectsMetadataThatDoesNotPrecedeTheFence(
+        ?int $markerLine,
+        ?int $directiveLine,
+        string $message,
+    ): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        new SourceLocation(
+            4,
+            5,
+            5,
+            6,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation($markerLine, $directiveLine),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{?int, ?int, string}>
+     */
+    public static function invalidMetadataLineProvider(): iterable
+    {
+        yield 'marker on fence' => [4, null, 'Marker line must precede the opening fence.'];
+        yield 'directive after fence' => [null, 5, 'Directive line must precede the opening fence.'];
     }
 }

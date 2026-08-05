@@ -36,30 +36,13 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Source\Exception;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * @logion [RAS 46:31] A bronze door stood alone in the tundra, warm beneath the hand though no wall had ever joined it.
+ *     Hunters passed around it for generations. One child knocked, and summer answered from the other side, but the
+ *     hinges opened only toward the snow.
  */
-final readonly class MarkerId
+final class MarkerNotFoundException extends SourceException
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
-    {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
-
-        $this->value = $value;
-    }
 }

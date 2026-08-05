@@ -36,30 +36,13 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Markdown\Exception;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * @logion [RAS 45:23] Two moons rose from opposite hills and cast a single shadow across the capital. The astronomers
+ *     disputed which light was true until the river reflected both. Then the shadow divided at the water, and each
+ *     half returned to the summit that had summoned it.
  */
-final readonly class MarkerId
+final class DuplicateMarkerException extends \RuntimeException
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
-    {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
-
-        $this->value = $value;
-    }
 }

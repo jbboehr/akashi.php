@@ -85,6 +85,15 @@ final readonly class SourceLocation
     public SourceSpan $codeSpan;
 
     /**
+     * Source lines for an associated explicit marker and execution directive.
+     *
+     * @logion [AWC 49:24] An orchard keeper left the northern ladder against a tree long after age had taken his sight.
+     *     Young workers called it useless until a storm stranded three nests upon broken branches. By sunset every
+     *     fledgling rested below, and no one removed the ladder again.
+     */
+    public MetadataLocation $metadata;
+
+    /**
      * @logion [OSD 25:16] Give thanks before the mountain furnace is opened, and afterward speak no boast concerning
      *     what endured therein; for the flame revealeth its servants by silence.
      */
@@ -95,6 +104,7 @@ final readonly class SourceLocation
         ?int $closingFenceLine,
         SourceSpan $fenceSpan,
         SourceSpan $codeSpan,
+        MetadataLocation $metadata = new MetadataLocation(),
     ) {
         if ($openingFenceLine < 1) {
             throw new \InvalidArgumentException('Opening fence line must be positive.');
@@ -130,11 +140,23 @@ final readonly class SourceLocation
             throw new \InvalidArgumentException('An empty code location must have an empty source span.');
         }
 
+        if ($metadata->markerLine !== null && $metadata->markerLine >= $openingFenceLine) {
+            throw new \InvalidArgumentException('Marker line must precede the opening fence.');
+        }
+
+        if (
+            $metadata->separateProcessDirectiveLine !== null
+            && $metadata->separateProcessDirectiveLine >= $openingFenceLine
+        ) {
+            throw new \InvalidArgumentException('Directive line must precede the opening fence.');
+        }
+
         $this->openingFenceLine = $openingFenceLine;
         $this->firstCodeLine = $firstCodeLine;
         $this->lastCodeLine = $lastCodeLine;
         $this->closingFenceLine = $closingFenceLine;
         $this->fenceSpan = $fenceSpan;
         $this->codeSpan = $codeSpan;
+        $this->metadata = $metadata;
     }
 }

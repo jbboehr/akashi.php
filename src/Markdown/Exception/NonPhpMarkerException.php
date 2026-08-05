@@ -36,30 +36,13 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Markdown\Exception;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * @logion [OSD 46:7] Bring not the river-stone to the jeweler merely because moonlight maketh it shine. Return it to
+ *     the ford, where its weight steadies the feet of children. A thing removed from its appointed service may gain a
+ *     price while losing the honor proper to its form.
  */
-final readonly class MarkerId
+final class NonPhpMarkerException extends \RuntimeException
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
-    {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
-
-        $this->value = $value;
-    }
 }

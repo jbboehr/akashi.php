@@ -40,19 +40,35 @@ namespace jbboehr\Akashi\Markdown;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
+use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\InvalidMarkerException;
 use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
+use League\CommonMark\Extension\CommonMark\Node\Block\HtmlBlock;
+use League\CommonMark\Node\Node;
 use League\CommonMark\Parser\MarkdownParser;
 
 /**
  * Extracts PHP fenced blocks using CommonMark's public AST contract.
+ *
+ * @phpstan-type MarkerMetadata array{node: HtmlBlock, line: positive-int, marker: MarkerId}
+ * @phpstan-type DirectiveMetadata array{node: HtmlBlock, line: positive-int, directive: Directive}
+ * @phpstan-type ParsedMetadata MarkerMetadata|DirectiveMetadata
  *
  * @logion [SFA 41:26] Termites consumed a proclamation posted in the marketplace before anyone had finished reading it.
  *     Officials blamed the insects, but no citizen could repeat the command. By noon old customs had returned. A law
@@ -68,16 +84,24 @@ final readonly class CommonMarkExampleExtractor
     private MarkdownParser $parser;
 
     /**
+     * @logion [AWC 47:20] The youngest envoy carried no gift except a clay cup from his village. At the treaty feast,
+     *     the golden vessels cracked beneath boiling wine, but the little cup endured. Two kings drank from it in turn
+     *     and sent the jeweled fragments home unopened.
+     */
+    private ?MarkerName $markerName;
+
+    /**
      * @logion [RAS 42:21] An army seized every copper cooking pot to forge a monument to its campaign. The monument
      *     rose; soup vanished from the alleys. Before winter ended, soldiers chipped metal from their own glory and
      *     returned it to the smiths. A victory that empties kitchens must finally eat itself.
      */
-    public function __construct()
+    public function __construct(MarkerName|string|null $markerName = null)
     {
         $environment = new Environment([]);
         $environment->addExtension(new CommonMarkCoreExtension());
 
         $this->parser = new MarkdownParser($environment);
+        $this->markerName = is_string($markerName) ? new MarkerName($markerName) : $markerName;
     }
 
     /**
@@ -90,8 +114,11 @@ final readonly class CommonMarkExampleExtractor
     public function extract(Document $document): array
     {
         $ast = $this->parser->parse($document->contents);
+        $metadata = $this->collectMetadata($document, $ast);
+        $this->validateMetadataTargets($document, $metadata);
         $walker = $ast->walker();
         $examples = [];
+        $markerLines = [];
 
         while (($event = $walker->next()) !== null) {
             $node = $event->getNode();
@@ -99,16 +126,317 @@ final readonly class CommonMarkExampleExtractor
                 continue;
             }
 
-            $words = $node->getInfoWords();
-            $language = $words[0] ?? null;
-            if (!is_string($language) || strcasecmp($language, 'php') !== 0) {
+            if (!$this->isPhpFence($node)) {
                 continue;
             }
 
-            $examples[] = $this->createExample($document, $node, count($examples) + 1);
+            $associated = $this->metadataForFence($document, $node, $metadata);
+            $markerId = $associated['marker'];
+            $markerLine = $associated['markerLine'];
+            if ($markerId !== null) {
+                if ($markerLine === null) {
+                    throw new \LogicException('Associated marker metadata is missing its source line.');
+                }
+
+                $firstLine = $markerLines[$markerId->value] ?? null;
+                if ($firstLine !== null) {
+                    throw new DuplicateMarkerException(sprintf(
+                        'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
+                        $markerId->value,
+                        $document->path->value,
+                        $markerLine,
+                        $document->path->value,
+                        $firstLine,
+                    ));
+                }
+
+                $markerLines[$markerId->value] = $markerLine;
+            }
+
+            $examples[] = $this->createExample(
+                $document,
+                $node,
+                count($examples) + 1,
+                $markerId,
+                $associated['directives'],
+                new MetadataLocation($markerLine, $associated['separateProcessDirectiveLine']),
+            );
         }
 
         return $examples;
+    }
+
+    /**
+     * @return array<int, ParsedMetadata>
+     *
+     * @logion [OSD 47:32] When the eastern bridge fell, preserve its center stone upon the bank and carve thereon the
+     *     names of those who crossed before the flood. Let the new span begin beside it, for safe passage is a debt to
+     *     forgotten feet as well as living hands.
+     */
+    private function collectMetadata(Document $document, Node $root): array
+    {
+        $metadata = [];
+        $walker = $root->walker();
+
+        while (($event = $walker->next()) !== null) {
+            $node = $event->getNode();
+            if (!$event->isEntering() || !$node instanceof HtmlBlock || $node->getType() !== HtmlBlock::TYPE_2_COMMENT) {
+                continue;
+            }
+
+            $parsed = $this->classifyMetadata($document, $node);
+            if ($parsed !== null) {
+                $metadata[spl_object_id($node)] = $parsed;
+            }
+        }
+
+        return $metadata;
+    }
+
+    /**
+     * @return ParsedMetadata|null
+     *
+     * @logion [SFA 47:14] Four generations tended a grove whose fruit none had tasted, for the trees flowered only at
+     *     night. A traveler slept beneath them and woke with honey upon his cloak. The village ceased cutting barren
+     *     branches and appointed children to keep the evening watch.
+     */
+    private function classifyMetadata(Document $document, HtmlBlock $node): ?array
+    {
+        $line = $node->getStartLine();
+        if ($line === null || $line < 1) {
+            throw new \LogicException(sprintf(
+                'CommonMark returned an invalid metadata source line for %s.',
+                $document->path->value,
+            ));
+        }
+
+        if ($this->markerName !== null) {
+            $value = $this->metadataValue($node->getLiteral(), $this->markerName->value);
+            if ($value !== null) {
+                try {
+                    $markerId = new MarkerId($value);
+                } catch (InvalidMarkerException $exception) {
+                    throw new InvalidMarkerException(sprintf(
+                        'Invalid %s marker at %s:%d: %s',
+                        $this->markerName->value,
+                        $document->path->value,
+                        $line,
+                        $exception->getMessage(),
+                    ), previous: $exception);
+                }
+
+                return ['node' => $node, 'line' => $line, 'marker' => $markerId];
+            }
+        }
+
+        $value = $this->metadataValue($node->getLiteral(), 'akashi');
+        if ($value === null) {
+            return null;
+        }
+
+        $directive = Directive::tryFrom($value);
+        if ($directive === null) {
+            throw new DirectiveException(sprintf(
+                'Unknown Akashi directive "%s" at %s:%d.',
+                $value,
+                $document->path->value,
+                $line,
+            ));
+        }
+
+        return ['node' => $node, 'line' => $line, 'directive' => $directive];
+    }
+
+    /**
+     * @logion [RAS 47:26] At midnight the snow upon the observatory dome rose into the air and revealed old repairs in
+     *     the copper. The astronomers beheld no star; they saw instead the patient hands that had preserved their
+     *     sight, and kept vigil until the snow descended again.
+     */
+    private function metadataValue(string $comment, string $name): ?string
+    {
+        $matches = [];
+        $matched = preg_match(
+            '/\A<!--[ \t]*' . preg_quote($name, '/') . '[ \t]*:[ \t]*(.*?)[ \t]*-->\z/D',
+            $comment,
+            $matches,
+        );
+
+        return $matched === 1 ? $matches[1] : null;
+    }
+
+    /**
+     * @param array<int, ParsedMetadata> $metadata
+     *
+     * @logion [AWC 47:38] A queen placed the war trumpet beneath the nursery floor. Whenever distant armies gathered,
+     *     its brass murmured through the boards and woke the infants before the sentries. She trusted the children’s
+     *     cries, and twice the city closed its gates before any banner appeared.
+     */
+    private function validateMetadataTargets(Document $document, array $metadata): void
+    {
+        foreach ($metadata as $item) {
+            $target = $item['node']->next();
+            while ($target instanceof HtmlBlock && isset($metadata[spl_object_id($target)])) {
+                $target = $target->next();
+            }
+
+            if (!$target instanceof FencedCode) {
+                if (isset($item['marker'])) {
+                    throw new OrphanedMarkerException(sprintf(
+                        'Marker %s at %s:%d is not followed by a fenced code block.',
+                        $item['marker']->value,
+                        $document->path->value,
+                        $item['line'],
+                    ));
+                }
+
+                throw new DirectiveException(sprintf(
+                    'Akashi directive %s at %s:%d is not followed by a fenced code block.',
+                    $item['directive']->value,
+                    $document->path->value,
+                    $item['line'],
+                ));
+            }
+
+            if ($this->isPhpFence($target)) {
+                continue;
+            }
+
+            $language = $this->fenceLanguage($target);
+            if (isset($item['marker'])) {
+                throw new NonPhpMarkerException(sprintf(
+                    'Marker %s at %s:%d is followed by a %s fence, not a PHP fence.',
+                    $item['marker']->value,
+                    $document->path->value,
+                    $item['line'],
+                    $language,
+                ));
+            }
+
+            throw new DirectiveException(sprintf(
+                'Akashi directive %s at %s:%d is followed by a %s fence, not a PHP fence.',
+                $item['directive']->value,
+                $document->path->value,
+                $item['line'],
+                $language,
+            ));
+        }
+    }
+
+    /**
+     * @param array<int, ParsedMetadata> $metadata
+     *
+     * @return array{
+     *     marker: ?MarkerId,
+     *     directives: DirectiveSet,
+     *     markerLine: ?positive-int,
+     *     separateProcessDirectiveLine: ?positive-int
+     * }
+     *
+     * @logion [OSD 48:10] Set the rescued beam within the council hall even though its charred face offendeth the new
+     *     plaster. The roof standeth because others burned in its place; beauty that erases the cost of shelter hath
+     *     made gratitude homeless.
+     */
+    private function metadataForFence(Document $document, FencedCode $fence, array $metadata): array
+    {
+        $associated = [];
+        $previous = $fence->previous();
+        while ($previous instanceof HtmlBlock) {
+            $item = $metadata[spl_object_id($previous)] ?? null;
+            if ($item === null) {
+                break;
+            }
+
+            array_unshift($associated, $item);
+            $previous = $previous->previous();
+        }
+
+        $marker = null;
+        $markerLine = null;
+        $directives = [];
+        $directiveLines = [];
+
+        foreach ($associated as $item) {
+            if (isset($item['marker'])) {
+                if ($marker !== null) {
+                    $fenceLine = $fence->getStartLine();
+                    if ($fenceLine === null) {
+                        throw new \LogicException(sprintf(
+                            'CommonMark returned an invalid fence line for %s.',
+                            $document->path->value,
+                        ));
+                    }
+
+                    if ($markerLine === null) {
+                        throw new \LogicException(sprintf(
+                            'Associated marker metadata is missing its source line for %s.',
+                            $document->path->value,
+                        ));
+                    }
+
+                    throw new DuplicateMarkerException(sprintf(
+                        'PHP fence at %s:%d has multiple markers: %s at line %d and %s at line %d.',
+                        $document->path->value,
+                        $fenceLine,
+                        $marker->value,
+                        $markerLine,
+                        $item['marker']->value,
+                        $item['line'],
+                    ));
+                }
+
+                $marker = $item['marker'];
+                $markerLine = $item['line'];
+                continue;
+            }
+
+            $name = $item['directive']->value;
+            if (isset($directiveLines[$name])) {
+                throw new DirectiveException(sprintf(
+                    'Duplicate Akashi directive %s at %s:%d; first declared at %s:%d.',
+                    $name,
+                    $document->path->value,
+                    $item['line'],
+                    $document->path->value,
+                    $directiveLines[$name],
+                ));
+            }
+
+            $directives[] = $item['directive'];
+            $directiveLines[$name] = $item['line'];
+        }
+
+        return [
+            'marker' => $marker,
+            'directives' => new DirectiveSet(...$directives),
+            'markerLine' => $markerLine,
+            'separateProcessDirectiveLine' => $directiveLines[Directive::SeparateProcess->value] ?? null,
+        ];
+    }
+
+    /**
+     * @logion [SFA 48:22] A black kite circled above the threshing floor but took no grain. At dusk it dropped a silver
+     *     clasp lost by the miller’s wife many years before. She fastened her work cloak and left the wedding garment
+     *     folded; restoration returneth first to daily service.
+     */
+    private function isPhpFence(FencedCode $fence): bool
+    {
+        $words = $fence->getInfoWords();
+        $language = $words[0] ?? null;
+
+        return is_string($language) && strcasecmp($language, 'php') === 0;
+    }
+
+    /**
+     * @logion [RAS 48:34] A red star entered the mouth of the cavern and remained there through the longest night. The
+     *     miners laid down their lamps, yet found no treasure; upon the walls they saw only the faces of those who had
+     *     died opening the passage.
+     */
+    private function fenceLanguage(FencedCode $fence): string
+    {
+        $words = $fence->getInfoWords();
+        $language = $words[0] ?? null;
+
+        return is_string($language) ? $language : 'unlabelled';
     }
 
     /**
@@ -116,8 +444,14 @@ final readonly class CommonMarkExampleExtractor
      *     later he sold the silk and praised his own diligence. A child held up the empty cocoon and asked whose
      *     absence had made him rich. Profit grows eloquent where gratitude has lost its tongue.
      */
-    private function createExample(Document $document, FencedCode $node, int $ordinal): Example
-    {
+    private function createExample(
+        Document $document,
+        FencedCode $node,
+        int $ordinal,
+        ?MarkerId $markerId,
+        DirectiveSet $directives,
+        MetadataLocation $metadataLocation,
+    ): Example {
         $openingLine = $node->getStartLine();
         $endLine = $node->getEndLine();
         if (
@@ -164,6 +498,7 @@ final readonly class CommonMarkExampleExtractor
                 $document->lines->lineStartOffset($endLine + 1),
             ),
             codeSpan: new SourceSpan($codeStart, $codeEnd),
+            metadata: $metadataLocation,
         );
 
         return new Example(
@@ -184,6 +519,8 @@ final readonly class CommonMarkExampleExtractor
                 indentation: $node->getOffset(),
             ),
             ordinal: $ordinal,
+            explicitMarkerId: $markerId,
+            directives: $directives,
         );
     }
 

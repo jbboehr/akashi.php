@@ -39,7 +39,9 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Model;
 
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\InvalidMarkerException;
 use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\MarkerName;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -77,10 +79,35 @@ final class IdentifierTest extends TestCase
         self::assertSame('selected-example-2', (new MarkerId('selected-example-2'))->value);
     }
 
+    public function testAcceptsKebabCaseMarkerNames(): void
+    {
+        self::assertSame('yumemi-example', (new MarkerName('yumemi-example'))->value);
+    }
+
+    #[DataProvider('invalidMarkerNameProvider')]
+    public function testRejectsInvalidOrReservedMarkerNames(string $value, string $message): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        new MarkerName($value);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidMarkerNameProvider(): iterable
+    {
+        yield 'empty' => ['', 'Marker name must use lowercase kebab-case.'];
+        yield 'uppercase' => ['Yumemi-example', 'Marker name must use lowercase kebab-case.'];
+        yield 'underscore' => ['yumemi_example', 'Marker name must use lowercase kebab-case.'];
+        yield 'reserved directive prefix' => ['akashi', 'Marker name akashi is reserved for Akashi directives.'];
+    }
+
     #[DataProvider('invalidMarkerIdProvider')]
     public function testRejectsInvalidMarkerIds(string $value): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidMarkerException::class);
         $this->expectExceptionMessage('Marker ID must use lowercase kebab-case.');
 
         new MarkerId($value);

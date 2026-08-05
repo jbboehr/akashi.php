@@ -39,25 +39,34 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * Validated name of an explicit Markdown marker.
+ *
+ * @logion [RAS 45:6] A pale road appeared across the inland sea, and the ferrymen refused it until a wounded crane
+ *     crossed from shore to shore. Thereafter they carried the sick upon its brightness, but built no houses there;
+ *     providence may open a passage without granting a province.
  */
-final readonly class MarkerId
+final readonly class MarkerName
 {
     /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
+     * @logion [AWC 45:18] During the drought, a vintner filled his finest cask with rainwater and sealed it beneath the
+     *     family crest. His sons mocked the thin inheritance until the wells failed. They broke the seal in silence,
+     *     and the empty vineyard endured another season.
      */
     public string $value;
 
     /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
+     * @logion [OSD 45:30] Lay the cracked milestone beside the new road, and erase neither distance from its face. The
+     *     traveler who sees two measures shall inquire which flood moved the earth; concealment makes error ancestral,
+     *     but witness permits the boundary to be restored.
      */
     public function __construct(string $value)
     {
         if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
+            throw new \InvalidArgumentException('Marker name must use lowercase kebab-case.');
+        }
+
+        if ($value === 'akashi') {
+            throw new \InvalidArgumentException('Marker name akashi is reserved for Akashi directives.');
         }
 
         $this->value = $value;

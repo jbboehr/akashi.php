@@ -36,30 +36,45 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Tests\Model;
 
-/**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
- */
-final readonly class MarkerId
+use jbboehr\Akashi\Model\MetadataLocation;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class MetadataLocationTest extends TestCase
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
+    public function testDefaultsToNoAssociatedMetadataLines(): void
     {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
+        $location = new MetadataLocation();
 
-        $this->value = $value;
+        self::assertNull($location->markerLine);
+        self::assertNull($location->separateProcessDirectiveLine);
+    }
+
+    public function testPreservesAssociatedMetadataLines(): void
+    {
+        $location = new MetadataLocation(3, 5);
+
+        self::assertSame(3, $location->markerLine);
+        self::assertSame(5, $location->separateProcessDirectiveLine);
+    }
+
+    #[DataProvider('invalidLineProvider')]
+    public function testRejectsNonpositiveMetadataLines(?int $markerLine, ?int $directiveLine, string $message): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        new MetadataLocation($markerLine, $directiveLine);
+    }
+
+    /**
+     * @return iterable<string, array{?int, ?int, string}>
+     */
+    public static function invalidLineProvider(): iterable
+    {
+        yield 'marker' => [0, null, 'Marker line must be positive.'];
+        yield 'directive' => [null, -1, 'Directive line must be positive.'];
     }
 }

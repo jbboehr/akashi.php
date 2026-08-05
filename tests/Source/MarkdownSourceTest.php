@@ -40,6 +40,9 @@ namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
@@ -453,6 +456,50 @@ final class MarkdownSourceTest extends TestCase
             ["echo 'a1';\n", "echo 'a2';\n", "echo 'z';\n"],
             array_map(static fn (Example $example): string => $example->code->source, $examples),
         );
+    }
+
+    public function testConfiguresMarkerParsingWithoutMutatingTheEarlierSource(): void
+    {
+        $this->write('docs/guide.md', <<<'MARKDOWN'
+<!-- yumemi-example: selected-example -->
+<!-- akashi: separate-process -->
+```php
+<?php
+echo 'selected';
+```
+MARKDOWN);
+        $source = MarkdownSource::forProject($this->projectRoot)->includeFile('docs/guide.md');
+        $markedSource = $source->withMarkerName(new MarkerName('yumemi-example'));
+
+        $unmarkedExamples = iterator_to_array($source->load());
+        $markedExamples = iterator_to_array($markedSource->load());
+
+        self::assertNull($unmarkedExamples[0]->explicitMarkerId);
+        self::assertSame('selected-example', $markedExamples[0]->explicitMarkerId?->value);
+        self::assertTrue($unmarkedExamples[0]->directives->contains(Directive::SeparateProcess));
+        self::assertTrue($markedExamples[0]->directives->contains(Directive::SeparateProcess));
+    }
+
+    public function testRejectsDuplicateMarkerIdsAcrossDocuments(): void
+    {
+        $this->write(
+            'docs/a.md',
+            "<!-- yumemi-example: selected-example -->\n```php\necho 'a';\n```\n",
+        );
+        $this->write(
+            'docs/b.md',
+            "\n<!-- yumemi-example: selected-example -->\n```php\necho 'b';\n```\n",
+        );
+
+        $this->expectException(DuplicateMarkerException::class);
+        $this->expectExceptionMessage(
+            'Duplicate marker ID selected-example at docs/b.md:2; first declared at docs/a.md:1.',
+        );
+
+        MarkdownSource::forProject($this->projectRoot)
+            ->includeDirectory('docs')
+            ->withMarkerName('yumemi-example')
+            ->load();
     }
 
     public function testRejectsAnEmptyPhpExampleCorpusSeparatelyFromAnEmptyDocumentManifest(): void

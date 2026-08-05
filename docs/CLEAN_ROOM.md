@@ -15,9 +15,10 @@ Akashi's MVP is being designed independently from competing PHP documentation-te
 - no prohibited implementation code was examined; and
 - the Rust and Cargo review was limited to official public user-facing behavior.
 
-The only implementation material used as prior art is the user-owned Yumemi material explicitly allowed by the handoff.
-The accidental PHPStan API-reference exposure recorded below is not a competing doctest implementation and did not
-influence Akashi's design.
+The only implementation material used as domain prior art is the user-owned Yumemi material explicitly allowed by the
+handoff. The narrow League CommonMark public-API source inspection and accidental PHPStan API-reference exposure
+recorded below concern allowed integration dependencies, not competing doctest implementations; neither supplied an
+Akashi domain algorithm or architecture.
 
 ## User-owned implementation materials
 
@@ -173,6 +174,16 @@ the CommonMark specification, and runtime reflection of public APIs.
 
 No competing PHP doctest documentation or prohibited implementation material was accidentally exposed.
 
+## Allowed dependency API-source inspection
+
+On 2026-08-05, while implementing metadata-comment association, the installed League CommonMark 2.8.3 files
+`src/Extension/CommonMark/Node/Block/HtmlBlock.php` and `src/Node/Node.php` were opened to confirm the public
+`TYPE_2_COMMENT` constant and the public `previous()`, `next()`, and `parent()` node methods. This was a narrow
+inspection of public API declarations in an allowed general-purpose dependency. No parser implementation, internal test,
+source-level algorithm, or architecture was examined or copied. Akashi's immediate sibling-association rule remains the
+independent design recorded in `ARCHITECTURE.md`; the inspection only confirmed that League CommonMark's public node API
+could express it.
+
 ## Current dependency status
 
 Akashi requires PHP 8.2 or later and the following runtime dependencies:
@@ -183,6 +194,7 @@ Akashi requires PHP 8.2 or later and the following runtime dependencies:
 - `symfony/process` 7.4 or later within the 7.x series, for later isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
-documentation and package metadata are recorded above. No dependency source code or internal tests were consulted.
-PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and
-PHPStan are suggested optional integrations for consumers.
+documentation and package metadata are recorded above. Apart from the narrow League CommonMark public-API source
+inspection recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and its
+extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested optional
+integrations for consumers.

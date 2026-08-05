@@ -39,27 +39,44 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * Source lines for metadata immediately associated with an example.
+ *
+ * @logion [AWC 46:12] The court physician kept the fevered prince beside the common ward, though ministers prepared a
+ *     chamber of cedar. At dawn the children breathed together, and fear departed first from those without titles.
+ *     The kingdom remembered that frailty observes no heraldry.
  */
-final readonly class MarkerId
+final readonly class MetadataLocation
 {
     /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
+     * @logion [OSD 46:24] If frost divideth the orchard, gather first from the trees that sheltered the nesting birds.
+     *     Their lesser fruit hath already borne a greater harvest, and the table that honors only sweetness shall grow
+     *     barren while its branches yet appear abundant.
      */
-    public string $value;
+    public ?int $markerLine;
 
     /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
+     * @logion [SFA 46:36] A mason found a wildflower rooted in the unfinished tower and set one stone aside. Years
+     *     later, lightning entered through that narrow absence and passed harmlessly into the earth. The wall remained
+     *     because completion had not despised the small inhabitant.
      */
-    public function __construct(string $value)
+    public ?int $separateProcessDirectiveLine;
+
+    /**
+     * @logion [RAS 47:8] Above the winter harbor, a constellation descended until each star rested upon a different
+     *     mast. No rope burned, and the sleeping crews dreamed of the same green country. At sunrise the lights rose,
+     *     leaving salt upon the highest sails.
+     */
+    public function __construct(?int $markerLine = null, ?int $separateProcessDirectiveLine = null)
     {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
+        if ($markerLine !== null && $markerLine < 1) {
+            throw new \InvalidArgumentException('Marker line must be positive.');
         }
 
-        $this->value = $value;
+        if ($separateProcessDirectiveLine !== null && $separateProcessDirectiveLine < 1) {
+            throw new \InvalidArgumentException('Directive line must be positive.');
+        }
+
+        $this->markerLine = $markerLine;
+        $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
     }
 }

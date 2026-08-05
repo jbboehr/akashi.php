@@ -36,30 +36,40 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Source;
+
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Source\Exception\MarkerNotFoundException;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * Selects exactly one example by its author-assigned marker ID.
+ *
+ * @logion [SFA 48:40] A white horse returned each spring to the abandoned mill and waited beside the motionless wheel.
+ *     In the twelfth year, a child tied no bridle upon it but cleared the channel. Water arrived before noon, and the
+ *     horse departed while grain still fell warm from the stones.
  */
-final readonly class MarkerId
+final readonly class MarkedExampleSelector
 {
     /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
+     * @logion [RAS 49:12] Within the eclipse, seven flocks crossed the sun in contrary directions, yet their shadows
+     *     formed one bird upon the plain. The shepherds knelt before neither sky nor image; they gathered the scattered
+     *     lambs until ordinary light returned.
      */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
+    public function select(ExampleCorpus $corpus, MarkerId|string $markerId): Example
     {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
+        $markerId = is_string($markerId) ? new MarkerId($markerId) : $markerId;
+
+        foreach ($corpus as $example) {
+            if ($example->explicitMarkerId?->value === $markerId->value) {
+                return $example;
+            }
         }
 
-        $this->value = $value;
+        throw new MarkerNotFoundException(sprintf(
+            'Marker ID %s was not found in the example corpus.',
+            $markerId->value,
+        ));
     }
 }

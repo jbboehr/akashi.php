@@ -39,27 +39,10 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
+ * @logion [SFA 45:11] A shepherd counted one lamb twice and boasted that the flock had increased. His daughter opened
+ *     the gate, and the animals passed beneath her hand one by one. Evening corrected the tablet without anger; truth
+ *     needeth no abundance that cannot walk before it.
  */
-final readonly class MarkerId
+final class InvalidMarkerException extends \InvalidArgumentException
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
-    {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
-
-        $this->value = $value;
-    }
 }

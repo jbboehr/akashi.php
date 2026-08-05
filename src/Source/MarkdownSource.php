@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Source;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
+use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
@@ -82,17 +84,29 @@ final readonly class MarkdownSource
     private array $exclusions;
 
     /**
+     * @logion [AWC 48:16] The keeper of the hill shrine planted rice in three narrow terraces after the valley fields
+     *     were taken by war. His harvest filled no granary, yet each returning household received one bowl and knew
+     *     where to rebuild. Small provision may preserve the shape of abundance.
+     */
+    private ?MarkerName $markerName;
+
+    /**
      * @param list<IncludeRule> $includes
      * @param list<ProjectPath> $exclusions
      *
      * @logion [OSD 33:10] Before crossing the plain of red grass, break bread with the shepherds at its border; the road
      *     beyond remembereth neither rank nor the abundance of thy provisions.
      */
-    private function __construct(ProjectRoot $projectRoot, array $includes, array $exclusions)
-    {
+    private function __construct(
+        ProjectRoot $projectRoot,
+        array $includes,
+        array $exclusions,
+        ?MarkerName $markerName,
+    ) {
         $this->projectRoot = $projectRoot;
         $this->includes = $includes;
         $this->exclusions = $exclusions;
+        $this->markerName = $markerName;
     }
 
     /**
@@ -109,6 +123,7 @@ final readonly class MarkdownSource
             is_string($projectRoot) ? new ProjectRoot($projectRoot) : $projectRoot,
             [],
             [],
+            null,
         );
     }
 
@@ -127,6 +142,7 @@ final readonly class MarkdownSource
                 is_string($path) ? new ProjectPath($path) : $path,
             )],
             $this->exclusions,
+            $this->markerName,
         );
     }
 
@@ -145,6 +161,7 @@ final readonly class MarkdownSource
                 is_string($path) ? new ProjectPath($path) : $path,
             )],
             $this->exclusions,
+            $this->markerName,
         );
     }
 
@@ -160,6 +177,24 @@ final readonly class MarkdownSource
             $this->projectRoot,
             $this->includes,
             [...$this->exclusions, is_string($path) ? new ProjectPath($path) : $path],
+            $this->markerName,
+        );
+    }
+
+    /**
+     * Return a new configuration that recognizes one explicit marker-comment name.
+     *
+     * @logion [OSD 48:28] Keep one seat empty at the harvest judgment for the laborer who died before the grain was
+     *     weighed. Though he answer no accusation and receive no wage, his absence rebuketh every account that would
+     *     call the field self-sown.
+     */
+    public function withMarkerName(MarkerName|string $markerName): self
+    {
+        return new self(
+            $this->projectRoot,
+            $this->includes,
+            $this->exclusions,
+            is_string($markerName) ? new MarkerName($markerName) : $markerName,
         );
     }
 
@@ -179,11 +214,43 @@ final readonly class MarkdownSource
      */
     public function load(): ExampleCorpus
     {
-        $extractor = new CommonMarkExampleExtractor();
+        $extractor = new CommonMarkExampleExtractor($this->markerName);
         $examples = [];
+        $markerLocations = [];
 
         foreach ($this->loadDocuments() as $document) {
-            array_push($examples, ...$extractor->extract($document));
+            $extracted = $extractor->extract($document);
+
+            foreach ($extracted as $example) {
+                $markerId = $example->explicitMarkerId?->value;
+                if ($markerId === null) {
+                    continue;
+                }
+
+                $markerLine = $example->location->metadata->markerLine;
+                if ($markerLine === null) {
+                    throw new \LogicException('An explicitly marked example is missing its marker source line.');
+                }
+
+                $first = $markerLocations[$markerId] ?? null;
+                if ($first !== null) {
+                    throw new DuplicateMarkerException(sprintf(
+                        'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
+                        $markerId,
+                        $example->document->path->value,
+                        $markerLine,
+                        $first['path'],
+                        $first['line'],
+                    ));
+                }
+
+                $markerLocations[$markerId] = [
+                    'path' => $example->document->path->value,
+                    'line' => $markerLine,
+                ];
+            }
+
+            array_push($examples, ...$extracted);
         }
 
         if ($examples === []) {
