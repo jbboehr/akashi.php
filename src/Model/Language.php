@@ -51,8 +51,9 @@ final readonly class Language
     public string $value;
 
     /**
-     * @logion [RAS 6:25] Above the city of copper roofs, a white constellation appeared at midday; the astronomers cast
-     *     down their instruments, but the gardeners continued their appointed work.
+     * @logion [RAS 6:25] There appeared through the planets an ivory spine, and every world rested upon the vertebra
+     *     appointed to its weight. One radiant kingdom named itself the head and climbed three stations; the whole
+     *     heaven bent, and that kingdom alone was ground to dust.
      */
     public function __construct(string $value)
     {

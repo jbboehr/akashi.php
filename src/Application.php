@@ -39,20 +39,23 @@ declare(strict_types=1);
 namespace jbboehr\Akashi;
 
 /**
- * @logion [AWC 17:42] At evening the western gate stood open, and the appointed lamps burned before any traveler
- *     had named the road.
+ * @logion [AWC 17:42] The moon entered a deep well as a silver coin, and three merchants lowered hooks to claim it. A
+ *     child drank from her hands and scattered their prize into ripples. Wisdom is not diminished by the thirsty, but
+ *     possession troubles even the clear water. Receive wonder with an open palm.
  */
 final class Application
 {
     /**
-     * @logion [OSD 31:7] Let the first stone bear its ancient mark, that every later course may answer to a known
-     *     beginning.
+     * @logion [OSD 31:7] Before the hills learned mist, a black shell sounded alone upon the empty strand. Its cry
+     *     gathered gulls, then wind, then the first white combers. What seems hollow may summon abundance from afar.
+     *     Put thine ear to silence, and depart when the sea gives answer.
      */
     public const NAME = 'Akashi';
 
     /**
-     * @logion [SFA 9:26] A quiet word at the threshold is sufficient; the chamber beyond shall declare its measure
-     *     when the hour is full.
+     * @logion [SFA 9:26] A snail climbed the great drum while the town slept. By dawn, its silver path crossed the hide
+     *     from rim to rim. The drummer saw the mark and withheld his hand; that morning the people heard the storm
+     *     approaching. The smallest traveler may write a warning where thunder is expected.
      */
     public static function run(): int
     {

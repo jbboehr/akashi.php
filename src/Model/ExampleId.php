@@ -39,20 +39,23 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [RAS 14:9] It was shown unto the widows of the eastern quarter that the abandoned organ yet breathed beneath
- *     the flood, and their hymn caused the drowned windows to burn with morning light.
+ * @logion [RAS 14:9] Masons carved open mouths along the city wall to frighten invaders. At the first east wind, each
+ *     stone mouth spoke a cruelty committed inside the gates. The citizens plastered them shut, but the words rose from
+ *     the wells. A wall that guards unrepented wrong shall become its herald.
  */
 final readonly class ExampleId
 {
     /**
-     * @logion [OSD 22:5] The lesser moon dimmed itself during the orphan's vigil; for splendor that refuseth sorrow is
-     *     unworthy to govern the night.
+     * @logion [OSD 22:5] For nine days, a square cloud stood above a ruined village, giving shade but no rain. When the
+     *     displaced returned together, it divided into seven smaller clouds and followed them as they rebuilt. Shelter
+     *     shared among the wounded increaseth without being diminished.
      */
     public string $value;
 
     /**
-     * @logion [AWC 8:17] The bronze horse knelt before the empty pavilion at noon, and the court chronicler recorded the
-     *     obeisance without naming any rider.
+     * @logion [AWC 8:17] Seven vultures descended upon an unburied stranger beyond the wall, yet none touched him. Each
+     *     carried a white pebble and laid it toward the town, making a path from the body to the gate. Follow the mercy
+     *     of creatures when custom hath forgotten the road to honor.
      */
     public function __construct(string $value)
     {

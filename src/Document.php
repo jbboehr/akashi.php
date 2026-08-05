@@ -42,32 +42,37 @@ use jbboehr\Akashi\Model\DocumentPath;
 use jbboehr\Akashi\Model\LineIndex;
 
 /**
- * @logion [OSD 4:18] Beneath the winter cedar, seven lamps endured the snow; when the thaw came, no hand could say who
- *     had tended them through the long darkness.
+ * @logion [OSD 4:18] Snow rose from the chasm and clothed the lower branches, though the summit remained bare. The
+ *     valley beasts lifted their faces, amazed that cold could ascend like praise. From that day, the high places
+ *     waited upon the depths. Bless the low country, for hidden winds are born there.
  */
 final readonly class Document
 {
     /**
-     * @logion [AWC 6:11] The bronze birds descended at noon, each bearing a scarlet thread; yet the youngest among them
-     *     cast hers into the sea and was not reproved.
+     * @logion [AWC 6:11] An owl nested inside the abandoned helmet of a conqueror and filled it with mouse bones.
+     *     Pilgrims came to admire the old crest, but heard only the young birds begging within. Time instructs without
+     *     raising its voice: whatever terror makes empty, life may inhabit without permission.
      */
     public DocumentPath $path;
 
     /**
-     * @logion [SFA 12:3] Three witnesses kept silence before the eastern fire, and their shadows alone answered the
-     *     questions of the assembled princes.
+     * @logion [SFA 12:3] A stolen pomegranate rolled beneath the judges’ bench and burst against a sandal. Seeing every
+     *     robe speckled red, the eldest judge asked whose orchard had yielded so much fruit and paid the gardener
+     *     himself. The hungry child departed unbound. Justice ripens only when hunger also has a name.
      */
     public string $contents;
 
     /**
-     * @logion [SFA 40:8] A white fox crossed the vineyard at midsummer, and every vine it passed gave the scent of rain
-     *     upon stone though the sky remained cloudless.
+     * @logion [SFA 40:8] An ox broke loose from the victory procession and wandered into a field of lilies. Soldiers
+     *     chased it with ropes, but the widows stood between them and the flowers. Seeing their white garments among
+     *     the blooms, the captain lowered his spear. One creature’s wandering may lead armed men out of triumph.
      */
     public LineIndex $lines;
 
     /**
-     * @logion [RAS 8:29] When the pale moon rested upon the orchard wall, the keeper opened every gate, for the fruit
-     *     had ripened beyond the reach of thieves.
+     * @logion [RAS 8:29] In the council hall, a copper mirror darkened beneath years of incense. A servant polished one
+     *     narrow circle, and every ruler who approached saw one clear eye surrounded by smoke. None commanded the rest
+     *     to be cleaned. So their decrees multiplied, while the uncovered eye grew harder to meet.
      */
     public function __construct(DocumentPath|string $path, string $contents)
     {

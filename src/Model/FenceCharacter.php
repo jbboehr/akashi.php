@@ -39,14 +39,16 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [SFA 44:16] The last crane departed the flooded rice fields carrying a thread of scarlet silk, and the moon
- *     drew the same bright thread across the water behind it.
+ * @logion [SFA 44:16] The fox that sleepeth beside an extinguished funeral fire is not thereby heir to the ashes; yet
+ *     if it guards the place from desecration, despise not the small fidelity of a creature that claimeth no share in
+ *     human grief, and number its watch among the mercies of winter.
  */
 enum FenceCharacter: string
 {
     /**
-     * @logion [OSD 44:29] At the foot of the silent volcano, the vintners uncovered a marble cradle filled with warm
-     *     rain and leaves from no tree upon the island.
+     * @logion [OSD 44:29] Keep no feast by starving the singer whose song named thy fault. Bread withheld from faithful
+     *     rebuke shall blacken in every basket of the house, and at dawn each loaf shall bear the purple mark of a
+     *     silenced tongue.
      */
     case Backtick = '`';
 

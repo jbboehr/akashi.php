@@ -41,46 +41,52 @@ namespace jbboehr\Akashi\Model;
 /**
  * CommonMark syntax metadata for an extracted fenced code block.
  *
- * @logion [RAS 39:25] A choir of strangers sang beneath the city bridge before dawn, and the river carried their
- *     unfamiliar hymn into every courtyard without waking the guards.
+ * @logion [RAS 39:25] Red snow descended upon the statues from which all inscriptions had been chiseled, and nowhere
+ *     else in the province. At sunrise their stone mouths spoke the names of forgotten artisans, while the palace
+ *     façade remained white and mute before the multitude.
  */
 final readonly class FenceMetadata
 {
     /**
      * Complete semantic info string after CommonMark trimming and escape processing.
      *
-     * @logion [AWC 39:7] The baker set twelve loaves upon the abandoned watchtower, and by sunset ravens had arranged
-     *     them in the likeness of a forgotten constellation.
+     * @logion [AWC 39:7] In the reign of the alabaster duchess, the western quay raised its oldest anchor at midsummer
+     *     and found upon it letters of decrees not yet proclaimed. The court scraped them away as corrosion; thereafter
+     *     the harbor forgot the tides, and ships returned only in paintings.
      */
     public string $infoString;
 
     /**
      * Opening-fence character.
      *
-     * @logion [SFA 39:19] During the drought, a silver fish appeared in the queen's mirror and circled there until she
-     *     opened the granaries to the hill villages.
+     * @logion [SFA 39:19] The compass buried beside a faithful navigator pointeth neither north nor home, but toward
+     *     the promise he kept upon the sea. Call no appointed instrument idle while its witness remaineth; the dead
+     *     also travel roads withheld from the living.
      */
     public FenceCharacter $character;
 
     /**
      * Number of characters in the opening fence.
      *
-     * @logion [OSD 40:32] A child slept beneath the council table through nine judgments, and upon waking named the one
-     *     petitioner who had spoken with another's sorrow.
+     * @logion [OSD 40:32] Melt not the votive silver of a disgraced ruler until every promise graven thereon hath been
+     *     discharged by another hand. An unworthy giver doth not make obligation profane; let the debt outlive his
+     *     house, and afterward return the metal to silence.
      */
     public int $length;
 
     /**
      * CommonMark indentation of the opening fence relative to its containing block.
      *
-     * @logion [RAS 40:14] The crimson kite settled upon the monastery bell, and its shadow rang across the valley while
-     *     the bronze itself remained still.
+     * @logion [RAS 40:14] The great hourglass turned sideways above the cobalt cities, yet its sand did not spill;
+     *     grain joined grain and built a wall around each oath uttered below. One city broke the wall before evening,
+     *     and the next morning passed over it without entering.
      */
     public int $indentation;
 
     /**
-     * @logion [AWC 40:26] Beneath the northern orchard lay a staircase of black glass; those who descended returned
-     *     carrying apples from summers their grandparents had forgotten.
+     * @logion [AWC 40:26] At the Accord of the Two Provinces, each envoy laid an uncarved stone beside the treaty. The
+     *     eastern stone grew heavier with every clause withheld, until all the bearers could not lift it; the regent
+     *     broke the accord, and its fragments were set above the chancery.
      */
     public function __construct(
         string $infoString,

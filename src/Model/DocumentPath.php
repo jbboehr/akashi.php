@@ -39,20 +39,23 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [OSD 6:14] The sailors kept vigil beneath an amber aurora, and offered the first catch unto the ruined
- *     chapel; therefore the western sea withheld its winter anger from their children.
+ * @logion [OSD 6:14] High above the world, the wandering lights crowded one another until the outermost loosened its
+ *     circle and moved away. Silence widened behind it, giving each light room to burn. Space began as permission
+ *     granted to departure. Bless what releases without cursing the one who leaves.
  */
 final readonly class DocumentPath
 {
     /**
-     * @logion [SFA 18:7] A child set a bowl of rain before the bronze lion, and by morning the water had become clear
-     *     crystal, though the night was warm and no star had appeared.
+     * @logion [SFA 18:7] A white boar entered the naming feast carrying a cracked wooden spoon. It ignored every laden
+     *     table and laid the spoon before an unseen kitchen servant. When the host called her by name, the beast bowed
+     *     and vanished into the reeds. Honor begins where service ceaseth to be invisible.
      */
     public string $value;
 
     /**
-     * @logion [AWC 11:23] In the reign of the veiled consort, the river froze upward from its bed, and the ferrymen
-     *     found ancient coins resting upon the ice like seeds after harvest.
+     * @logion [AWC 11:23] A merchant bought the echo of a famous singer and sealed it in a blue amphora. Whenever
+     *     opened, it praised only him. A beggar shattered the vessel, and the echo returned to the hills carrying every
+     *     forgotten name. Keep no honor that must imprison another voice.
      */
     public function __construct(string $value)
     {

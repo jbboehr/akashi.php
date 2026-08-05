@@ -54,20 +54,23 @@ use League\CommonMark\Parser\MarkdownParser;
 /**
  * Extracts PHP fenced blocks using CommonMark's public AST contract.
  *
- * @logion [SFA 41:26] A procession of masked physicians crossed the frozen lake at dawn, leaving no tracks except one
- *     circle where reeds rose green through the ice.
+ * @logion [SFA 41:26] Termites consumed a proclamation posted in the marketplace before anyone had finished reading it.
+ *     Officials blamed the insects, but no citizen could repeat the command. By noon old customs had returned. A law
+ *     that lives only upon plaster is already waiting for smaller mouths.
  */
 final readonly class CommonMarkExampleExtractor
 {
     /**
-     * @logion [OSD 42:9] The miller's widow heard a harp beneath the floor each new moon, though the buried chamber held
-     *     only wheat untouched by mouse or mold.
+     * @logion [OSD 42:9] Deep beneath the young sea, coral raised red stairways no foot could climb. Waves descended,
+     *     struck their crests, and returned clothed in foam. Thus the ocean received a garment made by the least moving
+     *     builders. Honor what labors without journeying.
      */
     private MarkdownParser $parser;
 
     /**
-     * @logion [RAS 42:21] A red sail appeared above the inland hills after the storm, and the shepherds found salt upon
-     *     their cloaks though none had seen the sea.
+     * @logion [RAS 42:21] An army seized every copper cooking pot to forge a monument to its campaign. The monument
+     *     rose; soup vanished from the alleys. Before winter ended, soldiers chipped metal from their own glory and
+     *     returned it to the smiths. A victory that empties kitchens must finally eat itself.
      */
     public function __construct()
     {
@@ -80,8 +83,9 @@ final readonly class CommonMarkExampleExtractor
     /**
      * @return list<Example>
      *
-     * @logion [AWC 42:3] The magistrate's daughter released a moth from the sealed ledger, and its wings bore the colors
-     *     of every village omitted from the census.
+     * @logion [AWC 42:3] A midwife carried a silk cloth and a rough linen cloth. The silk adorned the cradle; the linen
+     *     gripped the newborn when her hands were wet. She taught her daughters to honor what serves before what is
+     *     displayed. Welcome arrives safely by the humbler fabric.
      */
     public function extract(Document $document): array
     {
@@ -108,8 +112,9 @@ final readonly class CommonMarkExampleExtractor
     }
 
     /**
-     * @logion [SFA 42:15] When the black mare drank from the fountain, the carved saints turned their faces toward the
-     *     stable and the bells sounded once without a hand upon their ropes.
+     * @logion [SFA 42:15] A cloth merchant scolded a silkworm for devouring mulberry leaves without payment. Months
+     *     later he sold the silk and praised his own diligence. A child held up the empty cocoon and asked whose
+     *     absence had made him rich. Profit grows eloquent where gratitude has lost its tongue.
      */
     private function createExample(Document $document, FencedCode $node, int $ordinal): Example
     {
@@ -185,8 +190,9 @@ final readonly class CommonMarkExampleExtractor
     /**
      * @return list<string>
      *
-     * @logion [OSD 43:27] The pearl diver surfaced in the mountain reservoir carrying a bronze key, and no door in the
-     *     governor's palace would admit that it had ever possessed a lock.
+     * @logion [OSD 43:27] When day and night still lay mingled, ants gathered grains of darkness and carried them
+     *     below. The brightness left behind became morning; the buried dark enriched the roots of grasses. Thus neither
+     *     realm was conquered. What is removed from sight may yet sustain the visible.
      */
     private function semanticLines(Document $document, int $openingLine, string $literal): array
     {
@@ -211,8 +217,9 @@ final readonly class CommonMarkExampleExtractor
     /**
      * @param list<string> $semanticLines
      *
-     * @logion [RAS 43:10] The northern queen sent no army to the besieged town, but at sunrise every enemy spear had
-     *     blossomed with lilies and could not be lifted from the earth.
+     * @logion [RAS 43:10] After the conquest, the king forbade lamentation. Women hung empty gourds from the roofs, and
+     *     the desert wind moaned through them. Soldiers cut them down, but more appeared by dawn. Grief denied a mouth
+     *     will borrow the whole city for its voice.
      */
     private function restoreLineEndings(Document $document, int $firstCodeLine, array $semanticLines): string
     {

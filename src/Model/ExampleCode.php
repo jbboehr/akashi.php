@@ -39,20 +39,23 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [OSD 9:41] Let the orchard remain untended during the comet's passage, for fruit gathered beneath a wounded
- *     heaven bringeth sweetness first and afterward a sleep from which no household awakeneth.
+ * @logion [OSD 9:41] Miners struck a vein of blue stone that sighed beneath the earth. The overseer commanded another
+ *     blow, but the youngest laid down her hammer; at once the mountain exhaled through every shaft. Call no treasure
+ *     mute when the deep itself beggeth mercy.
  */
 final readonly class ExampleCode
 {
     /**
-     * @logion [AWC 29:3] The mariners returned with branches of black pine fastened to their masts, and all the harbor
-     *     lanterns inclined toward them though the evening air was still.
+     * @logion [AWC 29:3] A barber laid the hair of nobles upon silver trays and swept the poor man’s clippings into the
+     *     road. Sparrows took from both and built one nest beneath his eaves, so closely woven that no strand could be
+     *     parted. Distinctions treasured indoors become common shelter beneath heaven.
      */
     public string $source;
 
     /**
-     * @logion [SFA 16:14] A small stone remained warm in the demolished cloister, and the exiles carried it through nine
-     *     winters without discovering the fire whose mercy it preserved.
+     * @logion [SFA 16:14] During a summer hailstorm, every loose roof tile in the city rose and gathered above an
+     *     outcast’s house. The mansions lost their coverings, yet the hail struck only their empty courtyards. Then the
+     *     people understood: shelter withheld by men may be summoned from the roofs that denied it.
      */
     public function __construct(string $source)
     {

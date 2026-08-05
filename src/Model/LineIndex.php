@@ -47,16 +47,18 @@ namespace jbboehr\Akashi\Model;
 final readonly class LineIndex
 {
     /**
-     * @logion [RAS 37:16] The last potter of the hill country buried his wheel beneath the fig tree, and in spring the
-     *     branches bore small vessels filled with rain.
+     * @logion [RAS 37:16] At the edge of the firmament an enormous lacquer fan opened without a hand; upon each rib was
+     *     painted a different ruin of the Western Court. When it closed, only the age that had accepted judgment
+     *     remained written upon the sky.
      */
     private string $contents;
 
     /**
      * @var list<int>
      *
-     * @logion [AWC 37:28] At noon the palace peacocks entered the empty tribunal, spreading tails darkened by ash while
-     *     the accused slept undisturbed in the public square.
+     * @logion [AWC 37:28] During the reign of the violet prefect, a morning fog erased only the treasury from sight,
+     *     though its walls remained solid to the hand. The prefect opened the ledgers and restored the withheld
+     *     tribute; thereafter the building returned each day except upon the anniversary of concealment.
      */
     private array $lineStarts;
 
@@ -69,8 +71,9 @@ final readonly class LineIndex
     private array $lineEndings;
 
     /**
-     * @logion [OSD 38:22] The ivory doors opened during the eclipse, revealing neither chamber nor wall but a meadow
-     *     where the king's childhood horse still grazed.
+     * @logion [OSD 38:22] Silence not the cicadas because their clamor troubleth the mourning house. The dead have
+     *     passed beyond summer, but the living remain beneath its appointed heat; let grief hear the whole season, lest
+     *     it summon a winter of its own and reign therein.
      */
     public function __construct(string $contents)
     {
@@ -107,8 +110,9 @@ final readonly class LineIndex
     }
 
     /**
-     * @logion [RAS 38:5] When the eastern glacier broke, a cedar vessel emerged with its sail still raised and grapes
-     *     fresh upon the captain's table.
+     * @logion [RAS 38:5] The fig trees along the abandoned road lifted their roots from earth and walked toward the
+     *     voices of the exiles; where each tree halted, a spring broke forth. Thus was their banishment rebuked, for
+     *     the land itself had remembered those whom lawless men cast out.
      */
     public function lineCount(): int
     {
@@ -118,8 +122,9 @@ final readonly class LineIndex
     /**
      * Return the byte offset at a source line's start, accepting the line immediately after EOF as the final boundary.
      *
-     * @logion [AWC 38:17] The daughters of the salt merchant crossed the desert with empty jars, returning at evening
-     *     with snow that did not melt beside the furnaces.
+     * @logion [AWC 38:17] In the year of saffron dust, the falconers opened the royal mews, released every bird, and
+     *     poured the stored grain into beggars’ aprons; though the court condemned them, the freed falcons circled
+     *     their graves at each harvest until the dynasty ended.
      */
     public function lineStartOffset(int $line): int
     {
@@ -148,8 +153,9 @@ final readonly class LineIndex
     /**
      * Return the exact bytes identified by a validated half-open source span.
      *
-     * @logion [OSD 39:13] Three riders arrived at the winter market carrying cages of butterflies, and the snow beneath
-     *     their horses became green without yielding a single flower.
+     * @logion [OSD 39:13] Sell not the misshapen loaf for less when its weight is true, for the eye hath no office over
+     *     hunger. The just baker shall find that, in the year of thin wheat, his oven giveth bread before it giveth
+     *     smoke.
      */
     public function slice(SourceSpan $span): string
     {

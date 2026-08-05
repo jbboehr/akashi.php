@@ -39,22 +39,25 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [SFA 7:22] The snow upon the imperial vineyard bore the warmth of midsummer, yet the vines slept on; for
- *     mercy hasteneth no season whose appointed labor is still concealed.
+ * @logion [SFA 7:22] A puppeteer blamed the wooden king whenever children booed. One night a rat chewed the strings,
+ *     and the puppet made no gesture at all. The crowd watched the puppeteer’s hands hanging empty. Whoever lends his
+ *     fault a painted face shall one day stand alone before it.
  */
 final readonly class DirectiveSet
 {
     /**
      * @var array<string, Directive>
      *
-     * @logion [OSD 29:11] Let the cedar doors remain open during the requiem, that the fragrance of the forest may
-     *     testify how the dead were sheltered before stone enclosed them.
+     * @logion [OSD 29:11] At the beginning, stones floated like fruit above the plain. A beetle landed upon one, and it
+     *     descended; the others followed, curious about the earth. Thus weight entered the world through the smallest
+     *     touch. What falls may be answering invitation, not punishment.
      */
     private array $directives;
 
     /**
-     * @logion [AWC 23:4] In the forty-third year of the silent regency, cranes nested upon the abandoned watchtowers,
-     *     and the frontier knew peace before the capital dared proclaim it.
+     * @logion [AWC 23:4] A host filled every chair before the meal so no guest would feel unwanted. When a traveler
+     *     arrived, he stood ashamed among vacant plates. The host’s daughter gave her seat and ate upon the floor.
+     *     Provision that leaves no room for surprise has mistaken order for welcome.
      */
     public function __construct(Directive ...$directives)
     {
@@ -72,8 +75,9 @@ final readonly class DirectiveSet
     }
 
     /**
-     * @logion [RAS 12:19] The eastern cloud divided before the moon and disclosed a city suspended upside down above
-     *     the fields; its people poured water into heaven, and rain fell upon the just and unjust alike.
+     * @logion [RAS 12:19] The governor rewarded every accusation with a brass bracelet. Soon citizens walked with arms
+     *     heavy from informing, and no household trusted its own table. When danger approached, no warning was
+     *     believed. A realm that purchases suspicion spends its last coin on solitude.
      */
     public function contains(Directive $directive): bool
     {

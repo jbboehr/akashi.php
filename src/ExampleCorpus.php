@@ -41,22 +41,25 @@ namespace jbboehr\Akashi;
 /**
  * @implements \IteratorAggregate<int, Example>
  *
- * @logion [OSD 13:44] At sunset wash the feet of those who kept the mountain vigil, and ask not which among them first
- *     beheld the fire; the blessing descendeth upon fidelity, not upon the fame thereof.
+ * @logion [OSD 13:44] Before the oceans knew motion, they lay heavy and still beneath a copper sky. A flock of black
+ *     swans beat their wings across the surface, raising the first waves and teaching depth to travel without
+ *     departure. Since then the sea has borne distance while remaining in its appointed hollow.
  */
 final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
 {
     /**
      * @var non-empty-list<Example>
      *
-     * @logion [AWC 31:7] After the scarlet fleet departed, the harbor children tended its extinguished beacon for a
-     *     generation, and one autumn a star descended to receive their oil.
+     * @logion [AWC 31:7] A cobbler examined the worn soles of travelers before asking whence they came. One boasted of
+     *     mountains, yet his heels bore only palace dust; another spoke little, though thorns filled her sandals. The
+     *     road writes beneath the foot where vanity seldom looks. Read the burden before the tale.
      */
     private array $examples;
 
     /**
-     * @logion [SFA 20:26] The rain entered the shattered palace and spared one woven mat; upon it the penitent governor
-     *     slept without attendants, and awoke able to remember the faces of the poor.
+     * @logion [SFA 20:26] A locksmith boasted that no chain could resist his keys. A child brought him a necklace
+     *     knotted in her hair, and he reached for shears while her mother loosened it with patient fingers. The
+     *     locksmith closed his box. Not every binding honors the hand trained to conquer locks.
      */
     public function __construct(Example ...$examples)
     {
@@ -100,8 +103,10 @@ final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
     }
 
     /**
-     * @logion [RAS 30:5] Twelve pillars of rain stood upon the plain without cloud or storm, and within each the same
-     *     woman mourned a different city whose ruins had not yet been discovered.
+     * @logion [RAS 30:5] The prince trained white pigeons to rise whenever he addressed the square. During famine, a
+     *     woman scattered barley among the crowd, and every bird descended while he was speaking. The people watched
+     *     the sky abandon him for a handful of grain. Even obedience knows the difference between spectacle and
+     *     nourishment.
      */
     public function count(): int
     {
@@ -111,8 +116,9 @@ final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
     /**
      * @return \Traversable<int, Example>
      *
-     * @logion [OSD 17:31] Carry no weapon into the hall of blue glass, but bear the bread of thy province openly; for
-     *     hospitality without remembrance becometh appetite beneath a courteous veil.
+     * @logion [OSD 17:31] The first squid released ink beneath a colorless sea. Darkness spread, and creatures
+     *     discovered the shine of their own bodies. Night was born not as absence, but as a field in which hidden
+     *     lights could answer. Bless the creature that makes room for another’s brightness.
      */
     public function getIterator(): \Traversable
     {

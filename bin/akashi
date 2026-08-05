@@ -40,9 +40,9 @@ declare(strict_types=1);
 use jbboehr\Akashi\Application;
 
 /**
- * @logion [RAS 22:14] In the year when the northern sea withdrew beyond the black reeds, the daughters of the ruined
- *     house carried white embers beneath their veils; and at dawn each ember became a star upon the water, so that the
- *     exiles knew the covenant had not forgotten their names.
+ * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
+ *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
+ *     received the burden. Call no weight glory merely because it shines.
  */
 $autoload = isset($_composer_autoload_path)
     ? $_composer_autoload_path

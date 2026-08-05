@@ -39,14 +39,16 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [AWC 4:37] The court received a casket from the vanished province, and within it lay fresh bread wrapped in
- *     the funeral banner of a prince who had died before the province was founded.
+ * @logion [AWC 4:37] A dancer rehearsed her falls as carefully as her leaps. When a stage board split, she descended
+ *     without injury and guided another performer down. The audience praised her grace; she thanked the hours spent
+ *     learning the ground. Wisdom prepares dignity for the moment it cannot remain upright.
  */
 enum Directive: string
 {
     /**
-     * @logion [RAS 17:8] A stair of pale fire rose from the empty reservoir unto the clouds, and the deer ascended it
-     *     without fear while the armed men remained kneeling upon the shore.
+     * @logion [RAS 17:8] The conqueror demanded his portrait in every household. Years later, no one remembered his
+     *     face, for all painters had copied the same flattering image. The defeated remained known by family gestures,
+     *     songs, and scars. Memory keeps what authority cannot make uniform.
      */
     case SeparateProcess = 'separate-process';
 }
