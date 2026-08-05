@@ -46,8 +46,8 @@ opt into separate-process execution. That backend protects PHPUnit from `exit()`
 variable leakage, but it still inherits the user's operating-system permissions, filesystem access, environment, and
 network access.
 
-> **Review note:** Confirm that this trusted-code boundary is acceptable. A true untrusted-code sandbox would be a
-> separate project involving operating-system isolation, capability restrictions, and resource controls.
+A true untrusted-code sandbox remains a separate project involving operating-system isolation, capability restrictions,
+and resource controls. The owner accepted this trusted-code boundary for the MVP.
 
 ## System shape
 
@@ -71,7 +71,7 @@ Example -> relevance predicate -> expectation parser -> PHPStan adapter -> diagn
 The layers are:
 
 1. **Sources** discover documents and extract examples.
-2. **Models** preserve identity, authored bytes, semantic code, directives, and locations.
+2. **Models** preserve identity, unmodified example source, directives, and original document locations.
 3. **Transforms** turn an example into backend-specific prepared source with a source map.
 4. **Executors** execute only prepared source and return explicit result variants.
 5. **Verifiers** compare an execution or analysis result with a contract.
@@ -115,12 +115,11 @@ fence, info-string, and line-location behavior, not merely a regular expression 
 will use its public AST API and will not render HTML.
 
 The parser integration must begin with a focused spike proving that public fenced-code nodes provide sufficient start
-and end line information. A small raw-line indexer may supplement the AST to recover authored bytes, but it must not
-become an independent competing Markdown parser.
+and end line information. A small raw-line indexer may supplement the AST to recover exact source spans and original
+line endings, but it must not become an independent competing Markdown parser.
 
-> **Review note:** `league/commonmark` brings `ext-mbstring` and several small transitive packages. The recommendation
-> is to accept that cost for standards correctness. If minimizing dependencies is more important, this is the principal
-> decision to revisit before parser implementation.
+`league/commonmark` brings `ext-mbstring` and several small transitive packages. The owner accepted that cost for the
+MVP in favor of standards correctness; revisit it only if dependency constraints create concrete integration problems.
 
 `nikic/php-parser` is justified by requirements that are unsafe to implement with token replacement: distinguishing
 native `assert()` calls, validating namespace-sensitive constructs, preserving imports, mapping line locations, and
@@ -205,22 +204,20 @@ appears.
 Convenience factories accept scalars and construct the value objects internally. Consumers using normal Markdown sources
 should almost never construct an `Example` themselves.
 
-### Authored and semantic code
+### Original example and prepared code
 
-`ExampleCode` must distinguish:
+`Document` owns the complete original Markdown bytes. `ExampleCode` contains the unmodified PHP content defined by
+CommonMark: Markdown container prefixes and fence indentation are not PHP, while an authored `<?php` opening tag and the
+code's original line endings are preserved. `SourceLocation` maps that code back to its exact document lines and raw
+source span.
 
-- **authored code**: the exact bytes between the opening and closing fences, including original line endings; and
-- **semantic code**: the code content defined by CommonMark after container prefixes and fence indentation are removed.
+For top-level Yumemi fences, the document slice and `ExampleCode` are byte-identical. A block quote illustrates why they
+can differ: the document contains `> ` prefixes, but the executable PHP does not. The original representation remains
+available through `Document`; consumers do not choose between two public code strings.
 
-For the top-level Yumemi fences these views are normally identical. Keeping both prevents a future nested list or block
-quote example from forcing a choice between byte-exact extraction and correct execution. Transforms always receive the
-semantic view; marked extraction uses the authored view and applies its documented final-newline contract.
-
-Hidden supporting lines are deferred. `ExampleCode` may later gain a display view, but the MVP must not implement or
-silently recognize Rust's `# ` convention.
-
-> **Review note:** Confirm the authored-versus-semantic distinction, especially for fenced blocks inside lists or block
-> quotes. This is a small model cost that avoids a significant future compatibility trap.
+Transforms receive `ExampleCode` and produce a distinct `PreparedCode`. Marked extraction also uses `ExampleCode`, then
+applies its documented final-newline contract. Hidden supporting lines are deferred; a future display view may derive
+from the same document span, but the MVP must not implement or silently recognize Rust's `# ` convention.
 
 ### Source locations
 
@@ -276,9 +273,8 @@ Discovery rules are:
 - paths are normalized to `/` and sorted with bytewise lexical comparison; and
 - read, missing-root, duplicate, and empty-corpus failures have separate exception types.
 
-> **Review note:** The recommended default rejects documentation outside the configured project root and does not follow
-> directory symlinks. This strengthens stable identity and traversal safety but should be reviewed if monorepo users
-> need shared documentation trees in the MVP.
+The owner accepted rejecting documentation outside the configured project root and not following directory symlinks for
+the MVP. Revisit this policy if a concrete monorepo integration requires shared documentation trees.
 
 The generated identity strategy remains compatible with Yumemi:
 
@@ -307,9 +303,9 @@ The implementation must cover the CommonMark fenced-block rules relevant to corr
 - info-string restrictions; and
 - an unclosed fence extending to the end of its containing block or document.
 
-Line endings and raw byte offsets come from `Document`'s `LineIndex`; semantic block content comes from the parser node.
-Tests must include selected examples adapted from the official CommonMark specification in addition to the handoff's
-synthetic cases.
+The parser AST determines block boundaries and CommonMark container semantics. `Document`'s `LineIndex` reconstructs the
+unmodified example bytes with original line endings and maps them to raw document offsets. Tests must include selected
+examples adapted from the official CommonMark specification in addition to the handoff's synthetic cases.
 
 ### Marker association
 
@@ -432,9 +428,9 @@ An internal `ExecutionScopeFactory` receives PHP 8.2's native `Random\Randomizer
 fixtures are repeatable. Randomness is an implementation dependency, not consumer configuration. Do not add a Symfony
 polyfill for APIs already guaranteed by Akashi's PHP 8.2 minimum.
 
-> **Review note:** Namespace rewriting is the highest-risk transform. Review the choice to preserve global name
-> resolution through AST rewriting and to reject explicit authored namespaces in the MVP. Supporting arbitrary authored
-> namespace blocks in-process can be added after this behavior is proven against the migration corpus.
+Namespace rewriting remains the highest-risk transform. The owner accepted preserving global name resolution through AST
+rewriting while rejecting explicit authored namespaces in the MVP. Supporting arbitrary authored namespace blocks
+in-process can be reconsidered after this behavior is proven against the migration corpus.
 
 ### Native assertion transform
 
@@ -485,8 +481,8 @@ Unsupported control-flow constructs fail during validation with a source locatio
 
 ## Separate-process execution
 
-The internal `SubprocessExecutor` writes the semantic source to a private temporary file, adding `<?php` only when
-absent. Temporary files are created with PHP's atomic temporary-file primitive, must have `0600` permissions where
+The internal `SubprocessExecutor` writes the unmodified `ExampleCode` to a private temporary file, adding `<?php` only
+when absent. Temporary files are created with PHP's atomic temporary-file primitive, must have `0600` permissions where
 supported, and must be verified to reside in the requested absolute temporary directory rather than an undocumented
 fallback location.
 
@@ -498,11 +494,10 @@ The process command is an argument list, never a shell string. It uses:
 - the configured project root as working directory; and
 - Symfony Process's captured stdout, stderr, and exit status.
 
-Timeout semantics and user configuration remain deferred as required by the handoff. During the executor spike, decide
-explicitly whether to disable Symfony Process's documented default timeout or retain it solely as an internal emergency
-ceiling. If retained, it is a fixed implementation safety limit, produces a structured infrastructure failure, and is
-not an authored expected-timeout feature. Alternate PHP binaries, INI values, environment variables, and custom timeouts
-remain deferred.
+The MVP retains Symfony Process's documented 60-second default as an internal emergency ceiling because the dependency
+provides it directly. A timeout produces a structured infrastructure failure; it is not an authored expected-timeout
+feature. User-configurable timeouts, in-process interruption, alternate PHP binaries, INI values, and environment
+variables remain deferred.
 
 Exit status zero is success, even when reached through an authored `exit(0)`; a nonzero status, signal, timeout, or
 startup failure is an `ExecutionFailed` result. Stdout and stderr are always captured separately. Stderr alone does not
@@ -510,9 +505,8 @@ fail an otherwise successful example until an expected-output contract exists.
 
 Every temporary artifact is removed in `finally`. Cleanup failures are reported as with in-process execution.
 
-> **Review note:** Review two separate-process policies: whether the MVP retains Symfony Process's 60-second emergency
-> ceiling and whether `exit(0)` is success. Detecting early successful exit would require a child-control protocol and
-> may not be worth the extra machinery yet.
+Treating `exit(0)` as success remains the provisional MVP policy. Detecting early successful exit would require a
+child-control protocol and is not justified by a current migration requirement.
 
 ## Result and failure model
 
@@ -616,8 +610,8 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
 ```
 
 The trait filters the corpus with the configured relevance predicate and rejects an empty relevant corpus. In one
-guarded lifecycle, it creates a private temporary directory and one securely named file per relevant example from the
-untransformed semantic source. It then changes to the project root, requires every file exactly once so example-local
+guarded lifecycle, it creates a private temporary directory and one securely named file per relevant example from its
+unmodified `ExampleCode`. It then changes to the project root, requires every file exactly once so example-local
 declarations are visible to reflection, and analyzes each file independently through `gatherAnalyserErrors([$file])`.
 Each analyzer result is still matched against its own immutable `Example`; corpus-level setup does not couple diagnostic
 contracts between examples. The trait always restores the working directory and removes every temporary artifact.
@@ -634,14 +628,13 @@ Comparison rules are:
 - a relevant example with no expectations must have zero diagnostics;
 - matching text is searched in the message plus optional tip;
 - expectations remain in authored order; and
-- each expectation matches the first still-unmatched compatible diagnostic.
+- the compatibility graph between expectations and diagnostics must admit a one-to-one assignment.
 
-The last rule is a deliberate strengthening of the legacy “each substring appears somewhere” check: it prevents two
-expectations from being satisfied by the same diagnostic while another diagnostic remains unexplained. The current
-Yumemi corpus must be tested before this becomes fixed public behavior.
-
-> **Review note:** Confirm the proposed one-to-one PHPStan diagnostic matching. It is more sound and deterministic than
-> the legacy matcher, but it intentionally strengthens the migration contract.
+The matcher uses a deterministic perfect-matching algorithm, not a greedy “first compatible diagnostic” scan. A greedy
+scan can reject a valid assignment when a broad substring consumes the only diagnostic matching a later narrow
+substring. One-to-one matching is a deliberate, owner-approved strengthening of the legacy behavior: two expectations
+cannot reuse one diagnostic while another diagnostic remains unexplained. The current Yumemi corpus remains a required
+compatibility gate before this behavior becomes a fixed public contract.
 
 The relevance predicate is consumer-supplied. A convenience token predicate supports Yumemi's current tokens without
 placing those tokens in generic core behavior.
@@ -739,8 +732,8 @@ guard, matcher, and CLI exit code. Table-driven fixtures cover LF and CRLF input
 ### CommonMark behavior
 
 Adapt the relevant official CommonMark fenced-block examples into fixtures covering fence character, length,
-indentation, containers, info strings, unclosed fences, and literal nested fence text. Test both authored bytes and
-semantic source.
+indentation, containers, info strings, unclosed fences, and literal nested fence text. Test the unmodified
+`ExampleCode`, raw document span, line endings, and mapping between them.
 
 ### Transform safety
 
@@ -762,7 +755,8 @@ parse failure, exit statuses, timeout, and cleanup. Avoid mocks for the acceptan
 ### PHPStan behavior
 
 Exercise the consumer's real `RuleTestCase`, rule, and additional configuration. Test clean examples, message and tip
-matching, count mismatches, ordered one-to-one matching, declaration visibility, cwd restoration, and cleanup.
+matching, count mismatches, overlapping substrings requiring a non-greedy one-to-one assignment, declaration visibility,
+cwd restoration, and cleanup.
 
 ### Compatibility fixtures
 
@@ -880,7 +874,7 @@ Each item should end in a working commit and a pause for review.
 1. **Dependencies and model refinement**
    - validate Composer constraints;
    - add runtime dependencies;
-   - introduce typed IDs, paths, locations, directives, code views, and corpus;
+   - introduce typed IDs, paths, locations, directives, unmodified example code, and corpus;
    - migrate existing model tests without adding parser behavior.
 2. **Manifest and discovery**
    - immutable fluent configuration;
@@ -888,7 +882,7 @@ Each item should end in a working commit and a pause for review.
    - deterministic loading, exclusions, duplicates, and empty-corpus failures.
 3. **CommonMark extraction**
    - prove public source locations;
-   - extract PHP fences, authored bytes, semantic code, info strings, and ordinals;
+   - extract PHP fences, unmodified PHP code, raw document spans, info strings, and ordinals;
    - add CommonMark-derived and reduced Yumemi fixtures.
 4. **Markers and directives**
    - associate configurable markers and the separate-process directive;
@@ -916,18 +910,19 @@ Each item should end in a working commit and a pause for review.
     - finalize API docs, limitations, directives, roadmap, and migration notes;
     - add examples to the mdBook and concise README.
 
-## Decisions requiring owner review
+## Recorded owner direction
 
-The design recommends defaults, but these choices deserve particular attention before their implementation chunks:
+The owner reviewed the original decision list on 2026-08-05. Proceed with these directions:
 
-1. accepting `league/commonmark` and its `ext-mbstring` cost instead of maintaining a fence scanner;
-2. representing authored and CommonMark-semantic code separately;
-3. rejecting source paths outside the project root and directory symlink traversal by default;
-4. the trusted-code definition and the initial in-process unsafe-construct list;
-5. rejecting explicit authored namespaces in-process during the MVP;
-6. strengthening PHPStan expectations to one-to-one diagnostic matching;
-7. the separate-process emergency-timeout and `exit(0)` policies; and
-8. refactoring the existing scalar-heavy `Document` and `Example` constructors before declaring them stable.
+1. accept `league/commonmark` and its `ext-mbstring` cost for the MVP;
+2. expose one unmodified `ExampleCode`, retain original Markdown in `Document`, and keep transformed code separate;
+3. reject paths outside the project root and directory symlink traversal for now;
+4. proceed with the documented trusted-code boundary and the evidence-driven initial unsafe-construct list;
+5. reject explicit authored namespaces for in-process execution during the MVP;
+6. require deterministic one-to-one PHPStan diagnostic matching, subject to the Yumemi compatibility gate;
+7. retain Symfony Process's built-in 60-second emergency ceiling without adding timeout configuration; and
+8. refine `Document`, `Example`, and supporting value objects incrementally as concrete invariants require.
 
-The in-process safety boundary, namespace transform, and PHPStan matching rule are the highest-impact reviews. The other
-choices can be revised locally without changing the overall architecture.
+Treat `exit(0)` as separate-process success unless migration evidence justifies a child-control protocol. Revisit any
+accepted choice when implementation evidence contradicts its assumptions rather than preserving the document at the
+expense of correctness.

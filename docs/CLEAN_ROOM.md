@@ -141,10 +141,13 @@ competing doctest implementation:
 - the discovery, transformation, execution, verification, and integration split follows the need to reuse one corpus for
   CLI extraction, runtime tests, and PHPStan tests;
 - generated IDs, marker syntax, extraction behavior, in-process execution, assertion handling, unique namespace
-  isolation, and exact PHPStan matching originate in the existing Yumemi harnesses and migration requirements;
+  isolation, and PHPStan's exact-count and substring contracts originate in the existing Yumemi harnesses and migration
+  requirements;
+- deterministic one-to-one assignment between PHPStan expectations and diagnostics is an independently designed
+  strengthening approved by the owner and remains gated by the Yumemi corpus;
 - CommonMark AST extraction follows the CommonMark specification and League CommonMark's public integration API;
 - PHP parsing and name resolution follow PHP language rules and PHP-Parser's public integration API;
-- subprocess isolation follows PHP's process model and Symfony Process's public integration API; and
+- subprocess isolation follows PHP's process model and Symfony Process's public integration API;
 - PHPUnit, PHPStan, Composer binary, and autoloader adapters follow their respective official integration contracts; and
 - PHPStan's diagnostic identifiers and identifier-oriented inline ignore comments are observed public behavior; the
   proposed post-MVP `@akashi-phpstan-error` prefix, grammar, statement association, and expectation semantics are Akashi
