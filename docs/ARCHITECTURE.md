@@ -800,6 +800,43 @@ orthogonal questions:
 2. which phases should run; and
 3. what outcome is expected.
 
+### Expected exceptions after the MVP
+
+The roadmap should explicitly include a PHPUnit-familiar equivalent of `expectException()`, without coupling the core
+outcome model to PHPUnit. A future typed outcome family should distinguish normal completion from an expected exception:
+
+```text
+ExpectedOutcome
+  CompletionExpected
+  ExceptionExpected
+    class-string<Throwable> type
+    MessageExpectation|null message
+    int|null code
+```
+
+`ExceptionExpected` matches the declared exception class or a subclass, as PHP developers expect. `MessageExpectation`
+uses explicit modes such as exact, contains, or regular expression rather than interpreting an untyped string
+differently in different contexts. Programmatic configuration should read naturally, for example:
+
+```php
+RuntimeExpectation::exception(DomainException::class)
+    ->withMessageContaining('invalid quantity');
+```
+
+A separately reviewed Markdown syntax could use inert PHP comments and PHPUnit terminology without requiring a test-case
+instance inside the example:
+
+```php
+// @akashi-expect-exception \DomainException
+// @akashi-expect-exception-message contains: invalid quantity
+operationThatFails();
+```
+
+Akashi must still catch the `Throwable` itself so output-buffer cleanup, process-state restoration, and Markdown source
+mapping always occur. An outcome verifier decides whether the captured exception satisfies `ExceptionExpected`; the
+PHPUnit adapter then records that verification with normal PHPUnit assertions and reporting. Matching the expected
+exception never excuses a cleanup failure. This feature remains deferred and must not be implemented during the MVP.
+
 Other roadmap seams are deliberately narrow:
 
 - new sources implement `ExampleSource` and produce the same immutable `Example`;
