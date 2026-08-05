@@ -369,11 +369,11 @@ Do not silently skip an example that cannot be transformed safely. Produce a pre
 
 Keep transformed source available for debugging, but do not normally expose generated implementation details in user-facing output.
 
-### 4. Opt-in subprocess execution
+### 4. Opt-in separate-process execution
 
-Implement a minimal subprocess executor as an alternative backend, but do **not** make it the default.
+Implement a minimal separate-process executor as an alternative backend, but do **not** make it the default.
 
-An individual example or configured group must be able to opt into subprocess execution through:
+An individual example or configured group must be able to opt into separate-process execution through:
 
 * programmatic configuration; and
 * one documented Markdown directive.
@@ -381,14 +381,14 @@ An individual example or configured group must be able to opt into subprocess ex
 Prefer an unobtrusive HTML comment immediately associated with the fence, for example:
 
 ```html
-<!-- akashi: process -->
+<!-- akashi: separate-process -->
 ```
 
 The exact directive grammar may be refined, but keep it small, deterministic, and documented.
 
 Do not use a Rust-specific directive name merely for familiarity.
 
-The initial subprocess backend only needs to:
+The initial separate-process backend only needs to:
 
 * use the current `PHP_BINARY`;
 * load the configured Composer or project bootstrap file;
@@ -402,7 +402,7 @@ The initial subprocess backend only needs to:
 * prevent `exit()` or `die()` in the example from killing PHPUnit;
 * clean temporary files after success and failure.
 
-Add a test proving subprocess execution actually uses another process, such as by comparing process IDs.
+Add a test proving separate-process execution actually uses another process, such as by comparing process IDs.
 
 Advanced process configuration is deferred.
 
@@ -732,9 +732,9 @@ At minimum, test:
 * useful source-location reporting;
 * cleanup and output-buffer restoration after failure.
 
-### Subprocess execution
+### Separate-process execution
 
-* opt-in subprocess directive parsing;
+* opt-in separate-process directive parsing;
 * programmatic process selection;
 * proof that another process was used;
 * bootstrap loading;
@@ -742,7 +742,7 @@ At minimum, test:
 * stderr capture;
 * nonzero exit status;
 * reliable native assertions;
-* `exit()` in subprocess mode;
+* `exit()` in separate-process mode;
 * temporary-file cleanup.
 
 ### PHPStan verification
@@ -798,7 +798,7 @@ Produce:
 * `docs/MIGRATING_YUMEMI.md`
 * API documentation for the source, example, executor, verifier, and PHPUnit integration
 * documentation for explicit marker directives
-* documentation for subprocess directives
+* documentation for the separate-process directive
 * documentation of known in-process limitations
 
 The README should include:
@@ -810,13 +810,13 @@ The README should include:
 * a minimal Markdown example;
 * a minimal PHPUnit integration example;
 * marked-example extraction;
-* opt-in subprocess execution;
+* opt-in separate-process execution;
 * PHP version support.
 
 The README should emphasize:
 
 * in-process execution is the default;
-* subprocess execution is opt-in;
+* separate-process execution is opt-in;
 * the same extracted example can be reused by runtime and static-analysis verification;
 * PHP 8.2 remains supported;
 * Akashi prefers PHP-idiomatic, sound, and type-safe designs rather than mechanically reproducing Rust doctests.
@@ -840,7 +840,7 @@ Keep the README practical. Put deeper architecture and roadmap material under `d
 * Keep commits small and coherent where repository workflow permits.
 * Do not replace working project-specific consumer tests with weaker unit tests.
 * Do not weaken exact PHPStan diagnostic assertions.
-* Do not change the default execution mode to subprocess isolation.
+* Do not change the default execution mode to separate-process isolation.
 * Do not inspect prohibited prior-art implementations or competing PHP doctest documentation during the MVP.
 * Consult Cargo and rustdoc only through allowed official user-facing documentation, never implementation material.
 * Do not claim clean-room independence without recording every external document and allowed implementation material
@@ -862,7 +862,7 @@ Use this as guidance rather than an inflexible command sequence:
 7. Implement source transformation for in-process execution.
 8. Implement the default in-process executor.
 9. Implement PHPUnit integration.
-10. Implement minimal opt-in subprocess execution.
+10. Implement minimal opt-in separate-process execution.
 11. Implement the PHPStan `RuleTestCase` integration.
 12. Add real-world compatibility fixtures.
 13. Migrate Yumemi.
@@ -880,7 +880,7 @@ The initial task is complete when:
 1. The standalone `jbboehr/akashi` package exists with PHP 8.2 support.
 2. It has a tested example-source model.
 3. Markdown examples execute in-process by default.
-4. Individual examples can opt into subprocess execution.
+4. Individual examples can opt into separate-process execution.
 5. Native `assert()` calls become unconditional PHPUnit assertions in in-process mode.
 6. Duplicate declarations and top-level variables are safely isolated.
 7. Yumemi’s PHPStan `//!` contract is supported.
