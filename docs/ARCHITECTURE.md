@@ -71,8 +71,8 @@ Example -> relevance predicate -> expectation parser -> PHPStan adapter -> diagn
 The layers are:
 
 1. **Sources** discover documents and extract examples.
-2. **Models** preserve identity, unmodified example source, directives, and original document locations.
-3. **Transforms** turn an example into backend-specific prepared source with a source map.
+2. **Models** preserve identity, unmodified example source, directives, and original maintained-source locations.
+3. **Transforms** turn an example into backend-specific prepared source with a source map back to that origin.
 4. **Executors** execute only prepared source and return explicit result variants.
 5. **Verifiers** compare an execution or analysis result with a contract.
 6. **Integrations** translate verification results into PHPUnit failures or CLI behavior.
@@ -238,6 +238,40 @@ Avoid ambiguous `startLine` and `endLine` meanings. `SourceLocation` should expo
 User-facing failures point to the first relevant code line and add AST-relative offsets for transformed statements.
 Compatibility accessors for the current integer properties may remain until the model refactor is complete.
 
+### Future canonical origins and presentation locations
+
+`Document` and `SourceLocation` are intentionally Markdown-specific for the MVP. Future PHPDoc and external-example
+sources must be able to represent, without forcing all of them into a synthetic Markdown document:
+
+- an inline Markdown fence;
+- an inline PHPDoc fence;
+- an external whole PHP file;
+- a named region inside an external PHP file; and
+- an inline presentation synchronized from an external source.
+
+The future model must conceptually distinguish the canonical code origin from zero or more documentation reference or
+presentation locations. A substantial external PHP file or named region remains canonical even when several PHPDoc or
+Markdown locations present it. A synchronized inline copy is a presentation, not another source of truth.
+
+That distinction continues through transformation and verification:
+
+```text
+canonical code origin -> extracted code -> transformed or temporary PHP -> verifier diagnostic
+          |
+          +-> documentation reference or synchronized presentation
+```
+
+Mappings between these stages must compose so parse errors, rewritten assertions, runtime exceptions, PHPStan
+diagnostics, formatter errors and diffs, synchronized copies, hidden support code, and future linter or compiler results
+can point to the source developers maintain. Reports must not expose only an opaque generated or temporary-file line
+when a canonical location is available. A presentation location may be included as useful context, but it must not
+replace the canonical failure location.
+
+The MVP does not need a universal source-origin hierarchy or fully general mapping engine. Its current `Document`,
+`ExampleCode`, `SourceLocation`, parser tokens, AST locations, and prepared-code mapping must simply retain rather than
+discard the data needed for that later composition. Original authored code remains separate from every transformed,
+generated, hidden, or synchronized view.
+
 ### Corpus invariants
 
 `ExampleCorpus` is an immutable, iterable collection that validates on construction:
@@ -369,7 +403,7 @@ Executors never accept raw `Example` source. A `TransformPipeline` produces a `P
 
 - the original `Example`;
 - a backend-specific `PreparedCode` value;
-- a `SourceMap` from generated lines and nodes to Markdown lines;
+- a `SourceMap` from generated lines and nodes to the maintained source origin, which is a Markdown line in the MVP;
 - the selected `ExecutionMode`;
 - an execution-scope identifier; and
 - debug metadata that is retained but hidden from normal output.
@@ -387,7 +421,8 @@ For either backend:
 2. parse for the actual host PHP version;
 3. require a complete AST with no recovered parse errors;
 4. retain tokens and node locations for source mapping; and
-5. report syntax failures against the Markdown line, never only the generated source.
+5. report syntax failures against the maintained source line, which is a Markdown line in the MVP, never only the
+   generated source.
 
 Do not use `eval()` as the syntax checker. The transformed source is parsed again when needed before execution, so a bug
 in the transformer fails as a transform error rather than becoming an opaque runtime failure.
@@ -457,7 +492,8 @@ calls a small `Integration\PhpUnit\NativeAssertion` bridge that:
 - applies PHP truthiness as native `assert()` does;
 - calls `PHPUnit\Framework\Assert::assertTrue()` so PHPUnit records the assertion;
 - preserves an authored string description;
-- uses the exact original expression text plus Markdown location as the fallback description; and
+- uses the exact original expression text plus its maintained source location, which is Markdown in the MVP, as the
+  fallback description; and
 - preserves an authored `Throwable` description by throwing it when the condition fails.
 
 Named arguments and the valid one- and two-argument forms must be tested. Invalid forms fail during transformation.
@@ -515,6 +551,9 @@ provides it directly. A timeout produces a structured infrastructure failure; it
 feature. User-configurable timeouts, in-process interruption, alternate PHP binaries, INI values, and environment
 variables remain deferred.
 
+PHP parse and runtime locations that name the temporary file are translated through the prepared source map to the
+maintained Markdown source. The temporary path may remain in debug metadata but is not the only user-facing location.
+
 Exit status zero is success, even when reached through an authored `exit(0)`; a nonzero status, signal, timeout, or
 startup failure is an `ExecutionFailed` result. Stdout and stderr are always captured separately. Stderr alone does not
 fail an otherwise successful example until an expected-output contract exists.
@@ -548,7 +587,7 @@ results because verifiers and reporters need to inspect them. Programmer invaria
 
 All messages include, where known:
 
-- normalized Markdown path;
+- normalized maintained-source path, which is the Markdown path in the MVP;
 - generated example ID and explicit marker ID;
 - code line and block ordinal;
 - backend and failure phase;
@@ -594,8 +633,8 @@ to understand, filter, debug, and statically analyze.
 
 The core model has no PHPStan types. `Integration\PHPStan` owns:
 
-- `DiagnosticExpectation` with expected text and Markdown line;
-- `AnalyzerDiagnostic` with identifier, message, optional tip, and analyzer line;
+- `DiagnosticExpectation` with expected text and maintained source line, which is Markdown in the MVP;
+- `AnalyzerDiagnostic` with identifier, message, optional tip, analyzer line, and mapped maintained-source location;
 - `ExpectationParser` for ordered nonempty `//!` comments;
 - `DiagnosticMatcher` for comparison and reporting;
 - `PhpStanExampleConfiguration` for root, bootstrap/config context, and relevance predicate; and
@@ -631,6 +670,9 @@ unmodified `ExampleCode`. It then changes to the project root, requires every fi
 declarations are visible to reflection, and analyzes each file independently through `gatherAnalyserErrors([$file])`.
 Each analyzer result is still matched against its own immutable `Example`; corpus-level setup does not couple diagnostic
 contracts between examples. The trait always restores the working directory and removes every temporary artifact.
+Analyzer line numbers are mapped from each generated temporary file back to the maintained Markdown line before
+reporting or matching line-sensitive expectations; the temporary path remains diagnostic metadata rather than the
+primary source location.
 
 For the MVP, declaration loading reproduces the existing Yumemi behavior. Before requiring any file, Akashi validates
 the whole relevant corpus for process-terminating constructs and declaration collisions so failure occurs before partial
@@ -796,7 +838,10 @@ version. Never claim an unexecuted matrix entry passed.
 
 Public rustdoc behavior helps identify useful capabilities, but does not dictate Akashi names or architecture:
 
-- hidden supporting lines map to a future display-versus-execution source transform;
+- executable documentation-comment examples map to a future PHPDoc source rather than a requirement to keep substantial
+  code physically inside comments;
+- externally included documentation reinforces the seam between canonical code origins and presentation locations;
+- hidden supporting lines map to a future display-versus-execution source transform whose syntax remains undecided;
 - ignored examples map to an explicit selection outcome with a reason, never silent omission;
 - compile-only examples map to a future execution policy separate from backend selection;
 - expected runtime failure maps to a typed expected-outcome contract using PHP exception idioms;
@@ -850,12 +895,20 @@ exception never excuses a cleanup failure. This feature remains deferred and mus
 Other roadmap seams are deliberately narrow:
 
 - new sources implement `ExampleSource` and produce the same immutable `Example`;
+- future source adapters may attach a canonical code origin and separate presentation locations without changing
+  executor contracts;
 - new verifiers consume `Example` or `PreparedExample` and produce `VerificationResult`;
 - new executors consume backend-specific prepared code and produce `ExecutionResult`;
 - a future standalone runner composes the existing corpus and verifier objects; and
 - reporters format existing results without changing execution.
 
 No registries for those future components are built during the MVP.
+
+PHPDoc extraction, external references and named regions, synchronization, formatter integration, hidden support code,
+and renderer integrations follow the deferred sequence in the implementation handoff. Referenced canonical examples are
+preferred for substantial code. Synchronization and automatic docblock rewriting are compatibility features, and
+check-only modes should precede write modes. None of these features changes the MVP package layout or dependency plan,
+and no placeholder implementation is introduced for them.
 
 ## Proposed package layout
 

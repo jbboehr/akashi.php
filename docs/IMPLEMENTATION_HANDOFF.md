@@ -233,6 +233,13 @@ A suitable central value object should contain at least:
 
 The exact class names are your decision.
 
+For the Markdown-driven MVP, these fields may describe one Markdown document directly. The longer-term source model
+must not assume that the rendered documentation location is always the canonical code location, that code is always
+physically embedded beside its prose, or that one physical line range remains sufficient after transformation. Preserve
+a seam between the canonical code origin, any documentation reference or presentation location, transformed execution
+source, and verifier diagnostics. Do not add speculative public types for those distinctions before an MVP use case
+requires them.
+
 Prefer:
 
 * small immutable value objects;
@@ -251,6 +258,11 @@ Avoid:
 * speculative abstractions unsupported by a current use case.
 
 The same extracted example must be capable of being passed to multiple independent verifiers without reparsing the source document.
+
+Every source and transformation must retain enough location information to map generated or executed PHP back to the
+original maintained source. The MVP does not require a fully general source-map engine unless Yumemi needs one, but it
+must not discard the information needed to add composed mappings later. Keep original example source separate from
+transformed or generated source.
 
 ## Required MVP functionality
 
@@ -351,6 +363,8 @@ The in-process executor must reproduce Yumemi’s current guarantees:
 * restore all output buffers correctly after success or failure;
 * catch `Throwable`;
 * report the original Markdown path, block identity, and source line on failure;
+* map failures in generated or rewritten PHP back to the corresponding maintained Markdown line rather than reporting
+  only an opaque temporary-file or generated-code location;
 * ensure examples containing no assertions are not reported as risky PHPUnit tests;
 * avoid collisions when two examples declare functions or classes with the same name;
 * use the project’s normal Composer bootstrap.
@@ -400,6 +414,8 @@ The initial separate-process backend only needs to:
 * set startup options so native assertions execute reliably;
 * report failures through the same high-level result abstraction as the in-process executor;
 * prevent `exit()` or `die()` in the example from killing PHPUnit;
+* map child-process parse and runtime locations back to the maintained Markdown source when PHP reports the temporary
+  file;
 * clean temporary files after success and failure.
 
 Add a test proving separate-process execution actually uses another process, such as by comparing process IDs.
@@ -441,6 +457,7 @@ Required behavior:
 * require relevant examples without `//!` markers to analyze cleanly;
 * preserve expectation order where the current harness depends on it;
 * produce a useful report showing expected and actual diagnostics;
+* map diagnostics from generated temporary files back to maintained Markdown lines; and
 * clean temporary files even when analysis fails.
 
 Keep PHPStan-specific code in an integration namespace or optional module.
@@ -588,17 +605,203 @@ Do not inspect prohibited prior-art material to determine how these features are
 user-facing documentation may clarify observable behavior and terminology, but competing PHP doctest documentation and
 all prohibited implementation material remain outside the MVP clean-room boundary.
 
-### Additional sources
+### Additional sources and maintainable authoring
 
-* PHPDoc-comment examples;
+* inline PHPDoc-comment examples;
+* external canonical PHP example files, including stable named regions;
+* documentation references to canonical examples;
+* optional synchronized inline presentations of external canonical examples;
 * examples attached to classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;
 * non-Markdown documentation formats.
 
+Future source support must address maintainability as well as extraction. It must not imply that PHPDoc-hosted examples
+always have to be maintained literally inside documentation comments.
+
+### PHPDoc example maintainability
+
+> Use inline examples for short, local demonstrations. Use ordinary external PHP files as the canonical source for
+> substantial examples.
+
+The goal is to keep examples easy to edit in an IDE, format with normal PHP formatters, analyze with PHPStan or other
+tools, execute directly, reuse in several documentation locations, synchronize without manual copy-and-paste, and
+trace to their maintained source lines when verification fails.
+
+Plan three authoring modes after the Markdown/Yumemi MVP.
+
+#### 1. Inline examples
+
+Short examples may remain directly inside a PHPDoc fenced block:
+
+````php
+/**
+ * ```php
+ * $result = convert(1, 'meter', 'centimeter');
+ * assert($result === 100);
+ * ```
+ */
+````
+
+This mode suits examples that are short, tightly coupled to one symbol, understandable without significant setup, and
+unlikely to be reused. This plan does not prescribe the final PHPDoc fence parser or public syntax.
+
+#### 2. Referenced canonical examples
+
+Substantial examples should normally live in ordinary valid PHP files, optionally divided into stable named regions.
+An illustrative future reference may resemble:
+
+```php
+/**
+ * @example examples/conversion.php#basic-conversion
+ */
+```
+
+with a canonical file such as:
+
+```php
+<?php
+
+// akashi-example: basic-conversion
+$result = convert(1, 'meter', 'centimeter');
+assert($result === 100);
+// akashi-example-end
+```
+
+The syntax is illustrative and remains unsettled. The design principles are:
+
+* the external PHP file is the source of truth;
+* it remains ordinary valid PHP usable by IDEs, formatters, the PHP runtime, and static analyzers;
+* stable named regions are preferable to fragile line-number ranges, which shift after unrelated edits;
+* the same whole file or named region may be referenced from more than one documentation location;
+* missing, malformed, nested, overlapping, and duplicate named regions fail with clear diagnostics; and
+* a documentation reference has a presentation location distinct from the canonical code origin, and both remain
+  traceable.
+
+PHPDocumentor's current `@example` behavior may become one future frontend, but Akashi's source and example model must
+remain independent of any documentation generator.
+
+#### 3. Synchronized inline examples
+
+An optional compatibility mode may support renderers that require code to be physically embedded in PHPDoc or Markdown.
+Illustrative future syntax may resemble:
+
+````php
+/**
+ * <!-- akashi-sync: examples/conversion.php#basic-conversion -->
+ * ```php
+ * $result = convert(1, 'meter', 'centimeter');
+ * assert($result === 100);
+ * ```
+ * <!-- akashi-sync-end -->
+ */
+````
+
+Possible commands may resemble:
+
+```console
+vendor/bin/akashi sync
+vendor/bin/akashi sync --check
+```
+
+The command names and synchronization syntax are provisional. The external file or named region remains canonical.
+Synchronization must be deterministic, and a check-only mode should fail CI when the embedded copy is stale. A write
+mode may update only the embedded copy; it must not silently alter unrelated prose or comment formatting. Malformed
+synchronization regions fail instead of being guessed at.
+
+Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
+include external content directly, not the primary authoring model.
+
+### Future source-location mapping
+
+Every future example source and each transformation must preserve enough information to map:
+
+```text
+generated or executed PHP line
+            ↓
+original Markdown, PHPDoc, or external example-file line
+```
+
+This mapping is required for parse errors, rewritten assertion failures, runtime exceptions, PHPStan diagnostics,
+formatter errors and diffs, synchronized examples, hidden support code, and future compiler or linter adapters. When an
+original maintained source location is available, Akashi must not report only an opaque temporary-file location.
+
+Mappings may need to compose across extraction, support-code handling, PHP transformation, and temporary-file
+generation. The future source model must therefore be able to represent an inline Markdown fence, an inline PHPDoc
+fence, an external whole PHP file, a named region within an external PHP file, and an inline example synchronized from
+an external source. Conceptually distinguish:
+
+* canonical code origin;
+* documentation reference or presentation location;
+* transformed execution source; and
+* verifier diagnostics.
+
+One example may have several presentation locations that reuse one canonical source. A single source line range is not
+always sufficient after transformations. Preserve the architectural seam now, but avoid speculative complexity in the
+MVP public API.
+
+### Hidden support code
+
+Support code that participates in execution without being shown to readers remains deferred. Rustdoc's documented
+hidden-line behavior is acceptable as high-level behavioral inspiration, but Akashi must not assume Rust's `# ` syntax:
+
+* `#` is already a PHP comment marker;
+* preprocessing hidden lines could confuse PHP formatters and IDEs;
+* PHPDoc and Markdown renderers may treat comments differently;
+* transformed hidden lines complicate source mapping; and
+* explicit setup references may be more PHP-idiomatic.
+
+Potential approaches include referenced setup files or named regions, an explicit Akashi directive, separate visible
+and support-code sections, source-level annotations understood by Akashi, or renderer-specific integrations. Do not
+select a syntax during the MVP.
+
+> Prefer an explicit, PHP-idiomatic design that remains compatible with PHP parsers, formatters, IDEs, documentation
+> renderers, and static analyzers.
+
+### Formatter integration
+
+Formatter support also remains deferred. Possible commands may resemble:
+
+```console
+vendor/bin/akashi format --check
+vendor/bin/akashi format --write
+```
+
+The final names are not mandated. Check-only support should precede automatic rewriting. External examples should
+normally be formatted directly with existing PHP tooling. Inline examples may need extraction into temporary valid PHP
+before checking. Automatic docblock rewriting is riskier because indentation, leading `*` characters, Markdown fences,
+opening tags, and prose boundaries must be preserved.
+
+Akashi should integrate with a configured formatter rather than become a PHP formatter. Formatter output and diffs must
+map back to the source developers actually maintain.
+
+### Post-MVP authoring sequence
+
+Place this work after the current Markdown/Yumemi MVP and before broad plugin or runner expansion. A sensible sequence is:
+
+1. PHPDoc fenced examples.
+2. External canonical PHP examples and named regions.
+3. Source-location mapping improvements.
+4. Check-only synchronization.
+5. Check-only formatter integration.
+6. Optional write-mode synchronization and formatting.
+7. Hidden support-code semantics.
+8. Documentation-renderer integrations.
+
+This ordering is guidance, not a commitment to release numbers. Rustdoc's public documentation may provide behavioral
+precedent for hidden setup lines, executable examples in documentation comments, inclusion of documentation from
+external files, and examples that are checked without ordinary execution. It does not prescribe Akashi's API or syntax,
+and the clean-room prohibition on rustdoc implementation material and competing PHP doctest documentation remains
+unchanged.
+
+PHPDoc extraction, external-example references, named-region parsing, synchronization commands, formatter commands,
+hidden support code, documentation-renderer plugins, and automatic docblock rewriting are all outside the initial
+Yumemi-driven MVP. Do not add dependencies, placeholder classes, or speculative interfaces for them unless an
+already-required MVP abstraction naturally supports the future behavior.
+
 ### Additional example semantics
 
-* hidden setup lines;
+* hidden setup or support lines, with syntax explicitly undecided;
 * hidden assertion expressions;
 * expected stdout;
 * expected stderr;

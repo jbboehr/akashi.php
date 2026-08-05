@@ -136,6 +136,8 @@ Dates record the review date, not the document publication date.
 The Rust review influenced only the roadmap and vocabulary used to discuss deferred behavior:
 
 - hidden support lines motivate preserving separate authored, semantic, and possible future display views;
+- executable examples in documentation comments and externally included documentation provide user-identified behavioral
+  precedent for deferred PHPDoc sources and separate code-origin and presentation locations;
 - ignored examples motivate a future explicit skip directive;
 - non-running examples motivate a future parse-or-analyze-only mode;
 - expected runtime failure motivates a future typed failure expectation;
@@ -152,6 +154,9 @@ competing doctest implementation:
 
 - immutable documents, examples, locations, and result variants follow the project's strict PHPStan and readonly-model
   conventions;
+- the preference for ordinary external PHP files as canonical substantial examples, the three planned authoring modes,
+  named-region rules, synchronization safety, and formatter integration were requested by the owner and follow normal
+  PHP IDE, runtime, formatter, and static-analysis workflows;
 - the discovery, transformation, execution, verification, and integration split follows the need to reuse one corpus for
   CLI extraction, runtime tests, and PHPStan tests;
 - generated IDs, marker syntax, extraction behavior, in-process execution, assertion handling, unique namespace
