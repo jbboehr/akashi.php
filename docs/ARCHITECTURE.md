@@ -502,8 +502,9 @@ Because the transformed source contains no native `assert()`, behavior does not 
 ## In-process execution
 
 `InProcessExecutor` accepts only a prepared in-process example. It invokes `eval()` inside a private static closure; the
-evaluated source excludes opening and closing PHP tags as required by PHP. The closure contains no consumer variables,
-and any unavoidable internal variable name is selected after checking the example AST for collisions.
+evaluated source excludes opening and closing PHP tags as required by PHP. The evaluator is a no-capture closure built
+around a safely quoted source literal, so the evaluated code receives an empty local variable scope and no internal
+variable name can collide with an authored variable.
 
 Using `eval()` is constrained to trusted, parser-validated documentation source. It is not exposed as a general string
 execution API.

@@ -1,0 +1,337 @@
+<?php
+
+/**
+ * +--------------------------------------------------------------------------------------------------------------+
+ * |        *                 .                         *                  .                         *            |
+ * |   .              *                      .                    *                      .                        |
+ * |             .                 .                  *                         .                 *               |
+ * -      *                    .             *                    .                         .                     -
+ *
+ *                               Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜
+ *
+ * -                                          .----------------.                                                  -
+ * |                                      .--'        __        '--.                                              |
+ * |                                  .--'          .'  '.          '--.                                          |
+ * |                             .---'            .'      '.            '---.                                     |
+ * +--------------------------------------------------------------------------------------------------------------+
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3,
+ * as published by the Free Software Foundation, together with the Romic
+ * Exception (an additional permission under section 7 of that license).
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * and the Romic Exception along with this program.  If not, see
+ * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
+ */
+
+declare(strict_types=1);
+
+namespace jbboehr\Akashi\Tests\Execution;
+
+use jbboehr\Akashi\Document;
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
+use jbboehr\Akashi\Execution\ExecutionFailed;
+use jbboehr\Akashi\Execution\ExecutionMode;
+use jbboehr\Akashi\Execution\ExecutionSucceeded;
+use jbboehr\Akashi\Execution\Executor;
+use jbboehr\Akashi\Execution\FailurePhase;
+use jbboehr\Akashi\Execution\InProcess\InProcessExecutor;
+use jbboehr\Akashi\Execution\StateResource;
+use jbboehr\Akashi\Model\DocumentPath;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
+use jbboehr\Akashi\Transform\ExecutionScope;
+use jbboehr\Akashi\Transform\InProcessTransformer;
+use jbboehr\Akashi\Transform\PreparedCode;
+use jbboehr\Akashi\Transform\PreparedExample;
+use jbboehr\Akashi\Transform\SourceMap;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPUnit\Framework\TestCase;
+
+final class InProcessExecutorTest extends TestCase
+{
+    private int $scopeSequence = 0;
+
+    public function testImplementsTheReusableExecutorContractAndCapturesOutput(): void
+    {
+        $executor = new InProcessExecutor();
+        $prepared = $this->transform("echo 'documented output';");
+        $startedAt = hrtime(true);
+        self::assertIsInt($startedAt);
+
+        $result = $executor->execute($prepared);
+        $finishedAt = hrtime(true);
+        self::assertIsInt($finishedAt);
+
+        self::assertTrue((new \ReflectionClass($executor))->implementsInterface(Executor::class));
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame($prepared, $result->preparedExample);
+        self::assertSame('documented output', $result->stdout);
+        self::assertGreaterThanOrEqual(0, $result->durationNanoseconds);
+        self::assertLessThanOrEqual($finishedAt - $startedAt, $result->durationNanoseconds);
+    }
+
+    public function testExecutesWithAnEmptyLocalVariableScope(): void
+    {
+        $result = (new InProcessExecutor())->execute(
+            $this->transform('echo json_encode(array_keys(get_defined_vars()), JSON_THROW_ON_ERROR);'),
+        );
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('[]', $result->stdout);
+    }
+
+    public function testSupportsCaseInsensitiveOpeningTags(): void
+    {
+        $result = (new InProcessExecutor())->execute($this->transform("<?PHP echo 'accepted';"));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('accepted', $result->stdout);
+    }
+
+    public function testPreservesStrictAndWeakTypingAcrossTheEvaluationBoundary(): void
+    {
+        $executor = new InProcessExecutor();
+        $weak = $executor->execute($this->transform('echo strlen(123);'));
+        $strict = $executor->execute($this->transform("declare(strict_types=1);\necho strlen(123);"));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $weak);
+        self::assertSame('3', $weak->stdout);
+        self::assertInstanceOf(ExecutionFailed::class, $strict);
+        self::assertSame(FailurePhase::Execution, $strict->phase);
+        self::assertInstanceOf(\TypeError::class, $strict->cause);
+    }
+
+    public function testSupportsTopLevelReturnWithoutEndingTheHostingTest(): void
+    {
+        $result = (new InProcessExecutor())->execute(
+            $this->transform("echo 'before'; return; echo 'after';"),
+        );
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('before', $result->stdout);
+    }
+
+    public function testReturnsAnAuthoredThrowableWithOutputCapturedBeforeFailure(): void
+    {
+        $prepared = $this->transform("echo 'before failure';\nthrow new RuntimeException('example failed');");
+
+        $result = (new InProcessExecutor())->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(FailurePhase::Execution, $result->phase);
+        self::assertInstanceOf(\RuntimeException::class, $result->cause);
+        self::assertSame('example failed', $result->cause->getMessage());
+        self::assertSame('before failure', $result->stdout);
+        self::assertSame([], $result->cleanupFailures);
+        self::assertGreaterThanOrEqual(0, $result->durationNanoseconds);
+        self::assertSame(11, $prepared->sourceMap->sourceLineFor($result->cause->getLine()));
+    }
+
+    public function testCatchesAParseErrorFromMalformedPreparedSource(): void
+    {
+        $prepared = $this->rawPrepared("<?php\nnamespace Akashi\\Generated\\Malformed;\nif (", ExecutionMode::InProcess);
+
+        $result = (new InProcessExecutor())->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(FailurePhase::Execution, $result->phase);
+        self::assertInstanceOf(\ParseError::class, $result->cause);
+        self::assertSame([], $result->cleanupFailures);
+    }
+
+    public function testRestoresWorkingDirectoryErrorReportingAndNestedOutput(): void
+    {
+        $initialWorkingDirectory = getcwd();
+        $initialErrorReporting = error_reporting();
+        self::assertIsString($initialWorkingDirectory);
+        $source = <<<'PHP'
+chdir(sys_get_temp_dir());
+error_reporting(E_ERROR);
+echo 'outer:';
+ob_start(static fn (string $output): string => strtoupper($output));
+echo 'nested';
+PHP;
+
+        $result = (new InProcessExecutor())->execute($this->transform($source));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('outer:NESTED', $result->stdout);
+        self::assertSame($initialWorkingDirectory, getcwd());
+        self::assertSame($initialErrorReporting, error_reporting());
+    }
+
+    public function testIsolatesRepeatedDeclarationsAcrossPreparedScopes(): void
+    {
+        $source = "class RepeatedDeclaration { public const VALUE = 'isolated'; } echo RepeatedDeclaration::VALUE;";
+        $first = $this->transform($source);
+        $second = $this->transform($source);
+        $executor = new InProcessExecutor();
+
+        $firstResult = $executor->execute($first);
+        $secondResult = $executor->execute($second);
+
+        self::assertNotSame($first->scope->namespace, $second->scope->namespace);
+        self::assertInstanceOf(ExecutionSucceeded::class, $firstResult);
+        self::assertInstanceOf(ExecutionSucceeded::class, $secondResult);
+        self::assertSame('isolated', $firstResult->stdout);
+        self::assertSame('isolated', $secondResult->stdout);
+    }
+
+    public function testExecutesARewrittenNativeAssertionExactlyOnce(): void
+    {
+        $result = (new InProcessExecutor())->execute(
+            $this->transform('$evaluations = 0; assert(++$evaluations === 1); echo $evaluations;'),
+        );
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('1', $result->stdout);
+    }
+
+    public function testReturnsARewrittenNativeAssertionFailure(): void
+    {
+        $result = (new InProcessExecutor())->execute(
+            $this->transform("echo 'before'; assert(false, 'documented failure');"),
+        );
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(FailurePhase::Execution, $result->phase);
+        self::assertStringStartsWith('documented failure', $result->cause->getMessage());
+        self::assertSame('before', $result->stdout);
+    }
+
+    public function testPreservesAnAuthoredThrowableAssertionDescription(): void
+    {
+        $result = (new InProcessExecutor())->execute(
+            $this->transform("assert(false, new DomainException('authored description'));"),
+        );
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertInstanceOf(\DomainException::class, $result->cause);
+        self::assertSame('authored description', $result->cause->getMessage());
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testReturnsACleanupFailureWhenTheOwnedOutputBufferIsRemoved(): void
+    {
+        $prepared = $this->rawPrepared(
+            "<?php\nnamespace Akashi\\Generated\\RemovedBuffer;\nob_end_clean();",
+            ExecutionMode::InProcess,
+        );
+
+        $result = (new InProcessExecutor())->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(FailurePhase::Cleanup, $result->phase);
+        self::assertInstanceOf(ExecutionInfrastructureException::class, $result->cause);
+        self::assertSame('', $result->stdout);
+        self::assertCount(1, $result->cleanupFailures);
+        self::assertSame(StateResource::OutputBuffer, $result->cleanupFailures[0]->resource);
+        self::assertStringContainsString('owned by Akashi was removed', $result->cleanupFailures[0]->message);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testPreservesExecutionFailureAsPrimaryWhenCleanupAlsoFails(): void
+    {
+        $prepared = $this->rawPrepared(
+            "<?php\nnamespace Akashi\\Generated\\FailedRemovedBuffer;\nob_end_clean();\nthrow new \\RuntimeException('primary failure');",
+            ExecutionMode::InProcess,
+        );
+
+        $result = (new InProcessExecutor())->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(FailurePhase::Execution, $result->phase);
+        self::assertInstanceOf(\RuntimeException::class, $result->cause);
+        self::assertSame('primary failure', $result->cause->getMessage());
+        self::assertCount(1, $result->cleanupFailures);
+        self::assertSame(StateResource::OutputBuffer, $result->cleanupFailures[0]->resource);
+    }
+
+    public function testRejectsAPreparedExampleForAnotherExecutionMode(): void
+    {
+        $prepared = $this->rawPrepared("<?php\necho 'not executed';", ExecutionMode::SeparateProcess);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('accepts only in-process examples');
+
+        (new InProcessExecutor())->execute($prepared);
+    }
+
+    private function transform(string $source): PreparedExample
+    {
+        ++$this->scopeSequence;
+
+        return (new InProcessTransformer())->transform(
+            $this->example($source),
+            new ExecutionScope(sprintf('Akashi\\Generated\\ExecutorFixture_%d', $this->scopeSequence)),
+        );
+    }
+
+    private function rawPrepared(string $source, ExecutionMode $mode): PreparedExample
+    {
+        $code = new PreparedCode($source);
+
+        return new PreparedExample(
+            $this->example('raw prepared fixture'),
+            $code,
+            new SourceMap(
+                new DocumentPath('docs/executor.md'),
+                array_fill(0, $code->generatedLineCount(), null),
+            ),
+            $mode,
+            new ExecutionScope('Akashi\\Generated\\RawExecutorFixture'),
+        );
+    }
+
+    private function example(string $source): Example
+    {
+        $sourceLength = strlen($source);
+        $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
+        self::assertNotFalse($lineBreaks);
+        $lineCount = $lineBreaks + 1;
+        if ($sourceLength > 0 && preg_match('/(?:\r\n|\r|\n)\z/', $source) === 1) {
+            --$lineCount;
+        }
+
+        $firstCodeLine = 10;
+        $lastCodeLine = $sourceLength === 0 ? null : $firstCodeLine + $lineCount - 1;
+        $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
+
+        return new Example(
+            id: new ExampleId('example-executor-01'),
+            label: 'In-process executor fixture',
+            document: new Document('docs/executor.md', $source),
+            location: new SourceLocation(
+                $firstCodeLine - 1,
+                $firstCodeLine,
+                $lastCodeLine,
+                $closingFenceLine,
+                new SourceSpan(0, max(1, $sourceLength)),
+                new SourceSpan(0, $sourceLength),
+            ),
+            language: new Language('php'),
+            code: new ExampleCode($source),
+            fence: new FenceMetadata('php', '`', 3, 0),
+            ordinal: 1,
+        );
+    }
+}

@@ -113,6 +113,7 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`nullCoalesce.offset`](https://phpstan.org/error-identifiers/nullCoalesce.offset)                           | User-facing behavioral reference | Removing a redundant fallback after a guaranteed named regex capture               |
 | 2026-08-05 | [`offsetAccess.invalidOffset`](https://phpstan.org/error-identifiers/offsetAccess.invalidOffset)             | User-facing behavioral reference | Replacing a broadly typed array-key lookup with a validated argument value         |
 | 2026-08-05 | [`catch.internalClass`](https://phpstan.org/error-identifiers/catch.internalClass)                           | User-facing behavioral reference | Testing PHPUnit failures without coupling to its internal exception class          |
+| 2026-08-05 | [`classConstant.internalClass`](https://phpstan.org/error-identifiers/classConstant.internalClass)           | User-facing behavioral reference | Avoiding PHPUnit internal-class constants in executor integration tests            |
 
 ### Composer
 

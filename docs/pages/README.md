@@ -12,8 +12,20 @@ Akashi is a PHP project for testing examples embedded in documentation.
 
 The package now has its immutable core model, deterministic Markdown document discovery, CommonMark PHP-fence
 extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
-PHP source preparation, including namespace isolation and native-assertion rewriting, is implemented. Execution and
-verification integrations remain under development.
+PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
+are implemented. PHPUnit reporting and verification integrations remain under development.
+
+## Trust and Safety
+
+Akashi executes trusted project documentation; its in-process executor is not a security sandbox. It rejects known
+process-terminating and persistent-state constructs and restores the limited process state PHP can reverse reliably, but
+it cannot contain resource exhaustion, native-extension crashes, dynamically reached `exit` or `die`, or other fatal
+behavior that PHP cannot report as a `Throwable`.
+
+Examples requiring process-level containment will belong in the planned separate-process backend. Until that backend is
+implemented, such examples are unsupported and must not be executed in-process. Separate-process execution will protect
+the hosting test runner, but it will not restrict the example's operating-system permissions or make untrusted code
+safe.
 
 ## Assertion Behavior
 
