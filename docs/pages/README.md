@@ -14,8 +14,8 @@ The package now has its immutable core model, deterministic Markdown document di
 extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
 PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
 are implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable.
-Separate-process runtime configuration, source preparation, and standalone process execution are implemented; PHPUnit
-facade routing and PHPStan verification remain under development.
+Separate-process runtime configuration, source preparation, execution, and PHPUnit facade routing are implemented;
+PHPStan verification remains under development.
 
 ## Trust and Safety
 
@@ -25,9 +25,9 @@ it cannot contain resource exhaustion, native-extension crashes, dynamically rea
 behavior that PHP cannot report as a `Throwable`.
 
 Examples requiring process-level containment belong in the separate-process backend. Its executor protects the hosting
-test runner, but it does not restrict the example's operating-system permissions or make untrusted code safe. Until
-backend routing is added to the PHPUnit facade, separate-process directives remain unsupported through that facade and
-must not be weakened to in-process execution.
+test runner, but it does not restrict the example's operating-system permissions or make untrusted code safe. The
+PHPUnit facade honors an example's separate-process directive only when the caller supplies runtime configuration with
+an explicit project root; it never weakens the requested isolation to in-process execution.
 
 ## Assertion Behavior
 
@@ -42,8 +42,8 @@ captured stdout and stderr, and cleanup failures; the original execution cause r
 chain.
 
 `PhpUnitExampleDataSets` exposes a corpus as independently named PHPUnit data sets, and `PhpUnitRuntime` runs each
-example through the complete in-process transformation, execution, and reporting pipeline. A separate-process directive
-is currently rejected explicitly because backend routing has not yet been implemented.
+example through the transformation and executor selected by its directive and runtime configuration. Both backends use
+the same result reporting path.
 
 ## Start Here
 

@@ -52,6 +52,7 @@ A PHPUnit test can discover a corpus once per data-provider invocation and expos
 <?php
 
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
 use jbboehr\Akashi\Source\MarkdownSource;
@@ -62,10 +63,7 @@ final class DocumentationExamplesTest extends TestCase
 {
     public static function examples(): iterable
     {
-        $projectRoot = getcwd();
-        if ($projectRoot === false) {
-            throw new RuntimeException('Unable to determine the project root.');
-        }
+        $projectRoot = dirname(__DIR__);
 
         $corpus = MarkdownSource::forProject($projectRoot)
             ->includeFile('README.md')
@@ -79,17 +77,28 @@ final class DocumentationExamplesTest extends TestCase
     #[DataProvider('examples')]
     public function testDocumentationExample(Example $example): void
     {
-        PhpUnitRuntime::assertExample($example);
+        $runtime = RuntimeConfiguration::forProject(dirname(__DIR__));
+
+        PhpUnitRuntime::assertExample($example, $runtime);
     }
 }
 ```
 
 Data-set names are the human-readable example labels. Duplicate labels are rejected before the first data set is
-yielded, keeping PHPUnit filtering and reports unambiguous. Runtime examples execute in-process by default; Akashi
-rejects `<!-- akashi: separate-process -->` until the planned separate-process backend is available. Consequently, a
-corpus containing that directive currently produces an error for the corresponding PHPUnit data set. Avoid introducing
-the directive into a runtime corpus for now; if an existing project must exclude such examples temporarily, make the
-exclusion explicit and track the missing coverage until the backend is available.
+yielded, keeping PHPUnit filtering and reports unambiguous. Runtime examples execute in-process by default. The runtime
+configuration gives both backends an explicit project root. An in-process example can normally use the autoloader that
+PHPUnit has already loaded. A child process does not inherit that PHP state, so configure a bootstrap such as
+`withBootstrap('vendor/autoload.php')` when separate-process examples use project or dependency symbols.
+
+An immediately associated `<!-- akashi: separate-process -->` directive routes one example to a child PHP process. The
+directive overrides an in-process configuration default. To route every unmarked example through the child backend, use
+`withDefaultExecutionMode(ExecutionMode::SeparateProcess)` after importing `jbboehr\Akashi\Execution\ExecutionMode`.
+Calling `assertExample()` without configuration remains available for ordinary in-process examples, but a
+separate-process example is rejected unless the caller supplies the explicit project root needed to launch it safely.
+
+An explicitly configured in-process bootstrap is loaded once per PHPUnit process. Use it for persistent setup such as
+autoloaders and declarations; Akashi restores bootstrap changes to the working directory, error-reporting level, and
+output-buffer stack after the example.
 
 ## Development
 

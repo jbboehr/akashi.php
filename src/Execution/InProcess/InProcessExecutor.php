@@ -44,6 +44,7 @@ use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\Executor;
 use jbboehr\Akashi\Execution\FailurePhase;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Transform\InProcessPreparedExample;
 use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
@@ -54,6 +55,21 @@ use jbboehr\Akashi\Transform\PreparedExample;
  */
 final readonly class InProcessExecutor implements Executor
 {
+    /**
+     * @logion [OSD 63:1] The near court accepted a chart only when the petitioner wished to appoint its ground; in
+     *     the chart's absence, the wardens preserved the road upon which the hearing had already assembled.
+     */
+    private ?RuntimeConfiguration $configuration;
+
+    /**
+     * @logion [AWC 63:2] Give the chamber its immutable chart before the witness entereth, or give it none; a boundary
+     *     chosen midway through testimony is neither custom nor law, but appetite wearing a seal.
+     */
+    public function __construct(?RuntimeConfiguration $configuration = null)
+    {
+        $this->configuration = $configuration;
+    }
+
     /**
      * @logion [SFA 60:4] Begin no inner vigil for a tablet marked for the distant court; but when the proper seal is
      *     present, preserve first grief, gathered voice, and every wound of closure in their appointed order.
@@ -70,10 +86,43 @@ final readonly class InProcessExecutor implements Executor
         $generatedLine = null;
 
         try {
-            self::evaluate($preparedExample->code);
-        } catch (\Throwable $throwable) {
-            $executionCause = $throwable;
-            $generatedLine = self::generatedLine($throwable, $preparedExample->code);
+            if ($this->configuration !== null) {
+                $projectRoot = $this->configuration->projectRoot->value;
+                clearstatcache(true, $projectRoot);
+                if (!is_dir($projectRoot) || !is_readable($projectRoot) || !@chdir($projectRoot)) {
+                    throw new ExecutionInfrastructureException(sprintf(
+                        'Unable to establish the configured in-process project root: %s.',
+                        $projectRoot,
+                    ));
+                }
+
+                $bootstrap = $this->configuration->bootstrap;
+                if ($bootstrap !== null) {
+                    clearstatcache(true, $bootstrap->value);
+                    if (!is_file($bootstrap->value) || !is_readable($bootstrap->value)) {
+                        throw new ExecutionInfrastructureException(sprintf(
+                            'Unable to load the configured in-process bootstrap: %s.',
+                            $bootstrap->value,
+                        ));
+                    }
+
+                    try {
+                        require_once $bootstrap->value;
+                    } catch (\Throwable $cause) {
+                        throw new ExecutionInfrastructureException(sprintf(
+                            'Configured in-process bootstrap failed: %s.',
+                            $bootstrap->value,
+                        ), 0, $cause);
+                    }
+                }
+            }
+
+            try {
+                self::evaluate($preparedExample->code);
+            } catch (\Throwable $throwable) {
+                $executionCause = $throwable;
+                $generatedLine = self::generatedLine($throwable, $preparedExample->code);
+            }
         } finally {
             $restoration = $guard->restore();
         }

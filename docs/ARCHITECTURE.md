@@ -160,7 +160,10 @@ ambient working directory.
 The PHPUnit process has normally loaded the consumer's Composer autoloader before Akashi runs. The in-process executor
 validates the configured bootstrap and loads it with `require_once` only if the consumer explicitly supplies one. The
 same absolute bootstrap path is passed to subprocess PHP through `auto_prepend_file`. Extraction does not load the
-bootstrap. This keeps the common Composer/PHPUnit case effortless while making nonstandard bootstraps explicit.
+bootstrap. An in-process bootstrap runs at most once per hosting PHP process; guarded changes to the working directory,
+error-reporting level, or output-buffer stack are restored after the example and are not re-applied later. Bootstrap
+files should therefore concentrate on persistent setup such as autoloader registration and declarations. This keeps the
+common Composer/PHPUnit case effortless while making nonstandard bootstraps explicit.
 
 ## Domain model
 
@@ -382,10 +385,10 @@ The only MVP execution directive is:
 It follows the same immediate-association rule as a marker. Multiple adjacent recognized metadata comments may occur in
 either order. Duplicate directives and unknown `akashi:` directive names are errors, which catches authoring typos.
 
-The directive maps to `ExecutionMode::SeparateProcess`; absence maps to `ExecutionMode::InProcess`. Programmatic
-configuration may override the mode for a selected example or corpus without modifying the immutable original example.
-The public name follows PHPUnit's familiar “run in separate process” terminology; “subprocess” is reserved for internal
-implementation mechanics.
+The directive maps to `ExecutionMode::SeparateProcess`. In its absence, runtime configuration selects the default mode,
+which is `ExecutionMode::InProcess` unless changed explicitly. An authored separate-process directive takes precedence
+over that default and cannot be weakened to in-process execution. The public name follows PHPUnit's familiar “run in
+separate process” terminology; “subprocess” is reserved for internal implementation mechanics.
 
 Consumers that do not want Markdown directives may select the mode for the whole corpus:
 
@@ -597,6 +600,11 @@ Configuration and extraction errors are exceptions because no execution result e
 results because verifiers and reporters need to inspect them. Programmer invariant violations use
 `LogicException`-derived types and are never converted into an authored-code failure.
 
+Executor setup follows the same boundary: an unavailable configured project root or bootstrap, or a process that cannot
+be started, raises `ExecutionInfrastructureException` after attempting applicable cleanup. Once example execution has
+actually begun, its throwable, exit status, signal, or timeout becomes `ExecutionFailed`. A child-bootstrap failure that
+occurs after PHP starts may be observable only as a child-process execution failure.
+
 All messages include, where known:
 
 - normalized maintained-source path, which is the Markdown path in the MVP;
@@ -631,10 +639,11 @@ final class DocumentationExamplesTest extends TestCase
 ```
 
 `PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. It
-does not store global configuration. Advanced consumers can compose those objects directly. The standalone
-separate-process backend and immutable runtime configuration are implemented; until backend selection is wired through
-this facade, it executes ordinary examples in-process and rejects a separate-process directive explicitly instead of
-weakening its requested isolation.
+does not store global configuration. Its optional `RuntimeConfiguration` argument supplies the explicit project root,
+bootstrap, and corpus default for one call. An authored separate-process directive takes precedence over the configured
+default; separate execution without configuration is rejected rather than inferred from the ambient working directory.
+Both backends return the same result abstraction to the same PHPUnit asserter. Advanced consumers can compose the
+transformers, executors, and asserter directly.
 
 `PhpUnitExampleDataSets` validates every human label for uniqueness before yielding one `Example` argument under that
 label. `PhpUnitResultAsserter` translates `ExecutionFailed` into a PHPUnit assertion failure while retaining the

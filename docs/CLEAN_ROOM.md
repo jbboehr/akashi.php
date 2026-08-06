@@ -118,6 +118,7 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`offsetAccess.invalidOffset`](https://phpstan.org/error-identifiers/offsetAccess.invalidOffset)             | User-facing behavioral reference | Replacing a broadly typed array-key lookup with a validated argument value         |
 | 2026-08-05 | [`catch.internalClass`](https://phpstan.org/error-identifiers/catch.internalClass)                           | User-facing behavioral reference | Testing PHPUnit failures without coupling to its internal exception class          |
 | 2026-08-05 | [`classConstant.internalClass`](https://phpstan.org/error-identifiers/classConstant.internalClass)           | User-facing behavioral reference | Avoiding PHPUnit internal-class constants in executor integration tests            |
+| 2026-08-05 | [`nullsafe.neverNull`](https://phpstan.org/error-identifiers/nullsafe.neverNull)                             | User-facing behavioral reference | Replacing a redundant null-safe configuration access with explicit mode selection  |
 
 ### Composer
 

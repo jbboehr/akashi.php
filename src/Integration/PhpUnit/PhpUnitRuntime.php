@@ -40,11 +40,15 @@ namespace jbboehr\Akashi\Integration\PhpUnit;
 
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
+use jbboehr\Akashi\Execution\Exception\RuntimeConfigurationException;
+use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Execution\InProcess\InProcessExecutor;
+use jbboehr\Akashi\Execution\Process\SubprocessExecutor;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Transform\Exception\TransformException;
-use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use jbboehr\Akashi\Transform\InProcessTransformer;
+use jbboehr\Akashi\Transform\SeparateProcessTransformer;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**
@@ -54,26 +58,43 @@ use PHPUnit\Framework\ExpectationFailedException;
 final readonly class PhpUnitRuntime
 {
     /**
-     * @throws ExecutionInfrastructureException when the in-process environment cannot be established or measured
+     * @throws ExecutionInfrastructureException when the execution environment cannot be established or measured
      * @throws ExpectationFailedException when execution or cleanup failed
-     * @throws TransformException when the example is invalid or unsupported in-process
+     * @throws RuntimeConfigurationException when separate-process execution has no explicit project root
+     * @throws TransformException when the example is invalid or unsupported by its selected backend
      *
      * @logion [AWC 60:20] Send the witness by the road appointed upon its tablet; where that road is not yet opened,
      *     confess the closed gate with name and place rather than turning the traveler toward a more dangerous path.
      */
-    public static function assertExample(Example $example): void
-    {
+    public static function assertExample(
+        Example $example,
+        ?RuntimeConfiguration $configuration = null,
+    ): void {
+        $executionMode = $configuration === null
+            ? ExecutionMode::InProcess
+            : $configuration->defaultExecutionMode;
         if ($example->directives->contains(Directive::SeparateProcess)) {
-            throw new UnsupportedExampleException(sprintf(
-                'Example %s at %s:%d requests separate-process execution, but that backend is not implemented.',
-                $example->id->value,
-                $example->document->path->value,
-                $example->location->metadata->separateProcessDirectiveLine ?? $example->location->firstCodeLine,
-            ));
+            $executionMode = ExecutionMode::SeparateProcess;
         }
 
-        $preparedExample = (new InProcessTransformer())->transform($example);
-        $result = (new InProcessExecutor())->execute($preparedExample);
+        if ($executionMode === ExecutionMode::SeparateProcess) {
+            if ($configuration === null) {
+                throw new RuntimeConfigurationException(sprintf(
+                    'Example %s at %s:%d requires RuntimeConfiguration with an explicit project root for '
+                    . 'separate-process execution.',
+                    $example->id->value,
+                    $example->document->path->value,
+                    $example->location->metadata->separateProcessDirectiveLine ?? $example->location->firstCodeLine,
+                ));
+            }
+
+            $preparedExample = (new SeparateProcessTransformer())->transform($example);
+            $result = (new SubprocessExecutor($configuration))->execute($preparedExample);
+        } else {
+            $preparedExample = (new InProcessTransformer())->transform($example);
+            $result = (new InProcessExecutor($configuration))->execute($preparedExample);
+        }
+
         (new PhpUnitResultAsserter())->assertResult($result);
     }
 }

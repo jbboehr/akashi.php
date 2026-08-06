@@ -324,24 +324,34 @@ PHP;
         }
     }
 
-    public function testReturnsAnInfrastructureFailureWhenTheConfiguredProjectDisappears(): void
+    public function testThrowsAnInfrastructureFailureWhenTheConfiguredProjectDisappears(): void
     {
         $projectRoot = $this->workspace . '/vanished-project';
         self::assertTrue(mkdir($projectRoot));
         $configuration = RuntimeConfiguration::forProject($projectRoot);
         self::assertTrue(rmdir($projectRoot));
 
-        $result = (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        $this->expectException(ExecutionInfrastructureException::class);
+        $this->expectExceptionMessage(
+            'Unable to establish the configured separate-process project root: ' . $projectRoot . '.',
+        );
 
-        self::assertInstanceOf(ExecutionFailed::class, $result);
-        self::assertSame(FailurePhase::Execution, $result->phase);
-        self::assertInstanceOf(ExecutionInfrastructureException::class, $result->cause);
-        self::assertSame('Unable to run the separate PHP process.', $result->cause->getMessage());
-        self::assertSame(0, $result->cause->getCode());
-        self::assertSame('', $result->stdout);
-        self::assertSame('', $result->stderr);
-        self::assertSame([], $result->cleanupFailures);
-        self::assertNull($result->generatedLine);
+        (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+    }
+
+    public function testThrowsAnInfrastructureFailureWhenTheConfiguredBootstrapDisappears(): void
+    {
+        $bootstrap = $this->workspace . '/bootstrap.php';
+        self::assertNotFalse(file_put_contents($bootstrap, "<?php\n"));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)->withBootstrap('bootstrap.php');
+        self::assertTrue(unlink($bootstrap));
+
+        $this->expectException(ExecutionInfrastructureException::class);
+        $this->expectExceptionMessage(
+            'Unable to load the configured separate-process bootstrap: ' . $bootstrap . '.',
+        );
+
+        (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
     }
 
     public function testRejectsAnInProcessPreparedExample(): void

@@ -40,6 +40,10 @@ namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
+use jbboehr\Akashi\Execution\Exception\RuntimeConfigurationException;
+use jbboehr\Akashi\Execution\ExecutionMode;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
@@ -50,7 +54,6 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
-use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -58,6 +61,44 @@ use PHPUnit\Framework\TestCase;
 
 final class PhpUnitRuntimeTest extends TestCase
 {
+    private string $workspace;
+
+    protected function setUp(): void
+    {
+        $workspace = tempnam(sys_get_temp_dir(), 'akashi-phpunit-runtime-');
+        self::assertNotFalse($workspace);
+        self::assertTrue(unlink($workspace));
+        self::assertTrue(mkdir($workspace, 0o700));
+
+        $this->workspace = $workspace;
+    }
+
+    protected function tearDown(): void
+    {
+        if (!is_dir($this->workspace)) {
+            return;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->workspace, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $path) {
+            if (!$path instanceof \SplFileInfo) {
+                continue;
+            }
+
+            if ($path->isDir() && !$path->isLink()) {
+                self::assertTrue(rmdir($path->getPathname()));
+            } else {
+                self::assertTrue(unlink($path->getPathname()));
+            }
+        }
+
+        self::assertTrue(rmdir($this->workspace));
+    }
+
     public function testExecutesAnExampleAndRecordsOneCompletionAssertion(): void
     {
         $before = Assert::getCount();
@@ -107,7 +148,7 @@ final class PhpUnitRuntimeTest extends TestCase
      * @param positive-int $expectedLine
      */
     #[DataProvider('separateProcessLocationProvider')]
-    public function testRejectsASeparateProcessDirectiveBeforeExecutingTheExample(
+    public function testRequiresExplicitRuntimeConfigurationForASeparateProcessDirective(
         ?int $directiveLine,
         int $expectedLine,
     ): void {
@@ -117,14 +158,95 @@ final class PhpUnitRuntimeTest extends TestCase
             directiveLine: $directiveLine,
         );
 
-        $this->expectException(UnsupportedExampleException::class);
+        $this->expectException(RuntimeConfigurationException::class);
         $this->expectExceptionMessage(sprintf(
-            'Example example-runtime-01 at docs/runtime.md:%d requests separate-process execution, '
-            . 'but that backend is not implemented.',
+            'Example example-runtime-01 at docs/runtime.md:%d requires RuntimeConfiguration with an explicit '
+            . 'project root for separate-process execution.',
             $expectedLine,
         ));
 
         PhpUnitRuntime::assertExample($example);
+    }
+
+    public function testAnExplicitDirectiveOverridesTheInProcessDefaultAndUsesAnotherProcess(): void
+    {
+        $parentPid = getmypid();
+        self::assertIsInt($parentPid);
+        $example = $this->example(
+            "file_put_contents('child.pid', (string) getmypid());",
+            directives: new DirectiveSet(Directive::SeparateProcess),
+            directiveLine: 8,
+        );
+        $configuration = RuntimeConfiguration::forProject($this->workspace);
+
+        PhpUnitRuntime::assertExample($example, $configuration);
+
+        $childPid = file_get_contents($this->workspace . '/child.pid');
+        self::assertNotFalse($childPid);
+        self::assertNotSame((string) $parentPid, $childPid);
+    }
+
+    public function testTheConfiguredInProcessDefaultUsesTheProjectRoot(): void
+    {
+        $source = sprintf(
+            "if (getcwd() !== %s) { throw new RuntimeException('wrong project root'); }",
+            var_export($this->workspace, true),
+        );
+
+        PhpUnitRuntime::assertExample(
+            $this->example($source),
+            RuntimeConfiguration::forProject($this->workspace),
+        );
+    }
+
+    public function testPropagatesAnInProcessSetupFailureAsAnInfrastructureException(): void
+    {
+        $configuration = RuntimeConfiguration::forProject($this->workspace);
+        self::assertTrue(rmdir($this->workspace));
+
+        $this->expectException(ExecutionInfrastructureException::class);
+        $this->expectExceptionMessage(
+            'Unable to establish the configured in-process project root: ' . $this->workspace . '.',
+        );
+
+        PhpUnitRuntime::assertExample($this->example("echo 'not executed';"), $configuration);
+    }
+
+    public function testTheConfiguredSeparateProcessDefaultUsesTheProjectRootAndBootstrap(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/bootstrap.php',
+            "<?php\ndefine('AKASHI_SEPARATE_PROCESS_BOOTSTRAP_FIXTURE', 'loaded');\n",
+        ));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)
+            ->withBootstrap('bootstrap.php')
+            ->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
+        $source = sprintf(
+            "if (getcwd() !== %s || AKASHI_SEPARATE_PROCESS_BOOTSTRAP_FIXTURE !== 'loaded') { exit(19); }",
+            var_export($this->workspace, true),
+        );
+
+        PhpUnitRuntime::assertExample($this->example($source), $configuration);
+    }
+
+    public function testReportsASeparateProcessFailureThroughTheCommonResultAsserter(): void
+    {
+        $example = $this->example(
+            "file_put_contents('php://stderr', 'child failure'); exit(23);",
+            directives: new DirectiveSet(Directive::SeparateProcess),
+        );
+
+        try {
+            PhpUnitRuntime::assertExample($example, RuntimeConfiguration::forProject($this->workspace));
+        } catch (ExpectationFailedException $failure) {
+            self::assertStringContainsString('Documentation example example-runtime-01 failed', $failure->getMessage());
+            self::assertStringContainsString('Separate PHP process exited with status 23', $failure->getMessage());
+            self::assertStringContainsString("Captured stderr:\n    child failure", $failure->getMessage());
+
+            return;
+        }
+
+        self::fail('A failing separate-process example must fail the PHPUnit data set.');
     }
 
     /** @return iterable<string, array{positive-int|null, positive-int}> */

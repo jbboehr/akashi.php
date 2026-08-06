@@ -47,6 +47,7 @@ use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\Executor;
 use jbboehr\Akashi\Execution\FailurePhase;
 use jbboehr\Akashi\Execution\InProcess\InProcessExecutor;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Model\DocumentPath;
 use jbboehr\Akashi\Model\ExampleCode;
@@ -194,6 +195,117 @@ PHP;
         self::assertSame('outer:NESTED', $result->stdout);
         self::assertSame($initialWorkingDirectory, getcwd());
         self::assertSame($initialErrorReporting, error_reporting());
+    }
+
+    public function testConfiguredExecutionUsesTheProjectRootAndBootstrapThenRestoresTheWorkingDirectory(): void
+    {
+        $workspace = $this->createWorkspace();
+        $bootstrap = $workspace . '/bootstrap.php';
+        self::assertNotFalse(file_put_contents(
+            $bootstrap,
+            "<?php\ndefine('AKASHI_IN_PROCESS_BOOTSTRAP_FIXTURE', 'loaded');\n",
+        ));
+        $configuration = RuntimeConfiguration::forProject($workspace)->withBootstrap('bootstrap.php');
+        $initialWorkingDirectory = getcwd();
+        self::assertIsString($initialWorkingDirectory);
+
+        try {
+            $result = (new InProcessExecutor($configuration))->execute($this->transform(
+                "echo getcwd() . '|' . AKASHI_IN_PROCESS_BOOTSTRAP_FIXTURE;",
+            ));
+
+            self::assertInstanceOf(ExecutionSucceeded::class, $result);
+            self::assertSame($workspace . '|loaded', $result->stdout);
+            self::assertSame($initialWorkingDirectory, getcwd());
+        } finally {
+            self::assertTrue(unlink($bootstrap));
+            self::assertTrue(rmdir($workspace));
+        }
+    }
+
+    public function testThrowsAnInfrastructureFailureWhenTheConfiguredProjectDisappears(): void
+    {
+        $workspace = $this->createWorkspace();
+        $configuration = RuntimeConfiguration::forProject($workspace);
+        self::assertTrue(rmdir($workspace));
+        $initialWorkingDirectory = getcwd();
+        self::assertIsString($initialWorkingDirectory);
+
+        try {
+            (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to establish the configured in-process project root: ' . $workspace . '.',
+                $failure->getMessage(),
+            );
+            self::assertSame($initialWorkingDirectory, getcwd());
+
+            return;
+        }
+
+        self::fail('A vanished in-process project root must be reported as an infrastructure error.');
+    }
+
+    public function testThrowsAnInfrastructureFailureWhenTheConfiguredBootstrapDisappears(): void
+    {
+        $workspace = $this->createWorkspace();
+        $bootstrap = $workspace . '/bootstrap.php';
+        self::assertNotFalse(file_put_contents($bootstrap, "<?php\n"));
+        $configuration = RuntimeConfiguration::forProject($workspace)->withBootstrap('bootstrap.php');
+        self::assertTrue(unlink($bootstrap));
+        $initialWorkingDirectory = getcwd();
+        self::assertIsString($initialWorkingDirectory);
+
+        try {
+            (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to load the configured in-process bootstrap: ' . $bootstrap . '.',
+                $failure->getMessage(),
+            );
+            self::assertSame($initialWorkingDirectory, getcwd());
+
+            return;
+        } finally {
+            self::assertTrue(rmdir($workspace));
+        }
+
+        self::fail('A vanished in-process bootstrap must be reported as an infrastructure error.');
+    }
+
+    public function testWrapsAThrowableFromTheConfiguredBootstrapAndRestoresGuardedState(): void
+    {
+        $workspace = $this->createWorkspace();
+        $bootstrap = $workspace . '/bootstrap.php';
+        self::assertNotFalse(file_put_contents($bootstrap, <<<'PHP'
+<?php
+
+chdir(sys_get_temp_dir());
+error_reporting(E_ERROR);
+throw new RuntimeException('broken bootstrap');
+PHP));
+        $configuration = RuntimeConfiguration::forProject($workspace)->withBootstrap('bootstrap.php');
+        $initialWorkingDirectory = getcwd();
+        $initialErrorReporting = error_reporting();
+        self::assertIsString($initialWorkingDirectory);
+
+        try {
+            (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame('Configured in-process bootstrap failed: ' . $bootstrap . '.', $failure->getMessage());
+            self::assertSame(0, $failure->getCode());
+            self::assertInstanceOf(\RuntimeException::class, $failure->getPrevious());
+            self::assertSame('broken bootstrap', $failure->getPrevious()->getMessage());
+            self::assertSame($initialWorkingDirectory, getcwd());
+            self::assertSame($initialErrorReporting, error_reporting());
+
+            return;
+        } finally {
+            self::assertTrue(unlink($bootstrap));
+            self::assertTrue(rmdir($workspace));
+        }
+
+        self::fail('A throwable from an in-process bootstrap must be wrapped as an infrastructure error.');
     }
 
     public function testIsolatesRepeatedDeclarationsAcrossPreparedScopes(): void
@@ -361,5 +473,15 @@ PHP;
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: 1,
         );
+    }
+
+    private function createWorkspace(): string
+    {
+        $workspace = tempnam(sys_get_temp_dir(), 'akashi-in-process-');
+        self::assertNotFalse($workspace);
+        self::assertTrue(unlink($workspace));
+        self::assertTrue(mkdir($workspace, 0o700));
+
+        return $workspace;
     }
 }

@@ -98,21 +98,41 @@ final readonly class SubprocessExecutor implements Executor
             throw new \InvalidArgumentException('The subprocess executor accepts only separate-process examples.');
         }
 
+        $projectRoot = $this->configuration->projectRoot->value;
+        clearstatcache(true, $projectRoot);
+        if (!is_dir($projectRoot) || !is_readable($projectRoot)) {
+            throw new ExecutionInfrastructureException(sprintf(
+                'Unable to establish the configured separate-process project root: %s.',
+                $projectRoot,
+            ));
+        }
+
+        $bootstrap = $this->configuration->bootstrap;
+        if ($bootstrap !== null) {
+            clearstatcache(true, $bootstrap->value);
+            if (!is_file($bootstrap->value) || !is_readable($bootstrap->value)) {
+                throw new ExecutionInfrastructureException(sprintf(
+                    'Unable to load the configured separate-process bootstrap: %s.',
+                    $bootstrap->value,
+                ));
+            }
+        }
+
         $startedAt = self::monotonicNanoseconds();
         $temporaryFile = self::createTemporaryPhpFile($preparedExample->code);
         $stdout = '';
         $stderr = '';
         $executionCause = null;
+        $infrastructureFailure = null;
         $generatedLine = null;
 
         try {
-            $process = new Process(
-                command: self::command($temporaryFile, $this->configuration),
-                cwd: $this->configuration->projectRoot->value,
-                timeout: self::PROCESS_TIMEOUT_SECONDS,
-            );
-
             try {
+                $process = new Process(
+                    command: self::command($temporaryFile, $this->configuration),
+                    cwd: $projectRoot,
+                    timeout: self::PROCESS_TIMEOUT_SECONDS,
+                );
                 $exitCode = $process->run();
                 $stdout = $process->getOutput();
                 $stderr = $process->getErrorOutput();
@@ -142,7 +162,7 @@ final readonly class SubprocessExecutor implements Executor
                     $exception->getSignal(),
                 );
             } catch (SymfonyProcessException $exception) {
-                $executionCause = new ExecutionInfrastructureException(
+                $infrastructureFailure = new ExecutionInfrastructureException(
                     'Unable to run the separate PHP process.',
                     0,
                     $exception,
@@ -154,6 +174,20 @@ final readonly class SubprocessExecutor implements Executor
             }
         } finally {
             $cleanupFailure = self::removeTemporaryFile($temporaryFile);
+        }
+
+        if ($infrastructureFailure !== null) {
+            if ($cleanupFailure !== null) {
+                throw new ExecutionInfrastructureException(
+                    $infrastructureFailure->getMessage()
+                    . ' Temporary-file cleanup also failed: '
+                    . $cleanupFailure->message,
+                    0,
+                    $infrastructureFailure,
+                );
+            }
+
+            throw $infrastructureFailure;
         }
 
         $finishedAt = self::monotonicNanoseconds();
