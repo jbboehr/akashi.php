@@ -4,7 +4,8 @@ The repository contains the validated runtime dependencies, immutable document a
 Markdown discovery, CommonMark PHP-fence extraction, configurable marker association and selection, execution directive
 parsing, the framework-independent marked-example extraction CLI, the PHP transformation foundation, typed
 execution-result contracts, in-process state-restoration guards, and source-preserving native assertion rewriting
-through the PHPUnit assertion bridge. In-process code execution, the PHPUnit facade, and verification APIs follow in
+through the PHPUnit assertion bridge. In-process code execution, named PHPUnit data sets, result reporting, and the
+stateless PHPUnit runtime facade are implemented. Separate-process execution and PHPStan verification follow in
 subsequent working chunks.
 
 `nikic/php-parser` and `symfony/process` are intentionally installed before their first imports. Their constraints were

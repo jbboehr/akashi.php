@@ -81,9 +81,10 @@ There is no service container, mutable global registry, or general plugin regist
 
 ### Public API boundary
 
-The supported surface consists of the immutable source/model types, marked selector, runtime configuration, executor and
-result contracts, verifier contracts, and documented integration facades. Third-party parser nodes, Symfony Process
-objects, PHPUnit internals, and PHPStan diagnostics must not leak through core public signatures.
+The supported surface consists of the immutable source/model types, marked selector, executor and result contracts,
+verifier contracts, and documented integration facades. Immutable runtime configuration joins that boundary with the
+separate-process backend. Third-party parser nodes, Symfony Process objects, PHPUnit internals, and PHPStan diagnostics
+must not leak through core public signatures.
 
 Low-level transforms, source-map machinery, state guards, and temporary-artifact helpers begin as `@internal`. Promote
 one only when a concrete consumer use case needs direct composition. Public exceptions share a small Akashi domain base
@@ -608,26 +609,28 @@ final class DocumentationExamplesTest extends TestCase
 {
     public static function examples(): iterable
     {
-        yield from DocumentationExamples::runtimeDataSets();
+        yield from PhpUnitExampleDataSets::fromCorpus(DocumentationExamples::corpus());
     }
 
     #[DataProvider('examples')]
     public function testDocumentationExample(Example $example): void
     {
-        PhpUnitRuntime::assertExample($example, DocumentationExamples::runtimeConfiguration());
+        PhpUnitRuntime::assertExample($example);
     }
 }
 ```
 
 `PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. It
-does not store global configuration. Advanced consumers can compose those objects directly.
+does not store global configuration. Advanced consumers can compose those objects directly. Until the separate-process
+backend and immutable runtime configuration are added, the facade executes ordinary examples in-process and rejects a
+separate-process directive explicitly instead of weakening its requested isolation.
 
-Named data-set keys use the human label and are checked for uniqueness. `PhpUnitResultAsserter` translates
-`ExecutionFailed` into a PHPUnit assertion failure while retaining the original cause through the previous-exception
-chain. When PHP's cause is an `Error` rather than an `Exception`, one transparent `RuntimeException` link adapts it to
-PHPUnit's public exception contract without discarding the original `Error`. After any successful execution the adapter
-performs one explicit “example completed” assertion, so examples without authored assertions are not risky tests.
-Rewritten native assertions continue to count independently.
+`PhpUnitExampleDataSets` validates every human label for uniqueness before yielding one `Example` argument under that
+label. `PhpUnitResultAsserter` translates `ExecutionFailed` into a PHPUnit assertion failure while retaining the
+original cause through the previous-exception chain. When PHP's cause is an `Error` rather than an `Exception`, one
+transparent `RuntimeException` link adapts it to PHPUnit's public exception contract without discarding the original
+`Error`. After any successful execution the adapter performs one explicit “example completed” assertion, so examples
+without authored assertions are not risky tests. Rewritten native assertions continue to count independently.
 
 Do not build a PHPUnit extension or event subscriber in the MVP. A normal data provider and assertion facade are easier
 to understand, filter, debug, and statically analyze.
