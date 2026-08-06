@@ -8,6 +8,11 @@ through the PHPUnit assertion bridge. In-process code execution, named PHPUnit d
 stateless PHPUnit runtime facade are implemented. Separate-process execution and PHPStan verification follow in
 subsequent working chunks.
 
+Before the first release, verify the documented PHPUnit integration under ParaTest. Exercise independently named data
+sets concurrently and confirm deterministic discovery, collision-resistant execution scopes, process-state isolation,
+failure reporting, and temporary-resource cleanup. Treat this as compatibility verification rather than a separate
+runner integration, and do not add a runtime dependency on ParaTest solely for this check.
+
 `nikic/php-parser` and `symfony/process` are intentionally installed before their first imports. Their constraints were
 validated with the other runtime dependencies in the first implementation slice. `nikic/php-parser` now supports the
 transform foundation, while `symfony/process` remains reserved for the later separate-process slice.
