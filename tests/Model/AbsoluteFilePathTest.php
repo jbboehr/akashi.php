@@ -36,35 +36,40 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
+namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+use jbboehr\Akashi\Model\AbsoluteFilePath;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
- */
-final readonly class InProcessTransformer
+final class AbsoluteFilePathTest extends TestCase
 {
-    /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
-     */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
+    public function testNormalizesSeparatorsAndATrailingSeparator(): void
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+        self::assertSame('/project/vendor/autoload.php', (new AbsoluteFilePath('/project/vendor/autoload.php/'))->value);
+        self::assertSame('C:/project/bootstrap.php', (new AbsoluteFilePath('C:\\project\\bootstrap.php'))->value);
+    }
 
-        return new InProcessPreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
-        );
+    #[DataProvider('invalidPathProvider')]
+    public function testRejectsInvalidPaths(string $path, string $message): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        new AbsoluteFilePath($path);
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function invalidPathProvider(): iterable
+    {
+        yield 'empty' => ['', 'must not be empty'];
+        yield 'whitespace' => [" \n", 'must not be empty'];
+        yield 'NUL byte' => ["/project/boot\0strap.php", 'must not contain NUL bytes'];
+        yield 'relative' => ['vendor/autoload.php', 'must be absolute'];
+        yield 'Unix root' => ['/', 'must identify a file'];
+        yield 'double Unix root separators' => ['//', 'must identify a file'];
+        yield 'triple Unix root separators' => ['///', 'must identify a file'];
+        yield 'Windows root' => ['C:\\', 'must identify a file'];
+        yield 'repeated Windows root separators' => ['C://', 'must identify a file'];
     }
 }

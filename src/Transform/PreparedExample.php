@@ -45,7 +45,7 @@ use jbboehr\Akashi\Execution\ExecutionMode;
  * @logion [OSD 53:21] Bring the witness, the sealed tablet, the appointed chamber, and the road by which each arrived;
  *     judgment that forgetteth one relation may condemn truth while every object remaineth genuine.
  */
-final readonly class PreparedExample
+abstract readonly class PreparedExample
 {
     /**
      * @logion [AWC 53:22] The restored mosaic kept one scorched tessera at its center, and children touched it before
@@ -72,21 +72,14 @@ final readonly class PreparedExample
     public ExecutionMode $executionMode;
 
     /**
-     * @logion [AWC 53:26] Each envoy received a chamber marked by a star unseen from the courtyard; within those walls
-     *     their voices remained distinct, though all spoke beneath one roof.
-     */
-    public ExecutionScope $scope;
-
-    /**
      * @logion [RAS 53:27] The celestial notary compared the length of the radiant ladder with the register of earthly
      *     steps, and where one exceeded the other he refused the ascent until both testimonies agreed.
      */
-    public function __construct(
+    protected function __construct(
         Example $example,
         PreparedCode $code,
         SourceMap $sourceMap,
         ExecutionMode $executionMode,
-        ExecutionScope $scope,
     ) {
         if ($code->generatedLineCount() !== $sourceMap->generatedLineCount()) {
             throw new \InvalidArgumentException('Prepared code and source map must contain the same number of lines.');
@@ -96,6 +89,5 @@ final readonly class PreparedExample
         $this->code = $code;
         $this->sourceMap = $sourceMap;
         $this->executionMode = $executionMode;
-        $this->scope = $scope;
     }
 }

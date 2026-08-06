@@ -42,7 +42,6 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\CleanupFailure;
 use jbboehr\Akashi\Execution\ExecutionFailed;
-use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\FailurePhase;
@@ -55,6 +54,7 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
+use jbboehr\Akashi\Transform\InProcessPreparedExample;
 use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
 use jbboehr\Akashi\Transform\SourceMap;
@@ -281,11 +281,10 @@ final class ExecutionResultTest extends TestCase
         );
         $code = new PreparedCode("<?php\nnamespace Akashi\\Generated\\Result;\necho 1;");
 
-        return new PreparedExample(
+        return new InProcessPreparedExample(
             $example,
             $code,
             new SourceMap(new DocumentPath('docs/execution.md'), [null, null, 2]),
-            ExecutionMode::InProcess,
             new ExecutionScope('Akashi\\Generated\\Result'),
         );
     }

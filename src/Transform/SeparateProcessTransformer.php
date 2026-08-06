@@ -39,32 +39,25 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Transform;
 
 use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @logion [AWC 61:17] The distant court received the witness's tablet without an inner chamber-name or altered oath;
+ *     the clerk supplied only a lawful opening and preserved the road from every copied line to its origin.
  */
-final readonly class InProcessTransformer
+final readonly class SeparateProcessTransformer
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * @logion [RAS 61:18] Examine the testimony for broken speech, add the ceremonial sign only when absent, and seal
+     *     the resulting file with its line-ledger; distance permiteth danger, not ambiguity concerning what was sent.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
+    public function transform(Example $example): SeparateProcessPreparedExample
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
         $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
 
-        return new InProcessPreparedExample(
+        return new SeparateProcessPreparedExample(
             $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
+            new PreparedCode($parsed->source),
+            $parsed->sourceMap,
         );
     }
 }

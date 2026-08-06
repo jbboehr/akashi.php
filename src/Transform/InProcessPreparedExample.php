@@ -39,32 +39,32 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Transform;
 
 use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+use jbboehr\Akashi\Execution\ExecutionMode;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @logion [OSD 61:1] The witness appointed to the inner court received a chamber-name that no traveler bound for the
+ *     outer province was required to carry; each road bore only the instruments its judgment could use.
  */
-final readonly class InProcessTransformer
+final readonly class InProcessPreparedExample extends PreparedExample
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * @logion [AWC 53:26] Each envoy received a chamber marked by a star unseen from the courtyard; within those walls
+     *     their voices remained distinct, though all spoke beneath one roof.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
-    {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+    public ExecutionScope $scope;
 
-        return new InProcessPreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
-        );
+    /**
+     * @logion [RAS 61:2] Seal the copied testimony, its ancestral road, and the private chamber together; an inner
+     *     hearing that forgetteth its appointed room may trespass upon every judgment that followeth.
+     */
+    public function __construct(
+        Example $example,
+        PreparedCode $code,
+        SourceMap $sourceMap,
+        ExecutionScope $scope,
+    ) {
+        parent::__construct($example, $code, $sourceMap, ExecutionMode::InProcess);
+
+        $this->scope = $scope;
     }
 }

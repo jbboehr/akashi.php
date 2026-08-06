@@ -6,7 +6,9 @@ parsing, the framework-independent marked-example extraction CLI, the PHP transf
 execution-result contracts, in-process state-restoration guards, and source-preserving native assertion rewriting
 through the PHPUnit assertion bridge. In-process code execution, named PHPUnit data sets, result reporting, and the
 stateless PHPUnit runtime facade are implemented. Separate-process execution and PHPStan verification follow in
-subsequent working chunks.
+subsequent working chunks. The separate-process preparation seam now includes canonical project/bootstrap configuration,
+backend-specific prepared examples, and source-preserving normal-file preparation; process invocation, temporary
+artifacts, and result capture remain in the next working chunk.
 
 Before the first release, verify the documented PHPUnit integration under ParaTest. Exercise independently named data
 sets concurrently and confirm deterministic discovery, collision-resistant execution scopes, process-state isolation,

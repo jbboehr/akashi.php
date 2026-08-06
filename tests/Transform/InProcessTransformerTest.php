@@ -342,7 +342,7 @@ PHP;
         $this->transform("use Alpha as Duplicate;\nuse Beta as Duplicate;\n");
     }
 
-    private function transform(string $source): \jbboehr\Akashi\Transform\PreparedExample
+    private function transform(string $source): \jbboehr\Akashi\Transform\InProcessPreparedExample
     {
         return (new InProcessTransformer())->transform(
             $this->example($source),

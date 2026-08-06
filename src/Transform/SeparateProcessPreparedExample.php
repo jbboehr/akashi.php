@@ -39,32 +39,20 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Transform;
 
 use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+use jbboehr\Akashi\Execution\ExecutionMode;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @logion [SFA 61:3] The outer-court witness carried the original tablet and its road, but no key to an inner chamber;
+ *     distance itself supplied the boundary, and needless instruments were left at the gate.
  */
-final readonly class InProcessTransformer
+final readonly class SeparateProcessPreparedExample extends PreparedExample
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * @logion [OSD 61:4] Bind the preserved testimony to its ancestral line-map beneath the seal of the distant court;
+     *     add no chamber-name where the road itself already keepeth one hearing from another.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
+    public function __construct(Example $example, PreparedCode $code, SourceMap $sourceMap)
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
-
-        return new InProcessPreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
-        );
+        parent::__construct($example, $code, $sourceMap, ExecutionMode::SeparateProcess);
     }
 }

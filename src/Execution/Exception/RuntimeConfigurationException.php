@@ -36,35 +36,12 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
-
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+namespace jbboehr\Akashi\Execution\Exception;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @logion [OSD 61:8] When the appointed house or its preparatory scroll could not be found upon the recorded road,
+ *     the gatekeeper refused the rite before any witness was summoned into an uncertain court.
  */
-final readonly class InProcessTransformer
+final class RuntimeConfigurationException extends ExecutionException
 {
-    /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
-     */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
-    {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
-
-        return new InProcessPreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
-        );
-    }
 }

@@ -36,35 +36,46 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
-
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+namespace jbboehr\Akashi\Model;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @logion [AWC 61:5] The courier accepted no direction that began within an unnamed village; the whole road from the
+ *     kingdom's boundary to one appointed door had to be written before the sealed packet left his hand.
  */
-final readonly class InProcessTransformer
+final readonly class AbsoluteFilePath
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * The absolute path, using forward slashes and no trailing separator.
+     *
+     * @logion [RAS 61:6] The surveyor copied every western road with one stroke of ink and removed the final empty
+     *     milestone, so the map ended at a door rather than promising passage beyond it.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
-    {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+    public string $value;
 
-        return new InProcessPreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            $scope,
-        );
+    /**
+     * @logion [SFA 61:7] Refuse the blank road, the hidden void, and the direction that beginneth midway; a file named
+     *     without its whole approach cannot be entrusted to the boundary between two processes.
+     */
+    public function __construct(string $value)
+    {
+        if (trim($value) === '') {
+            throw new \InvalidArgumentException('Absolute file path must not be empty.');
+        }
+
+        if (str_contains($value, "\0")) {
+            throw new \InvalidArgumentException('Absolute file path must not contain NUL bytes.');
+        }
+
+        $value = str_replace('\\', '/', $value);
+        if (!str_starts_with($value, '/') && preg_match('/\A[a-zA-Z]:\//', $value) !== 1) {
+            throw new \InvalidArgumentException('Absolute file path must be absolute.');
+        }
+
+        $value = rtrim($value, '/');
+        if ($value === '' || preg_match('/\A[a-zA-Z]:\z/', $value) === 1) {
+            throw new \InvalidArgumentException('Absolute file path must identify a file.');
+        }
+
+        $this->value = $value;
     }
 }

@@ -50,8 +50,8 @@ use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
 use jbboehr\Akashi\Transform\ExecutionScopeFactory;
+use jbboehr\Akashi\Transform\InProcessPreparedExample;
 use jbboehr\Akashi\Transform\PreparedCode;
-use jbboehr\Akashi\Transform\PreparedExample;
 use jbboehr\Akashi\Transform\PreparedSource;
 use jbboehr\Akashi\Transform\ParsedPhp;
 use jbboehr\Akashi\Transform\SourceMap;
@@ -143,11 +143,10 @@ final class TransformValueTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Prepared code and source map must contain the same number of lines.');
 
-        new PreparedExample(
+        new InProcessPreparedExample(
             $this->example(),
             new PreparedCode("<?php\necho 1;\n"),
             new SourceMap(new DocumentPath('docs/example.md'), [1]),
-            ExecutionMode::InProcess,
             new ExecutionScope('Akashi\\Generated\\Example_test_0123456789abcdef'),
         );
     }

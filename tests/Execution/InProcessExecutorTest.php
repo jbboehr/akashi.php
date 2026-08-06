@@ -56,9 +56,11 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
+use jbboehr\Akashi\Transform\InProcessPreparedExample;
 use jbboehr\Akashi\Transform\InProcessTransformer;
 use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
+use jbboehr\Akashi\Transform\SeparateProcessPreparedExample;
 use jbboehr\Akashi\Transform\SourceMap;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -296,7 +298,7 @@ PHP;
         (new InProcessExecutor())->execute($prepared);
     }
 
-    private function transform(string $source): PreparedExample
+    private function transform(string $source): InProcessPreparedExample
     {
         ++$this->scopeSequence;
 
@@ -310,16 +312,21 @@ PHP;
     {
         $code = new PreparedCode($source);
 
-        return new PreparedExample(
-            $this->example('raw prepared fixture'),
-            $code,
-            new SourceMap(
-                new DocumentPath('docs/executor.md'),
-                array_fill(0, $code->generatedLineCount(), null),
-            ),
-            $mode,
-            new ExecutionScope('Akashi\\Generated\\RawExecutorFixture'),
+        $example = $this->example('raw prepared fixture');
+        $sourceMap = new SourceMap(
+            new DocumentPath('docs/executor.md'),
+            array_fill(0, $code->generatedLineCount(), null),
         );
+
+        return match ($mode) {
+            ExecutionMode::InProcess => new InProcessPreparedExample(
+                $example,
+                $code,
+                $sourceMap,
+                new ExecutionScope('Akashi\\Generated\\RawExecutorFixture'),
+            ),
+            ExecutionMode::SeparateProcess => new SeparateProcessPreparedExample($example, $code, $sourceMap),
+        };
     }
 
     private function example(string $source): Example

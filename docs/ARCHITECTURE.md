@@ -81,10 +81,9 @@ There is no service container, mutable global registry, or general plugin regist
 
 ### Public API boundary
 
-The supported surface consists of the immutable source/model types, marked selector, executor and result contracts,
-verifier contracts, and documented integration facades. Immutable runtime configuration joins that boundary with the
-separate-process backend. Third-party parser nodes, Symfony Process objects, PHPUnit internals, and PHPStan diagnostics
-must not leak through core public signatures.
+The supported surface consists of the immutable source/model types, marked selector, immutable runtime configuration,
+executor and result contracts, verifier contracts, and documented integration facades. Third-party parser nodes, Symfony
+Process objects, PHPUnit internals, and PHPStan diagnostics must not leak through core public signatures.
 
 Low-level transforms, source-map machinery, state guards, and temporary-artifact helpers begin as `@internal`. Promote
 one only when a concrete consumer use case needs direct composition. Public exceptions share a small Akashi domain base
@@ -400,14 +399,18 @@ avoid inventing an info-string grammar before it is needed.
 
 ## Transformation model
 
-Executors never accept raw `Example` source. A `TransformPipeline` produces a `PreparedExample` containing:
+Executors never accept raw `Example` source. A transform produces one backend-specific subtype of the common
+`PreparedExample` base containing:
 
 - the original `Example`;
 - a backend-specific `PreparedCode` value;
 - a `SourceMap` from generated lines and nodes to the maintained source origin, which is a Markdown line in the MVP;
 - the selected `ExecutionMode`;
-- an execution-scope identifier; and
 - debug metadata that is retained but hidden from normal output.
+
+`InProcessPreparedExample` alone carries an `ExecutionScope`, because only the hosting-process namespace transform uses
+one. `SeparateProcessPreparedExample` carries ordinary file source and no fictitious namespace scope. This keeps the
+common result and reporting contracts reusable without making backend-specific state nullable or conditionally valid.
 
 This type boundary prevents raw and transformed strings from being interchanged accidentally.
 
@@ -535,10 +538,15 @@ Unsupported control-flow constructs fail during validation with a source locatio
 
 ## Separate-process execution
 
-The internal `SubprocessExecutor` writes the unmodified `ExampleCode` to a private temporary file, adding `<?php` only
-when absent. Temporary files are created with PHP's atomic temporary-file primitive, must have `0600` permissions where
-supported, and must be verified to reside in the requested absolute temporary directory rather than an undocumented
-fallback location.
+`SeparateProcessTransformer` parses the example for the host PHP version and produces a
+`SeparateProcessPreparedExample`. It preserves ordinary PHP-file source—including authored namespaces, relocation
+constants, strict-type declarations, closing tags, inline HTML, and native assertions—while adding `<?php` only when
+absent and recording that synthetic line in the source map. Bootstrap loading remains process configuration and is not
+injected into the authored source.
+
+The internal `SubprocessExecutor` writes that prepared code to a private temporary file. Temporary files are created
+with PHP's atomic temporary-file primitive, must have `0600` permissions where supported, and must be verified to reside
+in the requested absolute temporary directory rather than an undocumented fallback location.
 
 The process command is an argument list, never a shell string. It uses:
 

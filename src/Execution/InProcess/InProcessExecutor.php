@@ -40,11 +40,11 @@ namespace jbboehr\Akashi\Execution\InProcess;
 
 use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
 use jbboehr\Akashi\Execution\ExecutionFailed;
-use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\Executor;
 use jbboehr\Akashi\Execution\FailurePhase;
+use jbboehr\Akashi\Transform\InProcessPreparedExample;
 use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
 
@@ -60,7 +60,7 @@ final readonly class InProcessExecutor implements Executor
      */
     public function execute(PreparedExample $preparedExample): ExecutionResult
     {
-        if ($preparedExample->executionMode !== ExecutionMode::InProcess) {
+        if (!$preparedExample instanceof InProcessPreparedExample) {
             throw new \InvalidArgumentException('The in-process executor accepts only in-process examples.');
         }
 
