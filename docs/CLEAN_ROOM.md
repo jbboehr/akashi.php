@@ -78,22 +78,28 @@ Dates record the review date, not the document publication date.
 
 ### PHPStan
 
-| Date       | Document                                                                                                     | Classification                   | Design use                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------- | --------------------------------------------------------------------------- |
-| 2026-08-04 | [Testing extensions](https://phpstan.org/developing-extensions/testing)                                      | Integration guide                | `RuleTestCase` integration and exact diagnostic expectations                |
-| 2026-08-04 | [Custom rules](https://phpstan.org/developing-extensions/rules)                                              | Integration guide                | Rule type and registration boundaries                                       |
-| 2026-08-04 | [PHPDoc types](https://phpstan.org/writing-php-code/phpdoc-types)                                            | Specification                    | Generic collection and callable PHPDoc types                                |
-| 2026-08-04 | [Command-line usage](https://phpstan.org/user-guide/command-line-usage)                                      | Integration guide                | Considered CLI execution; direct test integration remains preferred         |
-| 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                               | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter  |
-| 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                       |
-| 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax              |
-| 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention          |
-| 2026-08-05 | [`smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | User-facing behavioral reference | Preserving runtime guards behind a narrower public PHPDoc contract          |
-| 2026-08-05 | [`booleanAnd.alwaysFalse`](https://phpstan.org/error-identifiers/booleanAnd.alwaysFalse)                     | User-facing behavioral reference | Preserving nullable runtime guards behind a narrower public PHPDoc contract |
-| 2026-08-05 | [`argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | User-facing behavioral reference | Testing deliberate violations of narrowed PHPDoc contracts                  |
-| 2026-08-05 | [`new.resultUnused`](https://phpstan.org/error-identifiers/new.resultUnused)                                 | User-facing behavioral reference | Retaining observable construction results in negative tests                 |
-| 2026-08-05 | [`staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType) | User-facing behavioral reference | Avoiding redundant assertion calls in contract-violation tests              |
-| 2026-08-05 | [`nullCoalesce.variable`](https://phpstan.org/error-identifiers/nullCoalesce.variable)                       | User-facing behavioral reference | Removing a redundant fallback after nonempty CLI routing                    |
+| Date       | Document                                                                                                     | Classification                   | Design use                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------- | --------------------------------------------------------------------------------- |
+| 2026-08-04 | [Testing extensions](https://phpstan.org/developing-extensions/testing)                                      | Integration guide                | `RuleTestCase` integration and exact diagnostic expectations                      |
+| 2026-08-04 | [Custom rules](https://phpstan.org/developing-extensions/rules)                                              | Integration guide                | Rule type and registration boundaries                                             |
+| 2026-08-04 | [PHPDoc types](https://phpstan.org/writing-php-code/phpdoc-types)                                            | Specification                    | Generic collection and callable PHPDoc types                                      |
+| 2026-08-04 | [Command-line usage](https://phpstan.org/user-guide/command-line-usage)                                      | Integration guide                | Considered CLI execution; direct test integration remains preferred               |
+| 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                               | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter        |
+| 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                             |
+| 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax                    |
+| 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention                |
+| 2026-08-05 | [`smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | User-facing behavioral reference | Preserving runtime guards behind a narrower public PHPDoc contract                |
+| 2026-08-05 | [`booleanAnd.alwaysFalse`](https://phpstan.org/error-identifiers/booleanAnd.alwaysFalse)                     | User-facing behavioral reference | Preserving nullable runtime guards behind a narrower public PHPDoc contract       |
+| 2026-08-05 | [`argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | User-facing behavioral reference | Testing deliberate violations of narrowed PHPDoc contracts                        |
+| 2026-08-05 | [`new.resultUnused`](https://phpstan.org/error-identifiers/new.resultUnused)                                 | User-facing behavioral reference | Retaining observable construction results in negative tests                       |
+| 2026-08-05 | [`staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType) | User-facing behavioral reference | Avoiding redundant assertion calls in contract-violation tests                    |
+| 2026-08-05 | [`nullCoalesce.variable`](https://phpstan.org/error-identifiers/nullCoalesce.variable)                       | User-facing behavioral reference | Removing a redundant fallback after nonempty CLI routing                          |
+| 2026-08-05 | [`return.type`](https://phpstan.org/error-identifiers/return.type)                                           | User-facing behavioral reference | Correcting transform helpers whose inferred return type was broader than declared |
+| 2026-08-05 | [`ternary.shortNotAllowed`](https://phpstan.org/error-identifiers/ternary.shortNotAllowed)                   | User-facing behavioral reference | Replacing truthiness-based edit ordering with an explicit comparison              |
+| 2026-08-05 | [`arrayValues.list`](https://phpstan.org/error-identifiers/arrayValues.list)                                 | User-facing behavioral reference | Removing redundant normalization where transform inputs were already lists        |
+| 2026-08-05 | [`identical.alwaysFalse`](https://phpstan.org/error-identifiers/identical.alwaysFalse)                       | User-facing behavioral reference | Aligning constructor input PHPDoc with runtime validation                         |
+| 2026-08-05 | [`notIdentical.alwaysTrue`](https://phpstan.org/error-identifiers/notIdentical.alwaysTrue)                   | User-facing behavioral reference | Removing impossible empty-source branches from nonempty safety fixtures           |
+| 2026-08-05 | [`match.unhandled`](https://phpstan.org/error-identifiers/match)                                             | User-facing behavioral reference | Keeping reflection-safety dispatch exhaustive and fail-closed                     |
 
 ### Composer
 
@@ -190,7 +196,13 @@ the CommonMark specification, and runtime reflection of public APIs.
 
 No competing PHP doctest documentation or prohibited implementation material was accidentally exposed.
 
-## Allowed dependency API-source inspection
+## Allowed dependency public-API inspection
+
+On 2026-08-05, PHP runtime reflection was used to inspect the public signatures and PHPDoc of `ParserFactory`, `Parser`,
+`Token`, `NameResolver`, `NodeFinder`, and `Error` from the installed PHP-Parser 5.8 package. A small runtime parse also
+observed documented public node attributes, source positions, and resolved names. No dependency source file, internal
+test, implementation algorithm, or architecture material was opened or copied; the transform and source-edit design
+remains independently derived from Akashi's recorded requirements.
 
 On 2026-08-05, while implementing metadata-comment association, the installed League CommonMark 2.8.3 files
 `src/Extension/CommonMark/Node/Block/HtmlBlock.php` and `src/Node/Node.php` were opened to confirm the public

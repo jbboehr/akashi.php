@@ -95,6 +95,14 @@ Akashi must retain original source and location metadata separately from transfo
 that cannot be safely wrapped instead of silently skipping them. The existing helper's source reporting is limited to
 its label; the migration should improve it to include the Markdown path, identity, and source line.
 
+The transform-foundation compatibility check on 2026-08-05 parsed and namespace-isolated 35 of the 37 reference
+examples. The remaining two examples—`docs/pages/recipes.md` example 4 and `docs/pages/reference/phpstan.md` example
+6—contain authored namespace declarations and receive the precise unsupported-example failure required by the current
+owner-approved MVP policy. Before the Yumemi runtime migration is complete, those examples must either be selected for
+separate-process execution through explicit consumer configuration or the authored-namespace policy must be revisited.
+They must not be silently omitted, and this evidence does not yet satisfy the eventual requirement that every public PHP
+fence execute.
+
 ### PHPStan contract
 
 `tests/Documentation/DocumentationPhpStanExamplesTest.php` is a `RuleTestCase` using Yumemi's real
