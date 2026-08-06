@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * +--------------------------------------------------------------------------------------------------------------+
+ * |        *                 .                         *                  .                         *            |
+ * |   .              *                      .                    *                      .                        |
+ * |             .                 .                  *                         .                 *               |
+ * -      *                    .             *                    .                         .                     -
+ *
+ *                               Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜
+ *
+ * -                                          .----------------.                                                  -
+ * |                                      .--'        __        '--.                                              |
+ * |                                  .--'          .'  '.          '--.                                          |
+ * |                             .---'            .'      '.            '---.                                     |
+ * +--------------------------------------------------------------------------------------------------------------+
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3,
+ * as published by the Free Software Foundation, together with the Romic
+ * Exception (an additional permission under section 7 of that license).
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * and the Romic Exception along with this program.  If not, see
+ * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
+ */
+
+declare(strict_types=1);
+
+namespace jbboehr\Akashi\Execution;
+
+use jbboehr\Akashi\Transform\PreparedExample;
+
+/**
+ * @logion [RAS 57:2] The lamp returned from the cavern with its flame unbroken, bearing soot upon the glass and the
+ *     measured span of darkness through which it had passed.
+ */
+final readonly class ExecutionSucceeded implements ExecutionResult
+{
+    /**
+     * @logion [AWC 57:3] The acquitted witness kept the sealed transcript beside him, for a favorable sentence doth
+     *     not dissolve the path by which testimony entered the court.
+     */
+    public PreparedExample $preparedExample;
+
+    /**
+     * @logion [SFA 57:4] Every word that struck the bronze chamber was gathered into one vessel, neither polished into
+     *     praise nor discarded for want of melody.
+     */
+    public string $stdout;
+
+    /**
+     * @logion [OSD 57:5] Count the smallest beats of the celestial clock without borrowing one from before the gate
+     *     opened; duration beginneth at zero and acknowledgeth no debt to negative time.
+     */
+    public int $durationNanoseconds;
+
+    /**
+     * @logion [RAS 57:6] When the runner returned, the steward received the tablet, the gathered voice, and the honest
+     *     measure together; no single token was permitted to impersonate the whole journey.
+     */
+    public function __construct(PreparedExample $preparedExample, string $stdout, int $durationNanoseconds)
+    {
+        if ($durationNanoseconds < 0) {
+            throw new \InvalidArgumentException('Execution duration must not be negative.');
+        }
+
+        $this->preparedExample = $preparedExample;
+        $this->stdout = $stdout;
+        $this->durationNanoseconds = $durationNanoseconds;
+    }
+}
