@@ -205,6 +205,14 @@ PHP;
         self::assertParses($prepared->code->source);
     }
 
+    public function testPreservesPhpLanguageConstants(): void
+    {
+        $prepared = $this->transform('return [TRUE, False, NuLl];');
+
+        self::assertStringContainsString('return [TRUE, False, NuLl];', $prepared->code->source);
+        self::assertParses($prepared->code->source);
+    }
+
     public function testResolvesRelativeNamesFromTheAuthoredGlobalNamespace(): void
     {
         $source = <<<'PHP'

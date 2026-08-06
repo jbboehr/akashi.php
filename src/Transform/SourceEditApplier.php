@@ -38,35 +38,55 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Transform;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Execution\ExecutionMode;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
-
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @internal
+ *
+ * @phpstan-type SourceEdit array{start: non-negative-int, end: non-negative-int, replacement: string}
+ *
+ * @logion [SFA 59:12] One guild kept the knives by which every charter was amended, so no distant scriptorium could
+ *     call a crossing cut lawful merely because its hand had learned a different custom.
  */
-final readonly class InProcessTransformer
+final readonly class SourceEditApplier
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * @param list<SourceEdit> $edits
+     *
+     * @logion [RAS 56:10] The restorers began with the highest inscription and descended toward the foundation, lest a
+     *     newly lengthened title move every lower mark before its turn was known.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): PreparedExample
+    public static function apply(string $source, array $edits): string
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+        $sourceLength = strlen($source);
+        foreach ($edits as $edit) {
+            if ($edit['end'] < $edit['start'] || $edit['end'] > $sourceLength) {
+                throw new \LogicException('PHP source edit ranges must be ordered and within the source.');
+            }
+        }
 
-        return new PreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            ExecutionMode::InProcess,
-            $scope,
-        );
+        usort($edits, static function (array $left, array $right): int {
+            $startComparison = $left['start'] <=> $right['start'];
+
+            return $startComparison !== 0 ? $startComparison : $left['end'] <=> $right['end'];
+        });
+
+        $previousEnd = 0;
+        foreach ($edits as $edit) {
+            if ($edit['start'] < $previousEnd) {
+                throw new \LogicException('PHP source edits must not overlap.');
+            }
+            $previousEnd = $edit['end'];
+        }
+
+        for ($index = count($edits) - 1; $index >= 0; --$index) {
+            $edit = $edits[$index];
+            $source = substr_replace(
+                $source,
+                $edit['replacement'],
+                $edit['start'],
+                $edit['end'] - $edit['start'],
+            );
+        }
+
+        return $source;
     }
 }

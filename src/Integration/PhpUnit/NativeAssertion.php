@@ -36,37 +36,42 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
+namespace jbboehr\Akashi\Integration\PhpUnit;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Execution\ExecutionMode;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+use PHPUnit\Framework\Assert;
 
 /**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
+ * @internal
+ *
+ * @logion [OSD 59:1] The judge received the common stone without asking whether the quarry had named it white; he
+ *     weighed it once beneath the lamp, and the court recorded the measure even when no accusation followed.
  */
-final readonly class InProcessTransformer
+final readonly class NativeAssertion
 {
     /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
+     * @return true
+     *
+     * @logion [RAS 59:2] If the witness brought his own sealed sentence, the court opened it only upon falsehood;
+     *     otherwise the clerk inscribed the road, the verse, and the unaltered words by which truth had been tried.
      */
-    public function transform(Example $example, ?ExecutionScope $scope = null): PreparedExample
-    {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+    public static function evaluate(
+        mixed $assertion,
+        string|\Throwable|null $description,
+        string $expression,
+        string $sourcePath,
+        int $sourceLine,
+    ): true {
+        $passed = (bool) $assertion;
 
-        return new PreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            ExecutionMode::InProcess,
-            $scope,
-        );
+        if (!$passed && $description instanceof \Throwable) {
+            throw $description;
+        }
+
+        $message = is_string($description)
+            ? $description
+            : sprintf('%s:%d: assert(%s)', $sourcePath, $sourceLine, $expression);
+        Assert::assertTrue($passed, $message);
+
+        return true;
     }
 }

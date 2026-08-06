@@ -318,7 +318,7 @@ PHP);
         self::assertStringContainsString('foreach ($_GET as $value) {}', $prepared->code->source);
         self::assertStringContainsString("\\class_exists('DateTimeImmutable');", $prepared->code->source);
         self::assertStringContainsString(
-            "\\class_exists(autoload: \\true, class: 'DateTimeImmutable');",
+            "\\class_exists(autoload: true, class: 'DateTimeImmutable');",
             $prepared->code->source,
         );
         self::assertStringContainsString('\\class_exists(...);', $prepared->code->source);

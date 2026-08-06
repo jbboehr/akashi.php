@@ -36,37 +36,63 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
+namespace jbboehr\Akashi\Tests\Transform;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Execution\ExecutionMode;
-use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
+use jbboehr\Akashi\Transform\SourceEditApplier;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
- *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
- */
-final readonly class InProcessTransformer
+final class SourceEditApplierTest extends TestCase
 {
-    /**
-     * @logion [RAS 56:13] The pilgrim entered the western mechanism as one name and emerged within a private
-     *     constellation, bearing every rightful relation unchanged and every dangerous tether plainly refused.
-     */
-    public function transform(Example $example, ?ExecutionScope $scope = null): PreparedExample
+    public function testAppliesOrderedReplacementsAndInsertionsAgainstOriginalOffsets(): void
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
-        $parsed = (new PhpExampleParser())->parse($example);
-        $resolved = (new PhpNameResolver())->resolve($example, $parsed);
-        (new InProcessSafetyValidator())->validate($example, $resolved);
-        $resolved = (new NativeAssertionRewriter())->rewrite($example, $resolved);
-        $prepared = (new NamespaceIsolator())->isolate($example, $resolved, $scope);
+        $result = SourceEditApplier::apply('abcdef', [
+            ['start' => 1, 'end' => 3, 'replacement' => 'X'],
+            ['start' => 4, 'end' => 4, 'replacement' => '!'],
+        ]);
 
-        return new PreparedExample(
-            $example,
-            $prepared->code,
-            $prepared->sourceMap,
-            ExecutionMode::InProcess,
-            $scope,
-        );
+        self::assertSame('aXd!ef', $result);
+    }
+
+    public function testAcceptsAdjacentEdits(): void
+    {
+        $result = SourceEditApplier::apply('abcd', [
+            ['start' => 0, 'end' => 1, 'replacement' => 'A'],
+            ['start' => 1, 'end' => 2, 'replacement' => 'B'],
+        ]);
+
+        self::assertSame('ABcd', $result);
+    }
+
+    public function testRejectsOverlappingEdits(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('PHP source edits must not overlap.');
+
+        SourceEditApplier::apply('abcdef', [
+            ['start' => 1, 'end' => 4, 'replacement' => 'X'],
+            ['start' => 3, 'end' => 5, 'replacement' => 'Y'],
+        ]);
+    }
+
+    /**
+     * @param array{start: non-negative-int, end: non-negative-int, replacement: string} $edit
+     */
+    #[DataProvider('invalidRangeProvider')]
+    public function testRejectsInvalidEditRanges(array $edit): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('PHP source edit ranges must be ordered and within the source.');
+
+        SourceEditApplier::apply('abc', [$edit]);
+    }
+
+    /**
+     * @return iterable<string, array{array{start: non-negative-int, end: non-negative-int, replacement: string}}>
+     */
+    public static function invalidRangeProvider(): iterable
+    {
+        yield 'reversed' => [['start' => 2, 'end' => 1, 'replacement' => 'X']];
+        yield 'past source' => [['start' => 3, 'end' => 4, 'replacement' => 'X']];
     }
 }

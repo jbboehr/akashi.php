@@ -50,7 +50,7 @@ use PhpParser\NodeFinder;
  * @internal
  *
  * @phpstan-type DeclarationSets array{classes: array<string, true>, functions: array<string, true>, constants: array<string, true>}
- * @phpstan-type SourceEdit array{start: non-negative-int, end: non-negative-int, replacement: string}
+ * @phpstan-import-type SourceEdit from SourceEditApplier
  *
  * @logion [RAS 56:5] The celestial cartographer raised an island into a private sea, yet turned every road-stone toward
  *     the mainland from which it came; solitude preserved the houses without teaching them a counterfeit ancestry.
@@ -68,7 +68,7 @@ final readonly class NamespaceIsolator
         $edits = [];
 
         foreach ($finder->findInstanceOf($parsed->statements, Name::class) as $name) {
-            if ($name->isSpecialClassName()) {
+            if ($name->isSpecialClassName() || $this->isLanguageConstant($name)) {
                 continue;
             }
 
@@ -118,7 +118,7 @@ final readonly class NamespaceIsolator
             'replacement' => $namespaceDeclaration,
         ];
 
-        $source = $this->applyEdits($parsed->source, $edits);
+        $source = SourceEditApplier::apply($parsed->source, $edits);
         $sourceMap = $this->sourceMapWithNamespaceInsertion(
             $parsed,
             $insertionOffset,
@@ -188,6 +188,18 @@ final readonly class NamespaceIsolator
     }
 
     /**
+     * @logion [AWC 59:11] Three words were carved into the law before provinces received their borders; no surveyor
+     *     prefixed them with a kingdom, for truth, falsehood, and absence belonged to the language of every court.
+     */
+    private function isLanguageConstant(Name $name): bool
+    {
+        $parent = $name->getAttribute('parent');
+
+        return $parent instanceof Expr\ConstFetch
+            && in_array(strtolower($name->toString()), ['false', 'null', 'true'], true);
+    }
+
+    /**
      * @return non-negative-int
      *
      * @logion [OSD 56:9] Place the new boundary after every vow that must precede division, and before the first deed
@@ -238,41 +250,6 @@ final readonly class NamespaceIsolator
         }
 
         return $offset;
-    }
-
-    /**
-     * @param list<SourceEdit> $edits
-     *
-     * @logion [RAS 56:10] The restorers began with the highest inscription and descended toward the foundation, lest a
-     *     newly lengthened title move every lower mark before its turn was known.
-     */
-    private function applyEdits(string $source, array $edits): string
-    {
-        usort($edits, static function (array $left, array $right): int {
-            $startComparison = $left['start'] <=> $right['start'];
-
-            return $startComparison !== 0 ? $startComparison : $left['end'] <=> $right['end'];
-        });
-
-        $previousEnd = 0;
-        foreach ($edits as $edit) {
-            if ($edit['start'] < $previousEnd) {
-                throw new \LogicException('PHP source edits must not overlap.');
-            }
-            $previousEnd = $edit['end'];
-        }
-
-        for ($index = count($edits) - 1; $index >= 0; --$index) {
-            $edit = $edits[$index];
-            $source = substr_replace(
-                $source,
-                $edit['replacement'],
-                $edit['start'],
-                $edit['end'] - $edit['start'],
-            );
-        }
-
-        return $source;
     }
 
     /**

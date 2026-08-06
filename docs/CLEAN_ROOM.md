@@ -111,6 +111,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`catch.neverThrown`](https://phpstan.org/error-identifiers/catch.neverThrown)                               | User-facing behavioral reference | Expressing throwable user output-handler callbacks at the static-analysis boundary |
 | 2026-08-05 | [`throws.unusedType`](https://phpstan.org/error-identifiers/throws.unusedType)                               | User-facing behavioral reference | Replacing an inaccurate broad `@throws` tag with a typed callback seam             |
 | 2026-08-05 | [`nullCoalesce.offset`](https://phpstan.org/error-identifiers/nullCoalesce.offset)                           | User-facing behavioral reference | Removing a redundant fallback after a guaranteed named regex capture               |
+| 2026-08-05 | [`offsetAccess.invalidOffset`](https://phpstan.org/error-identifiers/offsetAccess.invalidOffset)             | User-facing behavioral reference | Replacing a broadly typed array-key lookup with a validated argument value         |
+| 2026-08-05 | [`catch.internalClass`](https://phpstan.org/error-identifiers/catch.internalClass)                           | User-facing behavioral reference | Testing PHPUnit failures without coupling to its internal exception class          |
 
 ### Composer
 
@@ -204,6 +206,11 @@ returned source filenames, public method declarations, and a few call-site lines
 no algorithm or implementation structure from those results was used. League CommonMark is an allowed general-purpose
 dependency, but the exposed source lines were disregarded; extraction work continued from its official documentation,
 the CommonMark specification, and runtime reflection of public APIs.
+
+On 2026-08-05, a narrow local symbol search for PHPUnit's public assertion counter returned the declarations of
+`Assert::getCount()` and `Assert::resetCount()` from the installed PHPUnit source file. No method body or surrounding
+implementation was opened. The search result was used only to exercise the documented assertion integration in a test;
+it did not influence Akashi's architecture or public API.
 
 No competing PHP doctest documentation or prohibited implementation material was accidentally exposed.
 
