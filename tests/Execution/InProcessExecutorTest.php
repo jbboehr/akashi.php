@@ -141,7 +141,9 @@ final class InProcessExecutorTest extends TestCase
         self::assertSame('before failure', $result->stdout);
         self::assertSame([], $result->cleanupFailures);
         self::assertGreaterThanOrEqual(0, $result->durationNanoseconds);
-        self::assertSame(11, $prepared->sourceMap->sourceLineFor($result->cause->getLine()));
+        self::assertNotNull($result->generatedLine);
+        self::assertSame($result->cause->getLine(), $result->generatedLine);
+        self::assertSame(11, $prepared->sourceMap->sourceLineFor($result->generatedLine));
     }
 
     public function testCatchesAParseErrorFromMalformedPreparedSource(): void
@@ -154,6 +156,20 @@ final class InProcessExecutorTest extends TestCase
         self::assertSame(FailurePhase::Execution, $result->phase);
         self::assertInstanceOf(\ParseError::class, $result->cause);
         self::assertSame([], $result->cleanupFailures);
+        self::assertSame(3, $result->generatedLine);
+    }
+
+    public function testRecordsAFailureOnTheFirstGeneratedLine(): void
+    {
+        $prepared = $this->rawPrepared(
+            "<?php throw new \\RuntimeException('first-line failure');",
+            ExecutionMode::InProcess,
+        );
+
+        $result = (new InProcessExecutor())->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(1, $result->generatedLine);
     }
 
     public function testRestoresWorkingDirectoryErrorReportingAndNestedOutput(): void
@@ -214,6 +230,8 @@ PHP;
         self::assertSame(FailurePhase::Execution, $result->phase);
         self::assertStringStartsWith('documented failure', $result->cause->getMessage());
         self::assertSame('before', $result->stdout);
+        self::assertNotNull($result->generatedLine);
+        self::assertSame(10, $result->preparedExample->sourceMap->sourceLineFor($result->generatedLine));
     }
 
     public function testPreservesAnAuthoredThrowableAssertionDescription(): void
@@ -245,6 +263,7 @@ PHP;
         self::assertCount(1, $result->cleanupFailures);
         self::assertSame(StateResource::OutputBuffer, $result->cleanupFailures[0]->resource);
         self::assertStringContainsString('owned by Akashi was removed', $result->cleanupFailures[0]->message);
+        self::assertNull($result->generatedLine);
     }
 
     #[RunInSeparateProcess]
@@ -264,6 +283,7 @@ PHP;
         self::assertSame('primary failure', $result->cause->getMessage());
         self::assertCount(1, $result->cleanupFailures);
         self::assertSame(StateResource::OutputBuffer, $result->cleanupFailures[0]->resource);
+        self::assertSame(4, $result->generatedLine);
     }
 
     public function testRejectsAPreparedExampleForAnotherExecutionMode(): void

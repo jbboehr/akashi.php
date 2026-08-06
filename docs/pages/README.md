@@ -13,7 +13,8 @@ Akashi is a PHP project for testing examples embedded in documentation.
 The package now has its immutable core model, deterministic Markdown document discovery, CommonMark PHP-fence
 extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
 PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
-are implemented. PHPUnit reporting and verification integrations remain under development.
+are implemented. PHPUnit result reporting is also implemented; the runtime facade and verification integrations remain
+under development.
 
 ## Trust and Safety
 
@@ -33,6 +34,10 @@ Akashi's in-process PHPUnit integration treats native `assert()` calls as docume
 unconditionally and do not depend on `zend.assertions`. Consequently, both the assertion expression and its description
 are evaluated even in environments where PHP would otherwise compile native assertions out. Documentation examples must
 not rely on assertions being production no-ops.
+
+`PhpUnitResultAsserter` turns a successful execution into one explicit completion assertion, so examples without their
+own assertions are not considered risky tests. Failures include the maintained Markdown location when available,
+captured output, and cleanup failures; the original execution cause remains available through the exception chain.
 
 ## Start Here
 

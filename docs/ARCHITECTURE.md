@@ -523,8 +523,8 @@ buffer, or created an unremovable buffer, cleanup fails explicitly. Cleanup runs
 The executor catches `Throwable`. It returns a result variant rather than throwing source failures directly:
 
 - `ExecutionSucceeded` contains captured stdout, duration, and debug metadata;
-- `ExecutionFailed` contains the phase, primary throwable or structured cause, captured output, and zero or more cleanup
-  failures.
+- `ExecutionFailed` contains the phase, primary throwable or structured cause, captured output, an optional validated
+  generated failure line, and zero or more cleanup failures.
 
 A cleanup failure can never produce success. If execution and cleanup both fail, preserve the execution failure as the
 primary cause and report every cleanup failure as secondary context.
@@ -622,10 +622,12 @@ final class DocumentationExamplesTest extends TestCase
 `PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. It
 does not store global configuration. Advanced consumers can compose those objects directly.
 
-Named data-set keys use the human label and are checked for uniqueness. The adapter translates `ExecutionFailed` into a
-PHPUnit assertion failure while retaining the original cause. After any successful execution it performs one explicit
-“example completed” assertion, so examples without authored assertions are not risky tests. Rewritten native assertions
-continue to count independently.
+Named data-set keys use the human label and are checked for uniqueness. `PhpUnitResultAsserter` translates
+`ExecutionFailed` into a PHPUnit assertion failure while retaining the original cause through the previous-exception
+chain. When PHP's cause is an `Error` rather than an `Exception`, one transparent `RuntimeException` link adapts it to
+PHPUnit's public exception contract without discarding the original `Error`. After any successful execution the adapter
+performs one explicit “example completed” assertion, so examples without authored assertions are not risky tests.
+Rewritten native assertions continue to count independently.
 
 Do not build a PHPUnit extension or event subscriber in the MVP. A normal data provider and assertion facade are easier
 to understand, filter, debug, and statically analyze.

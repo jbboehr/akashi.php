@@ -67,11 +67,13 @@ final readonly class InProcessExecutor implements Executor
         $startedAt = self::monotonicNanoseconds();
         $guard = new InProcessStateGuard();
         $executionCause = null;
+        $generatedLine = null;
 
         try {
             self::evaluate($preparedExample->code);
         } catch (\Throwable $throwable) {
             $executionCause = $throwable;
+            $generatedLine = self::generatedLine($throwable, $preparedExample->code);
         } finally {
             $restoration = $guard->restore();
         }
@@ -90,6 +92,7 @@ final readonly class InProcessExecutor implements Executor
                 $restoration->stdout,
                 $restoration->cleanupFailures,
                 $duration,
+                $generatedLine,
             );
         }
 
@@ -134,6 +137,31 @@ final readonly class InProcessExecutor implements Executor
     private static function executableSource(PreparedCode $code): string
     {
         return substr($code->source, 5);
+    }
+
+    /**
+     * @logion [SFA 60:16] Seek the innermost mark made upon the appointed copied stair, passing over fires kindled
+     *     within the testimony itself; return no number that standeth beyond the prepared ascent.
+     */
+    private static function generatedLine(\Throwable $throwable, PreparedCode $code): ?int
+    {
+        $candidates = [[
+            'file' => $throwable->getFile(),
+            'line' => $throwable->getLine(),
+        ], ...$throwable->getTrace()];
+
+        foreach ($candidates as $candidate) {
+            $file = $candidate['file'] ?? null;
+            $line = $candidate['line'] ?? null;
+            // Prepared source is the inner half of evaluate()'s double eval; unmatched depths fall back unmapped.
+            if (!is_string($file) || !is_int($line) || substr_count($file, "eval()'d code") !== 2) {
+                continue;
+            }
+
+            return $line >= 1 && $line <= $code->generatedLineCount() ? $line : null;
+        }
+
+        return null;
     }
 
     /**

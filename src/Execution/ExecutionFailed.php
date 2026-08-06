@@ -85,6 +85,14 @@ final readonly class ExecutionFailed implements ExecutionResult
     public int $durationNanoseconds;
 
     /**
+     * @var positive-int|null
+     *
+     * @logion [RAS 60:15] Mark the step upon the copied stair where the traveler fell, but leave the tablet blank
+     *     when smoke concealeth the number; an honest absence guideth the surveyor better than a guessed ascent.
+     */
+    public ?int $generatedLine;
+
+    /**
      * @param array<int, mixed> $cleanupFailures
      *
      * @logion [RAS 57:14] The notary joined cause, hour, voice, duration, and the ordered injuries of closure; if
@@ -97,6 +105,7 @@ final readonly class ExecutionFailed implements ExecutionResult
         string $stdout,
         array $cleanupFailures,
         int $durationNanoseconds,
+        ?int $generatedLine = null,
     ) {
         if (!array_is_list($cleanupFailures)) {
             throw new \InvalidArgumentException('Cleanup failures must form a list.');
@@ -116,11 +125,19 @@ final readonly class ExecutionFailed implements ExecutionResult
             throw new \InvalidArgumentException('Execution duration must not be negative.');
         }
 
+        if (
+            $generatedLine !== null
+            && ($generatedLine < 1 || $generatedLine > $preparedExample->sourceMap->generatedLineCount())
+        ) {
+            throw new \InvalidArgumentException('Generated failure line must exist in the prepared source.');
+        }
+
         $this->preparedExample = $preparedExample;
         $this->phase = $phase;
         $this->cause = $cause;
         $this->stdout = $stdout;
         $this->cleanupFailures = $cleanupFailures;
         $this->durationNanoseconds = $durationNanoseconds;
+        $this->generatedLine = $generatedLine;
     }
 }

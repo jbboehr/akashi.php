@@ -90,6 +90,7 @@ final class ExecutionResultTest extends TestCase
             'before failure',
             [$cleanup],
             789,
+            3,
         );
 
         self::assertTrue((new \ReflectionClass($result))->implementsInterface(ExecutionResult::class));
@@ -100,6 +101,7 @@ final class ExecutionResultTest extends TestCase
         self::assertSame([$cleanup], $result->cleanupFailures);
         self::assertSame($cleanupCause, $cleanup->cause);
         self::assertSame(789, $result->durationNanoseconds);
+        self::assertSame(3, $result->generatedLine);
     }
 
     public function testRepresentsCleanupOnlyFailure(): void
@@ -117,6 +119,7 @@ final class ExecutionResultTest extends TestCase
         self::assertSame(FailurePhase::Cleanup, $result->phase);
         self::assertSame([$cleanup], $result->cleanupFailures);
         self::assertNull($cleanup->cause);
+        self::assertNull($result->generatedLine);
     }
 
     public function testFailurePhasesAndStateResourcesHaveStableValues(): void
@@ -176,6 +179,38 @@ final class ExecutionResultTest extends TestCase
         );
 
         self::assertSame(0, $result->durationNanoseconds);
+    }
+
+    public function testRejectsANonPositiveGeneratedFailureLine(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Generated failure line must exist in the prepared source.');
+
+        new ExecutionFailed(
+            $this->preparedExample(),
+            FailurePhase::Execution,
+            new \RuntimeException('Failure.'),
+            '',
+            [],
+            0,
+            0,
+        );
+    }
+
+    public function testRejectsAGeneratedFailureLineBeyondThePreparedSource(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Generated failure line must exist in the prepared source.');
+
+        new ExecutionFailed(
+            $this->preparedExample(),
+            FailurePhase::Execution,
+            new \RuntimeException('Failure.'),
+            '',
+            [],
+            0,
+            4,
+        );
     }
 
     public function testRejectsCleanupPhaseWithoutACleanupFailure(): void
