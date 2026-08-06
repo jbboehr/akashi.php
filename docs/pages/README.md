@@ -14,8 +14,8 @@ The package now has its immutable core model, deterministic Markdown document di
 extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
 PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
 are implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable.
-Separate-process runtime configuration and source preparation are implemented; process execution and PHPStan
-verification remain under development.
+Separate-process runtime configuration, source preparation, and standalone process execution are implemented; PHPUnit
+facade routing and PHPStan verification remain under development.
 
 ## Trust and Safety
 
@@ -24,10 +24,10 @@ process-terminating and persistent-state constructs and restores the limited pro
 it cannot contain resource exhaustion, native-extension crashes, dynamically reached `exit` or `die`, or other fatal
 behavior that PHP cannot report as a `Throwable`.
 
-Examples requiring process-level containment will belong in the planned separate-process backend. Until that backend is
-implemented, such examples are unsupported and must not be executed in-process. Separate-process execution will protect
-the hosting test runner, but it will not restrict the example's operating-system permissions or make untrusted code
-safe.
+Examples requiring process-level containment belong in the separate-process backend. Its executor protects the hosting
+test runner, but it does not restrict the example's operating-system permissions or make untrusted code safe. Until
+backend routing is added to the PHPUnit facade, separate-process directives remain unsupported through that facade and
+must not be weakened to in-process execution.
 
 ## Assertion Behavior
 
@@ -38,11 +38,12 @@ not rely on assertions being production no-ops.
 
 `PhpUnitResultAsserter` turns a successful execution into one explicit completion assertion, so examples without their
 own assertions are not considered risky tests. Failures include the maintained Markdown location when available,
-captured output, and cleanup failures; the original execution cause remains available through the exception chain.
+captured stdout and stderr, and cleanup failures; the original execution cause remains available through the exception
+chain.
 
 `PhpUnitExampleDataSets` exposes a corpus as independently named PHPUnit data sets, and `PhpUnitRuntime` runs each
 example through the complete in-process transformation, execution, and reporting pipeline. A separate-process directive
-is currently rejected explicitly because that backend has not yet been implemented.
+is currently rejected explicitly because backend routing has not yet been implemented.
 
 ## Start Here
 

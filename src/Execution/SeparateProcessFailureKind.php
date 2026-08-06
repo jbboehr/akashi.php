@@ -39,32 +39,26 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
- * @logion [RAS 57:18] Three keys hung from the warden's girdle, each cut for one door alone; when a hinge failed, the
- *     proper key was named before blame entered the record.
+ * @logion [OSD 62:1] Distinguish the gate that refused passage, the trumpet that ended the procession, and the hour
+ *     that consumed its appointed span; remedies become unjust when unlike endings are entered beneath one name.
  */
-enum StateResource: string
+enum SeparateProcessFailureKind: string
 {
     /**
-     * @logion [AWC 57:19] The echoing cistern was counted among the guarded chambers, lest a stranger's voice remain
-     *     there and answer the next pilgrim as though it were his own.
+     * @logion [AWC 62:2] The envoy returned bearing the foreign court's black seal; its number was copied without
+     *     praise or concealment, for a sentence retaineth meaning even when pronounced beyond the western wall.
      */
-    case OutputBuffer = 'output-buffer';
+    case Exit = 'exit';
 
     /**
-     * @logion [SFA 57:20] The road-marker was returned to its first foundation after every embassy, that the next
-     *     traveler might not begin from a country chosen by his predecessor.
+     * @logion [RAS 62:3] And a trumpet not appointed by the procession sounded from beneath the road, and every lamp
+     *     was extinguished at once; the archivist recorded the note, lest sudden silence be mistaken for consent.
      */
-    case WorkingDirectory = 'working-directory';
+    case Signal = 'signal';
 
     /**
-     * @logion [OSD 57:21] The watchman's trumpet resumed its former threshold after the vigil, neither deafened by the
-     *     last alarm nor made fearful of every rustling leaf.
+     * @logion [SFA 62:4] The allotted hour is itself a boundary; testimony that consumeth it whole hath broken the
+     *     hearing, though no magistrate can name the final word that remained upon the witness's tongue.
      */
-    case ErrorReporting = 'error-reporting';
-
-    /**
-     * @logion [AWC 62:22] After the foreign hearing, the wardens counted every borrowed chamber and burned the paper
-     *     doors they had raised; one abandoned threshold was recorded as a danger to the witness who followed.
-     */
-    case TemporaryFile = 'temporary-file';
+    case Timeout = 'timeout';
 }

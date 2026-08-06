@@ -526,9 +526,9 @@ buffer, or created an unremovable buffer, cleanup fails explicitly. Cleanup runs
 
 The executor catches `Throwable`. It returns a result variant rather than throwing source failures directly:
 
-- `ExecutionSucceeded` contains captured stdout, duration, and debug metadata;
-- `ExecutionFailed` contains the phase, primary throwable or structured cause, captured output, an optional validated
-  generated failure line, and zero or more cleanup failures.
+- `ExecutionSucceeded` contains separately captured stdout and stderr, duration, and debug metadata;
+- `ExecutionFailed` contains the phase, primary throwable or structured cause, separately captured stdout and stderr, an
+  optional validated generated failure line, and zero or more cleanup failures.
 
 A cleanup failure can never produce success. If execution and cleanup both fail, preserve the execution failure as the
 primary cause and report every cleanup failure as secondary context.
@@ -552,21 +552,23 @@ The process command is an argument list, never a shell string. It uses:
 
 - the current `PHP_BINARY`;
 - startup `-d` options that enable native assertions and assertion exceptions;
+- startup error-display options that direct PHP diagnostics to stderr without duplicate error logging;
 - the configured bootstrap through `auto_prepend_file` when present;
 - the configured project root as working directory; and
 - Symfony Process's captured stdout, stderr, and exit status.
 
-The MVP retains Symfony Process's documented 60-second default as an internal emergency ceiling because the dependency
-provides it directly. A timeout produces a structured infrastructure failure; it is not an authored expected-timeout
-feature. User-configurable timeouts, in-process interruption, alternate PHP binaries, INI values, and environment
-variables remain deferred.
+The MVP explicitly sets a 60-second internal emergency ceiling, matching Symfony Process's documented default. One
+Akashi-owned value configures the process and is retained in structured timeout diagnostics, so behavior and reporting
+cannot drift if a dependency default changes. This is not an authored expected-timeout feature. User-configurable
+timeouts, in-process interruption, alternate PHP binaries, INI values, and environment variables remain deferred.
 
 PHP parse and runtime locations that name the temporary file are translated through the prepared source map to the
 maintained Markdown source. The temporary path may remain in debug metadata but is not the only user-facing location.
 
 Exit status zero is success, even when reached through an authored `exit(0)`; a nonzero status, signal, timeout, or
-startup failure is an `ExecutionFailed` result. Stdout and stderr are always captured separately. Stderr alone does not
-fail an otherwise successful example until an expected-output contract exists.
+startup failure is an `ExecutionFailed` result. Akashi-owned typed failures retain exit, signal, and timeout identity
+without exposing Symfony Process objects. Stdout and stderr are always captured separately. Stderr alone does not fail
+an otherwise successful example until an expected-output contract exists.
 
 Every temporary artifact is removed in `finally`. Cleanup failures are reported as with in-process execution.
 
@@ -629,9 +631,10 @@ final class DocumentationExamplesTest extends TestCase
 ```
 
 `PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. It
-does not store global configuration. Advanced consumers can compose those objects directly. Until the separate-process
-backend and immutable runtime configuration are added, the facade executes ordinary examples in-process and rejects a
-separate-process directive explicitly instead of weakening its requested isolation.
+does not store global configuration. Advanced consumers can compose those objects directly. The standalone
+separate-process backend and immutable runtime configuration are implemented; until backend selection is wired through
+this facade, it executes ordinary examples in-process and rejects a separate-process directive explicitly instead of
+weakening its requested isolation.
 
 `PhpUnitExampleDataSets` validates every human label for uniqueness before yielding one `Example` argument under that
 label. `PhpUnitResultAsserter` translates `ExecutionFailed` into a PHPUnit assertion failure while retaining the
@@ -1003,7 +1006,7 @@ The owner reviewed the original decision list on 2026-08-05. Proceed with these 
 4. proceed with the documented trusted-code boundary and the evidence-driven initial unsafe-construct list;
 5. reject explicit authored namespaces for in-process execution during the MVP;
 6. require deterministic one-to-one PHPStan diagnostic matching, subject to the Yumemi compatibility gate;
-7. retain Symfony Process's built-in 60-second emergency ceiling without adding timeout configuration; and
+7. explicitly retain a fixed 60-second process emergency ceiling without adding user timeout configuration; and
 8. refine `Document`, `Example`, and supporting value objects incrementally as concrete invariants require.
 
 Treat `exit(0)` as separate-process success unless migration evidence justifies a child-control protocol. Revisit any

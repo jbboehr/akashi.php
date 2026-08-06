@@ -59,6 +59,14 @@ final readonly class ExecutionSucceeded implements ExecutionResult
     public string $stdout;
 
     /**
+     * Bytes written to the example's standard error stream, kept distinct from ordinary documented output.
+     *
+     * @logion [SFA 62:20] The eastern scribe kept the warning bell upon a tablet apart from the singer's verse; both
+     *     were heard within one hall, yet neither was permitted to borrow the other's appointed meaning.
+     */
+    public string $stderr;
+
+    /**
      * @logion [OSD 57:5] Count the smallest beats of the celestial clock without borrowing one from before the gate
      *     opened; duration beginneth at zero and acknowledgeth no debt to negative time.
      */
@@ -68,14 +76,19 @@ final readonly class ExecutionSucceeded implements ExecutionResult
      * @logion [RAS 57:6] When the runner returned, the steward received the tablet, the gathered voice, and the honest
      *     measure together; no single token was permitted to impersonate the whole journey.
      */
-    public function __construct(PreparedExample $preparedExample, string $stdout, int $durationNanoseconds)
-    {
+    public function __construct(
+        PreparedExample $preparedExample,
+        string $stdout,
+        int $durationNanoseconds,
+        string $stderr = '',
+    ) {
         if ($durationNanoseconds < 0) {
             throw new \InvalidArgumentException('Execution duration must not be negative.');
         }
 
         $this->preparedExample = $preparedExample;
         $this->stdout = $stdout;
+        $this->stderr = $stderr;
         $this->durationNanoseconds = $durationNanoseconds;
     }
 }

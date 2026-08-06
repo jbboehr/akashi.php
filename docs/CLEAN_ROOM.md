@@ -235,6 +235,15 @@ source-level algorithm, or architecture was examined or copied. Akashi's immedia
 independent design recorded in `ARCHITECTURE.md`; the inspection only confirmed that League CommonMark's public node API
 could express it.
 
+On 2026-08-05, while implementing the separate-process adapter, narrow sections of the installed Symfony Process 7.4
+`Process.php`, `ProcessTimedOutException.php`, `ProcessSignaledException.php`, and `ProcessStartFailedException.php` and
+`RuntimeException.php` files were opened to confirm documented public method contracts for process execution, separated
+output, exit status, signals, timeouts, and startup failures. The inspection exposed the relevant public declarations,
+their API comments, small accessor and forwarding method bodies, the beginning of `Process::start()`, and the exception
+constructors. No process-management algorithm, internal test, or source architecture was copied. Akashi's
+temporary-file, result, failure, cleanup, and source-mapping designs remain independently derived from its recorded
+requirements and use only the public behavior already represented by Symfony's official integration guide.
+
 ## Current dependency status
 
 Akashi requires PHP 8.2 or later and the following runtime dependencies:
@@ -242,10 +251,10 @@ Akashi requires PHP 8.2 or later and the following runtime dependencies:
 - `composer-runtime-api` 2.2 or later, for locating the project autoloader through Composer's generated binary proxy;
 - `league/commonmark` 2.8.3 or later within the 2.x series, for standards-conforming Markdown parsing;
 - `nikic/php-parser` 5.8 or later within the 5.x series, for PHP parsing and later source transformation; and
-- `symfony/process` 7.4 or later within the 7.x series, for later isolated example execution.
+- `symfony/process` 7.4 or later within the 7.x series, for isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
-documentation and package metadata are recorded above. Apart from the narrow League CommonMark public-API source
-inspection recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and its
-extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested optional
-integrations for consumers.
+documentation and package metadata are recorded above. Apart from the narrow League CommonMark and Symfony Process
+public-API source inspections recorded above, no dependency source code or internal tests were consulted. PHPUnit,
+PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are
+suggested optional integrations for consumers.

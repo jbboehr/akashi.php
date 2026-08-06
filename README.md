@@ -9,8 +9,8 @@ Akashi is a PHP project for testing examples embedded in documentation.
 **Status:** the immutable model, deterministic Markdown discovery, CommonMark PHP-fence extraction, configurable markers
 and execution directives, marked-example extraction CLI, PHP source preparation, and guarded in-process execution are
 implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable;
-separate-process runtime configuration and source preparation are implemented, while process execution and PHPStan
-verification remain under development.
+separate-process runtime configuration, source preparation, and standalone process execution are implemented, while
+PHPUnit facade routing and PHPStan verification remain under development.
 
 ## Installation
 

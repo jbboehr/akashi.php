@@ -65,11 +65,12 @@ final class ExecutionResultTest extends TestCase
     public function testRepresentsSuccessfulExecutionWithoutNullableFailureFields(): void
     {
         $prepared = $this->preparedExample();
-        $result = new ExecutionSucceeded($prepared, "documented output\n", 123_456);
+        $result = new ExecutionSucceeded($prepared, "documented output\n", 123_456, "documented warning\n");
 
         self::assertTrue((new \ReflectionClass($result))->implementsInterface(ExecutionResult::class));
         self::assertSame($prepared, $result->preparedExample);
         self::assertSame("documented output\n", $result->stdout);
+        self::assertSame("documented warning\n", $result->stderr);
         self::assertSame(123_456, $result->durationNanoseconds);
     }
 
@@ -91,6 +92,7 @@ final class ExecutionResultTest extends TestCase
             [$cleanup],
             789,
             3,
+            'failure warning',
         );
 
         self::assertTrue((new \ReflectionClass($result))->implementsInterface(ExecutionResult::class));
@@ -98,6 +100,7 @@ final class ExecutionResultTest extends TestCase
         self::assertSame(FailurePhase::Execution, $result->phase);
         self::assertSame($cause, $result->cause);
         self::assertSame('before failure', $result->stdout);
+        self::assertSame('failure warning', $result->stderr);
         self::assertSame([$cleanup], $result->cleanupFailures);
         self::assertSame($cleanupCause, $cleanup->cause);
         self::assertSame(789, $result->durationNanoseconds);
@@ -134,7 +137,7 @@ final class ExecutionResultTest extends TestCase
         );
 
         self::assertSame(['execution', 'cleanup'], $phaseValues);
-        self::assertSame(['output-buffer', 'working-directory', 'error-reporting'], $resourceValues);
+        self::assertSame(['output-buffer', 'working-directory', 'error-reporting', 'temporary-file'], $resourceValues);
     }
 
     public function testRejectsNegativeSuccessDuration(): void
@@ -150,6 +153,7 @@ final class ExecutionResultTest extends TestCase
         $result = new ExecutionSucceeded($this->preparedExample(), '', 0);
 
         self::assertSame(0, $result->durationNanoseconds);
+        self::assertSame('', $result->stderr);
     }
 
     public function testRejectsNegativeFailureDuration(): void
@@ -179,6 +183,7 @@ final class ExecutionResultTest extends TestCase
         );
 
         self::assertSame(0, $result->durationNanoseconds);
+        self::assertSame('', $result->stderr);
     }
 
     public function testRejectsANonPositiveGeneratedFailureLine(): void

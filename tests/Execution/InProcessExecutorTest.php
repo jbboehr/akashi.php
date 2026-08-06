@@ -85,6 +85,7 @@ final class InProcessExecutorTest extends TestCase
         self::assertInstanceOf(ExecutionSucceeded::class, $result);
         self::assertSame($prepared, $result->preparedExample);
         self::assertSame('documented output', $result->stdout);
+        self::assertSame('', $result->stderr);
         self::assertGreaterThanOrEqual(0, $result->durationNanoseconds);
         self::assertLessThanOrEqual($finishedAt - $startedAt, $result->durationNanoseconds);
     }

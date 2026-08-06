@@ -136,6 +136,7 @@ final class PhpUnitResultAsserterTest extends TestCase
             )],
             456,
             2,
+            "first warning\nsecond warning",
         );
         $expected = <<<'TEXT'
 Documentation example example-phpunit-result-01 failed during execution.
@@ -146,6 +147,9 @@ Cause:
 Captured stdout:
     first line
     second line
+Captured stderr:
+    first warning
+    second warning
 Cleanup failures:
     - output-buffer: The output buffer could not be restored.
       Caused by: UnexpectedValueException: handler failure
@@ -173,6 +177,7 @@ TEXT;
         self::assertStringContainsString('failed during cleanup.', $failure->getMessage());
         self::assertStringContainsString("Cause:\n    RuntimeException: (no message)", $failure->getMessage());
         self::assertStringNotContainsString('Captured stdout:', $failure->getMessage());
+        self::assertStringNotContainsString('Captured stderr:', $failure->getMessage());
         self::assertStringContainsString(
             "Cleanup failures:\n    - working-directory: The working directory was not restored.",
             $failure->getMessage(),

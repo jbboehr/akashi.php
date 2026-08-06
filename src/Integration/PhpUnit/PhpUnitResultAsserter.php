@@ -103,6 +103,10 @@ final readonly class PhpUnitResultAsserter
             $sections[] = "Captured stdout:\n" . self::indent($result->stdout);
         }
 
+        if ($result->stderr !== '') {
+            $sections[] = "Captured stderr:\n" . self::indent($result->stderr);
+        }
+
         if ($result->cleanupFailures !== []) {
             $cleanup = [];
             foreach ($result->cleanupFailures as $failure) {

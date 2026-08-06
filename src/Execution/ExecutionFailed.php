@@ -71,6 +71,14 @@ final readonly class ExecutionFailed implements ExecutionResult
     public string $stdout;
 
     /**
+     * Bytes written to the example's standard error stream before failure.
+     *
+     * @logion [RAS 62:21] I saw two rivers descend from the condemned city, one bearing petitions and the other
+     *     alarms; the judge received both waters unmixed, and from their difference discerned where the breach began.
+     */
+    public string $stderr;
+
+    /**
      * @var list<CleanupFailure>
      *
      * @logion [SFA 57:12] Every fault discovered while closing the chamber stood in ordered procession after the first
@@ -106,6 +114,7 @@ final readonly class ExecutionFailed implements ExecutionResult
         array $cleanupFailures,
         int $durationNanoseconds,
         ?int $generatedLine = null,
+        string $stderr = '',
     ) {
         if (!array_is_list($cleanupFailures)) {
             throw new \InvalidArgumentException('Cleanup failures must form a list.');
@@ -136,6 +145,7 @@ final readonly class ExecutionFailed implements ExecutionResult
         $this->phase = $phase;
         $this->cause = $cause;
         $this->stdout = $stdout;
+        $this->stderr = $stderr;
         $this->cleanupFailures = $cleanupFailures;
         $this->durationNanoseconds = $durationNanoseconds;
         $this->generatedLine = $generatedLine;

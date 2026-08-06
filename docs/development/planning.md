@@ -5,10 +5,11 @@ Markdown discovery, CommonMark PHP-fence extraction, configurable marker associa
 parsing, the framework-independent marked-example extraction CLI, the PHP transformation foundation, typed
 execution-result contracts, in-process state-restoration guards, and source-preserving native assertion rewriting
 through the PHPUnit assertion bridge. In-process code execution, named PHPUnit data sets, result reporting, and the
-stateless PHPUnit runtime facade are implemented. Separate-process execution and PHPStan verification follow in
-subsequent working chunks. The separate-process preparation seam now includes canonical project/bootstrap configuration,
-backend-specific prepared examples, and source-preserving normal-file preparation; process invocation, temporary
-artifacts, and result capture remain in the next working chunk.
+stateless PHPUnit runtime facade are implemented. Separate-process PHPUnit routing and PHPStan verification follow in
+subsequent working chunks. The separate-process backend now includes canonical project/bootstrap configuration,
+backend-specific prepared examples, source-preserving normal-file preparation, secure temporary artifacts, process
+invocation, typed failures, source-mapped diagnostics, and result capture. Directive/configuration routing through the
+PHPUnit facade remains the next working chunk.
 
 Before the first release, verify the documented PHPUnit integration under ParaTest. Exercise independently named data
 sets concurrently and confirm deterministic discovery, collision-resistant execution scopes, process-state isolation,
@@ -17,7 +18,7 @@ runner integration, and do not add a runtime dependency on ParaTest solely for t
 
 `nikic/php-parser` and `symfony/process` are intentionally installed before their first imports. Their constraints were
 validated with the other runtime dependencies in the first implementation slice. `nikic/php-parser` now supports the
-transform foundation, while `symfony/process` remains reserved for the later separate-process slice.
+transform foundation, while `symfony/process` supports the standalone separate-process executor.
 
 The transform compatibility gate currently prepares 35 of Yumemi's 37 reference examples. Two authored-namespace
 examples are intentionally rejected under the recorded MVP policy and must receive explicit separate-process selection
