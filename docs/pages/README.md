@@ -15,8 +15,8 @@ extraction, configurable marker association, marked-example selection, execution
 PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
 are implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable.
 Separate-process runtime configuration, source preparation, execution, and PHPUnit facade routing are implemented; the
-analyzer-independent PHPStan expectation parser, diagnostic matcher, project configuration, and relevance selector are
-implemented. PHPStan analysis and `RuleTestCase` integration remain under development.
+PHPStan expectation parser, diagnostic matcher, project configuration, relevance selector, and `RuleTestCase`
+verification trait are implemented. Migration against Yumemi's complete PHPStan documentation corpus remains pending.
 
 ## Trust and Safety
 

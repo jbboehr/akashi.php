@@ -45,6 +45,7 @@ use jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException;
 use jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException;
 use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException;
 use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException;
+use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanVerificationException;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleSelector;
 use jbboehr\Akashi\Model\ExampleCode;
@@ -103,6 +104,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
             new PhpStanConfigurationException(),
             new NoRelevantExamplesException(),
             new ExpectationParseException(),
+            new PhpStanVerificationException(),
         ];
 
         foreach ($exceptions as $exception) {

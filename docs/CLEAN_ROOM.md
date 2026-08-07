@@ -94,6 +94,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [Command-line usage](https://phpstan.org/user-guide/command-line-usage)                                      | Integration guide                | Considered CLI execution; direct test integration remains preferred                |
 | 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                               | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter         |
 | 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                              |
+| 2026-08-06 | [`RuleTestCase` 2.2 public API](https://apiref.phpstan.org/2.2.x/PHPStan.Testing.RuleTestCase.html)          | User-facing behavioral reference | `gatherAnalyserErrors()` input and diagnostic-list contract                        |
+| 2026-08-06 | [PHPStan strict rules](https://github.com/phpstan/phpstan-strict-rules#readme)                               | Integration guide                | Rule-specific configuration for permitting the short ternary operator              |
 | 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax                     |
 | 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention                 |
 | 2026-08-05 | [`smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | User-facing behavioral reference | Preserving runtime guards behind a narrower public PHPDoc contract                 |
@@ -116,6 +118,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`throws.unusedType`](https://phpstan.org/error-identifiers/throws.unusedType)                               | User-facing behavioral reference | Replacing an inaccurate broad `@throws` tag with a typed callback seam             |
 | 2026-08-05 | [`nullCoalesce.offset`](https://phpstan.org/error-identifiers/nullCoalesce.offset)                           | User-facing behavioral reference | Removing a redundant fallback after a guaranteed named regex capture               |
 | 2026-08-05 | [`offsetAccess.invalidOffset`](https://phpstan.org/error-identifiers/offsetAccess.invalidOffset)             | User-facing behavioral reference | Replacing a broadly typed array-key lookup with a validated argument value         |
+| 2026-08-06 | [`method.childParameterType`](https://phpstan.org/error-identifiers/method.childParameterType)               | User-facing behavioral reference | Matching the adapter test seam to `RuleTestCase` parameter contravariance          |
+| 2026-08-06 | [`phpstanApi.constructor`](https://phpstan.org/error-identifiers/phpstanApi.constructor)                     | User-facing behavioral reference | Avoiding direct construction of PHPStan diagnostics outside its compatibility API  |
 | 2026-08-05 | [`catch.internalClass`](https://phpstan.org/error-identifiers/catch.internalClass)                           | User-facing behavioral reference | Testing PHPUnit failures without coupling to its internal exception class          |
 | 2026-08-05 | [`classConstant.internalClass`](https://phpstan.org/error-identifiers/classConstant.internalClass)           | User-facing behavioral reference | Avoiding PHPUnit internal-class constants in executor integration tests            |
 | 2026-08-05 | [`nullsafe.neverNull`](https://phpstan.org/error-identifiers/nullsafe.neverNull)                             | User-facing behavioral reference | Replacing a redundant null-safe configuration access with explicit mode selection  |
@@ -258,6 +262,22 @@ reported those identifiers against an intermediate implementation. They were use
 diagnostics and correct the underlying native and PHPDoc types. No PHPStan implementation code, internal tests, or
 source architecture was examined.
 
+On 2026-08-06, while implementing the `RuleTestCase` adapter, the installed PHPStan 2.2.5 PHAR's
+`src/Testing/RuleTestCase.php` was opened after runtime reflection identified the public class location. The inspection
+showed the public `analyse()` and `gatherAnalyserErrors()` declarations and their method bodies, including analyzer
+construction, error sorting, delayed-error handling, and result finalization. Akashi uses only the documented public
+`gatherAnalyserErrors()` contract; none of PHPStan's analyzer construction, collection, sorting, or finalization
+implementation was copied or adapted. The adapter's selection, temporary-file lifecycle, declaration preflight, source
+mapping, matching, reporting, and cleanup remain independently derived from the recorded Yumemi requirements. Runtime
+reflection also inspected the public signatures of `PHPStan\Analyser\Error` construction and decoding methods while
+looking for a compatibility-promised way to produce a malformed diagnostic in a regression test. No such test fixture
+was retained, and no `Error` implementation body was opened.
+
+On 2026-08-06, while configuring `phpstan-strict-rules`, its installed `rules.neon` and public README were reviewed to
+identify the supported `strictRules.disallowedShortTernary` switch. A symbol search also displayed the source filename
+and diagnostic identifier for `DisallowedShortTernaryRule`; its implementation body was not opened. This changed only
+Akashi's own development-style policy and did not influence its runtime architecture or public API.
+
 ## Current dependency status
 
 Akashi requires PHP 8.2 or later and the following runtime dependencies:
@@ -268,7 +288,7 @@ Akashi requires PHP 8.2 or later and the following runtime dependencies:
 - `symfony/process` 7.4 or later within the 7.x series, for isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
-documentation and package metadata are recorded above. Apart from the narrow League CommonMark and Symfony Process
-public-API source inspections recorded above, no dependency source code or internal tests were consulted. PHPUnit,
-PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are
-suggested optional integrations for consumers.
+documentation and package metadata are recorded above. Apart from the narrow League CommonMark, Symfony Process, and
+PHPStan `RuleTestCase` public-API source inspections recorded above, no dependency source code or internal tests were
+consulted. PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies;
+PHPUnit and PHPStan are suggested optional integrations for consumers.
