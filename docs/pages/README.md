@@ -10,13 +10,10 @@ Akashi is a PHP project for testing examples embedded in documentation.
 
 ## Status
 
-The package now has its immutable core model, deterministic Markdown document discovery, CommonMark PHP-fence
-extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
-PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
-are implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable.
-Separate-process runtime configuration, source preparation, execution, and PHPUnit facade routing are implemented; the
-PHPStan expectation parser, diagnostic matcher, project configuration, relevance selector, and `RuleTestCase`
-verification trait are implemented. Migration against Yumemi's complete PHPStan documentation corpus remains pending.
+The Markdown MVP is usable today: projects can discover and extract PHP fences, select marked examples, execute them
+through PHPUnit in-process or in a child process, and verify a relevant subcorpus with PHPStan. The public API remains
+provisional until the Yumemi and Yumemi Apocrypha consumer migrations pass their acceptance gates. See
+[Compatibility and Limitations](compatibility.md) for the precise current boundary.
 
 ## Trust and Safety
 
@@ -48,4 +45,6 @@ the same result reporting path.
 
 ## Start Here
 
-Continue to [Getting Started](getting-started.md) for installation and local development commands.
+Continue to [Getting Started](getting-started.md) for installation and integration examples. The remaining chapters
+cover [Markdown authoring](authoring-markdown.md), the [implemented reference workflows](reference/README.md), current
+[compatibility and limitations](compatibility.md), and the [roadmap](roadmap.md).

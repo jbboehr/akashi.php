@@ -10,6 +10,16 @@ Until the first tagged release, install the development branch:
 composer require --dev jbboehr/akashi:dev-master
 ```
 
+PHPUnit and PHPStan are optional integrations rather than Akashi runtime dependencies. Install the tools used by the
+sections you follow if the consuming project does not already provide compatible versions:
+
+```shell
+composer require --dev phpunit/phpunit:^11.5
+composer require --dev phpstan/phpstan:^2
+```
+
+PHPStan example verification also uses PHPUnit's `RuleTestCase` reporting path, so that workflow needs both packages.
+
 ## Verify the Command
 
 Composer exposes the package executable at:
@@ -66,9 +76,7 @@ final class DocumentationExamplesTest extends TestCase
         $projectRoot = dirname(__DIR__);
 
         $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('README.md')
-            ->includeDirectory('docs/pages')
-            ->exclude('docs/pages/SUMMARY.md')
+            ->includeDirectory('docs/examples')
             ->load();
 
         yield from PhpUnitExampleDataSets::fromCorpus($corpus);
@@ -89,6 +97,11 @@ yielded, keeping PHPUnit filtering and reports unambiguous. Runtime examples exe
 configuration gives both backends an explicit project root. An in-process example can normally use the autoloader that
 PHPUnit has already loaded. A child process does not inherit that PHP state, so configure a bootstrap such as
 `withBootstrap('vendor/autoload.php')` when separate-process examples use project or dependency symbols.
+
+The illustrative `docs/examples` directory should contain only documents whose PHP fences are executable examples.
+Akashi does not yet have a per-block ignore or compile-only directive. Do not include a mixed reference-documentation
+tree wholesale when it also contains setup fragments or incomplete PHP excerpts; include executable documents
+explicitly, or label non-executable fragments with a language other than `php`.
 
 An immediately associated `<!-- akashi: separate-process -->` directive routes one example to a child PHP process. The
 directive overrides an in-process configuration default. To route every unmarked example through the child backend, use
@@ -135,9 +148,7 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
     {
         $projectRoot = dirname(__DIR__);
         $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('README.md')
-            ->includeDirectory('docs/pages')
-            ->exclude('docs/pages/SUMMARY.md')
+            ->includeDirectory('docs/examples')
             ->load();
         $configuration = PhpStanExampleConfiguration::forTokens(
             $projectRoot,
@@ -160,6 +171,13 @@ is for trusted, runtime-safe project documentation. Akashi rejects direct `exit`
 `define()`, duplicate declarations, and declarations already present in the hosting process before it loads any selected
 file. It captures output, restores the working directory and error-reporting level, removes its temporary files, and
 maps PHPStan lines back to maintained Markdown lines in failure reports.
+
+## Next Steps
+
+Continue with [Authoring Markdown Examples](authoring-markdown.md) for discovery, fence, marker, and directive rules.
+The [Reference](reference/README.md) documents each implemented integration, while
+[Compatibility and Limitations](compatibility.md) and the [Roadmap](roadmap.md) identify behavior that is not
+implemented yet.
 
 ## Development
 
