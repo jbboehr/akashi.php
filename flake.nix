@@ -134,7 +134,7 @@
           xdebug = mkDevShell php-xdebug;
         };
         packages = {
-          inherit agent-badge-unwrapped;
+          inherit agent-badge-unwrapped agent-badge;
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         formatter = treefmt.config.build.wrapper;
