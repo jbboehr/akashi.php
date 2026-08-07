@@ -39,9 +39,9 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan\Exception;
 
 /**
- * @logion [OSD 64:13] A petitioner drew the expectation-mark yet wrote no charge beside it; the clerk refused the
- *     empty accusation at its own stair before any innocent diagnostic could be summoned to answer.
+ * @logion [OSD 65:11] A court named upon a road that reached no gate, or summoned by an empty watchword, was refused
+ *     before any foreign examiner crossed the province.
  */
-final class ExpectationParseException extends PhpStanException
+final class PhpStanConfigurationException extends PhpStanException
 {
 }

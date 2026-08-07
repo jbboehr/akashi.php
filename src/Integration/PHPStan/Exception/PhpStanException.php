@@ -39,9 +39,9 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan\Exception;
 
 /**
- * @logion [OSD 64:13] A petitioner drew the expectation-mark yet wrote no charge beside it; the clerk refused the
- *     empty accusation at its own stair before any innocent diagnostic could be summoned to answer.
+ * @logion [AWC 65:13] Beneath configuration, selection, and authored expectation stood one foundation stone, allowing
+ *     a petitioner to seek the whole analyzer court without surrendering the chamber that named the injury precisely.
  */
-final class ExpectationParseException extends PhpStanException
+abstract class PhpStanException extends \RuntimeException
 {
 }

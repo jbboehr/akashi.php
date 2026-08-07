@@ -11,9 +11,11 @@ artifacts, process invocation, typed failures, source-mapped diagnostics, and re
 routing through the PHPUnit facade is implemented, including explicit project-root requirements, configured defaults,
 bootstrap handling, and common result reporting. The analyzer-independent PHPStan expectation foundation is also
 implemented: ordered `//!` parsing retains maintained Markdown lines, diagnostics remain free of PHPStan runtime types,
-and exact-count, case-sensitive message/tip matching uses deterministic one-to-one assignment with typed outcomes. The
-next working chunk is the PHPStan configuration, relevance selection, temporary-source lifecycle, and public
-`RuleTestCase` adapter that will supply those diagnostics and report the outcomes.
+and exact-count, case-sensitive message/tip matching uses deterministic one-to-one assignment with typed outcomes.
+Canonical PHPStan project configuration, explicit custom or supplied-token relevance predicates, and deterministic
+nonempty relevant-corpus selection are implemented without embedding Yumemi-specific tokens. The next working chunk is
+the secure temporary-source lifecycle and public `RuleTestCase` adapter that will supply diagnostics and report those
+outcomes.
 
 Before the first release, verify the documented PHPUnit integration under ParaTest. Exercise independently named data
 sets concurrently and confirm deterministic discovery, collision-resistant execution scopes, process-state isolation,

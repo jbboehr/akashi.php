@@ -36,12 +36,41 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Integration\PHPStan\Exception;
+namespace jbboehr\Akashi\Integration\PHPStan;
+
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException;
 
 /**
- * @logion [OSD 64:13] A petitioner drew the expectation-mark yet wrote no charge beside it; the clerk refused the
- *     empty accusation at its own stair before any innocent diagnostic could be summoned to answer.
+ * @logion [SFA 65:9] The clerk passed the ordered roll beneath the sealed question and copied each admitted witness
+ *     without disturbing its neighbors, producing a smaller procession whose ancestry remained plain.
  */
-final class ExpectationParseException extends PhpStanException
+final readonly class PhpStanExampleSelector
 {
+    /**
+     * @throws NoRelevantExamplesException when the configuration selects no examples
+     *
+     * @logion [OSD 65:10] Preserve the source procession while selecting, yet refuse an empty docket explicitly, for
+     *     an analyzer that examineth nothing can falsely resemble a court that found no fault.
+     */
+    public function select(
+        ExampleCorpus $corpus,
+        PhpStanExampleConfiguration $configuration,
+    ): ExampleCorpus {
+        $relevantExamples = [];
+        foreach ($corpus as $example) {
+            if ($configuration->isRelevant($example)) {
+                $relevantExamples[] = $example;
+            }
+        }
+
+        if ($relevantExamples === []) {
+            throw new NoRelevantExamplesException(sprintf(
+                'No PHPStan-relevant examples were selected for project %s.',
+                $configuration->projectRoot->value,
+            ));
+        }
+
+        return new ExampleCorpus(...$relevantExamples);
+    }
 }

@@ -663,8 +663,13 @@ The core model has no PHPStan types. `Integration\PHPStan` owns:
 - `AnalyzerDiagnostic` with identifier, message, optional tip, analyzer line, and mapped maintained-source location;
 - `ExpectationParser` for ordered nonempty `//!` comments;
 - `DiagnosticMatcher` and typed match-result variants for comparison and later reporting;
-- `PhpStanExampleConfiguration` for root, bootstrap/config context, and relevance predicate; and
+- `PhpStanExampleConfiguration` for the canonical root and relevance predicate;
+- `PhpStanExampleSelector` for deterministic nonempty relevant subcorpora; and
 - a `VerifiesPhpStanExamples` trait that can call the public `RuleTestCase` analyzer API from a consumer subclass.
+
+Configuration, relevance-selection, and expectation-authoring failures retain specific exception classes beneath the
+shared `PhpStanException` base, so consumers may catch the integration as a domain without parsing messages or erasing
+the precise failure kind.
 
 The consumer remains responsible for `getRule()` and `getAdditionalConfigFiles()`. PHPStan verification uses one
 corpus-level test because Yumemi's reflection contract requires all relevant example files to be declared exactly once
@@ -728,8 +733,12 @@ input lists for a later reporter. These closed result shapes avoid nullable fiel
 authored text against the diagnostic message and tip. An empty `//!` marker is an authoring error with the maintained
 Markdown location, not an expectation for an empty substring.
 
-The relevance predicate is consumer-supplied. A convenience token predicate supports Yumemi's current tokens without
-placing those tokens in generic core behavior.
+The relevance predicate is explicit and consumer-supplied; there is no implicit “analyze everything” or project-specific
+default. `PhpStanExampleConfiguration::forProject()` accepts a typed predicate, while `forTokens()` builds the common
+case-sensitive “source contains any supplied token” predicate. Akashi validates and canonicalizes the project root when
+the configuration is created. It rejects absent, blank, and duplicate supplied tokens without embedding Yumemi's token
+set in generic code. `PhpStanExampleSelector` preserves corpus order and rejects an empty relevant selection explicitly,
+because an analyzer invocation that examines nothing must not resemble a clean analysis.
 
 ### Preferred PHPStan expectation syntax after the MVP
 
