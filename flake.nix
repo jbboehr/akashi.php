@@ -54,6 +54,12 @@
             enabled ++ [ all.xdebug ];
         };
         src = gitignore.lib.gitignoreSource ./.;
+        agent-badge-unwrapped = pkgs.callPackage ./nix/agent-badge-unwrapped.nix { };
+        agent-badge =
+          if pkgs.stdenv.isLinux then
+            pkgs.callPackage ./nix/agent-badge.nix { inherit agent-badge-unwrapped; }
+          else
+            null;
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
           settings.global.excludes = [ "docs/IMPLEMENTATION_HANDOFF.md" ];
@@ -92,6 +98,7 @@
           pkgs.mkShell {
             buildInputs = with pkgs; [
               actionlint
+              agent-badge
               mdbook
               phpPackage
               phpPackage.packages.composer
@@ -107,6 +114,7 @@
       rec {
         checks = {
           inherit pre-commit-check;
+          inherit agent-badge-unwrapped;
           documentation =
             pkgs.runCommand "akashi-documentation"
               {
@@ -116,11 +124,16 @@
                 mdbook build ${src}/docs --dest-dir "$out"
               '';
           formatting = treefmt.config.build.check self;
-        };
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         devShells = {
           default = mkDevShell php;
           xdebug = mkDevShell php-xdebug;
         };
+        packages = {
+          inherit agent-badge-unwrapped;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         formatter = treefmt.config.build.wrapper;
       }
     );
