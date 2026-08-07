@@ -119,6 +119,12 @@ Dates record the review date, not the document publication date.
 | 2026-08-05 | [`catch.internalClass`](https://phpstan.org/error-identifiers/catch.internalClass)                           | User-facing behavioral reference | Testing PHPUnit failures without coupling to its internal exception class          |
 | 2026-08-05 | [`classConstant.internalClass`](https://phpstan.org/error-identifiers/classConstant.internalClass)           | User-facing behavioral reference | Avoiding PHPUnit internal-class constants in executor integration tests            |
 | 2026-08-05 | [`nullsafe.neverNull`](https://phpstan.org/error-identifiers/nullsafe.neverNull)                             | User-facing behavioral reference | Replacing a redundant null-safe configuration access with explicit mode selection  |
+| 2026-08-06 | [`property.nonObject`](https://phpstan.org/error-identifiers/property.nonObject)                             | User-facing behavioral reference | Carrying validated diagnostic value types into matcher property access             |
+| 2026-08-06 | [`method.nonObject`](https://phpstan.org/error-identifiers/method.nonObject)                                 | User-facing behavioral reference | Carrying validated diagnostic value types into matcher method calls                |
+| 2026-08-06 | [`argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | User-facing behavioral reference | Returning explicitly typed validated matcher inputs                                |
+| 2026-08-06 | [`parameterByRef.type`](https://phpstan.org/error-identifiers/parameterByRef.type)                           | User-facing behavioral reference | Replacing mutable by-reference matching state with typed returned state            |
+| 2026-08-06 | [`return.type`](https://phpstan.org/error-identifiers/return.type)                                           | User-facing behavioral reference | Keeping recursive matcher state consistent with its declared return shape          |
+| 2026-08-06 | [`missingType.iterableValue`](https://phpstan.org/error-identifiers/missingType.iterableValue)               | User-facing behavioral reference | Specifying precise element types on data-driven matcher tests                      |
 
 ### Composer
 
@@ -244,6 +250,13 @@ their API comments, small accessor and forwarding method bodies, the beginning o
 constructors. No process-management algorithm, internal test, or source architecture was copied. Akashi's
 temporary-file, result, failure, cleanup, and source-mapping designs remain independently derived from its recorded
 requirements and use only the public behavior already represented by Symfony's official integration guide.
+
+On 2026-08-06, while implementing Akashi's analyzer-independent diagnostic matcher, the official PHPStan
+error-identifier pages for `property.nonObject`, `method.nonObject`, `argument.type`, `parameterByRef.type`,
+`return.type`, and `missingType.iterableValue` were consulted as user-facing behavioral references after PHPStan
+reported those identifiers against an intermediate implementation. They were used only to understand the public
+diagnostics and correct the underlying native and PHPDoc types. No PHPStan implementation code, internal tests, or
+source architecture was examined.
 
 ## Current dependency status
 

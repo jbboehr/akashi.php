@@ -662,7 +662,7 @@ The core model has no PHPStan types. `Integration\PHPStan` owns:
 - `DiagnosticExpectation` with expected text and maintained source line, which is Markdown in the MVP;
 - `AnalyzerDiagnostic` with identifier, message, optional tip, analyzer line, and mapped maintained-source location;
 - `ExpectationParser` for ordered nonempty `//!` comments;
-- `DiagnosticMatcher` for comparison and reporting;
+- `DiagnosticMatcher` and typed match-result variants for comparison and later reporting;
 - `PhpStanExampleConfiguration` for root, bootstrap/config context, and relevance predicate; and
 - a `VerifiesPhpStanExamples` trait that can call the public `RuleTestCase` analyzer API from a consumer subclass.
 
@@ -710,7 +710,7 @@ Comparison rules are:
 
 - actual diagnostic count must exactly equal expectation count;
 - a relevant example with no expectations must have zero diagnostics;
-- matching text is searched in the message plus optional tip;
+- matching text is searched case-sensitively in the message plus optional tip;
 - expectations remain in authored order; and
 - the compatibility graph between expectations and diagnostics must admit a one-to-one assignment.
 
@@ -719,6 +719,14 @@ scan can reject a valid assignment when a broad substring consumes the only diag
 substring. One-to-one matching is a deliberate, owner-approved strengthening of the legacy behavior: two expectations
 cannot reuse one diagnostic while another diagnostic remains unexplained. The current Yumemi corpus remains a required
 compatibility gate before this behavior becomes a fixed public contract.
+
+The analyzer-independent foundation expresses successful matches as `DiagnosticsMatched`, containing one ordered
+`DiagnosticAssignment` per expectation. It expresses failures as `DiagnosticsMismatched`, with a
+`DiagnosticMismatchKind` that distinguishes unequal counts from equal-count assignment failure and preserves both full
+input lists for a later reporter. These closed result shapes avoid nullable fields whose meaning changes with status.
+`AnalyzerDiagnostic` may retain a PHPStan identifier as optional metadata, but the MVP `//!` contract compares only the
+authored text against the diagnostic message and tip. An empty `//!` marker is an authoring error with the maintained
+Markdown location, not an expectation for an empty substring.
 
 The relevance predicate is consumer-supplied. A convenience token predicate supports Yumemi's current tokens without
 placing those tokens in generic core behavior.

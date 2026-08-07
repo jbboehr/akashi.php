@@ -14,8 +14,9 @@ The package now has its immutable core model, deterministic Markdown document di
 extraction, configurable marker association, marked-example selection, execution-directive parsing, and extraction CLI.
 PHP source preparation, including namespace isolation and native-assertion rewriting, and guarded in-process execution
 are implemented. The named-data-set provider and PHPUnit runtime facade make that in-process path directly usable.
-Separate-process runtime configuration, source preparation, execution, and PHPUnit facade routing are implemented;
-PHPStan verification remains under development.
+Separate-process runtime configuration, source preparation, execution, and PHPUnit facade routing are implemented; the
+analyzer-independent PHPStan expectation parser and diagnostic matcher are implemented. PHPStan analysis and
+`RuleTestCase` integration remain under development.
 
 ## Trust and Safety
 
