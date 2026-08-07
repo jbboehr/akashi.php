@@ -1,0 +1,97 @@
+diff --git a/packages/core/src/publish/readme-badge.test.ts b/packages/core/src/publish/readme-badge.test.ts
+index ad380ce..559d5d7 100644
+--- a/packages/core/src/publish/readme-badge.test.ts
++++ b/packages/core/src/publish/readme-badge.test.ts
+@@ -54,6 +54,32 @@ ${AGENT_BADGE_README_END_MARKER}
+     ).toHaveLength(1);
+   });
+ 
++  it("updates one inline managed badge in place", () => {
++    const firstBadgeMarkdown = buildReadmeBadgeMarkdown({
++      label: "AI Usage",
++      badgeUrl: "https://img.shields.io/endpoint?url=https%3A%2F%2Fexample.com%2Fold"
++    });
++    const secondBadgeMarkdown = buildReadmeBadgeMarkdown({
++      label: "AI Usage",
++      badgeUrl: "https://img.shields.io/endpoint?url=https%3A%2F%2Fexample.com%2Fnew"
++    });
++    const content = `[Build](https://example.com/build) ${
++      AGENT_BADGE_README_START_MARKER
++    }${firstBadgeMarkdown}${AGENT_BADGE_README_END_MARKER}
++
++# agent-badge
++`;
++
++    expect(upsertReadmeBadge(content, secondBadgeMarkdown)).toBe(
++      `[Build](https://example.com/build) ${
++        AGENT_BADGE_README_START_MARKER
++      }${secondBadgeMarkdown}${AGENT_BADGE_README_END_MARKER}
++
++# agent-badge
++`
++    );
++  });
++
+   it("supports linking the badge image to the repository", () => {
+     const badgeMarkdown = buildReadmeBadgeMarkdown({
+       label: "AI Usage",
+diff --git a/packages/core/src/publish/readme-badge.ts b/packages/core/src/publish/readme-badge.ts
+index 88f077f..9bed02a 100644
+--- a/packages/core/src/publish/readme-badge.ts
++++ b/packages/core/src/publish/readme-badge.ts
+@@ -11,6 +11,8 @@ export interface ReadmeBadgeMarkupOptions {
+ 
+ const README_BADGE_BLOCK_PATTERN =
+   /(?:^|\n)<!-- agent-badge:start -->\n[\s\S]*?\n<!-- agent-badge:end -->\n*/g;
++const README_BADGE_REGION_PATTERN =
++  /<!-- agent-badge:start -->[\s\S]*?<!-- agent-badge:end -->/g;
+ 
+ function ensureTrailingNewline(value: string): string {
+   return value.endsWith("\n") ? value : `${value}\n`;
+@@ -23,6 +25,28 @@ ${AGENT_BADGE_README_END_MARKER}
+ `;
+ }
+ 
++function buildManagedBadgeInline(badgeMarkdown: string): string {
++  return `${AGENT_BADGE_README_START_MARKER}${badgeMarkdown}${AGENT_BADGE_README_END_MARKER}`;
++}
++
++function updateExistingManagedBadge(
++  content: string,
++  badgeMarkdown: string
++): string | null {
++  const regions = content.match(README_BADGE_REGION_PATTERN) ?? [];
++
++  if (regions.length !== 1) {
++    return null;
++  }
++
++  const existingRegion = regions[0];
++  const managedRegion = existingRegion.includes("\n")
++    ? buildManagedBadgeBlock(badgeMarkdown).trimEnd()
++    : buildManagedBadgeInline(badgeMarkdown);
++
++  return content.replace(README_BADGE_REGION_PATTERN, managedRegion);
++}
++
+ export function buildReadmeBadgeMarkdown({
+   label,
+   badgeUrl,
+@@ -43,8 +68,16 @@ export function upsertReadmeBadge(
+   content: string,
+   badgeMarkdown: string
+ ): string {
++  const updatedContent = updateExistingManagedBadge(content, badgeMarkdown);
++
++  if (updatedContent !== null) {
++    return updatedContent;
++  }
++
+   const managedBlock = buildManagedBadgeBlock(badgeMarkdown);
+-  const withoutManagedBlock = content.replace(README_BADGE_BLOCK_PATTERN, "");
++  const withoutManagedBlock = content
++    .replace(README_BADGE_BLOCK_PATTERN, "")
++    .replace(README_BADGE_REGION_PATTERN, "");
+   const normalizedContent = withoutManagedBlock.replace(/^\n+/, "");
+ 
+   if (normalizedContent.length === 0) {

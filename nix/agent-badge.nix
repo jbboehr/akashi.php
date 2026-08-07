@@ -6,12 +6,30 @@
   gh,
   gitMinimal,
   writeShellApplication,
+  writeShellScript,
   agent-badge-unwrapped,
 }:
 
 let
+  agentBadgeDirectory = agent-badge-unwrapped.agentBadgeDirectory;
+  authenticatedEntrypoint = writeShellScript "agent-badge-authenticated" ''
+    if [[ ! -r /run/secrets/gh-token ]]; then
+      echo "agent-badge: GitHub token was not provided to the sandbox" >&2
+      exit 1
+    fi
+
+    IFS= read -r GH_TOKEN < /run/secrets/gh-token
+    if [[ -z "$GH_TOKEN" ]]; then
+      echo "agent-badge: GitHub token provided to the sandbox is empty" >&2
+      exit 1
+    fi
+
+    export GH_TOKEN
+    exec ${agent-badge-unwrapped}/bin/agent-badge "$@"
+  '';
   runtimePackages = [
     agent-badge-unwrapped
+    authenticatedEntrypoint
     cacert
     gh
     gitMinimal
@@ -112,6 +130,8 @@ writeShellApplication {
       --dir /etc
       --dir /home
       --dir "$sandbox_home"
+      --dir "$sandbox_home/.config"
+      --dir "$sandbox_home/.config/gh"
       --proc /proc
       --dev /dev
       --tmpfs /tmp
@@ -157,36 +177,101 @@ writeShellApplication {
     fi
 
     if [[ "$needs_auth" == "true" ]]; then
-      for environment_name in GH_TOKEN GITHUB_TOKEN GITHUB_PAT GH_HOST; do
-        if [[ -v "$environment_name" ]]; then
-          sandbox_args+=(--setenv "$environment_name" "''${!environment_name}")
+      github_token=""
+
+      for environment_name in GH_TOKEN GITHUB_TOKEN GITHUB_PAT; do
+        if [[ -n "''${!environment_name-}" ]]; then
+          github_token="''${!environment_name}"
+          break
         fi
       done
 
-      host_gh_config=""
-      if [[ -n "''${GH_CONFIG_DIR-}" ]]; then
-        host_gh_config="$GH_CONFIG_DIR"
-      elif [[ -n "''${XDG_CONFIG_HOME-}" ]]; then
-        host_gh_config="$XDG_CONFIG_HOME/gh"
-      elif [[ -n "$host_home" ]]; then
-        host_gh_config="$host_home/.config/gh"
+      if [[ -z "$github_token" ]]; then
+        if [[ -n "''${GH_HOST-}" ]]; then
+          if ! github_token="$(${gh}/bin/gh auth token --hostname "$GH_HOST" 2>/dev/null)"; then
+            github_token=""
+          fi
+        else
+          if ! github_token="$(${gh}/bin/gh auth token 2>/dev/null)"; then
+            github_token=""
+          fi
+        fi
       fi
 
-      if [[ -d "$host_gh_config" ]]; then
-        host_gh_config="$(cd "$host_gh_config" && pwd -P)"
-        sandbox_args+=(
-          --dir "$sandbox_home/.config"
-          --ro-bind "$host_gh_config" "$sandbox_home/.config/gh"
-        )
+      if [[ -z "$github_token" ]]; then
+        echo "agent-badge: GitHub authentication is required for '$command_name'" >&2
+        echo "agent-badge: export GH_TOKEN or authenticate the host GitHub CLI with 'gh auth login'" >&2
+        exit 1
+      fi
+
+      if [[ "$github_token" == *$'\n'* || "$github_token" == *$'\r'* ]]; then
+        echo "agent-badge: refusing a GitHub token containing a line break" >&2
+        exit 1
+      fi
+
+      exec {github_token_fd}<<<"$github_token"
+      unset github_token
+      sandbox_args+=(
+        --dir /run
+        --dir /run/secrets
+        --perms 0400
+        --ro-bind-data "$github_token_fd" /run/secrets/gh-token
+      )
+
+      if [[ -n "''${GH_HOST-}" ]]; then
+        sandbox_args+=(--setenv GH_HOST "$GH_HOST")
       fi
     fi
 
+    resolve_provider_directory() {
+      local environment_name="$1"
+      local default_directory="$2"
+      local candidate="$default_directory"
+
+      resolved_provider_directory=""
+      if [[ -n "''${!environment_name-}" ]]; then
+        candidate="''${!environment_name}"
+
+        if [[ "$candidate" != /* ]]; then
+          echo "agent-badge: $environment_name must contain an absolute path" >&2
+          exit 1
+        fi
+
+        if [[ ! -d "$candidate" ]]; then
+          echo "agent-badge: $environment_name does not name an accessible directory: $candidate" >&2
+          exit 1
+        fi
+      elif [[ -z "$candidate" || ! -d "$candidate" ]]; then
+        return
+      fi
+
+      if ! resolved_provider_directory="$(cd "$candidate" && pwd -P)"; then
+        echo "agent-badge: unable to resolve $environment_name directory: $candidate" >&2
+        exit 1
+      fi
+
+      if [[ "$resolved_provider_directory" == "/" ]]; then
+        echo "agent-badge: refusing to use the filesystem root for $environment_name" >&2
+        exit 1
+      fi
+    }
+
     # Never expose provider credentials or configuration. The scanner receives
-    # only the database/history inputs its adapters read.
-    if [[ "$provider_access" != "none" && -n "$host_home" ]]; then
-      host_codex_home="$host_home/.codex"
-      if [[ -d "$host_codex_home" ]]; then
+    # only the database/history inputs its adapters read. Directory overrides
+    # select host sources; the upstream CLI still sees its conventional paths.
+    if [[ "$provider_access" != "none" ]]; then
+      default_codex_home=""
+      default_claude_home=""
+      if [[ -n "$host_home" ]]; then
+        default_codex_home="$host_home/.codex"
+        default_claude_home="$host_home/.claude"
+      fi
+
+      resolve_provider_directory AGENT_BADGE_CODEX_DIR "$default_codex_home"
+      host_codex_home="$resolved_provider_directory"
+      if [[ -n "$host_codex_home" ]]; then
         sandbox_args+=(--dir "$sandbox_home/.codex")
+        sandbox_args+=(--setenv AGENT_BADGE_CODEX_DIR "$sandbox_home/.codex")
 
         if [[ "$provider_access" == "history" || "$provider_access" == "pricing" ]]; then
           shopt -s nullglob
@@ -220,9 +305,11 @@ writeShellApplication {
         fi
       fi
 
-      host_claude_home="$host_home/.claude"
-      if [[ -d "$host_claude_home" ]]; then
+      resolve_provider_directory AGENT_BADGE_CLAUDE_DIR "$default_claude_home"
+      host_claude_home="$resolved_provider_directory"
+      if [[ -n "$host_claude_home" ]]; then
         sandbox_args+=(--dir "$sandbox_home/.claude")
+        sandbox_args+=(--setenv AGENT_BADGE_CLAUDE_DIR "$sandbox_home/.claude")
 
         host_claude_projects="$host_claude_home/projects"
         if \
@@ -238,25 +325,31 @@ writeShellApplication {
 
     mount_agent_badge_directory() {
       local access="$1"
-      local agent_badge_directory="$project_root/.agent-badge"
+      local agent_badge_directory="$project_root/${agentBadgeDirectory}"
 
       if [[ -L "$agent_badge_directory" ]]; then
-        echo "agent-badge: refusing a symlinked .agent-badge directory" >&2
+        echo "agent-badge: refusing a symlinked ${agentBadgeDirectory} directory" >&2
         exit 1
       fi
 
       if [[ ! -d "$agent_badge_directory" ]]; then
         if [[ "$access" == "rw" ]]; then
-          echo "agent-badge: .agent-badge is not initialized in $project_root" >&2
+          echo "agent-badge: ${agentBadgeDirectory} is not initialized in $project_root" >&2
           exit 1
         fi
         return
       fi
 
       if [[ "$access" == "rw" ]]; then
-        sandbox_args+=(--bind "$agent_badge_directory" "$agent_badge_directory")
+        sandbox_args+=(
+          --dir "$project_root/.github"
+          --bind "$agent_badge_directory" "$agent_badge_directory"
+        )
       else
-        sandbox_args+=(--ro-bind "$agent_badge_directory" "$agent_badge_directory")
+        sandbox_args+=(
+          --dir "$project_root/.github"
+          --ro-bind "$agent_badge_directory" "$agent_badge_directory"
+        )
       fi
     }
 
@@ -379,6 +472,11 @@ writeShellApplication {
           shopt -u nullglob
           ;;
       esac
+    fi
+
+    if [[ "$needs_auth" == "true" ]]; then
+      exec ${bubblewrap}/bin/bwrap "''${sandbox_args[@]}" -- \
+        ${authenticatedEntrypoint} "$@"
     fi
 
     exec ${bubblewrap}/bin/bwrap "''${sandbox_args[@]}" -- \

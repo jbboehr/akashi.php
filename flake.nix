@@ -62,7 +62,10 @@
             null;
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
-          settings.global.excludes = [ "docs/IMPLEMENTATION_HANDOFF.md" ];
+          settings.global.excludes = [
+            ".github/agent-badge/config.json"
+            "docs/IMPLEMENTATION_HANDOFF.md"
+          ];
           programs.nixfmt = {
             enable = true;
             package = pkgs.nixfmt;
