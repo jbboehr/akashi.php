@@ -63,6 +63,10 @@ use PHPUnit\Framework\ExpectationFailedException;
 /** @implements Rule<Echo_> */
 final class DocumentationEchoRule implements Rule
 {
+    public function __construct(private readonly ?string $requiredClass = null)
+    {
+    }
+
     public function getNodeType(): string
     {
         return Echo_::class;
@@ -75,6 +79,13 @@ final class DocumentationEchoRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
+        if ($this->requiredClass !== null && !class_exists($this->requiredClass, false)) {
+            throw new \LogicException(sprintf(
+                'Expected cross-file declaration %s to be loaded before analysis.',
+                $this->requiredClass,
+            ));
+        }
+
         return [RuleErrorBuilder::message('echo statements are forbidden in analyzed documentation')
             ->identifier('akashi.echo')
             ->build()];
@@ -89,6 +100,8 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
     private string $projectRoot;
 
     private static ?string $recordedAnalysisPath = null;
+
+    private ?string $requiredClassDuringAnalysis = null;
 
     protected function setUp(): void
     {
@@ -116,7 +129,7 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
 
     protected function getRule(): Rule
     {
-        return new DocumentationEchoRule();
+        return new DocumentationEchoRule($this->requiredClassDuringAnalysis);
     }
 
     public static function recordAnalysisPath(string $path): void
@@ -196,6 +209,92 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
                 "//! echo statements are forbidden\necho 'captured';",
             )),
             PhpStanExampleConfiguration::forProject($this->projectRoot, static fn (Example $example): bool => true),
+        );
+    }
+
+    public function testLoadsTheWholeCorpusBeforeAnalyzingCrossFileDeclarations(): void
+    {
+        $class = 'Akashi\\PhpStanCrossFileFixture\\LaterDeclaration';
+        $this->requiredClassDuringAnalysis = $class;
+
+        $this->assertPhpStanExamples(
+            new ExampleCorpus(
+                $this->example(
+                    'example-analysis-first-01',
+                    'docs/analysis-first.md',
+                    1,
+                    "<?php\n//! echo statements are forbidden\necho 'analyze after loading';",
+                ),
+                $this->example(
+                    'example-declaration-later-01',
+                    'docs/declaration-later.md',
+                    1,
+                    "<?php\nnamespace Akashi\\PhpStanCrossFileFixture;\nfinal class LaterDeclaration {}",
+                ),
+            ),
+            PhpStanExampleConfiguration::forProject(
+                $this->projectRoot,
+                static fn (Example $example): bool => true,
+            ),
+        );
+
+        self::assertTrue(class_exists($class, false));
+    }
+
+    public function testCleanupFailurePreservesTheOriginalLoadingFailure(): void
+    {
+        $recordCall = sprintf('%s::recordAnalysisPath(__FILE__);', self::class);
+        $failure = null;
+
+        try {
+            $this->assertPhpStanExamples(
+                new ExampleCorpus($this->example(
+                    'example-cleanup-failure-01',
+                    'docs/cleanup-failure.md',
+                    1,
+                    sprintf(
+                        "<?php\n\\%s\nfile_put_contents(__DIR__ . '/leftover', 'owned');\n"
+                        . "throw new RuntimeException('original loading failure');",
+                        $recordCall,
+                    ),
+                )),
+                PhpStanExampleConfiguration::forProject(
+                    $this->projectRoot,
+                    static fn (Example $example): bool => true,
+                ),
+            );
+        } catch (PhpStanVerificationException $caught) {
+            $failure = $caught;
+        } finally {
+            $analysisPath = self::$recordedAnalysisPath;
+            if ($analysisPath !== null) {
+                $analysisDirectory = dirname($analysisPath);
+                $leftover = $analysisDirectory . '/leftover';
+                if (file_exists($leftover)) {
+                    self::assertTrue(unlink($leftover));
+                }
+                if (is_dir($analysisDirectory)) {
+                    self::assertTrue(rmdir($analysisDirectory));
+                }
+            }
+        }
+
+        self::assertNotNull($failure);
+        self::assertStringContainsString(
+            'PHPStan example verification cleanup failed:',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString(
+            'unable to remove temporary analysis directory:',
+            $failure->getMessage(),
+        );
+
+        $originalFailure = $failure->getPrevious();
+        self::assertInstanceOf(PhpStanVerificationException::class, $originalFailure);
+        self::assertStringContainsString(
+            'Unable to load PHPStan example example-cleanup-failure-01 at docs/cleanup-failure.md:10: '
+            . 'RuntimeException: original loading failure',
+            $originalFailure->getMessage(),
         );
     }
 
