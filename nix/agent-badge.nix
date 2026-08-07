@@ -136,6 +136,7 @@ writeShellApplication {
       --dev /dev
       --tmpfs /tmp
       --setenv HOME "$sandbox_home"
+      --setenv AGENT_BADGE_DIR ${lib.escapeShellArg agentBadgeDirectory}
       --setenv XDG_CONFIG_HOME "$sandbox_home/.config"
       --setenv GH_CONFIG_DIR "$sandbox_home/.config/gh"
       --setenv LANG C.UTF-8
@@ -487,7 +488,7 @@ writeShellApplication {
     passthru.unwrapped = agent-badge-unwrapped;
     meta = {
       description = "Bubblewrap-confined agent-badge CLI";
-      homepage = "https://github.com/arlegotin/agent-badge";
+      homepage = "https://github.com/jbboehr/agent-badge.ts";
       license = lib.licenses.mit;
       mainProgram = "agent-badge";
       platforms = lib.platforms.linux;
