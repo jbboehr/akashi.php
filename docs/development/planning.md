@@ -13,14 +13,15 @@ bootstrap handling, and common result reporting. The analyzer-independent PHPSta
 implemented: ordered `//!` parsing retains maintained Markdown lines, diagnostics remain free of PHPStan runtime types,
 and exact-count, case-sensitive message/tip matching uses deterministic one-to-one assignment with typed outcomes.
 Canonical PHPStan project configuration, explicit custom or supplied-token relevance predicates, and deterministic
-nonempty relevant-corpus selection are implemented without embedding Yumemi-specific tokens. The next working chunk is
-the secure temporary-source lifecycle and public `RuleTestCase` adapter that will supply diagnostics and report those
-outcomes.
+nonempty relevant-corpus selection are implemented without embedding Yumemi-specific tokens. Its secure temporary-source
+lifecycle and public `RuleTestCase` adapter now load declarations, supply diagnostics, map maintained source lines, and
+report matcher outcomes. The remaining MVP work is driven by the Yumemi and Yumemi Apocrypha consumer migrations.
 
-Before the first release, verify the documented PHPUnit integration under ParaTest. Exercise independently named data
-sets concurrently and confirm deterministic discovery, collision-resistant execution scopes, process-state isolation,
-failure reporting, and temporary-resource cleanup. Treat this as compatibility verification rather than a separate
-runner integration, and do not add a runtime dependency on ParaTest solely for this check.
+Compatibility with the locked ParaTest release is verified with two workers in both its default TestCase-level mode and
+its `--functional` test-level mode. The full suite includes consumer-shaped named documentation data sets, in-process
+declaration isolation, separate-process execution, temporary-resource cleanup, failure reporting, and the PHPStan
+`RuleTestCase` adapter. `composer test:parallel` repeats both modes, and CI runs the gate on PHP 8.2. ParaTest remains
+development-only; Akashi has no runner-specific runtime integration.
 
 `nikic/php-parser` and `symfony/process` are intentionally installed before their first imports. Their constraints were
 validated with the other runtime dependencies in the first implementation slice. `nikic/php-parser` now supports the

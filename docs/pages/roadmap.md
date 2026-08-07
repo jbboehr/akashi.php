@@ -10,8 +10,10 @@ the documented MVP API.
 2. Verify Yumemi's complete relevant PHPStan corpus and all authored expectations.
 3. Migrate Yumemi and Apocrypha marked-example extraction calls.
 4. Remove duplicated consumer helpers only after both old and Akashi paths agree.
-5. Verify ParaTest compatibility and document any required process boundaries.
-6. Finalize public API, limitation, and migration documentation from the acceptance evidence.
+5. Finalize public API, limitation, and migration documentation from the acceptance evidence.
+
+The ParaTest compatibility gate is complete for both TestCase-level and `--functional` test-level scheduling. Keep both
+modes in CI while the consumer migrations exercise the same public integration paths.
 
 ## PHPDoc Example Maintainability
 

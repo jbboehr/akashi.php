@@ -157,6 +157,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [Symfony Process 7.4](https://symfony.com/doc/7.4/components/process.html)                           | Integration guide                | Array commands, output streams, exit status, and timeouts                   |
 | 2026-08-04 | [Symfony 7.4 release](https://symfony.com/releases/7.4)                                              | User-facing behavioral reference | PHP compatibility and LTS status                                            |
 | 2026-08-04 | [Symfony Process package metadata](https://packagist.org/packages/symfony/process)                   | User-facing behavioral reference | Current release and dependency constraints                                  |
+| 2026-08-07 | [ParaTest README](https://github.com/paratestphp/paratest#readme)                                    | Integration guide                | TestCase- and test-level parallel modes and worker-process behavior         |
+| 2026-08-07 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                        | User-facing behavioral reference | Selecting the PHP 8.2 and PHPUnit 11.5 compatible development release       |
 
 ### Cargo and rustdoc
 

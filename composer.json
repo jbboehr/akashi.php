@@ -76,6 +76,7 @@
     ],
     "require-dev": {
         "ext-dom": "*",
+        "brianium/paratest": "^7.8.5",
         "friendsofphp/php-cs-fixer": "^3",
         "infection/infection": "^0.32.6",
         "phpstan/phpstan": "^2.2.5",
@@ -96,7 +97,13 @@
         "docs:check": "make docs-check",
         "docs:serve": "make docs-serve",
         "infection": "infection --no-progress",
-        "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90"
+        "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90",
+        "test:parallel": [
+            "@test:parallel:cases",
+            "@test:parallel:functional"
+        ],
+        "test:parallel:cases": "paratest --processes=2 --colors=never --no-coverage",
+        "test:parallel:functional": "paratest --processes=2 --functional --colors=never --no-coverage"
     },
     "_comment": [
         "Think not that I am come to send peace on earth: I came not to send peace, but a sword. Matthew 10:34"

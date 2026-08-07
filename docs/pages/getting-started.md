@@ -189,4 +189,8 @@ composer install
 composer cs
 vendor/bin/phpstan analyse
 vendor/bin/phpunit
+composer test:parallel
 ```
+
+The parallel compatibility command is an additional contributor gate. It runs the complete test suite twice: once with
+ParaTest's default TestCase-level scheduling and once with `--functional` test-level scheduling.

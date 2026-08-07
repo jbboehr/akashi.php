@@ -91,6 +91,10 @@ jobs:
             - name: Run PHPUnit
               run: vendor/bin/phpunit --colors=never
 
+            - name: Verify ParaTest compatibility
+              if: matrix.php-version == '8.2'
+              run: composer test:parallel
+
             - name: Smoke-test executable
               run: bin/akashi
 

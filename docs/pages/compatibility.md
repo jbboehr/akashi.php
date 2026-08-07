@@ -13,6 +13,7 @@ release; project-specific migration gates are recorded separately below rather t
 | Markdown          | CommonMark fenced PHP blocks through `league/commonmark` 2.8                      |
 | PHPUnit           | Optional consumer integration targeting PHPUnit 11.5                              |
 | PHPStan           | Optional consumer integration targeting PHPStan 2.x                               |
+| ParaTest          | Development-only runner gate; not required by consumers                           |
 | Operating systems | Unix-like CI is exercised; Windows-specific discovery identity remains unverified |
 
 Akashi's core model, discovery, Markdown extraction, transformation, execution, and CLI do not require PHPUnit or
@@ -62,8 +63,11 @@ Discovery rejects symlinked directory traversal and documents resolving outside 
 physical files normally use device and inode identity. On platforms reporting inode `0`, Akashi falls back to canonical
 paths, so distinct hard-link aliases may not be recognized as duplicates.
 
-ParaTest compatibility is planned but not yet verified. Corpus-level PHPStan declaration loading and any shared
-in-process state deserve particular attention before parallel execution is advertised.
+In this repository's PHP 8.2 CI gate, the locked ParaTest release runs Akashi's full suite with two workers in both
+default TestCase-level mode and `--functional` test-level mode. The gate includes consumer-shaped named example data
+sets, both runtime backends, and the PHPStan `RuleTestCase` adapter. Each PHPStan corpus-level assertion still executes
+wholly inside one worker; do not split one declaration set across multiple test methods or repeat it in the same worker
+process. Akashi does not require ParaTest at runtime or use its worker-token environment variables.
 
 ## Migration Status
 
