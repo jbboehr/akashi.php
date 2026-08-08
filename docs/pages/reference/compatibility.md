@@ -99,5 +99,11 @@ and two authored-namespace examples in child processes. Its real PHPStan rule an
 examples and eight authored `//!` expectations. The replacement gate passed before Yumemi removed its duplicated
 Markdown discovery, runtime transform, diagnostic matcher, and unused extraction helpers.
 
-Akashi also has byte-equality compatibility coverage for all eight marked Yumemi Apocrypha examples. That consumer has
-not yet switched its script to `vendor/bin/akashi`; its migration remains the final recorded MVP acceptance gate.
+Yumemi Apocrypha's migration is also complete. Commit
+[`f617093`](https://github.com/jbboehr/yumemi-apocrypha.php/commit/f617093eeca3cf6be21907f596f15673c545927c) changed all
+eight marked-example consumer calls to `vendor/bin/akashi`, retained Akashi's byte-equivalent extraction contract, and
+removed the duplicated extractor and its tests. GitHub recorded 164 successful check runs for that commit, including its
+normal and isolated consumer matrices.
+
+These two migrations complete the recorded MVP consumer acceptance gates. Akashi remains pre-1.0 while its public API
+and documented limitations receive a stability review.

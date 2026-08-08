@@ -116,7 +116,7 @@
             { id: "current-and-deferred-architecture", title: "Current and Deferred Architecture" },
         ],
         "project/roadmap.html": [
-            { id: "complete-the-markdown-mvp", title: "Complete the Markdown MVP" },
+            { id: "markdown-mvp-acceptance", title: "Markdown MVP Acceptance" },
             { id: "phpdoc-example-maintainability", title: "PHPDoc Example Maintainability" },
             { id: "runtime-and-verification", title: "Runtime and Verification" },
             { id: "comparative-review", title: "Comparative Review" },

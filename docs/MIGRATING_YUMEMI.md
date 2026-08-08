@@ -2,7 +2,7 @@
 
 This document inventories the documentation-example behavior that Akashi must preserve as the local Yumemi projects
 remove or reduce their existing test helpers. It also records completed acceptance evidence. Yumemi's runtime and
-PHPStan migrations are complete; the Yumemi Apocrypha consumer migration remains pending.
+PHPStan migrations and the Yumemi Apocrypha marked-extraction migration are complete.
 
 ## Compatibility target, not architecture template
 
@@ -148,7 +148,8 @@ cleanly.
 
 The reference Yumemi snapshot contained the duplicated `MarkedCodeBlockExtractor` and a direct CLI wrapper, although no
 current Yumemi consumer script invoked that wrapper. The completed Yumemi migration removed both after Akashi's
-equivalent extraction behavior was established. The live Apocrypha consumer described below still needs to migrate.
+equivalent extraction behavior was established. Apocrypha later removed the same duplicated implementation after its
+live consumer harness migrated successfully.
 
 ## Yumemi Apocrypha behavior inventory
 
@@ -212,7 +213,7 @@ The surrounding consumer harness remains owned by Apocrypha. Akashi must not abs
 dependency/version matrices, package installation, extension autodetection, expected third-party diagnostics, or
 source-versus-archive test modes.
 
-## Planned ownership after migration
+## Ownership after migration
 
 | Concern                                                  | Akashi                       | Consuming project                                    |
 | -------------------------------------------------------- | ---------------------------- | ---------------------------------------------------- |
@@ -228,9 +229,9 @@ source-versus-archive test modes.
 
 ## Migration sequence and gates
 
-Akashi's implementation gates and the Yumemi consumer migration are complete. Self-contained compatibility fixtures
-preserve the eight outputs captured from Apocrypha's legacy extractor and compare them byte-for-byte with the Akashi CLI
-application, but the Apocrypha consumer still invokes its legacy wrapper.
+Akashi's implementation gates and both consumer migrations are complete. Self-contained compatibility fixtures preserve
+the eight outputs captured from Apocrypha's legacy extractor and compare them byte-for-byte with the Akashi CLI
+application.
 
 1. **Complete:** Implement and test Akashi's immutable document and example models.
 2. **Complete:** Implement discovery and a fence scanner against synthetic fixtures plus reduced Yumemi examples.
@@ -239,10 +240,9 @@ application, but the Apocrypha consumer still invokes its legacy wrapper.
 4. **Complete:** Implement in-process transformation and execution before changing Yumemi tests.
 5. **Complete:** Implement the composable PHPUnit integration and migrate Yumemi's runtime documentation test.
 6. **Complete:** Implement the PHPStan `RuleTestCase` seam and migrate Yumemi without weakening exact diagnostic checks.
-7. **Pending:** Change Apocrypha's consumer script to invoke `vendor/bin/akashi`, retaining every surrounding consumer
+7. **Complete:** Change Apocrypha's consumer script to invoke `vendor/bin/akashi`, retaining every surrounding consumer
    assertion.
-8. **Complete for Yumemi; pending for Apocrypha:** Remove duplicated helpers only after equivalent unit and consumer
-   coverage passes.
+8. **Complete:** Remove duplicated helpers only after equivalent unit and consumer coverage passes.
 
 `GeneratedDocumentationLinkChecker` and `check-generated-links.php` are explicitly excluded from the initial Akashi
 work. They remain in both projects.
@@ -268,4 +268,11 @@ Yumemi's committed lock file still records the earlier compatible Akashi commit
 `225cc33f61d5779791112fb6c3b0f473e9c8e5ae`; refreshing that lock after current Akashi changes are published is
 bookkeeping rather than a migration blocker.
 
-The Apocrypha normal and consumer suites remain to be run after its consumer script is migrated.
+Yumemi Apocrypha adopted Akashi in commit `f617093eeca3cf6be21907f596f15673c545927c`. All eight marked-example call
+sites in `tests/Consumer/run` now invoke `vendor/bin/akashi`, while the surrounding package installation, archive,
+PHPStan configuration, and diagnostic assertions remain owned by Apocrypha. The legacy extractor, wrapper, and their
+dedicated tests were removed in the same commit.
+
+GitHub recorded 164 completed, successful check runs for that commit, including the normal repository checks and the
+isolated consumer matrices. Together with Akashi's self-contained byte-equality fixtures, this completes the recorded
+Yumemi Apocrypha acceptance gate without introducing a committed dependency on a local checkout.

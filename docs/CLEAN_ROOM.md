@@ -5,7 +5,8 @@ introduces a new external design reference.
 
 ## Boundary and confirmations
 
-Akashi's MVP is being designed independently from competing PHP documentation-test frameworks. During the MVP:
+Akashi's MVP was designed and implemented independently from competing PHP documentation-test frameworks. During the
+initial MVP:
 
 - no source code, tests, package archives, installed files, documentation, READMEs, examples, CLI help, configuration
   references, issue discussions, or third-party summaries were examined for `testflowlabs/doctest`, `texthtml/doctest`,
@@ -15,8 +16,8 @@ Akashi's MVP is being designed independently from competing PHP documentation-te
 - no prohibited implementation code was examined; and
 - the Rust and Cargo review was limited to official public user-facing behavior.
 
-The only implementation material used as domain prior art is the user-owned Yumemi material explicitly allowed by the
-handoff. The narrow League CommonMark public-API source inspection and accidental PHPStan API-reference exposure
+The only implementation material used as domain prior art is the user-owned Yumemi project material explicitly allowed
+by the handoff. The narrow League CommonMark public-API source inspection and accidental PHPStan API-reference exposure
 recorded below concern allowed integration dependencies, not competing doctest implementations; neither supplied an
 Akashi domain algorithm or architecture.
 
@@ -38,6 +39,8 @@ These local materials are allowed inputs rather than external clean-room referen
 | `tmp/yumemi-apocrypha.php/tests/Documentation/extract-markdown-example.php`                     | Legacy CLI stream and exit-status behavior                                             |
 | `tmp/yumemi-apocrypha.php/tests/Consumer/run`                                                   | The eight current marked-example consumer invocations                                  |
 | `tmp/yumemi-apocrypha.php/{README.md,docs/pages/getting-started.md,docs/pages/integrations.md}` | Byte-for-byte extraction compatibility corpus                                          |
+| `jbboehr/yumemi-apocrypha.php` at `f617093eeca3cf6be21907f596f15673c545927c`                    | Verification of the completed Apocrypha migration and legacy-extractor removal         |
+| GitHub Actions check records for Apocrypha commit `f617093eeca3cf6be21907f596f15673c545927c`    | Confirmation that all 164 recorded migration checks completed successfully             |
 | `docs/IMPLEMENTATION_HANDOFF.md`                                                                | Project scope, requirements, compatibility targets, and clean-room policy              |
 
 The behavior inventory and independently derived compatibility decisions are recorded in `MIGRATING_YUMEMI.md`.

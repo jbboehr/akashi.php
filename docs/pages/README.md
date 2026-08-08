@@ -55,6 +55,6 @@ stable named example must also become a consumer fixture.
 ## Project Status
 
 The Markdown workflow, in-process and separate-process execution, PHPUnit integration, PHPStan verification, and marked
-extraction are implemented. Akashi is pre-1.0 and its public API remains provisional while the final recorded consumer
-migration is completed. Deferred work is listed separately in the [Roadmap](project/roadmap.md); it is not required for
-the workflow shown above.
+extraction are implemented, and both recorded consumer migrations are complete. Akashi is pre-1.0 and its public API
+remains provisional while it receives a pre-release stability review. Deferred work is listed separately in the
+[Roadmap](project/roadmap.md); it is not required for the workflow shown above.

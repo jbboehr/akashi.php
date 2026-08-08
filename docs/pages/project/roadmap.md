@@ -1,25 +1,25 @@
 # Roadmap
 
 This roadmap records direction, not release-number commitments. The current Markdown workflow is usable without the
-features below. The immediate project work is the final recorded consumer migration followed by stabilization of the
+features below. Both recorded consumer migrations are complete; the immediate project work is stabilization of the
 documented pre-1.0 API.
 
-## Complete the Markdown MVP
+## Markdown MVP Acceptance
 
-Completed acceptance evidence:
+All recorded MVP acceptance gates are complete:
 
 - Yumemi executes all 43 current PHP fences through Akashi, using child processes for two authored-namespace examples.
 - Yumemi verifies all 15 relevant PHPStan examples and eight authored expectations through Akashi.
 - Yumemi removed its duplicated documentation-test helpers after its replacement and complete project gates passed.
 - Akashi produces byte-identical output for all eight marked Yumemi Apocrypha fixtures in a self-contained compatibility
   gate.
+- Yumemi Apocrypha invokes `vendor/bin/akashi` for all eight marked consumer fixtures and removed its duplicated
+  extractor after its complete GitHub Actions matrix passed.
 - ParaTest compatibility is covered in both TestCase-level and `--functional` test-level scheduling.
 
-Remaining MVP work:
-
-1. Migrate Apocrypha's marked-example consumer calls to `vendor/bin/akashi`.
-2. Run its normal and consumer suites, then remove its duplicated extractor only after both paths agree.
-3. Stabilize the public API and limitations using the recorded acceptance evidence.
+The next pre-release task is to review the public API and documented limitations using this acceptance evidence. That
+review should clarify or narrow existing contracts where necessary without adding deferred features merely to make the
+first release appear broader.
 
 ## PHPDoc Example Maintainability
 

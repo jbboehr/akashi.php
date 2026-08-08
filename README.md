@@ -92,8 +92,8 @@ Start with the [Quick Start](docs/pages/quick-start.md), or read the
 [complete documentation](https://jbboehr.github.io/akashi.php/).
 
 The Markdown workflow, both runtime backends, PHPUnit integration, PHPStan verification, and marked extraction are
-implemented and in active use. Akashi is still pre-1.0: the public API remains provisional while the final recorded
-consumer migration is completed.
+implemented and in active use. Both recorded consumer migrations are complete. Akashi is still pre-1.0, and its public
+API remains provisional while it receives a pre-release stability review.
 
 ## License
 
