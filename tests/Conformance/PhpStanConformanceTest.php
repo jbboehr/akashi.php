@@ -36,49 +36,59 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests\Cli;
+namespace jbboehr\Akashi\Tests\Conformance;
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
+use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PhpParser\Node;
+use PhpParser\Node\Stmt\Echo_;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Testing\RuleTestCase;
 
-final class ApocryphaCompatibilityTest extends TestCase
+/** @implements Rule<Echo_> */
+final class ConformanceEchoRule implements Rule
 {
-    #[DataProvider('markedExampleProvider')]
-    public function testExtractsCapturedApocryphaExamplesByteForByte(string $markerId, string $expectedFile): void
+    public function getNodeType(): string
     {
-        $fixtures = __DIR__ . '/../Fixtures/Compatibility/Apocrypha';
-        $file = $fixtures . '/marked-examples.md';
-        $expected = file_get_contents($fixtures . '/expected/' . $expectedFile);
-        self::assertNotFalse($expected);
-
-        $projectRoot = dirname(__DIR__, 2);
-        $process = new Process([
-            $projectRoot . '/bin/akashi',
-            'extract',
-            '--marker-name=yumemi-example',
-            $file,
-            $markerId,
-        ], $projectRoot);
-        $process->run();
-
-        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
-        self::assertSame('', $process->getErrorOutput());
-        self::assertSame($expected, $process->getOutput());
+        return Echo_::class;
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @param Echo_ $node
+     *
+     * @return list<\PHPStan\Rules\IdentifierRuleError>
      */
-    public static function markedExampleProvider(): iterable
+    public function processNode(Node $node, Scope $scope): array
     {
-        yield 'README cache example' => ['readme-cache-invalid', 'readme-cache-invalid.txt'];
-        yield 'getting started example' => ['getting-started-invalid', 'getting-started-invalid.txt'];
-        yield 'Guzzle example' => ['guzzle-invalid', 'guzzle-invalid.txt'];
-        yield 'getID3 example' => ['getid3-invalid', 'getid3-invalid.txt'];
-        yield 'Illuminate cache example' => ['illuminate-cache-invalid', 'illuminate-cache-invalid.txt'];
-        yield 'Illuminate HTTP example' => ['illuminate-http-invalid', 'illuminate-http-invalid.txt'];
-        yield 'PHPGeo example' => ['phpgeo-invalid', 'phpgeo-invalid.txt'];
-        yield 'Symfony Stopwatch example' => ['symfony-stopwatch-invalid', 'symfony-stopwatch-invalid.txt'];
+        return [RuleErrorBuilder::message('echo statements are forbidden by the Akashi conformance rule')
+            ->identifier('akashi.conformanceEcho')
+            ->build()];
+    }
+}
+
+/** @extends RuleTestCase<ConformanceEchoRule> */
+final class PhpStanConformanceTest extends RuleTestCase
+{
+    use VerifiesPhpStanExamples;
+
+    public function testVerifiesACommonMarkCorpusThroughThePublicPhpStanAdapter(): void
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $corpus = MarkdownSource::forProject($projectRoot)
+            ->includeFile('tests/Fixtures/Conformance/phpstan.md')
+            ->load();
+
+        $this->assertPhpStanExamples(
+            $corpus,
+            PhpStanExampleConfiguration::forTokens($projectRoot, '@akashi-phpstan-example'),
+        );
+    }
+
+    protected function getRule(): ConformanceEchoRule
+    {
+        return new ConformanceEchoRule();
     }
 }

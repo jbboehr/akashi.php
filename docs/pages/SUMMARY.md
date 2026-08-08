@@ -20,4 +20,5 @@
   - [Compatibility and Safety](reference/compatibility.md)
 - [Project](project/index.md)
   - [Architecture](project/architecture.md)
+  - [Invariants](project/invariants.md)
   - [Roadmap](project/roadmap.md)

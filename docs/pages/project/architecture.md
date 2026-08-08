@@ -3,6 +3,9 @@
 This document describes the architecture implemented in the current repository. Historical sequencing, migration
 instructions, and clean-room records live outside the public mdBook and are not part of the runtime design.
 
+The companion [Invariants](invariants.md) chapter separates durable behavioral contracts from the replaceable mechanics
+described here.
+
 Akashi is a reusable library, not a standalone test runner. It discovers examples into a framework-independent model,
 then lets PHPUnit, PHPStan, or the extraction CLI consume that model through explicit adapters.
 

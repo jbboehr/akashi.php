@@ -36,49 +36,65 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests\Cli;
+namespace jbboehr\Akashi\Tests\Conformance;
 
-use PHPUnit\Framework\Attributes\DataProvider;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
 
-final class ApocryphaCompatibilityTest extends TestCase
+final class RuntimeConformanceTest extends TestCase
 {
-    #[DataProvider('markedExampleProvider')]
-    public function testExtractsCapturedApocryphaExamplesByteForByte(string $markerId, string $expectedFile): void
+    use VerifiesPhpUnitExamples;
+
+    public function testFailureReportsTheMaintainedMarkdownLocation(): void
     {
-        $fixtures = __DIR__ . '/../Fixtures/Compatibility/Apocrypha';
-        $file = $fixtures . '/marked-examples.md';
-        $expected = file_get_contents($fixtures . '/expected/' . $expectedFile);
-        self::assertNotFalse($expected);
+        $corpus = MarkdownSource::forProject(self::projectRoot())
+            ->includeFile('tests/Fixtures/Conformance/failure.md')
+            ->load();
 
-        $projectRoot = dirname(__DIR__, 2);
-        $process = new Process([
-            $projectRoot . '/bin/akashi',
-            'extract',
-            '--marker-name=yumemi-example',
-            $file,
-            $markerId,
-        ], $projectRoot);
-        $process->run();
+        try {
+            PhpUnitRuntime::assertExample(iterator_to_array($corpus, false)[0]);
+        } catch (ExpectationFailedException $failure) {
+            self::assertStringContainsString(
+                'Location: tests/Fixtures/Conformance/failure.md:5',
+                $failure->getMessage(),
+            );
+            self::assertStringContainsString('conformance failure', $failure->getMessage());
 
-        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
-        self::assertSame('', $process->getErrorOutput());
-        self::assertSame($expected, $process->getOutput());
+            return;
+        }
+
+        self::fail('The deliberately failing conformance example must fail through the public PHPUnit facade.');
     }
 
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function markedExampleProvider(): iterable
+    public function testExecutesTheReducedYumemiFixtureThroughThePublicFacade(): void
     {
-        yield 'README cache example' => ['readme-cache-invalid', 'readme-cache-invalid.txt'];
-        yield 'getting started example' => ['getting-started-invalid', 'getting-started-invalid.txt'];
-        yield 'Guzzle example' => ['guzzle-invalid', 'guzzle-invalid.txt'];
-        yield 'getID3 example' => ['getid3-invalid', 'getid3-invalid.txt'];
-        yield 'Illuminate cache example' => ['illuminate-cache-invalid', 'illuminate-cache-invalid.txt'];
-        yield 'Illuminate HTTP example' => ['illuminate-http-invalid', 'illuminate-http-invalid.txt'];
-        yield 'PHPGeo example' => ['phpgeo-invalid', 'phpgeo-invalid.txt'];
-        yield 'Symfony Stopwatch example' => ['symfony-stopwatch-invalid', 'symfony-stopwatch-invalid.txt'];
+        $fixtureRoot = self::projectRoot() . '/tests/Fixtures/Compatibility/Yumemi';
+        $corpus = MarkdownSource::forProject($fixtureRoot)
+            ->includeFile('README.md')
+            ->load();
+
+        PhpUnitRuntime::assertExample(iterator_to_array($corpus, false)[0]);
+    }
+
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(self::projectRoot())
+            ->includeFile('tests/Fixtures/Conformance/runtime.md')
+            ->load();
+    }
+
+    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    {
+        return RuntimeConfiguration::forProject(self::projectRoot());
+    }
+
+    private static function projectRoot(): string
+    {
+        return dirname(__DIR__, 2);
     }
 }
