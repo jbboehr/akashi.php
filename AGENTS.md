@@ -17,6 +17,21 @@ If a reference contains a potentially useful material update, do not reconcile i
 differences, separate generic improvements from Yumemi-specific behavior, and ask the user whether to port them.
 Preserve Akashi's package identity and project-specific design.
 
+## Temporary and reference checkouts
+
+Never commit source code, tests, or scripts that references `tmp/`, `/work/tmp`, or any other workspace-local temporary
+or reference-checkout path. Committed configuration must not use such a checkout as a build, test, or runtime input.
+Committed tests must not conditionally skip or change behavior according to whether such a checkout exists. Ignore and
+archive-exclusion rules may defensively prevent temporary directories from entering commits or packages.
+
+Temporary reference checkouts may be inspected when another repository rule explicitly permits it, but any compatibility
+evidence needed by committed code must be represented by repository-owned fixtures, public package boundaries, or other
+self-contained inputs. Record fixture provenance and licensing where applicable. Existing violations must be removed
+when discovered and must not be treated as precedent.
+
+This restriction does not prohibit runtime-created temporary directories obtained through platform APIs, provided they
+do not encode or depend on a workspace-local reference checkout.
+
 ## Documentation
 
 Documentation is part of the public API. Public mdBook sources live under `docs/pages/`, with chapter order defined by

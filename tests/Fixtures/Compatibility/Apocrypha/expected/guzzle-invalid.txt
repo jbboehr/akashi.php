@@ -1,0 +1,13 @@
+<?php
+
+use GuzzleHttp\Client;
+
+use function jbboehr\Yumemi\unit;
+
+function fetchRemoteReport(Client $client): void
+{
+    $client->request('GET', '/reports', ['timeout' => unit(2, 'second')]);
+    $client->request('GET', '/reports', [
+        'timeout' => unit(250, 'millisecond'), // PHPStan rejects milliseconds at this seconds boundary.
+    ]);
+}

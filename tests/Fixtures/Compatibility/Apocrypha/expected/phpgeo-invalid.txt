@@ -1,0 +1,16 @@
+<?php
+
+use Location\Bearing\BearingSpherical;
+use Location\Coordinate;
+
+use function jbboehr\Yumemi\unit;
+
+function projectSurveyPoint(BearingSpherical $bearing, Coordinate $origin): void
+{
+    $bearing->calculateDestination($origin, unit(45.0, 'degree'), unit(500.0, 'meter'));
+    $bearing->calculateDestination(
+        $origin,
+        unit(0.5, 'radian'), // PHPStan rejects radians at this degree boundary.
+        unit(500.0, 'meter'),
+    );
+}

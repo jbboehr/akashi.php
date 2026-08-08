@@ -1,0 +1,16 @@
+<?php
+
+use JamesHeinrich\GetID3\GetID3;
+
+/** @param unit_int<'second'>|unit_float<'second'> $duration */
+function recordMediaDuration(int|float $duration): void {}
+
+$metadata = (new GetID3())->analyze('/srv/media/interview.wav');
+
+if (isset($metadata['playtime_seconds'])) {
+    recordMediaDuration($metadata['playtime_seconds']);
+}
+
+if (isset($metadata['bitrate'])) {
+    recordMediaDuration($metadata['bitrate']); //! PHPStan rejects a bitrate at this duration boundary.
+}

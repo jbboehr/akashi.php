@@ -228,9 +228,9 @@ source-versus-archive test modes.
 
 ## Migration sequence and gates
 
-Akashi's implementation gates and the Yumemi consumer migration are complete. The local compatibility test invokes
-Apocrypha's legacy extractor and compares all eight marked outputs byte-for-byte with the Akashi CLI application, but
-the Apocrypha consumer still invokes its legacy wrapper.
+Akashi's implementation gates and the Yumemi consumer migration are complete. Self-contained compatibility fixtures
+preserve the eight outputs captured from Apocrypha's legacy extractor and compare them byte-for-byte with the Akashi CLI
+application, but the Apocrypha consumer still invokes its legacy wrapper.
 
 1. **Complete:** Implement and test Akashi's immutable document and example models.
 2. **Complete:** Implement discovery and a fence scanner against synthetic fixtures plus reduced Yumemi examples.
@@ -250,8 +250,9 @@ work. They remain in both projects.
 ## Inventory and acceptance verification
 
 The file lists, marker locations, consumer call sites, document count, PHP fence count, and expectation count were
-checked directly at the reference commits above. Akashi's compatibility test executes the legacy Apocrypha marked
-extractor directly without requiring either reference package's Composer dependencies.
+checked directly at the reference commits above. Akashi retains repository-owned Yumemi transform fixtures and the eight
+byte-for-byte legacy Apocrypha outputs under `tests/Fixtures/Compatibility/`; committed tests do not read from or depend
+on local reference checkouts.
 
 Yumemi adopted Akashi in commit `73eb37f67699940b4e5ae013c3bbf448850f1b46`. On 2026-08-07, its `develop` checkout at
 `368badd0669faec7b46052e867bd9f40be49cd29` passed:

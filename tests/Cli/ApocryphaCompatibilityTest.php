@@ -46,27 +46,12 @@ use PHPUnit\Framework\TestCase;
 final class ApocryphaCompatibilityTest extends TestCase
 {
     #[DataProvider('markedExampleProvider')]
-    public function testMatchesTheLegacyExtractorByteForByte(string $document, string $markerId): void
+    public function testExtractsCapturedApocryphaExamplesByteForByte(string $markerId, string $expectedFile): void
     {
-        $root = realpath(__DIR__ . '/../../tmp/yumemi-apocrypha.php');
-        if ($root === false) {
-            self::markTestSkipped('The local Yumemi Apocrypha reference checkout is unavailable.');
-        }
-
-        $legacyExtractor = $root . '/tests/Documentation/MarkedCodeBlockExtractor.php';
-        if (!is_file($legacyExtractor)) {
-            self::markTestSkipped('The local Yumemi Apocrypha extractor is unavailable.');
-        }
-
-        require_once $legacyExtractor;
-
-        $file = $root . '/' . $document;
-        $legacyMethod = new \ReflectionMethod(
-            'jbboehr\\Yumemi\\Apocrypha\\Tests\\Documentation\\MarkedCodeBlockExtractor',
-            'extract',
-        );
-        $legacy = $legacyMethod->invoke(null, $file, $markerId);
-        self::assertIsString($legacy);
+        $fixtures = __DIR__ . '/../Fixtures/Compatibility/Apocrypha';
+        $file = $fixtures . '/marked-examples.md';
+        $expected = file_get_contents($fixtures . '/expected/' . $expectedFile);
+        self::assertNotFalse($expected);
 
         $stdout = '';
         $stderr = '';
@@ -82,7 +67,7 @@ final class ApocryphaCompatibilityTest extends TestCase
 
         self::assertSame(ExitCode::Success->value, $status, $stderr);
         self::assertSame('', $stderr);
-        self::assertSame($legacy, $stdout);
+        self::assertSame($expected, $stdout);
     }
 
     /**
@@ -90,13 +75,13 @@ final class ApocryphaCompatibilityTest extends TestCase
      */
     public static function markedExampleProvider(): iterable
     {
-        yield 'README cache example' => ['README.md', 'readme-cache-invalid'];
-        yield 'getting started example' => ['docs/pages/getting-started.md', 'getting-started-invalid'];
-        yield 'Guzzle example' => ['docs/pages/integrations.md', 'guzzle-invalid'];
-        yield 'getID3 example' => ['docs/pages/integrations.md', 'getid3-invalid'];
-        yield 'Illuminate cache example' => ['docs/pages/integrations.md', 'illuminate-cache-invalid'];
-        yield 'Illuminate HTTP example' => ['docs/pages/integrations.md', 'illuminate-http-invalid'];
-        yield 'PHPGeo example' => ['docs/pages/integrations.md', 'phpgeo-invalid'];
-        yield 'Symfony Stopwatch example' => ['docs/pages/integrations.md', 'symfony-stopwatch-invalid'];
+        yield 'README cache example' => ['readme-cache-invalid', 'readme-cache-invalid.txt'];
+        yield 'getting started example' => ['getting-started-invalid', 'getting-started-invalid.txt'];
+        yield 'Guzzle example' => ['guzzle-invalid', 'guzzle-invalid.txt'];
+        yield 'getID3 example' => ['getid3-invalid', 'getid3-invalid.txt'];
+        yield 'Illuminate cache example' => ['illuminate-cache-invalid', 'illuminate-cache-invalid.txt'];
+        yield 'Illuminate HTTP example' => ['illuminate-http-invalid', 'illuminate-http-invalid.txt'];
+        yield 'PHPGeo example' => ['phpgeo-invalid', 'phpgeo-invalid.txt'];
+        yield 'Symfony Stopwatch example' => ['symfony-stopwatch-invalid', 'symfony-stopwatch-invalid.txt'];
     }
 }

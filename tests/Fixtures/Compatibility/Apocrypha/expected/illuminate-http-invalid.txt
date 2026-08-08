@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Http\Client\PendingRequest;
+
+use function jbboehr\Yumemi\unit;
+
+function configureRemoteArchive(PendingRequest $request): void
+{
+    $request->timeout(unit(30, 'second'));
+    $request->timeout(unit(250, 'millisecond')); // PHPStan rejects milliseconds at this seconds boundary.
+}

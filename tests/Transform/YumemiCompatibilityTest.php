@@ -48,17 +48,13 @@ use PHPUnit\Framework\TestCase;
 
 final class YumemiCompatibilityTest extends TestCase
 {
-    public function testTransformsTheSupportedReferenceCorpusAndRecordsNamespaceExceptions(): void
+    public function testTransformsYumemiDerivedFixturesAndRecordsNamespaceExceptions(): void
     {
-        $root = realpath(__DIR__ . '/../../tmp/imm.php');
-        if ($root === false) {
-            self::markTestSkipped('The local Yumemi reference checkout is unavailable.');
-        }
+        $root = __DIR__ . '/../Fixtures/Compatibility/Yumemi';
 
         $corpus = MarkdownSource::forProject($root)
             ->includeFile('README.md')
             ->includeDirectory('docs/pages')
-            ->exclude('docs/pages/SUMMARY.md')
             ->load();
         $transformer = new InProcessTransformer();
         $parser = (new ParserFactory())->createForHostVersion();
@@ -82,11 +78,11 @@ final class YumemiCompatibilityTest extends TestCase
             }
         }
 
-        self::assertCount(37, $corpus);
-        self::assertSame(35, $transformed);
+        self::assertCount(3, $corpus);
+        self::assertSame(1, $transformed);
         self::assertSame([
-            'docs/pages/recipes.md PHP example 4',
-            'docs/pages/reference/phpstan.md PHP example 6',
+            'docs/pages/recipes.md PHP example 1',
+            'docs/pages/reference/phpstan.md PHP example 1',
         ], array_keys($unsupported));
 
         foreach ($unsupported as $message) {

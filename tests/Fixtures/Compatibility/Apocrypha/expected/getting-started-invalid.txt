@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Contracts\Cache\Store;
+
+use function jbboehr\Yumemi\unit;
+
+function verifyApocryphaInstallation(Store $cache): void
+{
+    $cache->put('report', 'ready', unit(30, 'second'));
+    $cache->put('report', 'stale', unit(1, 'minute')); // PHPStan rejects this seconds boundary.
+}

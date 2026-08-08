@@ -1,0 +1,10 @@
+<?php
+
+use Symfony\Component\Stopwatch\Stopwatch;
+
+/** @param unit_int<'second'>|unit_float<'second'> $duration */
+function recordProfileDurationInSeconds(int|float $duration): void {}
+
+$event = (new Stopwatch())->start('render-report');
+
+recordProfileDurationInSeconds($event->getDuration()); // PHPStan rejects milliseconds at this seconds boundary.

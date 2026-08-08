@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Cache\RateLimiter;
+
+use function jbboehr\Yumemi\unit;
+
+function recordCacheAttempt(RateLimiter $limiter): void
+{
+    $limiter->hit('report', unit(30, 'second'));
+    $limiter->hit('report', unit(2, 'minute')); // PHPStan rejects minutes at this seconds boundary.
+}
