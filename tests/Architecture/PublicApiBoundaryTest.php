@@ -42,81 +42,103 @@ use PHPUnit\Framework\TestCase;
 
 final class PublicApiBoundaryTest extends TestCase
 {
-    /**
-     * @var list<class-string>
-     */
-    private const PUBLIC_TYPES = [
-        \jbboehr\Akashi\Document::class,
-        \jbboehr\Akashi\Example::class,
-        \jbboehr\Akashi\ExampleCorpus::class,
-        \jbboehr\Akashi\Execution\Exception\ExecutionException::class,
-        \jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException::class,
-        \jbboehr\Akashi\Execution\Exception\RuntimeConfigurationException::class,
-        \jbboehr\Akashi\Execution\ExecutionMode::class,
-        \jbboehr\Akashi\Execution\RuntimeConfiguration::class,
-        \jbboehr\Akashi\Integration\PHPStan\AnalyzerDiagnostic::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticAssignment::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatcher::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatchResult::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticMismatchKind::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMatched::class,
-        \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMismatched::class,
-        \jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException::class,
-        \jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException::class,
-        \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException::class,
-        \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException::class,
-        \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanVerificationException::class,
-        \jbboehr\Akashi\Integration\PHPStan\ExpectationParser::class,
-        \jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::class,
-        \jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples::class,
-        \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
-        \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
-        \jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples::class,
-        \jbboehr\Akashi\Markdown\Exception\DirectiveException::class,
-        \jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException::class,
-        \jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException::class,
-        \jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException::class,
-        \jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException::class,
-        \jbboehr\Akashi\Model\AbsoluteFilePath::class,
-        \jbboehr\Akashi\Model\Directive::class,
-        \jbboehr\Akashi\Model\DirectiveSet::class,
-        \jbboehr\Akashi\Model\DocumentPath::class,
-        \jbboehr\Akashi\Model\ExampleCode::class,
-        \jbboehr\Akashi\Model\ExampleId::class,
-        \jbboehr\Akashi\Model\FenceCharacter::class,
-        \jbboehr\Akashi\Model\FenceMetadata::class,
-        \jbboehr\Akashi\Model\InvalidMarkerException::class,
-        \jbboehr\Akashi\Model\Language::class,
-        \jbboehr\Akashi\Model\LineIndex::class,
-        \jbboehr\Akashi\Model\MarkerId::class,
-        \jbboehr\Akashi\Model\MarkerName::class,
-        \jbboehr\Akashi\Model\MetadataLocation::class,
-        \jbboehr\Akashi\Model\ProjectPath::class,
-        \jbboehr\Akashi\Model\ProjectRoot::class,
-        \jbboehr\Akashi\Model\SourceLocation::class,
-        \jbboehr\Akashi\Model\SourceSpan::class,
-        \jbboehr\Akashi\Source\Exception\DuplicateDocumentException::class,
-        \jbboehr\Akashi\Source\Exception\MarkerNotFoundException::class,
-        \jbboehr\Akashi\Source\Exception\NoDocumentsFoundException::class,
-        \jbboehr\Akashi\Source\Exception\NoExamplesFoundException::class,
-        \jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException::class,
-        \jbboehr\Akashi\Source\Exception\SourceException::class,
-        \jbboehr\Akashi\Source\Exception\SourcePathNotFoundException::class,
-        \jbboehr\Akashi\Source\Exception\SourceReadException::class,
-        \jbboehr\Akashi\Source\Exception\UnsafeSourcePathException::class,
-        \jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException::class,
-        \jbboehr\Akashi\Source\MarkdownSource::class,
-        \jbboehr\Akashi\Source\MarkedExampleSelector::class,
-        \jbboehr\Akashi\Transform\Exception\PhpParseException::class,
-        \jbboehr\Akashi\Transform\Exception\TransformException::class,
-        \jbboehr\Akashi\Transform\Exception\UnsupportedExampleException::class,
+    /** @var array<string, list<class-string>> */
+    private const PUBLIC_TYPE_CATEGORIES = [
+        'entry points' => [
+            \jbboehr\Akashi\Execution\ExecutionMode::class,
+            \jbboehr\Akashi\Execution\RuntimeConfiguration::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatcher::class,
+            \jbboehr\Akashi\Integration\PHPStan\ExpectationParser::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::class,
+            \jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples::class,
+            \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
+            \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
+            \jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples::class,
+            \jbboehr\Akashi\Source\MarkdownSource::class,
+            \jbboehr\Akashi\Source\MarkedExampleSelector::class,
+        ],
+        'canonical model' => [
+            \jbboehr\Akashi\Document::class,
+            \jbboehr\Akashi\Example::class,
+            \jbboehr\Akashi\ExampleCorpus::class,
+            \jbboehr\Akashi\Model\AbsoluteFilePath::class,
+            \jbboehr\Akashi\Model\Directive::class,
+            \jbboehr\Akashi\Model\DirectiveSet::class,
+            \jbboehr\Akashi\Model\DocumentPath::class,
+            \jbboehr\Akashi\Model\ExampleCode::class,
+            \jbboehr\Akashi\Model\ExampleId::class,
+            \jbboehr\Akashi\Model\FenceCharacter::class,
+            \jbboehr\Akashi\Model\FenceMetadata::class,
+            \jbboehr\Akashi\Model\Language::class,
+            \jbboehr\Akashi\Model\LineIndex::class,
+            \jbboehr\Akashi\Model\MarkerId::class,
+            \jbboehr\Akashi\Model\MarkerName::class,
+            \jbboehr\Akashi\Model\MetadataLocation::class,
+            \jbboehr\Akashi\Model\ProjectPath::class,
+            \jbboehr\Akashi\Model\ProjectRoot::class,
+            \jbboehr\Akashi\Model\SourceLocation::class,
+            \jbboehr\Akashi\Model\SourceSpan::class,
+        ],
+        'PHPStan diagnostic model' => [
+            \jbboehr\Akashi\Integration\PHPStan\AnalyzerDiagnostic::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticAssignment::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatchResult::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticMismatchKind::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMatched::class,
+            \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMismatched::class,
+        ],
+        'exceptions' => [
+            \jbboehr\Akashi\Execution\Exception\ExecutionException::class,
+            \jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException::class,
+            \jbboehr\Akashi\Execution\Exception\RuntimeConfigurationException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanVerificationException::class,
+            \jbboehr\Akashi\Markdown\Exception\DirectiveException::class,
+            \jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException::class,
+            \jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException::class,
+            \jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException::class,
+            \jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException::class,
+            \jbboehr\Akashi\Model\InvalidMarkerException::class,
+            \jbboehr\Akashi\Source\Exception\DuplicateDocumentException::class,
+            \jbboehr\Akashi\Source\Exception\MarkerNotFoundException::class,
+            \jbboehr\Akashi\Source\Exception\NoDocumentsFoundException::class,
+            \jbboehr\Akashi\Source\Exception\NoExamplesFoundException::class,
+            \jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException::class,
+            \jbboehr\Akashi\Source\Exception\SourceException::class,
+            \jbboehr\Akashi\Source\Exception\SourcePathNotFoundException::class,
+            \jbboehr\Akashi\Source\Exception\SourceReadException::class,
+            \jbboehr\Akashi\Source\Exception\UnsafeSourcePathException::class,
+            \jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException::class,
+            \jbboehr\Akashi\Transform\Exception\PhpParseException::class,
+            \jbboehr\Akashi\Transform\Exception\TransformException::class,
+            \jbboehr\Akashi\Transform\Exception\UnsupportedExampleException::class,
+        ],
     ];
+
+    public function testPublicApiCategoriesAreDisjoint(): void
+    {
+        $seen = [];
+
+        foreach (self::PUBLIC_TYPE_CATEGORIES as $category => $types) {
+            foreach ($types as $type) {
+                self::assertArrayNotHasKey(
+                    $type,
+                    $seen,
+                    sprintf('Public API type %s appears in categories %s and %s.', $type, $seen[$type] ?? '', $category),
+                );
+                $seen[$type] = $category;
+            }
+        }
+    }
 
     public function testEveryAutoloadedDeclarationHasAnExplicitApiBoundary(): void
     {
         $declarations = self::declarations();
-        $publicTypes = array_fill_keys(self::PUBLIC_TYPES, null);
+        $publicTypes = array_fill_keys(self::publicTypes(), null);
 
         foreach ($declarations as $name => $declaration) {
             $isInternal = str_contains($declaration->getDocComment() ?: '', '@internal');
@@ -141,7 +163,7 @@ final class PublicApiBoundaryTest extends TestCase
     {
         $declarations = self::declarations();
 
-        foreach (self::PUBLIC_TYPES as $name) {
+        foreach (self::publicTypes() as $name) {
             $declaration = $declarations[$name];
             $parent = $declaration->getParentClass();
             if ($parent !== false) {
@@ -221,6 +243,12 @@ final class PublicApiBoundaryTest extends TestCase
             || enum_exists($name);
     }
 
+    /** @return list<class-string> */
+    private static function publicTypes(): array
+    {
+        return array_merge(...array_values(self::PUBLIC_TYPE_CATEGORIES));
+    }
+
     private static function assertPublicType(?\ReflectionType $type, string $context): void
     {
         if ($type === null) {
@@ -252,7 +280,7 @@ final class PublicApiBoundaryTest extends TestCase
 
         self::assertContains(
             $name,
-            self::PUBLIC_TYPES,
+            self::publicTypes(),
             sprintf('Public signature %s exposes internal Akashi type %s.', $context, $name),
         );
     }

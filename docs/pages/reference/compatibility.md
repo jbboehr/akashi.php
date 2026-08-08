@@ -105,5 +105,5 @@ eight marked-example consumer calls to `vendor/bin/akashi`, retained Akashi's by
 removed the duplicated extractor and its tests. GitHub recorded 164 successful check runs for that commit, including its
 normal and isolated consumer matrices.
 
-These two migrations complete the recorded MVP consumer acceptance gates. Akashi remains pre-1.0 while its public API
-and documented limitations receive a stability review.
+These two migrations complete the recorded MVP consumer acceptance gates. Akashi's public API and documented limitations
+have completed their pre-release classification review; the API remains provisional until the first tagged release.

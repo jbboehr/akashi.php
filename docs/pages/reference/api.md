@@ -1,7 +1,9 @@
 # Public API
 
-Akashi is pre-1.0, so these APIs are usable but remain provisional. Types marked `@internal` in source are not public
-extension points even when Composer can autoload them.
+Akashi is pre-1.0, so these APIs are usable but remain provisional until the first tagged release. Architecture tests
+classify every autoloadable Akashi declaration as an entry point, canonical model type, PHPStan diagnostic model type,
+exception, or explicitly internal declaration. This reference groups the public types by consumer workflow;
+autoloadability alone does not create an extension point.
 
 ## Source and Corpus
 
@@ -13,8 +15,10 @@ extension points even when Composer can autoload them.
 | `jbboehr\Akashi\Example`                      | Canonical extracted example, source location, fence metadata, marker, and directives. |
 | `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                     |
 
-Path, identifier, language, fence, directive, and source-coordinate values live under `jbboehr\Akashi\Model`. Their
-constructors enforce domain invariants and may be useful to integration code that needs typed values.
+`Document`, `Example`, and `ExampleCorpus` form the canonical public model. Path, identifier, language, fence,
+directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public because the canonical model and
+configuration objects expose them as typed state. Their constructors enforce the same invariants used by source
+discovery; they are data contracts, not subclassing or service-replacement seams.
 
 ## PHPUnit Runtime
 
@@ -40,8 +44,10 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 | `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                    |
 | `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.  |
 
-`AnalyzerDiagnostic`, expectation, assignment, and match-result types form the analyzer-independent matching model. The
-`VerifiesPhpStanExamples` trait is the supported integration path for PHPStan's runtime objects.
+`AnalyzerDiagnostic`, `DiagnosticExpectation`, `DiagnosticAssignment`, `DiagnosticMatchResult`,
+`DiagnosticMismatchKind`, `DiagnosticsMatched`, and `DiagnosticsMismatched` form the public analyzer-independent
+matching model. Direct consumers may use that typed model with `ExpectationParser` and `DiagnosticMatcher`; the
+`VerifiesPhpStanExamples` trait remains the supported integration path for PHPStan's runtime objects.
 
 ## Exceptions
 
@@ -50,6 +56,9 @@ transformation failures share `Transform\Exception\TransformException`; executio
 `Execution\Exception\ExecutionException`; and PHPStan integration failures share
 `Integration\PHPStan\Exception\PhpStanException`. Specific subclasses preserve distinctions such as missing paths,
 unsupported examples, runtime configuration, empty PHPStan selection, and verification infrastructure.
+
+These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
+should catch the narrowest meaningful type or its family base instead of parsing exception messages.
 
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 

@@ -13,9 +13,9 @@ fixtures now use the Akashi CLI, and its duplicated extractor and tests were rem
 established. GitHub recorded 164 completed, successful check runs for that commit across the normal and isolated
 consumer matrices.
 
-All recorded MVP consumer acceptance gates are therefore complete. The next project task is a pre-release review of the
-public API and documented limitations. No committed Akashi code or tests may depend on workspace checkout paths during
-future consumer verification.
+All recorded MVP consumer acceptance gates are therefore complete. The pre-release public API review classified every
+autoloadable declaration and added a public-I/O conformance suite. No committed Akashi code or tests may depend on
+workspace checkout paths during future consumer verification.
 
 ParaTest compatibility is verified with two workers in both default TestCase-level and `--functional` test-level modes.
 `composer test:parallel` runs both variants; CI exercises the gate on PHP 8.2 while sequential tests cover the remaining
