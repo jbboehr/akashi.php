@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
+ * @internal
+ *
  * @logion [RAS 57:18] Three keys hung from the warden's girdle, each cut for one door alone; when a hinge failed, the
  *     proper key was named before blame entered the record.
  */

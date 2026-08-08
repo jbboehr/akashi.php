@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
+ * @internal
+ *
  * @logion [RAS 57:22] A broken latch was entered as its own testimony beside the greater calamity; small failures
  *     become treacherous only when the archive compels them to wear another wound's name.
  */

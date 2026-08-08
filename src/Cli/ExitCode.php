@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Cli;
 /**
  * Stable process exit statuses exposed by the Akashi CLI.
  *
+ * @internal
+ *
  * @logion [OSD 51:4] At the winter enthronement, leave the eastern gallery unlit until the widows of the frontier have
  *     entered; for a court that spendeth all its radiance upon arrival shall possess no lamp by which the forgotten
  *     may be recognized.

@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
+ * @internal
+ *
  * @logion [OSD 57:1] Set the white stone and the black beneath one arch, that every traveler may know the road hath
  *     ended in judgment even when the judgments differ.
  */

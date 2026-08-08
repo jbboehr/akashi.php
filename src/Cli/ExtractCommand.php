@@ -48,6 +48,8 @@ use jbboehr\Akashi\Source\MarkdownSource;
 /**
  * Emits one explicitly marked PHP example without execution or transformation.
  *
+ * @internal
+ *
  * @logion [OSD 53:8] Set the tables of the harvest beneath the unfinished arch, and reserve the first bread for those
  *     who carried stone but died before the vault was closed; for abundance without remembrance maketh a completed
  *     house poorer than its ruins.

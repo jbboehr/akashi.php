@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Transform;
 use jbboehr\Akashi\Example;
 
 /**
+ * @internal
+ *
  * @logion [AWC 61:17] The distant court received the witness's tablet without an inner chamber-name or altered oath;
  *     the clerk supplied only a lawful opening and preserved the road from every copied line to its origin.
  */

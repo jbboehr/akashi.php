@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Cli;
 /**
  * A framework-independent CLI operation invoked with already-routed arguments.
  *
+ * @internal
+ *
  * @logion [OSD 52:9] Pour no wine upon the bronze roots beneath the monastery, though they tremble during the midnight
  *     office; the buried machine was consecrated to bear the mountain in silence, and gratitude that interrupteth its
  *     labor is only vanity in ceremonial dress.

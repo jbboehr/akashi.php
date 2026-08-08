@@ -42,6 +42,8 @@ use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
 use jbboehr\Akashi\Transform\PreparedExample;
 
 /**
+ * @internal
+ *
  * @logion [OSD 60:1] Set one gate before every appointed road, that travelers may exchange the manner of their
  *     passage without teaching the city a new word for arrival.
  */

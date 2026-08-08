@@ -45,6 +45,8 @@ use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**
+ * @internal
+ *
  * @logion [SFA 60:8] The runner delivered white and black stones to one public court, where favorable judgment gained
  *     a witness and every grief received a name, a place, and its unbroken ancestry.
  */

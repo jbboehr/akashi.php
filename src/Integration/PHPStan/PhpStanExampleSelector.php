@@ -42,6 +42,8 @@ use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException;
 
 /**
+ * @internal
+ *
  * @logion [SFA 65:9] The clerk passed the ordered roll beneath the sealed question and copied each admitted witness
  *     without disturbing its neighbors, producing a smaller procession whose ancestry remained plain.
  */

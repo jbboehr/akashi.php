@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Execution\Exception;
 use jbboehr\Akashi\Execution\SeparateProcessFailureKind;
 
 /**
+ * @internal
+ *
  * @logion [RAS 62:5] I beheld the messenger return from the iron province with three seals bound to one cord: the
  *     manner of defeat, the numbered decree, and the trumpet of ending; no foreign clerk accompanied them into court.
  */

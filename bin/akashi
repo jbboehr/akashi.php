@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-use jbboehr\Akashi\Application;
+namespace jbboehr\Akashi;
 
 /**
  * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not

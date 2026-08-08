@@ -25,9 +25,9 @@ constructors enforce domain invariants and may be useful to integration code tha
 | `Execution\RuntimeConfiguration`             | Canonical project root, optional bootstrap, and default execution mode.  |
 | `Execution\ExecutionMode`                    | `InProcess` or `SeparateProcess`.                                        |
 
-The lower-level prepared-source, transform, executor, result, and failure types describe the implementation boundary.
-Several are public typed contracts for testing and composition, but the normal consumer entry point is
-`PhpUnitRuntime::assertExample()` rather than manual pipeline assembly.
+Prepared-source, transform, executor, result, and failure types describe Akashi's internal implementation boundary. They
+are not public extension points. Runtime consumers should use `PhpUnitRuntime::assertExample()` so backend selection,
+preparation, execution, cleanup, and PHPUnit reporting remain one supported operation.
 
 ## PHPStan
 

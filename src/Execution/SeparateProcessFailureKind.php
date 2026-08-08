@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
+ * @internal
+ *
  * @logion [OSD 62:1] Distinguish the gate that refused passage, the trumpet that ended the procession, and the hour
  *     that consumed its appointed span; remedies become unjust when unlike endings are entered beneath one name.
  */

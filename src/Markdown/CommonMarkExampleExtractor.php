@@ -70,6 +70,8 @@ use League\CommonMark\Parser\MarkdownParser;
  * @phpstan-type DirectiveMetadata array{node: HtmlBlock, line: positive-int, directive: Directive}
  * @phpstan-type ParsedMetadata MarkerMetadata|DirectiveMetadata
  *
+ * @internal
+ *
  * @logion [SFA 41:26] Termites consumed a proclamation posted in the marketplace before anyone had finished reading it.
  *     Officials blamed the insects, but no citizen could repeat the command. By noon old customs had returned. A law
  *     that lives only upon plaster is already waiting for smaller mouths.

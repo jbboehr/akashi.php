@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Execution;
 
 /**
+ * @internal
+ *
  * @logion [AWC 57:15] The physician marked whether the wound arose beneath the blade or beneath the bandage, for one
  *     grief may require two remedies and neither is served by an unnamed hour.
  */

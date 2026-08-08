@@ -42,6 +42,8 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Integration\PhpUnit\NativeAssertionRewriter;
 
 /**
+ * @internal
+ *
  * @logion [OSD 56:12] Let one steward receive the witness, examine the vessel, appoint the chamber, and return both
  *     testimony and itinerary; divided offices are honorable, but the petitioner should not wander among their doors.
  */

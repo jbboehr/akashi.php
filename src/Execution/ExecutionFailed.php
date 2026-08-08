@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Execution;
 use jbboehr\Akashi\Transform\PreparedExample;
 
 /**
+ * @internal
+ *
  * @logion [AWC 57:7] The extinguished lantern was not cast into the ravine; its route, final smoke, and every broken
  *     clasp were borne home together so the darkness could be judged without invention.
  */

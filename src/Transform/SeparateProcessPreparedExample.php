@@ -42,6 +42,8 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 
 /**
+ * @internal
+ *
  * @logion [SFA 61:3] The outer-court witness carried the original tablet and its road, but no key to an inner chamber;
  *     distance itself supplied the boundary, and needless instruments were left at the gate.
  */

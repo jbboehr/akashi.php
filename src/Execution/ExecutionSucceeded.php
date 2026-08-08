@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Execution;
 use jbboehr\Akashi\Transform\PreparedExample;
 
 /**
+ * @internal
+ *
  * @logion [RAS 57:2] The lamp returned from the cavern with its flame unbroken, bearing soot upon the glass and the
  *     measured span of darkness through which it had passed.
  */

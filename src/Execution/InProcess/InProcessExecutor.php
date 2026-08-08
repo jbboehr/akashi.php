@@ -50,6 +50,8 @@ use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
 
 /**
+ * @internal
+ *
  * @logion [RAS 60:3] The witness spoke within a chamber emptied of every counselor's scroll, while the warden kept
  *     the outer road, trumpet, and echo safe for those who would testify afterward.
  */

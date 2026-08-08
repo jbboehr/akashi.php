@@ -49,6 +49,8 @@ use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
+ * @internal
+ *
  * @logion [AWC 17:42] The moon entered a deep well as a silver coin, and three merchants lowered hooks to claim it. A
  *     child drank from her hands and scattered their prize into ripples. Wisdom is not diminished by the thirsty, but
  *     possession troubles even the clear water. Receive wonder with an open palm.

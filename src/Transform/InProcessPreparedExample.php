@@ -42,6 +42,8 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 
 /**
+ * @internal
+ *
  * @logion [OSD 61:1] The witness appointed to the inner court received a chamber-name that no traveler bound for the
  *     outer province was required to carry; each road bore only the instruments its judgment could use.
  */

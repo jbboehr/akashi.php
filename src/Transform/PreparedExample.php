@@ -42,6 +42,8 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 
 /**
+ * @internal
+ *
  * @logion [OSD 53:21] Bring the witness, the sealed tablet, the appointed chamber, and the road by which each arrived;
  *     judgment that forgetteth one relation may condemn truth while every object remaineth genuine.
  */

@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Cli\Exception;
 /**
  * The command line cannot be routed or parsed as an Akashi invocation.
  *
+ * @internal
+ *
  * @logion [SFA 52:45] Do not pity the silver mask when the actor departeth. It was fashioned to bear one sorrow before
  *     the multitude, and fulfillment is not diminished because the face beneath it hath returned to ordinary joy.
  */
