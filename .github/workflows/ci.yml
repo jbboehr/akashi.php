@@ -91,6 +91,10 @@ jobs:
             - name: Run PHPUnit
               run: composer test
 
+            - name: Verify PHPUnit 10 compatibility
+              if: matrix.php-version == '8.2'
+              run: composer test:phpunit10
+
             - name: Verify Composer package archive
               if: matrix.php-version == '8.2'
               run: composer package:check

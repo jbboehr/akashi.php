@@ -36,44 +36,30 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace Akashi\PHPUnit10Compatibility;
 
-use PHPUnit\Framework\TestCase;
+use PhpParser\Node;
+use PhpParser\Node\Expr\FuncCall;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
 
-final class PackageMetadataTest extends TestCase
+/** @implements Rule<FuncCall> */
+final class DocumentationAssertRule implements Rule
 {
-    public function testComposerMetadataIdentifiesThePackage(): void
+    public function getNodeType(): string
     {
-        $contents = file_get_contents(__DIR__ . '/../composer.json');
-        self::assertNotFalse($contents);
+        return FuncCall::class;
+    }
 
-        /**
-         * @var array{
-         *     name: string,
-         *     type: string,
-         *     license: string,
-         *     require: array<string, string>,
-         *     suggest: array<string, string>,
-         *     autoload: array{'psr-4': array<string, string>},
-         *     bin: list<string>
-         * } $metadata
-         */
-        $metadata = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+    public function processNode(Node $node, Scope $scope): array
+    {
+        if (!$node->name instanceof Node\Name || strtolower($node->name->toString()) !== 'assert') {
+            return [];
+        }
 
-        self::assertSame('jbboehr/akashi', $metadata['name']);
-        self::assertSame('library', $metadata['type']);
-        self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
-        self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
-        self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
-        self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
-        self::assertSame('^8.2', $metadata['require']['php']);
-        self::assertSame('^7.4', $metadata['require']['symfony/process']);
-        self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
-        self::assertSame(
-            'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',
-            $metadata['suggest']['phpunit/phpunit'],
-        );
-        self::assertSame(['jbboehr\\Akashi\\' => 'src'], $metadata['autoload']['psr-4']);
-        self::assertSame(['bin/akashi'], $metadata['bin']);
+        return [RuleErrorBuilder::message('native assert call discovered')
+            ->identifier('akashi.phpunit10.assert')
+            ->build()];
     }
 }

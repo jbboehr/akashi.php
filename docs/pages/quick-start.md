@@ -11,6 +11,9 @@ Akashi requires PHP 8.2 or later. Until the first tagged release, install its de
 composer require --dev jbboehr/akashi:dev-master phpunit/phpunit:^11.5
 ```
 
+Akashi supports PHPUnit 10.5 and 11.5. This tutorial uses PHPUnit 11; use `phpunit/phpunit:^10.5` in a project that has
+not yet upgraded.
+
 ## 2. Write an Example
 
 Add a PHP fence to `README.md`:

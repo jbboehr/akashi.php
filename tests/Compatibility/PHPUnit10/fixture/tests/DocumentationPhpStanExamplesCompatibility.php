@@ -36,44 +36,37 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace Akashi\PHPUnit10Compatibility;
 
-use PHPUnit\Framework\TestCase;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
+use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
 
-final class PackageMetadataTest extends TestCase
+/** @extends RuleTestCase<DocumentationAssertRule> */
+final class DocumentationPhpStanExamplesCompatibility extends RuleTestCase
 {
-    public function testComposerMetadataIdentifiesThePackage(): void
+    use VerifiesPhpStanExamples;
+
+    public function testDocumentationExamplesWithPhpStan(): void
     {
-        $contents = file_get_contents(__DIR__ . '/../composer.json');
-        self::assertNotFalse($contents);
-
-        /**
-         * @var array{
-         *     name: string,
-         *     type: string,
-         *     license: string,
-         *     require: array<string, string>,
-         *     suggest: array<string, string>,
-         *     autoload: array{'psr-4': array<string, string>},
-         *     bin: list<string>
-         * } $metadata
-         */
-        $metadata = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
-
-        self::assertSame('jbboehr/akashi', $metadata['name']);
-        self::assertSame('library', $metadata['type']);
-        self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
-        self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
-        self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
-        self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
-        self::assertSame('^8.2', $metadata['require']['php']);
-        self::assertSame('^7.4', $metadata['require']['symfony/process']);
-        self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
-        self::assertSame(
-            'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',
-            $metadata['suggest']['phpunit/phpunit'],
+        $this->assertPhpStanExamples(
+            self::corpus(),
+            PhpStanExampleConfiguration::forTokens(dirname(__DIR__), '//!'),
         );
-        self::assertSame(['jbboehr\\Akashi\\' => 'src'], $metadata['autoload']['psr-4']);
-        self::assertSame(['bin/akashi'], $metadata['bin']);
+    }
+
+    protected function getRule(): Rule
+    {
+        return new DocumentationAssertRule();
+    }
+
+    private static function corpus(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(dirname(__DIR__))
+            ->includeFile('docs/examples.md')
+            ->load();
     }
 }

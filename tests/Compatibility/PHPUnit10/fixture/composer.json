@@ -1,0 +1,20 @@
+{
+    "name": "jbboehr/akashi-phpunit10-compatibility",
+    "description": "Isolated consumer fixture for Akashi's PHPUnit 10 compatibility gate.",
+    "type": "project",
+    "license": "proprietary",
+    "require-dev": {
+        "jbboehr/akashi": "dev-compatibility",
+        "phpstan/phpstan": "^2.2.5",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Akashi\\PHPUnit10Compatibility\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
+    }
+}

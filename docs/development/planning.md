@@ -21,5 +21,10 @@ ParaTest compatibility is verified with two workers in both default TestCase-lev
 `composer test:parallel` runs both variants; CI exercises the gate on PHP 8.2 while sequential tests cover the remaining
 PHP matrix.
 
+The normal development stack remains on PHPUnit 11.5. An isolated consumer fixture installs the current Composer archive
+with PHPUnit 10.5, outside the root ParaTest constraint, then verifies the runtime data-provider trait, authored skips,
+both execution backends, and the PHPStan `RuleTestCase` adapter. `composer test:phpunit10` runs that compatibility gate,
+and `composer check:full` includes it.
+
 The current public architecture is documented in `docs/pages/project/architecture.md`. Detailed historical requirements
 and clean-room constraints remain in `docs/IMPLEMENTATION_HANDOFF.md` and `docs/CLEAN_ROOM.md`.

@@ -1,7 +1,8 @@
 # PHPUnit
 
 PHPUnit is Akashi's normal runtime integration. `VerifiesPhpUnitExamples` exposes each documentation example as an
-independently named test case, while `PhpUnitRuntime` selects the runtime backend and reports its result.
+independently named test case, while `PhpUnitRuntime` selects the runtime backend and reports its result. The public
+integration supports the PHPUnit 10.5 and 11.5 release lines.
 
 ## Connect a Corpus
 

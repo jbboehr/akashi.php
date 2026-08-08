@@ -36,44 +36,27 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace Akashi\PHPUnit10Compatibility;
 
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use jbboehr\Akashi\Source\MarkdownSource;
 use PHPUnit\Framework\TestCase;
 
-final class PackageMetadataTest extends TestCase
+final class DocumentationExamplesCompatibility extends TestCase
 {
-    public function testComposerMetadataIdentifiesThePackage(): void
+    use VerifiesPhpUnitExamples;
+
+    protected static function akashiExampleCorpus(): ExampleCorpus
     {
-        $contents = file_get_contents(__DIR__ . '/../composer.json');
-        self::assertNotFalse($contents);
+        return MarkdownSource::forProject(dirname(__DIR__))
+            ->includeFile('docs/examples.md')
+            ->load();
+    }
 
-        /**
-         * @var array{
-         *     name: string,
-         *     type: string,
-         *     license: string,
-         *     require: array<string, string>,
-         *     suggest: array<string, string>,
-         *     autoload: array{'psr-4': array<string, string>},
-         *     bin: list<string>
-         * } $metadata
-         */
-        $metadata = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
-
-        self::assertSame('jbboehr/akashi', $metadata['name']);
-        self::assertSame('library', $metadata['type']);
-        self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
-        self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
-        self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
-        self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
-        self::assertSame('^8.2', $metadata['require']['php']);
-        self::assertSame('^7.4', $metadata['require']['symfony/process']);
-        self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
-        self::assertSame(
-            'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',
-            $metadata['suggest']['phpunit/phpunit'],
-        );
-        self::assertSame(['jbboehr\\Akashi\\' => 'src'], $metadata['autoload']['psr-4']);
-        self::assertSame(['bin/akashi'], $metadata['bin']);
+    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    {
+        return RuntimeConfiguration::forProject(dirname(__DIR__));
     }
 }

@@ -39,9 +39,10 @@ composer check
 composer check:full
 ```
 
-The extended gate runs both ParaTest modes and mutation testing and therefore requires a coverage driver. A failure or
-tool crash blocks the release until it is understood; do not lower mutation thresholds or omit a supported scheduling
-mode merely to produce a tag.
+The extended gate runs the isolated PHPUnit 10 consumer fixture, both ParaTest modes, and mutation testing, and
+therefore requires Composer network access and a coverage driver. A failure or tool crash blocks the release until it is
+understood; do not lower mutation thresholds or omit a supported compatibility or scheduling mode merely to produce a
+tag.
 
 Build the exact Composer distribution artifact in the ignored release directory:
 

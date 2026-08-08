@@ -89,6 +89,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [Assertions](https://docs.phpunit.de/en/11.5/assertions.html)                                    | Integration guide                | Failure reporting and assertion adapter design                   |
 | 2026-08-04 | [Attributes](https://docs.phpunit.de/en/11.5/attributes.html)                                    | Integration guide                | Supported provider and test metadata                             |
 | 2026-08-04 | [Error handling](https://docs.phpunit.de/en/11.5/error-handling.html)                            | User-facing behavioral reference | Interaction with PHP error handling and process state            |
+| 2026-08-08 | [Annotations in PHPUnit 10.5](https://docs.phpunit.de/en/10.5/annotations.html)                  | Integration guide                | Attribute precedence during the PHPUnit 10 compatibility review  |
+| 2026-08-08 | [Supported PHPUnit versions](https://phpunit.de/supported-versions.html)                         | User-facing behavioral reference | Upstream lifecycle context for Akashi's tested version boundary  |
 
 ### PHPStan
 
@@ -138,13 +140,16 @@ Dates record the review date, not the document publication date.
 
 ### Composer
 
-| Date       | Document                                                                   | Classification                   | Design use                                                         |
-| ---------- | -------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
-| 2026-08-04 | [Basic usage](https://getcomposer.org/doc/01-basic-usage.md)               | Integration guide                | Package installation and autoloading contract                      |
-| 2026-08-04 | [`composer.json` schema](https://getcomposer.org/doc/04-schema.md)         | Specification                    | Runtime requirements, optional suggestions, and binary declaration |
-| 2026-08-04 | [Vendor binaries](https://getcomposer.org/doc/articles/vendor-binaries.md) | Integration guide                | `vendor/bin/akashi` proxy behavior                                 |
-| 2026-08-04 | [Composer runtime API](https://getcomposer.org/doc/07-runtime.md)          | Integration guide                | Discovering the project autoloader from the binary proxy           |
-| 2026-08-04 | [Package versions](https://getcomposer.org/doc/articles/versions.md)       | User-facing behavioral reference | Dependency-constraint strategy                                     |
+| Date       | Document                                                                    | Classification                   | Design use                                                          |
+| ---------- | --------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| 2026-08-04 | [Basic usage](https://getcomposer.org/doc/01-basic-usage.md)                | Integration guide                | Package installation and autoloading contract                       |
+| 2026-08-04 | [`composer.json` schema](https://getcomposer.org/doc/04-schema.md)          | Specification                    | Runtime requirements, optional suggestions, and binary declaration  |
+| 2026-08-04 | [Vendor binaries](https://getcomposer.org/doc/articles/vendor-binaries.md)  | Integration guide                | `vendor/bin/akashi` proxy behavior                                  |
+| 2026-08-04 | [Composer runtime API](https://getcomposer.org/doc/07-runtime.md)           | Integration guide                | Discovering the project autoloader from the binary proxy            |
+| 2026-08-04 | [Package versions](https://getcomposer.org/doc/articles/versions.md)        | User-facing behavioral reference | Dependency-constraint strategy                                      |
+| 2026-08-08 | [Command-line interface](https://getcomposer.org/doc/03-cli.md)             | Integration guide                | Backward-compatible repository configuration for consumer gates     |
+| 2026-08-08 | [Repositories](https://getcomposer.org/doc/05-repositories.md)              | Integration guide                | Path-repository mirroring and explicit development versions         |
+| 2026-08-08 | [Composer 2.9.0-RC1 changelog](https://getcomposer.org/changelog/2.9.0-RC1) | User-facing behavioral reference | Identifying the newer `repository` command's compatibility boundary |
 
 ### Doctrine of the Second Sun
 

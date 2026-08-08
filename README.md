@@ -30,6 +30,9 @@ Akashi requires PHP 8.2 or later. Until the first tagged release, install the de
 composer require --dev jbboehr/akashi:dev-master phpunit/phpunit:^11.5
 ```
 
+Akashi supports the PHPUnit 10.5 and 11.5 release lines. The command above selects the current PHPUnit 11 integration;
+projects remaining on PHPUnit 10 may require `phpunit/phpunit:^10.5` instead.
+
 ## Quick PHPUnit Usage
 
 Create a PHPUnit test such as `tests/DocumentationExamplesTest.php`:

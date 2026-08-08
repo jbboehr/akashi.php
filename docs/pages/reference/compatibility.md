@@ -11,13 +11,17 @@ tagged release.
 | PHP               | 8.2 and later                                                                     |
 | Composer          | Runtime API 2.2 and later                                                         |
 | Markdown          | CommonMark fenced PHP blocks through `league/commonmark` 2.8                      |
-| PHPUnit           | Optional consumer integration targeting PHPUnit 11.5                              |
+| PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines  |
 | PHPStan           | Optional consumer integration targeting PHPStan 2.x                               |
 | ParaTest          | Development-only verified runner; not required by consumers                       |
 | Operating systems | Unix-like CI is exercised; Windows-specific discovery identity remains unverified |
 
 Akashi's core model, discovery, Markdown extraction, transformation, execution, and CLI do not require PHPUnit or
 PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
+
+Akashi develops against PHPUnit 11.5 and verifies PHPUnit 10.5 separately. `composer test:phpunit10` builds the current
+Composer archive, installs it into an isolated consumer project, and exercises runtime assertions, authored skips, both
+execution backends, and the PHPStan `RuleTestCase` adapter. CI runs this gate on PHP 8.2.
 
 ## Authoring Boundary
 

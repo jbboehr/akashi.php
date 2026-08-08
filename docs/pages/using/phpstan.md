@@ -70,6 +70,11 @@ The consumer still implements `getRule()` and, when needed, `getAdditionalConfig
 [Reuse Examples for Runtime and PHPStan](../guides/reuse-runtime-phpstan.md) for a complete combined pattern and a clear
 division between Akashi, PHPStan, and project-owned setup.
 
+Akashi preserves `RuleTestCase` semantics: the diagnostics under test come from the rule returned by the consumer's
+`getRule()`. Additional configuration can register extensions that participate in parsing, reflection, or type
+inference, but it does not turn the test into a complete `phpstan analyse` run or automatically execute every configured
+PHPStan rule. If an example expects a diagnostic, the consumer-provided rule must report it.
+
 ## Analysis Lifecycle and Trust
 
 Akashi parses all selected examples and validates their declarations before loading any of them. It rejects direct

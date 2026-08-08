@@ -70,7 +70,7 @@
     },
     "suggest": {
         "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 2.x).",
-        "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 11.5)."
+        "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5)."
     },
     "autoload": {
         "psr-4": {
@@ -108,6 +108,7 @@
         ],
         "check:full": [
             "@check",
+            "@test:phpunit10",
             "@test:parallel",
             "@infection:ci"
         ],
@@ -122,6 +123,7 @@
         "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90",
         "package:check": "php tools/check-package.php",
         "test": "phpunit --colors=never --no-coverage",
+        "test:phpunit10": "bash tests/Compatibility/PHPUnit10/run",
         "test:parallel": [
             "@test:parallel:cases",
             "@test:parallel:functional"
