@@ -6,7 +6,7 @@
 
 **Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜**
 
-Akashi is a PHP project for testing examples embedded in documentation.
+Akashi is a PHP library for discovering, executing, and statically verifying examples embedded in documentation.
 
 ## Status
 
@@ -14,6 +14,22 @@ The Markdown MVP is usable today: projects can discover and extract PHP fences, 
 through PHPUnit in-process or in a child process, and verify a relevant subcorpus with PHPStan. The public API remains
 provisional until the Yumemi and Yumemi Apocrypha consumer migrations pass their acceptance gates. See
 [Compatibility and Limitations](compatibility.md) for the precise current boundary.
+
+## A Small Example
+
+Documentation can contain ordinary executable PHP:
+
+```php
+<?php
+
+$greeting = sprintf('Hello, %s!', 'Akashi');
+
+assert($greeting === 'Hello, Akashi!');
+```
+
+Point `MarkdownSource` at the document and pass its corpus through `PhpUnitExampleDataSets` and `PhpUnitRuntime`. Each
+fence becomes a named PHPUnit data set, and failures report the maintained Markdown location. The complete test class is
+in [Getting Started](getting-started.md#run-examples-with-phpunit).
 
 ## Trust and Safety
 

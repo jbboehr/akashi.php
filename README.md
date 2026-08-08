@@ -7,7 +7,7 @@
 [![License: AGPL-3.0-only WITH romic-exception](https://img.shields.io/badge/license-AGPL--3.0--only%20WITH%20romic--exception-blue.svg)](LICENSE.md)
 [![AI burn](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fjbboehr%2F48eea04b7a73a84c397af8b9dc557556%2Fraw%2Fagent-badge.json&cacheSeconds=300)](https://github.com/arlegotin/agent-badge)
 
-Akashi is a PHP project for testing examples embedded in documentation.
+Akashi is a PHP library for discovering, executing, and statically verifying examples embedded in documentation.
 
 **Status:** Markdown discovery and extraction, the marked-example CLI, in-process and separate-process execution,
 PHPUnit integration, and PHPStan verification are implemented. The API remains provisional until the Yumemi and Yumemi
@@ -26,6 +26,23 @@ Composer installs the command as:
 ```shell
 vendor/bin/akashi
 ```
+
+## Example
+
+Write ordinary PHP in a selected Markdown fence:
+
+```php
+<?php
+
+$greeting = sprintf('Hello, %s!', 'Akashi');
+
+assert($greeting === 'Hello, Akashi!');
+```
+
+Akashi exposes each selected fence as a named PHPUnit data set and reports failures against the maintained Markdown
+location. See [Getting Started](docs/pages/getting-started.md#run-examples-with-phpunit) for the complete test class.
+
+## Marked Extraction
 
 Extract an explicitly marked PHP fence without adding decorative output:
 
