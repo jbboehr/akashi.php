@@ -72,6 +72,7 @@ final class PublicApiBoundaryTest extends TestCase
         \jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples::class,
         \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
         \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
+        \jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples::class,
         \jbboehr\Akashi\Markdown\Exception\DirectiveException::class,
         \jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException::class,
         \jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException::class,

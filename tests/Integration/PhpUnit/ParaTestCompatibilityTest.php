@@ -38,33 +38,27 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 
-use jbboehr\Akashi\Example;
+use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
 use jbboehr\Akashi\Source\MarkdownSource;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ParaTestCompatibilityTest extends TestCase
 {
-    #[DataProvider('exampleProvider')]
-    public function testExecutesAConsumerShapedNamedDataSet(Example $example): void
-    {
-        PhpUnitRuntime::assertExample(
-            $example,
-            RuntimeConfiguration::forProject(dirname(__DIR__, 3)),
-        );
-    }
+    use VerifiesPhpUnitExamples;
 
-    /** @return iterable<string, array{Example}> */
-    public static function exampleProvider(): iterable
+    protected static function akashiExampleCorpus(): ExampleCorpus
     {
         $projectRoot = dirname(__DIR__, 3);
-        $corpus = MarkdownSource::forProject($projectRoot)
+
+        return MarkdownSource::forProject($projectRoot)
             ->includeFile('tests/Fixtures/Markdown/paratest.md')
             ->load();
+    }
 
-        yield from PhpUnitExampleDataSets::fromCorpus($corpus);
+    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    {
+        return RuntimeConfiguration::forProject(dirname(__DIR__, 3));
     }
 }

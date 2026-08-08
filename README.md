@@ -37,41 +37,29 @@ Create a PHPUnit test such as `tests/DocumentationExamplesTest.php`:
 ```php
 <?php
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
 use jbboehr\Akashi\Source\MarkdownSource;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationExamplesTest extends TestCase
 {
-    public static function examples(): iterable
-    {
-        $projectRoot = getcwd();
-        if ($projectRoot === false) {
-            throw new RuntimeException('Unable to determine the project root.');
-        }
+    use VerifiesPhpUnitExamples;
 
-        $corpus = MarkdownSource::forProject($projectRoot)
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(getcwd() ?: throw new RuntimeException('Project root unavailable.'))
             ->includeFile('README.md')
             ->load();
-
-        yield from PhpUnitExampleDataSets::fromCorpus($corpus);
-    }
-
-    #[DataProvider('examples')]
-    public function testDocumentationExample(Example $example): void
-    {
-        PhpUnitRuntime::assertExample($example);
     }
 }
 ```
 
 Run `vendor/bin/phpunit`. Akashi discovers each selected PHP fence, rewrites supported native `assert()` calls so they
-cannot be disabled by PHP configuration, and executes each example as a named PHPUnit data set. The default backend
-isolates local variables and declarations in-process. When an assertion fails, the report identifies the maintained
-Markdown example rather than only generated code.
+cannot be disabled by PHP configuration, and executes each example as a named PHPUnit data set. The trait supplies the
+provider and test method; the project supplies only its corpus. The default backend isolates local variables and
+declarations in-process. When an assertion fails, the report identifies the maintained Markdown example rather than only
+generated code.
 
 ## Features
 

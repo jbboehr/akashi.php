@@ -18,16 +18,18 @@ constructors enforce domain invariants and may be useful to integration code tha
 
 ## PHPUnit Runtime
 
-| Type                                         | Purpose                                                                  |
-| -------------------------------------------- | ------------------------------------------------------------------------ |
-| `Integration\PhpUnit\PhpUnitExampleDataSets` | Convert a corpus to uniquely labeled PHPUnit data-provider arguments.    |
-| `Integration\PhpUnit\PhpUnitRuntime`         | Transform, execute, and assert one example through the selected backend. |
-| `Execution\RuntimeConfiguration`             | Canonical project root, optional bootstrap, and default execution mode.  |
-| `Execution\ExecutionMode`                    | `InProcess` or `SeparateProcess`.                                        |
+| Type                                          | Purpose                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------------------ |
+| `Integration\PhpUnit\VerifiesPhpUnitExamples` | Provide a named PHPUnit test for every example in a consumer corpus.     |
+| `Integration\PhpUnit\PhpUnitExampleDataSets`  | Convert a corpus to uniquely labeled PHPUnit data-provider arguments.    |
+| `Integration\PhpUnit\PhpUnitRuntime`          | Transform, execute, and assert one example through the selected backend. |
+| `Execution\RuntimeConfiguration`              | Canonical project root, optional bootstrap, and default execution mode.  |
+| `Execution\ExecutionMode`                     | `InProcess` or `SeparateProcess`.                                        |
 
 Prepared-source, transform, executor, result, and failure types describe Akashi's internal implementation boundary. They
-are not public extension points. Runtime consumers should use `PhpUnitRuntime::assertExample()` so backend selection,
-preparation, execution, cleanup, and PHPUnit reporting remain one supported operation.
+are not public extension points. Most runtime consumers should use `VerifiesPhpUnitExamples`; projects that need a
+custom PHPUnit method can use `PhpUnitExampleDataSets` and `PhpUnitRuntime::assertExample()` directly. Both paths keep
+backend selection, preparation, execution, cleanup, and PHPUnit reporting within the supported facade.
 
 ## PHPStan
 

@@ -31,40 +31,27 @@ Create `tests/DocumentationExamplesTest.php`:
 ```php
 <?php
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
 use jbboehr\Akashi\Source\MarkdownSource;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationExamplesTest extends TestCase
 {
-    public static function examples(): iterable
-    {
-        $projectRoot = getcwd();
-        if ($projectRoot === false) {
-            throw new RuntimeException('Unable to determine the project root.');
-        }
+    use VerifiesPhpUnitExamples;
 
-        $corpus = MarkdownSource::forProject($projectRoot)
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(getcwd() ?: throw new RuntimeException('Project root unavailable.'))
             ->includeFile('README.md')
             ->load();
-
-        yield from PhpUnitExampleDataSets::fromCorpus($corpus);
-    }
-
-    #[DataProvider('examples')]
-    public function testDocumentationExample(Example $example): void
-    {
-        PhpUnitRuntime::assertExample($example);
     }
 }
 ```
 
-The project root is the directory containing `composer.json`. This example assumes PHPUnit is invoked from that
-directory, as in the next step. A project that launches PHPUnit from elsewhere should supply its known absolute root
-instead.
+This quick start assumes PHPUnit runs from the project root, the directory containing `composer.json`. If your test
+command uses another working directory, replace `getcwd()` with a known absolute project-root path. The trait supplies
+the PHPUnit data provider and test method. Your test class supplies the corpus.
 
 ## 4. Run It
 
@@ -72,9 +59,9 @@ instead.
 vendor/bin/phpunit
 ```
 
-The data provider discovers the fence and gives it a deterministic, readable data-set label. `PhpUnitRuntime` transforms
-and executes the example in-process. The PHPUnit process's existing Composer autoloader remains available to the
-example.
+Akashi discovers the fence and gives it a deterministic, readable data-set label. The trait delegates to
+`PhpUnitRuntime`, which transforms and executes the example in-process. The PHPUnit process's existing Composer
+autoloader remains available to the example.
 
 ## 5. Break It Deliberately
 

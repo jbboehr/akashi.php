@@ -21,6 +21,20 @@ The next pre-release task is to review the public API and documented limitations
 review should clarify or narrow existing contracts where necessary without adding deferred features merely to make the
 first release appear broader.
 
+## Source Discovery Ergonomics
+
+A possible post-stabilization convenience is an immutable bulk file include equivalent to:
+
+```php
+/** @param iterable<ProjectPath|string> $paths */
+public function includeFiles(iterable $paths): self;
+```
+
+It would apply the existing `includeFile()` validation to each project-relative path without coupling Akashi to a file
+discovery library. A consumer could feed it relative pathnames from Symfony Finder or another iterator while Akashi's
+public signatures remain dependency-neutral. The exact API is deferred until consumer experience demonstrates that
+repeated `includeFile()` calls are a material ergonomic problem; Symfony Finder is not a planned Akashi dependency.
+
 ## PHPDoc Example Maintainability
 
 Future PHPDoc support should offer three authoring modes:

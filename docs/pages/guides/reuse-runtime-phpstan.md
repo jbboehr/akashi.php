@@ -33,28 +33,22 @@ This is an ordinary project helper, not an Akashi requirement. It keeps source s
 ```php
 <?php
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
-use PHPUnit\Framework\Attributes\DataProvider;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationRuntimeTest extends TestCase
 {
-    public static function examples(): iterable
-    {
-        yield from PhpUnitExampleDataSets::fromCorpus(DocumentationCorpus::load());
-    }
+    use VerifiesPhpUnitExamples;
 
-    #[DataProvider('examples')]
-    public function testExample(Example $example): void
+    protected static function akashiExampleCorpus(): ExampleCorpus
     {
-        PhpUnitRuntime::assertExample($example);
+        return DocumentationCorpus::load();
     }
 }
 ```
 
-Akashi provides the data-set adapter and runtime facade. The consuming project owns the corpus definition and PHPUnit
+Akashi's trait provides the data provider and runtime test. The consuming project owns the corpus definition and PHPUnit
 test class.
 
 ## Analyze a Relevant Subcorpus

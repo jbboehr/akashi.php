@@ -20,7 +20,7 @@ $result = strtoupper('akashi');
 assert($result === 'AKASHI');
 ```
 
-Connect the containing document to a PHPUnit data provider, then run `vendor/bin/phpunit`. Akashi makes the native
+Connect the containing document through Akashi's PHPUnit trait, then run `vendor/bin/phpunit`. Akashi makes the native
 assertion unconditional, isolates the example's variables and declarations, and reports a failure against this
 documentation location. This page and the root README are verified through that same path in Akashi's own test suite.
 

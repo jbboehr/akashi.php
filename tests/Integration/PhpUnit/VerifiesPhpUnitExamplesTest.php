@@ -38,29 +38,59 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 
+use jbboehr\Akashi\Document;
+use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
-use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\TestCase;
 
-final class LandingPageExamplesTest extends TestCase
+final class VerifiesPhpUnitExamplesTest extends TestCase
 {
     use VerifiesPhpUnitExamples;
 
-    protected static function akashiExampleCorpus(): ExampleCorpus
+    public function testProvidesOneNamedDataSetPerCorpusExample(): void
     {
-        $projectRoot = dirname(__DIR__, 3);
-
-        return MarkdownSource::forProject($projectRoot)
-            ->includeFile('README.md')
-            ->includeFile('docs/pages/README.md')
-            ->includeFile('docs/pages/quick-start.md')
-            ->load();
+        self::assertSame([
+            'First trait example',
+            'Second trait example',
+        ], array_keys(iterator_to_array(self::akashiExampleDataProvider())));
     }
 
-    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    protected static function akashiExampleCorpus(): ExampleCorpus
     {
-        return RuntimeConfiguration::forProject(dirname(__DIR__, 3));
+        return new ExampleCorpus(
+            self::example('trait-example-01', 'First trait example', 1),
+            self::example('trait-example-02', 'Second trait example', 2),
+        );
+    }
+
+    /** @param positive-int $ordinal */
+    private static function example(string $id, string $label, int $ordinal): Example
+    {
+        $code = 'assert(true);';
+
+        return new Example(
+            id: new ExampleId($id),
+            label: $label,
+            document: new Document('docs/trait.md', $code),
+            location: new SourceLocation(
+                9,
+                10,
+                10,
+                11,
+                new SourceSpan(0, strlen($code)),
+                new SourceSpan(0, strlen($code)),
+            ),
+            language: new Language('php'),
+            code: new ExampleCode($code),
+            fence: new FenceMetadata('php', '`', 3, 0),
+            ordinal: $ordinal,
+        );
     }
 }

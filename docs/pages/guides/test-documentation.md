@@ -8,15 +8,21 @@ or prose pages whose PHP fences are illustrative rather than executable.
 ```php
 <?php
 
+use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Source\MarkdownSource;
 
-$projectRoot = dirname(__DIR__);
-$corpus = MarkdownSource::forProject($projectRoot)
-    ->includeFile('README.md')
-    ->includeDirectory('docs')
-    ->exclude('docs/archive')
-    ->exclude('docs/generated')
-    ->load();
+final class DocumentationCorpus
+{
+    public static function load(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(dirname(__DIR__))
+            ->includeFile('README.md')
+            ->includeDirectory('docs')
+            ->exclude('docs/archive')
+            ->exclude('docs/generated')
+            ->load();
+    }
+}
 ```
 
 All configured paths are relative to the project root. Directory includes recurse, and a directory exclusion removes its
@@ -30,10 +36,22 @@ outside this source set.
 
 ## Use It in PHPUnit
 
-Give the corpus to the standard data-set adapter:
+Return the corpus from Akashi's PHPUnit trait hook:
 
 ```php
-yield from PhpUnitExampleDataSets::fromCorpus($corpus);
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use PHPUnit\Framework\TestCase;
+
+final class DocumentationExamplesTest extends TestCase
+{
+    use VerifiesPhpUnitExamples;
+
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return DocumentationCorpus::load();
+    }
+}
 ```
 
 Each PHP fence becomes one independently reported PHPUnit data set. A runtime `skip` directive keeps its data-set entry

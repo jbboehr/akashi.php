@@ -15,12 +15,45 @@ exit(0);
 ```
 ````
 
-Pass explicit runtime configuration to the PHPUnit facade:
+In the ordinary trait-based integration, provide explicit runtime configuration through its optional hook. The
+project-owned `DocumentationCorpus` helper is described in
+[Test a README and docs/](../guides/test-documentation.md#define-the-source-set).
+
+```php
+<?php
+
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use PHPUnit\Framework\TestCase;
+
+final class DocumentationExamplesTest extends TestCase
+{
+    use VerifiesPhpUnitExamples;
+
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return DocumentationCorpus::load();
+    }
+
+    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    {
+        return RuntimeConfiguration::forProject(dirname(__DIR__))
+            ->withBootstrap('vendor/autoload.php');
+    }
+}
+```
+
+A separate-process directive without `RuntimeConfiguration` is rejected; Akashi never weakens requested isolation by
+running the example in-process.
+
+Projects using a custom PHPUnit method can pass the same configuration directly to the lower-level facade:
 
 ```php
 <?php
 
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
 
 $runtime = RuntimeConfiguration::forProject(dirname(__DIR__))
     ->withBootstrap('vendor/autoload.php');
@@ -28,25 +61,22 @@ $runtime = RuntimeConfiguration::forProject(dirname(__DIR__))
 PhpUnitRuntime::assertExample($example, $runtime);
 ```
 
-A separate-process directive without `RuntimeConfiguration` is rejected; Akashi never weakens requested isolation by
-running the example in-process.
-
 Use this backend for authored namespaces, closing tags or inline HTML, relocation-sensitive magic constants, direct
 `exit()` or `die()`, and examples that intentionally alter process-global state. It also prevents ordinary parse errors,
 runtime exceptions, signals, and nonzero exits from terminating the hosting PHPUnit process.
 
 ## Make It the Default
 
-Projects may select child execution for every unmarked example:
+Projects may select child execution for every unmarked example by changing the trait's configuration hook:
 
 ```php
 <?php
 
-use jbboehr\Akashi\Execution\ExecutionMode;
-use jbboehr\Akashi\Execution\RuntimeConfiguration;
-
-$runtime = RuntimeConfiguration::forProject(dirname(__DIR__))
-    ->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
+protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+{
+    return RuntimeConfiguration::forProject(dirname(__DIR__))
+        ->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
+}
 ```
 
 An authored `skip` directive still takes precedence, followed by an authored `separate-process` directive, the

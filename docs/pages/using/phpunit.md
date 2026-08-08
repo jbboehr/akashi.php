@@ -1,38 +1,96 @@
 # PHPUnit
 
-PHPUnit is Akashi's normal runtime integration. A data provider exposes each documentation example as an independently
-named test case, and `PhpUnitRuntime` selects the runtime backend and reports its result.
+PHPUnit is Akashi's normal runtime integration. `VerifiesPhpUnitExamples` exposes each documentation example as an
+independently named test case, while `PhpUnitRuntime` selects the runtime backend and reports its result.
 
 ## Connect a Corpus
 
-The [Quick Start](../quick-start.md) contains the smallest complete test class. The two integration calls are:
+The [Quick Start](../quick-start.md) contains the smallest complete test class. Use the trait and return the corpus from
+one protected hook. This example uses the project-owned `DocumentationCorpus` helper defined in
+[Test a README and docs/](../guides/test-documentation.md#define-the-source-set):
 
 ```php
-yield from PhpUnitExampleDataSets::fromCorpus($corpus);
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use PHPUnit\Framework\TestCase;
+
+final class DocumentationExamplesTest extends TestCase
+{
+    use VerifiesPhpUnitExamples;
+
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return DocumentationCorpus::load();
+    }
+}
 ```
 
-and, in the data-driven test method:
+The trait owns the provider and test method so every example retains its deterministic data-set label. The consuming
+project remains responsible for source selection and can share the same `ExampleCorpus` with other integrations.
 
-```php
-PhpUnitRuntime::assertExample($example);
-```
+## Configure Runtime Execution
 
-Calling `assertExample()` without runtime configuration selects in-process execution. Pass a `RuntimeConfiguration` when
-examples need an explicit project working directory, a bootstrap, or child-process execution:
+Without an override, the trait selects the in-process defaults. Override its second hook when examples need an explicit
+project working directory, a bootstrap, or child-process execution:
 
 ```php
 <?php
 
+use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use PHPUnit\Framework\TestCase;
 
-$runtime = RuntimeConfiguration::forProject(dirname(__DIR__))
-    ->withBootstrap('vendor/autoload.php');
+final class ConfiguredDocumentationExamplesTest extends TestCase
+{
+    use VerifiesPhpUnitExamples;
 
-PhpUnitRuntime::assertExample($example, $runtime);
+    protected static function akashiExampleCorpus(): ExampleCorpus
+    {
+        return DocumentationCorpus::load();
+    }
+
+    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    {
+        return RuntimeConfiguration::forProject(dirname(__DIR__))
+            ->withBootstrap('vendor/autoload.php');
+    }
+}
 ```
 
 The runtime configuration is immutable. Its project root is canonicalized immediately, and its bootstrap must be a
 readable file that resolves inside that root.
+
+## Customize the PHPUnit Test
+
+Projects that need a custom test name, additional data-set arguments, filtering, or per-example setup can use the
+lower-level adapter and facade directly:
+
+```php
+<?php
+
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class CustomDocumentationExamplesTest extends TestCase
+{
+    public static function examples(): iterable
+    {
+        yield from PhpUnitExampleDataSets::fromCorpus(DocumentationCorpus::load());
+    }
+
+    #[DataProvider('examples')]
+    public function testExample(Example $example): void
+    {
+        PhpUnitRuntime::assertExample($example);
+    }
+}
+```
+
+This is the same path used by the trait; it does not change execution semantics.
 
 ## What In-Process Execution Does
 

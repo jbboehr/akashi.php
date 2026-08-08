@@ -116,9 +116,11 @@ The child protects PHPUnit from ordinary fatal process behavior. It is not an op
 
 ## Verification and Integrations
 
-`PhpUnitExampleDataSets` adapts an `ExampleCorpus` to named provider arguments and rejects duplicate labels before
-yielding. `PhpUnitRuntime` is the runtime facade: it applies skip and mode precedence, prepares and executes through the
-selected backend, then gives the result to `PhpUnitResultAsserter`.
+`VerifiesPhpUnitExamples` is the ordinary consumer integration: its corpus and optional runtime-configuration hooks
+compose a project-owned PHPUnit test class without an extension or mutable registry. It delegates named provider
+arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
+facade: it applies skip and mode precedence, prepares and executes through the selected backend, then gives the result
+to `PhpUnitResultAsserter`. The adapter and facade remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses and validates every selected example, writes
