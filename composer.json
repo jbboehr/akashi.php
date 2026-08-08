@@ -48,6 +48,7 @@
             "/flake.lock",
             "/flake.nix",
             "/infection.json5.dist",
+            "/nix",
             "/*.log",
             "/phpstan.neon.dist",
             "/phpunit.branch.xml.dist",
@@ -56,6 +57,7 @@
             "/secrets",
             "/tests",
             "/tmp",
+            "/tools",
             "/vendor"
         ]
     },
@@ -95,6 +97,21 @@
         }
     },
     "scripts": {
+        "analyse": "phpstan analyse --no-progress --error-format=raw",
+        "check": [
+            "@composer:validate",
+            "@cs",
+            "@analyse",
+            "@test",
+            "@docs:check",
+            "@package:check"
+        ],
+        "check:full": [
+            "@check",
+            "@test:parallel",
+            "@infection:ci"
+        ],
+        "composer:validate": "composer validate --strict",
         "coverage:branch": "make coverage-branch",
         "cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
         "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
@@ -103,6 +120,8 @@
         "docs:serve": "make docs-serve",
         "infection": "infection --no-progress",
         "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90",
+        "package:check": "php tools/check-package.php",
+        "test": "phpunit --colors=never --no-coverage",
         "test:parallel": [
             "@test:parallel:cases",
             "@test:parallel:functional"

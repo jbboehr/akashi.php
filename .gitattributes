@@ -20,8 +20,10 @@ docs/development export-ignore
 docs/pages/images/logia export-ignore
 docs/pages/images/logia/** export-ignore
 infection.json5.dist export-ignore
+nix export-ignore
 phpstan.neon.dist export-ignore
 phpunit.branch.xml.dist export-ignore
 phpunit.xml.dist export-ignore
 secrets export-ignore
 tests export-ignore
+tools export-ignore

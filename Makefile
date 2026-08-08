@@ -1,12 +1,15 @@
 .DEFAULT: all
-.PHONY: all coverage-branch docs docs-check docs-serve
+.PHONY: all check coverage-branch docs docs-check docs-serve
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src
 BRANCH_COVERAGE_TESTS ?=
 BRANCH_COVERAGE_XDEBUG_ERROR := Xdebug is not loaded; enter nix develop .\#xdebug.
 
-all:
+all: check
+
+check:
+	composer check
 
 coverage-branch:
 	@php -r 'if (!extension_loaded("xdebug")) { fwrite(STDERR, "$(BRANCH_COVERAGE_XDEBUG_ERROR)\n"); exit(1); }'

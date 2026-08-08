@@ -15,6 +15,24 @@ A pull request should:
 - avoid unrelated changes; and
 - identify any third-party code, assets, or other material it contains.
 
+Enter the Nix development shell, install the locked Composer dependencies, and run the routine repository gate with:
+
+```shell
+nix develop
+composer install
+composer check
+```
+
+`composer check` validates Composer metadata, formatting, static analysis, PHPUnit, the public documentation, and the
+Composer distribution archive. Before a release or a change to execution, concurrency, or test infrastructure, also run:
+
+```shell
+composer check:full
+```
+
+The full gate additionally runs both ParaTest scheduling modes and mutation testing. It requires a coverage driver and
+is intentionally more expensive than the routine gate.
+
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 

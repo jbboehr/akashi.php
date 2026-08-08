@@ -11,3 +11,4 @@ parameters:
         - bin/akashi
         - src
         - tests
+        - tools
