@@ -1,0 +1,50 @@
+# Test a README and docs/
+
+Most projects want the root README plus a recursive documentation directory, while excluding generated books, archives,
+or prose pages whose PHP fences are illustrative rather than executable.
+
+## Define the Source Set
+
+```php
+<?php
+
+use jbboehr\Akashi\Source\MarkdownSource;
+
+$projectRoot = dirname(__DIR__);
+$corpus = MarkdownSource::forProject($projectRoot)
+    ->includeFile('README.md')
+    ->includeDirectory('docs')
+    ->exclude('docs/archive')
+    ->exclude('docs/generated')
+    ->load();
+```
+
+All configured paths are relative to the project root. Directory includes recurse, and a directory exclusion removes its
+whole subtree. Include and exclusion paths must exist when the corpus loads; a stale path is an error rather than a
+silent coverage change.
+
+`includeDirectory('docs')` selects every case-sensitive `.md` file below `docs`. Do not point it at a general docs tree
+until each `php` fence is intended for at least one workflow. Akashi does not yet provide global ignore or compile-only
+directives. For non-executable fragments, use another language label such as `php.ini` or `text`, or keep the document
+outside this source set.
+
+## Use It in PHPUnit
+
+Give the corpus to the standard data-set adapter:
+
+```php
+yield from PhpUnitExampleDataSets::fromCorpus($corpus);
+```
+
+Each PHP fence becomes one independently reported PHPUnit data set. A runtime `skip` directive keeps its data-set entry
+visible rather than removing it from discovery.
+
+## Keep the Set Deliberate
+
+Prefer a short, explicit list of source roots over including the repository root. Akashi rejects duplicate physical
+documents reached through overlapping includes, symbolic-link directory traversal, and documents resolving outside the
+project root. Those checks keep a corpus reproducible, but they cannot decide whether an illustrative snippet is a good
+test.
+
+If several test classes need the same selection, put this source configuration in a small project-owned helper. Akashi
+does not maintain a mutable global corpus registry.

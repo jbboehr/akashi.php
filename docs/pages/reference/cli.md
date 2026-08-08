@@ -1,7 +1,7 @@
-# Extraction CLI
+# CLI
 
-Composer exposes Akashi's command as `vendor/bin/akashi`. The current CLI deliberately performs one task: select an
-explicitly marked PHP fence and write its source to standard output.
+The Composer executable is `vendor/bin/akashi`. It currently provides marked-example extraction; it is not a standalone
+documentation-test runner. Runtime examples are normally run through PHPUnit.
 
 ## Usage
 
@@ -11,34 +11,25 @@ vendor/bin/akashi --help
 vendor/bin/akashi --version
 ```
 
-The option may appear before or after the positional arguments, but it is required exactly once. `FILE` may be absolute
-or relative to the current working directory. The marker name and ID use lowercase kebab-case.
+`FILE` may be absolute or relative to the current working directory. `NAME` and `MARKER-ID` use lowercase kebab-case.
+The marker option may appear before or after the positional arguments, but it is required exactly once. Its explicit
+value lets the generic command support a project's existing comment convention.
 
-For example:
+On successful extraction, stdout contains only the authored PHP fence source. Akashi removes an authored final line
+ending, if present, and appends exactly one LF for compatibility with its recorded consumer. It does not add headings,
+metadata, source comments, or transformation output, and it preserves an authored opening PHP tag. Successful help and
+version output also use stdout.
 
-```console
-vendor/bin/akashi extract \
-    --marker-name=akashi-example \
-    docs/pages/getting-started.md \
-    hello-world
-```
-
-On success, stdout contains only the selected PHP source. Akashi does not parse, transform, or execute the PHP. It
-preserves the authored opening tag and normalizes the selected output to exactly one final LF for compatibility with the
-Yumemi extraction contract. Successful `--help` and `--version` output goes to stdout. Usage errors, extraction
-diagnostics, and unexpected failures go to stderr.
+Usage, extraction, and unexpected-failure diagnostics use stderr.
 
 ## Exit Statuses
 
-| Status | Meaning                                                                    |
-| -----: | -------------------------------------------------------------------------- |
-|    `0` | The command succeeded.                                                     |
-|    `1` | Document loading, metadata validation, or marked-example selection failed. |
-|    `2` | The command invocation was invalid.                                        |
-|   `70` | An unexpected internal failure occurred.                                   |
+| Status | Meaning                                                                       |
+| -----: | ----------------------------------------------------------------------------- |
+|    `0` | Successful extraction, help, or version output.                               |
+|    `1` | Document loading, marker association, marker selection, or extraction failed. |
+|    `2` | Invalid command or command arguments.                                         |
+|   `70` | Unexpected internal software failure.                                         |
 
-The extraction command distinguishes malformed or duplicate markers, markers attached to non-PHP fences, missing
-markers, unsafe source paths, and unreadable documents in its error text.
-
-The CLI is currently an extraction tool, not a standalone test runner. Runtime and analyzer integrations remain normal
-PHPUnit and PHPStan tests owned by the consuming project.
+Missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and missing
+required arguments are usage failures.

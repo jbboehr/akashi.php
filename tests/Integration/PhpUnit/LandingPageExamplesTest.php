@@ -64,6 +64,7 @@ final class LandingPageExamplesTest extends TestCase
         $corpus = MarkdownSource::forProject($projectRoot)
             ->includeFile('README.md')
             ->includeFile('docs/pages/README.md')
+            ->includeFile('docs/pages/quick-start.md')
             ->load();
 
         yield from PhpUnitExampleDataSets::fromCorpus($corpus);

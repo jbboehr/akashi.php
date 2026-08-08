@@ -7,57 +7,95 @@
 [![License: AGPL-3.0-only WITH romic-exception](https://img.shields.io/badge/license-AGPL--3.0--only%20WITH%20romic--exception-blue.svg)](LICENSE.md)
 [![AI burn](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fjbboehr%2F48eea04b7a73a84c397af8b9dc557556%2Fraw%2Fagent-badge.json&cacheSeconds=300)](https://github.com/arlegotin/agent-badge)
 
-Akashi is a PHP library for discovering, executing, and statically verifying examples embedded in documentation.
+Akashi turns PHP examples in Markdown documentation into executable tests. Write normal PHP examples in a README or
+documentation site, discover them as one corpus, and verify them through PHPUnit. Akashi runs examples in-process by
+default, reports failures against their documentation locations, and can reuse the same examples for PHPStan checks or
+explicit consumer-fixture extraction.
 
-**Status:** Markdown discovery and extraction, the marked-example CLI, in-process and separate-process execution,
-PHPUnit integration, and PHPStan verification are implemented. The API remains provisional until the Yumemi and Yumemi
-Apocrypha consumer migrations pass their acceptance gates.
+Put an ordinary PHP fence in `README.md` or another selected Markdown file:
+
+```php
+$result = strtoupper('akashi');
+
+assert($result === 'AKASHI');
+```
+
+This example is tested by Akashi in this repository.
 
 ## Installation
 
-Akashi requires PHP 8.2 or later. Until the first tagged release, install the development branch:
+Akashi requires PHP 8.2 or later. Until the first tagged release, install the development branch with PHPUnit:
 
-```shell
-composer require --dev jbboehr/akashi:dev-master
+```console
+composer require --dev jbboehr/akashi:dev-master phpunit/phpunit:^11.5
 ```
 
-Composer installs the command as:
+## Quick PHPUnit Usage
 
-```shell
-vendor/bin/akashi
-```
-
-## Example
-
-Write ordinary PHP in a selected Markdown fence:
+Create a PHPUnit test such as `tests/DocumentationExamplesTest.php`:
 
 ```php
 <?php
 
-$greeting = sprintf('Hello, %s!', 'Akashi');
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-assert($greeting === 'Hello, Akashi!');
+final class DocumentationExamplesTest extends TestCase
+{
+    public static function examples(): iterable
+    {
+        $projectRoot = getcwd();
+        if ($projectRoot === false) {
+            throw new RuntimeException('Unable to determine the project root.');
+        }
+
+        $corpus = MarkdownSource::forProject($projectRoot)
+            ->includeFile('README.md')
+            ->load();
+
+        yield from PhpUnitExampleDataSets::fromCorpus($corpus);
+    }
+
+    #[DataProvider('examples')]
+    public function testDocumentationExample(Example $example): void
+    {
+        PhpUnitRuntime::assertExample($example);
+    }
+}
 ```
 
-Akashi exposes each selected fence as a named PHPUnit data set and reports failures against the maintained Markdown
-location. See [Getting Started](docs/pages/getting-started.md#run-examples-with-phpunit) for the complete test class.
+Run `vendor/bin/phpunit`. Akashi discovers each selected PHP fence, rewrites supported native `assert()` calls so they
+cannot be disabled by PHP configuration, and executes each example as a named PHPUnit data set. The default backend
+isolates local variables and declarations in-process. When an assertion fails, the report identifies the maintained
+Markdown example rather than only generated code.
 
-## Marked Extraction
+## Features
 
-Extract an explicitly marked PHP fence without adding decorative output:
+- Markdown PHP examples as named PHPUnit tests
+- fast in-process execution by default
+- opt-in child-process execution for examples that need process isolation
+- unconditional documentation assertions
+- source-aware parse, execution, assertion, and PHPStan failures
+- one reusable example corpus for runtime and static-analysis verification
+- configurable markers for stable consumer-fixture extraction
 
-```shell
-vendor/bin/akashi extract \
-    --marker-name=akashi-example \
-    docs/pages/getting-started.md \
-    hello-world
-```
+Akashi executes trusted project code; neither runtime backend is a security sandbox. See
+[Compatibility and Safety](docs/pages/reference/compatibility.md) for the exact boundary.
 
-## Documentation
+## Documentation and Status
 
-See the [documentation index](docs/pages/README.md) for current project status and development notes.
+Start with the [Quick Start](docs/pages/quick-start.md), or read the
+[complete documentation](https://jbboehr.github.io/akashi.php/).
+
+The Markdown workflow, both runtime backends, PHPUnit integration, PHPStan verification, and marked extraction are
+implemented and in active use. Akashi is still pre-1.0: the public API remains provisional while the final recorded
+consumer migration is completed.
 
 ## License
 
 Akashi is licensed under `AGPL-3.0-only WITH romic-exception`. See [LICENSE.md](LICENSE.md) and the
-[Romic Exception](docs/LICENSE_EXCEPTION.md). Contributions follow the terms in [CONTRIBUTING.md](CONTRIBUTING.md).
+[Romic Exception](docs/LICENSE_EXCEPTION.md). Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md).

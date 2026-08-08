@@ -1,7 +1,7 @@
 [book]
 title = "Akashi"
 authors = ["John Boehr and contributors"]
-description = "Executable documentation testing for PHP."
+description = "Test PHP examples in Markdown through PHPUnit and PHPStan."
 language = "en"
 src = "pages"
 

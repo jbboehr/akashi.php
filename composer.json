@@ -1,9 +1,16 @@
 {
     "name": "jbboehr/akashi",
-    "description": "Executable documentation testing for PHP.",
+    "description": "Test PHP examples in Markdown through PHPUnit and PHPStan.",
     "type": "library",
     "license": "AGPL-3.0-only WITH romic-exception",
     "homepage": "https://github.com/jbboehr/akashi.php",
+    "keywords": [
+        "documentation",
+        "doctest",
+        "phpstan",
+        "phpunit",
+        "testing"
+    ],
     "support": {
         "issues": "https://github.com/jbboehr/akashi.php/issues",
         "source": "https://github.com/jbboehr/akashi.php"

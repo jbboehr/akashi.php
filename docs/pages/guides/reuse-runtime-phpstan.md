@@ -1,0 +1,114 @@
+# Reuse Examples for Runtime and PHPStan
+
+Runtime behavior and static-analysis behavior answer different questions, but they can begin from the same maintained
+documentation. Define the corpus once in project code, then let PHPUnit execute all examples and a PHPStan
+`RuleTestCase` select the relevant subset.
+
+## Define a Project Corpus
+
+This helper belongs to the consuming project:
+
+```php
+<?php
+
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Source\MarkdownSource;
+
+final class DocumentationCorpus
+{
+    public static function load(): ExampleCorpus
+    {
+        return MarkdownSource::forProject(dirname(__DIR__))
+            ->includeFile('README.md')
+            ->includeDirectory('docs/examples')
+            ->load();
+    }
+}
+```
+
+This is an ordinary project helper, not an Akashi requirement. It keeps source selection consistent between tests.
+
+## Execute It with PHPUnit
+
+```php
+<?php
+
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class DocumentationRuntimeTest extends TestCase
+{
+    public static function examples(): iterable
+    {
+        yield from PhpUnitExampleDataSets::fromCorpus(DocumentationCorpus::load());
+    }
+
+    #[DataProvider('examples')]
+    public function testExample(Example $example): void
+    {
+        PhpUnitRuntime::assertExample($example);
+    }
+}
+```
+
+Akashi provides the data-set adapter and runtime facade. The consuming project owns the corpus definition and PHPUnit
+test class.
+
+## Analyze a Relevant Subcorpus
+
+The following is a template: replace `YourRule` and `extension.neon` with the consumer's real PHPStan rule and
+configuration.
+
+```php
+<?php
+
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
+use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
+
+/** @extends RuleTestCase<YourRule> */
+final class DocumentationPhpStanTest extends RuleTestCase
+{
+    use VerifiesPhpStanExamples;
+
+    protected function getRule(): Rule
+    {
+        return self::getContainer()->getByType(YourRule::class);
+    }
+
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [dirname(__DIR__) . '/extension.neon'];
+    }
+
+    public function testExamples(): void
+    {
+        $projectRoot = dirname(__DIR__);
+        $configuration = PhpStanExampleConfiguration::forTokens(
+            $projectRoot,
+            '//!',
+            '@analyze-example',
+        );
+
+        $this->assertPhpStanExamples(DocumentationCorpus::load(), $configuration);
+    }
+}
+```
+
+PHPStan owns `RuleTestCase`, the container, rule construction, and extension configuration. Akashi owns selection from
+the supplied corpus, `//!` expectation parsing, analysis-file preparation, diagnostic matching, source mapping, and
+reporting through PHPUnit. Tokens such as `@analyze-example` are chosen by the consuming project.
+
+## Decide Which Workflow Sees an Example
+
+- Every selected PHP fence enters the shared corpus.
+- PHPUnit sees each example as a data set; `<!-- akashi: skip -->` asks PHPUnit not to execute one.
+- PHPStan sees only examples accepted by `PhpStanExampleConfiguration`; runtime skip does not affect that selection.
+- Marked extraction can select one example independently of both verifiers.
+
+PHPStan loads selected files to make declarations available, so its corpus must contain trusted, runtime-safe top-level
+code even when the runtime test skips a fence.

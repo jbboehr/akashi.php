@@ -6,61 +6,55 @@
 
 **Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜**
 
-Akashi is a PHP library for discovering, executing, and statically verifying examples embedded in documentation.
+Akashi turns PHP examples in Markdown documentation into tests. A project discovers its examples once, executes them
+through PHPUnit, and can reuse a selected part of the same corpus for PHPStan verification or named-example extraction.
+In-process execution is the normal runtime path; examples that need process isolation can opt into a child process.
 
-## Status
+## See It Work
 
-The Markdown MVP is usable today: projects can discover and extract PHP fences, select marked examples, execute them
-through PHPUnit in-process or in a child process, and verify a relevant subcorpus with PHPStan. The public API remains
-provisional until the Yumemi and Yumemi Apocrypha consumer migrations pass their acceptance gates. See
-[Compatibility and Limitations](compatibility.md) for the precise current boundary.
-
-## A Small Example
-
-Documentation can contain ordinary executable PHP:
+Write ordinary PHP in a Markdown fence:
 
 ```php
-<?php
+$result = strtoupper('akashi');
 
-$greeting = sprintf('Hello, %s!', 'Akashi');
-
-assert($greeting === 'Hello, Akashi!');
+assert($result === 'AKASHI');
 ```
 
-Point `MarkdownSource` at the document and pass its corpus through `PhpUnitExampleDataSets` and `PhpUnitRuntime`. Each
-fence becomes a named PHPUnit data set, and failures report the maintained Markdown location. The complete test class is
-in [Getting Started](getting-started.md#run-examples-with-phpunit).
+Connect the containing document to a PHPUnit data provider, then run `vendor/bin/phpunit`. Akashi makes the native
+assertion unconditional, isolates the example's variables and declarations, and reports a failure against this
+documentation location. This page and the root README are verified through that same path in Akashi's own test suite.
 
-## Trust and Safety
+[Follow the Quick Start](quick-start.md) for the complete working test class.
 
-Akashi executes trusted project documentation; its in-process executor is not a security sandbox. It rejects known
-process-terminating and persistent-state constructs and restores the limited process state PHP can reverse reliably, but
-it cannot contain resource exhaustion, native-extension crashes, dynamically reached `exit` or `die`, or other fatal
-behavior that PHP cannot report as a `Throwable`.
+## One Corpus, Several Uses
 
-Examples requiring process-level containment belong in the separate-process backend. Its executor protects the hosting
-test runner, but it does not restrict the example's operating-system permissions or make untrusted code safe. The
-PHPUnit facade honors an example's separate-process directive only when the caller supplies runtime configuration with
-an explicit project root; it never weakens the requested isolation to in-process execution.
+```text
+README.md / docs/
+       │
+       ▼
+  Akashi examples
+   ┌──────┼───────────┐
+   ▼      ▼           ▼
+PHPUnit  PHPStan   extraction
+runtime  analysis  / consumers
+```
 
-## Assertion Behavior
+PHPUnit is the usual runtime integration. PHPStan support is optional and project-configured: it lets a rule test
+analyze documentation examples independently of executing them. Extraction is a separate CLI workflow for cases where a
+stable named example must also become a consumer fixture.
 
-Akashi's in-process PHPUnit integration treats native `assert()` calls as documentation-test assertions. They execute
-unconditionally and do not depend on `zend.assertions`. Consequently, both the assertion expression and its description
-are evaluated even in environments where PHP would otherwise compile native assertions out. Documentation examples must
-not rely on assertions being production no-ops.
+## Choose Your Next Step
 
-`PhpUnitResultAsserter` turns a successful execution into one explicit completion assertion, so examples without their
-own assertions are not considered risky tests. Failures include the maintained Markdown location when available,
-captured stdout and stderr, and cleanup failures; the original execution cause remains available through the exception
-chain.
+- [Quick Start](quick-start.md): install Akashi and run the first documentation test.
+- [Authoring Examples](using/authoring.md): choose documents, write fences, and understand labels.
+- [PHPUnit](using/phpunit.md): configure runtime execution and PHPUnit reporting.
+- [PHPStan](using/phpstan.md): reuse documentation as static-analysis fixtures.
+- [Extracting Named Examples](using/extracting.md): emit one stable example for another consumer.
+- [Compatibility and Safety](reference/compatibility.md): supported versions, limitations, and trust boundaries.
 
-`PhpUnitExampleDataSets` exposes a corpus as independently named PHPUnit data sets, and `PhpUnitRuntime` runs each
-example through the transformation and executor selected by its directive and runtime configuration. Both backends use
-the same result reporting path.
+## Project Status
 
-## Start Here
-
-Continue to [Getting Started](getting-started.md) for installation and integration examples. The remaining chapters
-cover [Markdown authoring](authoring-markdown.md), the [implemented reference workflows](reference/README.md), current
-[compatibility and limitations](compatibility.md), and the [roadmap](roadmap.md).
+The Markdown workflow, in-process and separate-process execution, PHPUnit integration, PHPStan verification, and marked
+extraction are implemented. Akashi is pre-1.0 and its public API remains provisional while the final recorded consumer
+migration is completed. Deferred work is listed separately in the [Roadmap](project/roadmap.md); it is not required for
+the workflow shown above.
