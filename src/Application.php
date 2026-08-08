@@ -42,10 +42,6 @@ use Composer\InstalledVersions;
 use jbboehr\Akashi\Cli\Exception\UsageException;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
-use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
@@ -126,14 +122,7 @@ HELP;
             $stderr(sprintf("Usage error: %s\n\n%s\n", $exception->getMessage(), $help));
 
             return ExitCode::UsageError->value;
-        } catch (
-            SourceException
-            | DirectiveException
-            | DuplicateMarkerException
-            | NonPhpMarkerException
-            | OrphanedMarkerException
-            | \InvalidArgumentException $exception
-        ) {
+        } catch (SourceException | \InvalidArgumentException $exception) {
             $stderr(sprintf("Extraction failed: %s\n", $exception->getMessage()));
 
             return ExitCode::ExtractionFailure->value;

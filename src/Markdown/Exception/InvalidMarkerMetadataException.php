@@ -41,10 +41,12 @@ namespace jbboehr\Akashi\Markdown\Exception;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
- * @logion [RAS 45:23] Two moons rose from opposite hills and cast a single shadow across the capital. The astronomers
- *     disputed which light was true until the river reflected both. Then the shadow divided at the water, and each
- *     half returned to the summit that had summoned it.
+ * An authored marker comment contains an invalid marker identifier.
+ *
+ * @logion [SFA 67:6] The last snow upon the southern roof melted inward and filled a sealed blue vessel beneath the
+ *     altar. At midsummer the vessel was opened, and its water bore the scent of pines from a mountain no pilgrim had
+ *     climbed.
  */
-final class DuplicateMarkerException extends SourceException
+final class InvalidMarkerMetadataException extends SourceException
 {
 }

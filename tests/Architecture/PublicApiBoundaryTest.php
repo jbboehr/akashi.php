@@ -74,6 +74,7 @@ final class PublicApiBoundaryTest extends TestCase
         \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
         \jbboehr\Akashi\Markdown\Exception\DirectiveException::class,
         \jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException::class,
+        \jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException::class,
         \jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException::class,
         \jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException::class,
         \jbboehr\Akashi\Model\AbsoluteFilePath::class,

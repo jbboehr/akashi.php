@@ -31,5 +31,5 @@ Usage, extraction, and unexpected-failure diagnostics use stderr.
 |    `2` | Invalid command or command arguments.                                         |
 |   `70` | Unexpected internal software failure.                                         |
 
-Missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and missing
-required arguments are usage failures.
+Invalid, missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and
+missing required arguments are usage failures.

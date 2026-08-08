@@ -38,11 +38,13 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Markdown\Exception;
 
+use jbboehr\Akashi\Source\Exception\SourceException;
+
 /**
  * @logion [OSD 46:7] Bring not the river-stone to the jeweler merely because moonlight maketh it shine. Return it to
  *     the ford, where its weight steadies the feet of children. A thing removed from its appointed service may gain a
  *     price while losing the honor proper to its form.
  */
-final class NonPhpMarkerException extends \RuntimeException
+final class NonPhpMarkerException extends SourceException
 {
 }

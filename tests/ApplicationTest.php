@@ -255,6 +255,10 @@ final class ApplicationTest extends TestCase
                 . "<!-- selected-example: chosen -->\n```php\necho 2;\n```\n",
             'Duplicate marker ID chosen',
         ];
+        yield 'invalid marker' => [
+            "<!-- selected-example: Invalid_ID -->\n```php\necho 1;\n```\n",
+            'Invalid selected-example marker',
+        ];
         yield 'non-PHP marker' => [
             "<!-- selected-example: chosen -->\n```javascript\necho 1;\n```\n",
             'is followed by a javascript fence, not a PHP fence',

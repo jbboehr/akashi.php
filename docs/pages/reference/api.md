@@ -43,11 +43,11 @@ preparation, execution, cleanup, and PHPUnit reporting remain one supported oper
 
 ## Exceptions
 
-Source-loading failures share `Source\Exception\SourceException`; transformation failures share
-`Transform\Exception\TransformException`; execution failures share `Execution\Exception\ExecutionException`; and PHPStan
-integration failures share `Integration\PHPStan\Exception\PhpStanException`. Specific subclasses preserve distinctions
-such as missing paths, unsupported examples, runtime configuration, empty PHPStan selection, and verification
-infrastructure.
+Source-loading failures, including malformed marker and directive metadata, share `Source\Exception\SourceException`;
+transformation failures share `Transform\Exception\TransformException`; execution failures share
+`Execution\Exception\ExecutionException`; and PHPStan integration failures share
+`Integration\PHPStan\Exception\PhpStanException`. Specific subclasses preserve distinctions such as missing paths,
+unsupported examples, runtime configuration, empty PHPStan selection, and verification infrastructure.
 
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 

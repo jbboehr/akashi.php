@@ -41,7 +41,11 @@ namespace jbboehr\Akashi\Source;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
@@ -214,8 +218,13 @@ final readonly class MarkdownSource
      * Load the selected documents and extract their PHP fenced blocks in deterministic source order.
      *
      * @throws DuplicateDocumentException
+     * @throws DirectiveException
+     * @throws DuplicateMarkerException
+     * @throws InvalidMarkerMetadataException
      * @throws NoDocumentsFoundException
      * @throws NoExamplesFoundException
+     * @throws NonPhpMarkerException
+     * @throws OrphanedMarkerException
      * @throws ProjectRootNotFoundException
      * @throws SourcePathNotFoundException
      * @throws SourceReadException

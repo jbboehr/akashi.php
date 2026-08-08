@@ -40,8 +40,13 @@ namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\InvalidMarkerException;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ProjectPath;
@@ -51,6 +56,7 @@ use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourceReadException;
+use jbboehr\Akashi\Source\Exception\SourceException;
 use jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException;
 use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 use jbboehr\Akashi\Source\MarkdownSource;
@@ -502,6 +508,50 @@ MARKDOWN);
         self::assertSame('selected-example', $markedExamples[0]->explicitMarkerId?->value);
         self::assertTrue($unmarkedExamples[0]->directives->contains(Directive::SeparateProcess));
         self::assertTrue($markedExamples[0]->directives->contains(Directive::SeparateProcess));
+    }
+
+    public function testWrapsAnInvalidAuthoredMarkerWithinTheSourceExceptionBoundary(): void
+    {
+        $this->write(
+            'docs/invalid.md',
+            "<!-- yumemi-example: Invalid_ID -->\n```php\necho 'invalid';\n```\n",
+        );
+
+        try {
+            MarkdownSource::forProject($this->projectRoot)
+                ->includeFile('docs/invalid.md')
+                ->withMarkerName('yumemi-example')
+                ->load();
+            self::fail('The invalid authored marker was accepted.');
+        } catch (SourceException $exception) {
+            self::assertInstanceOf(InvalidMarkerMetadataException::class, $exception);
+            self::assertSame(
+                'Invalid yumemi-example marker at docs/invalid.md:1: Marker ID must use lowercase kebab-case.',
+                $exception->getMessage(),
+            );
+            self::assertInstanceOf(InvalidMarkerException::class, $exception->getPrevious());
+        }
+    }
+
+    /**
+     * @param class-string<SourceException> $exception
+     */
+    #[DataProvider('metadataSourceExceptionProvider')]
+    public function testMetadataFailuresShareTheSourceExceptionBoundary(string $exception): void
+    {
+        self::assertTrue(is_subclass_of($exception, SourceException::class));
+    }
+
+    /**
+     * @return iterable<string, array{class-string<SourceException>}>
+     */
+    public static function metadataSourceExceptionProvider(): iterable
+    {
+        yield 'directive' => [DirectiveException::class];
+        yield 'duplicate marker' => [DuplicateMarkerException::class];
+        yield 'invalid marker' => [InvalidMarkerMetadataException::class];
+        yield 'non-PHP marker' => [NonPhpMarkerException::class];
+        yield 'orphaned marker' => [OrphanedMarkerException::class];
     }
 
     public function testRejectsDuplicateMarkerIdsAcrossDocuments(): void

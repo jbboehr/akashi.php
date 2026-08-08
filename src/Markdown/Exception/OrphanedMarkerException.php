@@ -38,11 +38,13 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Markdown\Exception;
 
+use jbboehr\Akashi\Source\Exception\SourceException;
+
 /**
  * @logion [AWC 45:35] A widow sent bread each morning to the watchtower after its garrison had departed. In the seventh
  *     winter, lost travelers found the loaves beneath the empty bell and survived. Fidelity may outlive its first
  *     recipient and discover an obligation no covenant had named.
  */
-final class OrphanedMarkerException extends \RuntimeException
+final class OrphanedMarkerException extends SourceException
 {
 }

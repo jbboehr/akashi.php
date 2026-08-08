@@ -42,6 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
 use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
 use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\Directive;
@@ -108,6 +109,12 @@ final readonly class CommonMarkExampleExtractor
 
     /**
      * @return list<Example>
+     *
+     * @throws DirectiveException
+     * @throws DuplicateMarkerException
+     * @throws InvalidMarkerMetadataException
+     * @throws NonPhpMarkerException
+     * @throws OrphanedMarkerException
      *
      * @logion [AWC 42:3] A midwife carried a silk cloth and a rough linen cloth. The silk adorned the cradle; the linen
      *     gripped the newborn when her hands were wet. She taught her daughters to honor what serves before what is
@@ -222,7 +229,7 @@ final readonly class CommonMarkExampleExtractor
                 try {
                     $markerId = new MarkerId($value);
                 } catch (InvalidMarkerException $exception) {
-                    throw new InvalidMarkerException(sprintf(
+                    throw new InvalidMarkerMetadataException(sprintf(
                         'Invalid %s marker at %s:%d: %s',
                         $this->markerName->value,
                         $document->path->value,

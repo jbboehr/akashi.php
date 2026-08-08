@@ -30,8 +30,9 @@ vendor/bin/akashi extract \
 On success, stdout contains only the authored PHP source with one final LF. This makes shell redirection and
 byte-for-byte consumer fixtures predictable. Diagnostics go to stderr.
 
-Markers use lowercase kebab-case and must be unique across the loaded corpus. Missing, duplicate, orphaned, or non-PHP
-markers fail explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and exit-status contract.
+Markers use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate, orphaned, or
+non-PHP markers fail explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and exit-status
+contract.
 
 ## Select It in PHP
 

@@ -42,6 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
 use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
 use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\Directive;
@@ -130,12 +131,16 @@ MARKDOWN);
 
     public function testRejectsAnInvalidMarkerIdWithItsSourceLocation(): void
     {
-        $this->expectException(InvalidMarkerException::class);
-        $this->expectExceptionMessage(
-            'Invalid yumemi-example marker at docs/metadata.md:1: Marker ID must use lowercase kebab-case.',
-        );
-
-        $this->extract("<!-- yumemi-example: Invalid_ID -->\n```php\necho 1;\n```\n");
+        try {
+            $this->extract("<!-- yumemi-example: Invalid_ID -->\n```php\necho 1;\n```\n");
+            self::fail('The invalid authored marker was accepted.');
+        } catch (InvalidMarkerMetadataException $exception) {
+            self::assertSame(
+                'Invalid yumemi-example marker at docs/metadata.md:1: Marker ID must use lowercase kebab-case.',
+                $exception->getMessage(),
+            );
+            self::assertInstanceOf(InvalidMarkerException::class, $exception->getPrevious());
+        }
     }
 
     public function testRejectsADuplicateMarkerIdWithBothSourceLocations(): void

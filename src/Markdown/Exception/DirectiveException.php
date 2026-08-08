@@ -38,11 +38,13 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Markdown\Exception;
 
+use jbboehr\Akashi\Source\Exception\SourceException;
+
 /**
  * @logion [SFA 46:19] At the funeral of the nameless sailor, each harbor sent a cup of its water. The cups differed in
  *     salt and color, yet all were poured upon one grave. The sea received its servant without asking which shore had
  *     spoken most truly of him.
  */
-final class DirectiveException extends \RuntimeException
+final class DirectiveException extends SourceException
 {
 }
