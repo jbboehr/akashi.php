@@ -33,6 +33,11 @@ composer check:full
 The full gate additionally runs both ParaTest scheduling modes and mutation testing. It requires a coverage driver and
 is intentionally more expensive than the routine gate.
 
+Release stewards must follow [`docs/development/releasing.md`](docs/development/releasing.md). If the original
+repository or publishing identities are unavailable, use the fork-oriented procedure in
+[`docs/SUCCESSION.md`](docs/SUCCESSION.md); do not wait indefinitely for an account transfer or share private
+credentials.
+
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
