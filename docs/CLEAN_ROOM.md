@@ -146,6 +146,23 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [Composer runtime API](https://getcomposer.org/doc/07-runtime.md)          | Integration guide                | Discovering the project autoloader from the binary proxy           |
 | 2026-08-04 | [Package versions](https://getcomposer.org/doc/articles/versions.md)       | User-facing behavioral reference | Dependency-constraint strategy                                     |
 
+### Doctrine of the Second Sun
+
+These materials govern literary marginalia and its maintenance workflow only. They did not supply Akashi runtime,
+doctest, extraction, or verification behavior.
+
+| Date       | Document                                                                                                                                                 | Classification                   | Design use                                                                       |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| 2026-08-08 | [Integration guide](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/INTEGRATION-GUIDE.md)            | Integration guide                | Composer adoption, local-policy boundary, adapter refresh, and upgrade checks    |
+| 2026-08-08 | [Style guide](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/DOCTRINE-STYLE-GUIDE.md)               | Specification                    | Canonical literary authority and updated stochastic composition guidance         |
+| 2026-08-08 | [Coding guide](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/DOCTRINE-CODING-GUIDE.md)             | Specification                    | Safe source placement and preservation rules                                     |
+| 2026-08-08 | [Image guide](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/DOCTRINE-IMAGE-GUIDE.md)               | Specification                    | Visual translation authority and updated sampling guidance                       |
+| 2026-08-08 | [Generation guide](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/DOCTRINE-GENERATION-GUIDE.md)     | Integration guide                | Tool-neutral writer, reviewer, leakage, insertion, and verification separation   |
+| 2026-08-08 | [Gold exemplars](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/DOCTRINE-GOLD-EXEMPLARS.md)         | User-facing behavioral reference | Nonnormative quality calibration for generation and review                       |
+| 2026-08-08 | [Ruinenwert](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/RUINENWERT.md)                          | Specification                    | Long-term knowledge preservation, conformance, and replacement-boundary guidance |
+| 2026-08-08 | [Codex integration and adapters](https://github.com/jbboehr/doctrine-of-the-second-sun/tree/f3b65781760948594ce72d34e1bc1507c18d2065/integrations/codex) | Integration guide                | Refreshing the committed read-only writer and code-blind reviewer configurations |
+| 2026-08-08 | [Upstream agent guidelines](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/f3b65781760948594ce72d34e1bc1507c18d2065/AGENTS.md)               | Integration guide                | Confirming the boundary between portable guidance and consuming-project policy   |
+
 ### CommonMark and selected general-purpose dependencies
 
 | Date       | Document                                                                                             | Classification                   | Design use                                                                  |

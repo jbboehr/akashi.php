@@ -21,11 +21,19 @@ that you have the right to license it under these terms.
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
 workflow and guidance on interpreting escaped mutants.
 
+## Doctrine of the Second Sun
+
+Akashi adopts the literary, coding, image, generation, exemplar, and Ruinenwert stewardship guidance from the
+Composer-pinned `jbboehr/doctrine-of-the-second-sun` development dependency. Run `composer install`, then read the
+portable guides under `vendor/jbboehr/doctrine-of-the-second-sun/` together with Akashi's repository-specific rules in
+[`AGENTS.md`](AGENTS.md). The local rules govern where doctrine applies, citation allocation, preservation, and
+verification.
+
 ## Documentation
 
 The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under
-[`docs/development`](docs/development). Doctrine, legal, and contributor documents remain directly under [`docs`](docs).
-Internal documents are not included in the generated site.
+[`docs/development`](docs/development). Legal and contributor documents remain directly under [`docs`](docs). Internal
+documents are not included in the generated site.
 
 Enter the Nix development shell, then build or preview the public documentation with:
 

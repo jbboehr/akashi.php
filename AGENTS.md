@@ -46,15 +46,33 @@ and move detailed behavior, configuration, limitations, and contributor material
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Once the repository has a Git tag, record
 every user-facing change under the `[Unreleased]` heading in `CHANGELOG.md`.
 
-## Akashi Doctrine
+## Doctrine of the Second Sun
+
+This repository adopts the literary style, coding, image, generation, gold-exemplar, and Ruinenwert guides from
+`jbboehr/doctrine-of-the-second-sun`, pinned through Composer. The installed guides live under
+`vendor/jbboehr/doctrine-of-the-second-sun/`. The gold exemplars are a nonnormative quality ceiling. Akashi does not
+adopt the package's Code of Sovereignty.
+
+This file remains authoritative for Akashi's source scope, placement, citation allocation, preservation rules, and
+verification. The installed guides govern literary style, safe insertion, visual interpretation, and generation within
+their stated responsibilities. `vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md` governs long-term preservation
+of software knowledge and explicit replacement boundaries; apply it proportionately without inventing speculative
+abstractions or documents. The committed Codex writer and reviewer adapters under `.codex/agents/` are reviewed copies
+of the package adapters and should be compared with upstream whenever the Composer pin advances.
 
 New named declarations under `src/` and PHP command entry points under `bin/` must contain exactly one `@logion` PHPDoc
 tag. Tests, fixtures, generated code, configuration, and external stubs are out of scope.
 
-Follow [the style guide](docs/DOCTRINE-STYLE-GUIDE.md) when writing logia and
-[the coding guide](docs/DOCTRINE-CODING-GUIDE.md) for placement, independence, and verification. Preserve existing
-technical documentation and assigned references. References must use one of `OSD`, `RAS`, `AWC`, or `SFA`, must match
-`BOOK C:V`, and must be unique in this repository.
+Follow `vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-STYLE-GUIDE.md` when writing logia and
+`vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-CODING-GUIDE.md` for placement, independence, and verification. Use
+the installed generation guide and gold exemplars for generation and review. Preserve existing technical documentation
+and assigned references. References must use one of `OSD`, `RAS`, `AWC`, or `SFA`, must match `BOOK C:V`, and must be
+unique in this repository.
+
+For new or explicitly revised logia, preserve a fixed declaration-to-opaque-ID mapping through separate code-blind
+writer and reviewer passes. The parent agent owns entropy-backed length-pressure sampling, citation allocation and
+collision checks, the reject-only implementation-leakage review, insertion, and repository verification. Do not select
+or remap a candidate because it appears relevant to a declaration.
 
 Do not add or revise a logion on a preexisting declaration unless the user explicitly requests a doctrine pass.
 

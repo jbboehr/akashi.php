@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b1dd1be71594591efcaad09c5473d1da",
+    "content-hash": "a24babd505c4d0a30960a3a29bf531b7",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -1868,6 +1868,45 @@
                 }
             ],
             "time": "2025-04-29T08:19:52+00:00"
+        },
+        {
+            "name": "jbboehr/doctrine-of-the-second-sun",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jbboehr/doctrine-of-the-second-sun.git",
+                "reference": "f3b65781760948594ce72d34e1bc1507c18d2065"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jbboehr/doctrine-of-the-second-sun/zipball/f3b65781760948594ce72d34e1bc1507c18d2065",
+                "reference": "f3b65781760948594ce72d34e1bc1507c18d2065",
+                "shasum": ""
+            },
+            "default-branch": true,
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "CC-BY-SA-4.0"
+            ],
+            "authors": [
+                {
+                    "name": "John Boehr",
+                    "email": "jbboehr@mailbox.org"
+                }
+            ],
+            "description": "Portable doctrine, visual, coding, and software-stewardship guides",
+            "keywords": [
+                "doctrine",
+                "documentation",
+                "software-maintenance",
+                "writing"
+            ],
+            "support": {
+                "issues": "https://github.com/jbboehr/doctrine-of-the-second-sun/issues",
+                "source": "https://github.com/jbboehr/doctrine-of-the-second-sun"
+            },
+            "time": "2026-08-08T20:03:39+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
@@ -6490,7 +6529,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "jbboehr/doctrine-of-the-second-sun": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
