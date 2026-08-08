@@ -1,19 +1,27 @@
 # Roadmap
 
-This roadmap records design direction rather than release-number commitments. The immediate priority is to complete the
-Yumemi and Yumemi Apocrypha acceptance gates, incorporate any reusable-library feedback they expose, and then stabilize
-the documented MVP API.
+This roadmap records design direction rather than release-number commitments. Yumemi's runtime and PHPStan acceptance
+gates are complete. The immediate priority is to complete the Yumemi Apocrypha consumer migration, incorporate any
+remaining reusable-library feedback, and then stabilize the documented MVP API.
 
 ## Complete the Markdown MVP
 
-1. Migrate Yumemi's runtime documentation test without silently omitting unsupported examples.
-2. Verify Yumemi's complete relevant PHPStan corpus and all authored expectations.
-3. Migrate Yumemi and Apocrypha marked-example extraction calls.
-4. Remove duplicated consumer helpers only after both old and Akashi paths agree.
-5. Finalize public API, limitation, and migration documentation from the acceptance evidence.
+Completed acceptance evidence:
+
+- Yumemi executes all 43 current PHP fences through Akashi without silent omission, using the separate-process backend
+  for its two authored-namespace examples.
+- Yumemi verifies all 15 relevant PHPStan examples and eight authored expectations through Akashi.
+- Yumemi removed its duplicated documentation-test helpers after the replacement suite and complete project gate passed.
+- Akashi produces byte-identical output for all eight marked Apocrypha fixtures in its local compatibility gate.
+
+Remaining MVP work:
+
+1. Migrate Apocrypha's eight marked-example consumer calls to `vendor/bin/akashi`.
+2. Run Apocrypha's normal and consumer suites, then remove its duplicated extractor only after both paths agree.
+3. Finalize the public API, limitations, and migration documentation from both consumers' acceptance evidence.
 
 The ParaTest compatibility gate is complete for both TestCase-level and `--functional` test-level scheduling. Keep both
-modes in CI while the consumer migrations exercise the same public integration paths.
+modes in CI while the remaining consumer migration exercises the same public integration paths.
 
 ## PHPDoc Example Maintainability
 

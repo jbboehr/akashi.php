@@ -30,6 +30,9 @@ These local materials are allowed inputs rather than external clean-room referen
 | `tmp/yumemi-apocrypha.php` (`jbboehr/yumemi-apocrypha`)                                         | Generic project scaffold and the second current documentation-test behavior to migrate |
 | `tmp/imm.php/tests/Documentation/MarkdownExamples.php`                                          | Yumemi's document-manifest discovery behavior                                          |
 | `tmp/imm.php/tests/Documentation/MarkdownExamplesTest.php`                                      | Manifest ordering, extension filtering, and exclusion fixtures                         |
+| `tmp/yumemi.php` at `368badd0669faec7b46052e867bd9f40be49cd29`                                  | Verification of the completed Yumemi consumer migration                                |
+| `tmp/yumemi.php/tests/Documentation/DocumentationExamplesTest.php`                              | Thin consumer composition for runtime acceptance                                       |
+| `tmp/yumemi.php/tests/Documentation/DocumentationPhpStanExamplesTest.php`                       | Thin consumer composition for PHPStan acceptance                                       |
 | `tmp/yumemi-apocrypha.php/tests/Documentation/MarkedCodeBlockExtractor.php`                     | Legacy marked-extraction and final-newline behavior                                    |
 | `tmp/yumemi-apocrypha.php/tests/Documentation/MarkedCodeBlockExtractorTest.php`                 | Legacy extraction examples and failure expectations                                    |
 | `tmp/yumemi-apocrypha.php/tests/Documentation/extract-markdown-example.php`                     | Legacy CLI stream and exit-status behavior                                             |

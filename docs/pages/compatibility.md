@@ -72,7 +72,16 @@ process. Akashi does not require ParaTest at runtime or use its worker-token env
 
 ## Migration Status
 
-Akashi has local compatibility fixtures for Yumemi's Markdown manifest, transform behavior, and Apocrypha's marked
-extraction contract. End-to-end consumer migration remains pending, including execution of every Yumemi runtime example
-and verification of its complete PHPStan diagnostic corpus. Until those gates pass, compatibility claims remain
-provisional and duplicated consumer helpers should not be removed.
+Yumemi's end-to-end migration is complete. Its current corpus exercises all 43 PHP fences through Akashi as named
+PHPUnit data sets: 41 run in-process and two authored-namespace examples run in child processes. Its real PHPStan rule
+and configuration verify 15 relevant examples and all eight authored `//!` expectations. Yumemi removed its duplicated
+Markdown discovery, runtime transform, diagnostic matcher, and unused marked-extraction helpers after the replacement
+suite passed.
+
+On 2026-08-07, Yumemi's complete local gate passed with 1,633 tests and 17,565 assertions, along with PHPStan,
+formatting, mdBook, generated-link checking, benchmark smoke testing, and its packaged consumer smoke test. The
+documentation and PHPStan gates also passed against Akashi's current local checkout.
+
+Akashi also has byte-equality compatibility coverage for all eight Apocrypha marked examples. Apocrypha's consumer
+script has not yet switched to `vendor/bin/akashi`, so that consumer migration and removal of its duplicated extractor
+remain the final MVP acceptance gate.

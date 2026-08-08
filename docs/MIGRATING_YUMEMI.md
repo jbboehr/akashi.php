@@ -1,8 +1,8 @@
 # Migrating Yumemi documentation tests to Akashi
 
-This document inventories the documentation-example behavior that Akashi must preserve before the local Yumemi projects
-remove or reduce their existing test helpers. It is a migration contract, not an assertion that the migration is already
-complete.
+This document inventories the documentation-example behavior that Akashi must preserve as the local Yumemi projects
+remove or reduce their existing test helpers. It also records completed acceptance evidence. Yumemi's runtime and
+PHPStan migrations are complete; the Yumemi Apocrypha consumer migration remains pending.
 
 ## Compatibility target, not architecture template
 
@@ -97,11 +97,13 @@ its label; the migration should improve it to include the Markdown path, identit
 
 The transform-foundation compatibility check on 2026-08-05 parsed and namespace-isolated 35 of the 37 reference
 examples. The remaining two examples—`docs/pages/recipes.md` example 4 and `docs/pages/reference/phpstan.md` example
-6—contain authored namespace declarations and receive the precise unsupported-example failure required by the current
-owner-approved MVP policy. Before the Yumemi runtime migration is complete, those examples must either be selected for
-separate-process execution through explicit consumer configuration or the authored-namespace policy must be revisited.
-They must not be silently omitted, and this evidence does not yet satisfy the eventual requirement that every public PHP
-fence execute.
+6—contain authored namespace declarations and received the precise unsupported-example failure required by the current
+owner-approved MVP policy.
+
+The completed migration resolves those two cases with explicit `<!-- akashi: separate-process -->` directives. At the
+2026-08-07 acceptance snapshot, Yumemi's documentation had grown to 43 PHP fences. All 43 were exposed as named PHPUnit
+data sets and executed through Akashi; 41 ran in-process and the two authored-namespace examples ran in child processes.
+No PHP fence was omitted or runtime-skipped.
 
 ### PHPStan contract
 
@@ -137,11 +139,16 @@ The current substring check is not one-to-one and does not pair expectations wit
 not weaken the exact-count or substring guarantees; it should preserve expectation order in its model and reports.
 PHPStan classes must remain outside Akashi's core example model.
 
+At the 2026-08-07 acceptance snapshot, Yumemi selected 15 PHPStan-relevant examples through its five project-owned
+tokens. Akashi verified all 15 through Yumemi's real `CallToFunctionParametersRule`, `extension.neon`, and
+`yumemi-tags.neon`, preserving all eight authored expectations and requiring every relevant unmarked example to analyze
+cleanly.
+
 ### Marked extraction helper
 
-Yumemi also contains the duplicated `MarkedCodeBlockExtractor` and a direct CLI wrapper, although its current consumer
-script does not invoke that wrapper. Its behavior is identical to the Apocrypha copy described below and remains part of
-the replacement scope.
+The reference Yumemi snapshot contained the duplicated `MarkedCodeBlockExtractor` and a direct CLI wrapper, although no
+current Yumemi consumer script invoked that wrapper. The completed Yumemi migration removed both after Akashi's
+equivalent extraction behavior was established. The live Apocrypha consumer described below still needs to migrate.
 
 ## Yumemi Apocrypha behavior inventory
 
@@ -221,24 +228,43 @@ source-versus-archive test modes.
 
 ## Migration sequence and gates
 
-The first three gates are implemented in Akashi. The local compatibility test invokes Apocrypha's legacy extractor and
-compares all eight marked outputs byte-for-byte with the Akashi CLI application.
+Akashi's implementation gates and the Yumemi consumer migration are complete. The local compatibility test invokes
+Apocrypha's legacy extractor and compares all eight marked outputs byte-for-byte with the Akashi CLI application, but
+the Apocrypha consumer still invokes its legacy wrapper.
 
-1. Implement and test Akashi's immutable document and example models.
-2. Implement discovery and a fence scanner against synthetic fixtures plus reduced Yumemi examples.
-3. Implement configurable marked selection and the extraction CLI; prove byte equality for all eight Apocrypha markers.
-4. Implement in-process transformation and execution before changing Yumemi tests.
-5. Implement the composable PHPUnit integration and migrate Yumemi's runtime documentation test.
-6. Implement the PHPStan `RuleTestCase` seam and migrate Yumemi without weakening exact diagnostic checks.
-7. Change Apocrypha's consumer script to invoke `vendor/bin/akashi`, retaining every surrounding consumer assertion.
-8. Remove duplicated helpers only after equivalent unit and consumer coverage passes.
+1. **Complete:** Implement and test Akashi's immutable document and example models.
+2. **Complete:** Implement discovery and a fence scanner against synthetic fixtures plus reduced Yumemi examples.
+3. **Complete:** Implement configurable marked selection and the extraction CLI; prove byte equality for all eight
+   Apocrypha markers.
+4. **Complete:** Implement in-process transformation and execution before changing Yumemi tests.
+5. **Complete:** Implement the composable PHPUnit integration and migrate Yumemi's runtime documentation test.
+6. **Complete:** Implement the PHPStan `RuleTestCase` seam and migrate Yumemi without weakening exact diagnostic checks.
+7. **Pending:** Change Apocrypha's consumer script to invoke `vendor/bin/akashi`, retaining every surrounding consumer
+   assertion.
+8. **Complete for Yumemi; pending for Apocrypha:** Remove duplicated helpers only after equivalent unit and consumer
+   coverage passes.
 
 `GeneratedDocumentationLinkChecker` and `check-generated-links.php` are explicitly excluded from the initial Akashi
 work. They remain in both projects.
 
-## Inventory verification
+## Inventory and acceptance verification
 
 The file lists, marker locations, consumer call sites, document count, PHP fence count, and expectation count were
-checked directly at the reference commits above. Akashi's compatibility test now executes the legacy marked extractor
-directly without requiring either reference package's Composer dependencies. The reference projects' full PHPUnit and
-consumer suites must still be run during the actual migrations after their dependencies are available.
+checked directly at the reference commits above. Akashi's compatibility test executes the legacy Apocrypha marked
+extractor directly without requiring either reference package's Composer dependencies.
+
+Yumemi adopted Akashi in commit `73eb37f67699940b4e5ae013c3bbf448850f1b46`. On 2026-08-07, its `develop` checkout at
+`368badd0669faec7b46052e867bd9f40be49cd29` passed:
+
+- all 47 documentation tests, including 43 independently named runtime examples and the corpus-level PHPStan test;
+- all 15 PHPStan-relevant examples and eight authored diagnostic expectations;
+- the complete `composer check:full` gate with 1,633 tests and 17,565 assertions, plus PHPStan, formatting, mdBook,
+  generated-link checking, benchmark smoke testing, and the packaged consumer smoke test.
+
+The documentation tests and PHPStan analysis also passed with the installed Akashi package temporarily redirected to the
+current local Akashi commit `19bb989e8cf7ca250e334e789a1f8b93e424ace1`. The redirection was restored after the check.
+Yumemi's committed lock file still records the earlier compatible Akashi commit
+`225cc33f61d5779791112fb6c3b0f473e9c8e5ae`; refreshing that lock after current Akashi changes are published is
+bookkeeping rather than a migration blocker.
+
+The Apocrypha normal and consumer suites remain to be run after its consumer script is migrated.
