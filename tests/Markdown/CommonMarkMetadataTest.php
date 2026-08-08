@@ -57,6 +57,7 @@ final class CommonMarkMetadataTest extends TestCase
         $examples = $this->extract(<<<'MARKDOWN'
 <!-- yumemi-example: first-example -->
 
+<!-- akashi: skip -->
 <!-- akashi: separate-process -->
 ```PHP extra
 <?php
@@ -64,6 +65,7 @@ echo 'first';
 ```
 
 <!-- akashi: separate-process -->
+<!-- akashi: skip -->
 <!-- yumemi-example: second-example -->
 ~~~php
 echo 'second';
@@ -73,12 +75,16 @@ MARKDOWN);
         self::assertCount(2, $examples);
         self::assertSame('first-example', $examples[0]->explicitMarkerId?->value);
         self::assertSame('second-example', $examples[1]->explicitMarkerId?->value);
+        self::assertTrue($examples[0]->directives->contains(Directive::Skip));
+        self::assertTrue($examples[1]->directives->contains(Directive::Skip));
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
         self::assertTrue($examples[1]->directives->contains(Directive::SeparateProcess));
         self::assertSame(1, $examples[0]->location->metadata->markerLine);
-        self::assertSame(3, $examples[0]->location->metadata->separateProcessDirectiveLine);
-        self::assertSame(10, $examples[1]->location->metadata->markerLine);
-        self::assertSame(9, $examples[1]->location->metadata->separateProcessDirectiveLine);
+        self::assertSame(4, $examples[0]->location->metadata->separateProcessDirectiveLine);
+        self::assertSame(3, $examples[0]->location->metadata->skipDirectiveLine);
+        self::assertSame(12, $examples[1]->location->metadata->markerLine);
+        self::assertSame(10, $examples[1]->location->metadata->separateProcessDirectiveLine);
+        self::assertSame(11, $examples[1]->location->metadata->skipDirectiveLine);
         self::assertSame("<?php\necho 'first';\n", $examples[0]->code->source);
     }
 
@@ -235,13 +241,17 @@ MARKDOWN);
             'Duplicate Akashi directive separate-process at docs/directives.md:2; '
                 . 'first declared at docs/directives.md:1.',
         ];
+        yield 'duplicate skip' => [
+            "<!-- akashi: skip -->\n<!-- akashi: skip -->\n```php\necho 1;\n```\n",
+            'Duplicate Akashi directive skip at docs/directives.md:2; first declared at docs/directives.md:1.',
+        ];
         yield 'orphaned' => [
-            "<!-- akashi: separate-process -->\n\nIntervening prose.\n",
-            'Akashi directive separate-process at docs/directives.md:1 is not followed by a fenced code block.',
+            "<!-- akashi: skip -->\n\nIntervening prose.\n",
+            'Akashi directive skip at docs/directives.md:1 is not followed by a fenced code block.',
         ];
         yield 'non-PHP fence' => [
-            "<!-- akashi: separate-process -->\n```shell\necho 1\n```\n",
-            'Akashi directive separate-process at docs/directives.md:1 is followed by a shell fence, not a PHP fence.',
+            "<!-- akashi: skip -->\n```shell\necho 1\n```\n",
+            'Akashi directive skip at docs/directives.md:1 is followed by a shell fence, not a PHP fence.',
         ];
     }
 

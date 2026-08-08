@@ -48,6 +48,8 @@ use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException;
 use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanVerificationException;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleSelector;
+use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
@@ -290,6 +292,22 @@ final class PhpStanExampleConfigurationTest extends TestCase
         );
     }
 
+    public function testRuntimeSkipDoesNotExcludeAPhpStanRelevantExample(): void
+    {
+        $example = $this->example(
+            'example-a-01',
+            'docs/a.md',
+            1,
+            'relevant-token();',
+            directives: new DirectiveSet(Directive::Skip),
+        );
+        $configuration = PhpStanExampleConfiguration::forTokens($this->projectRoot, 'relevant-token');
+
+        $selected = (new PhpStanExampleSelector())->select(new ExampleCorpus($example), $configuration);
+
+        self::assertSame([$example], iterator_to_array($selected));
+    }
+
     /** @param positive-int $ordinal */
     private function example(
         string $id,
@@ -297,6 +315,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
         int $ordinal,
         string $source,
         ?string $documentContents = null,
+        DirectiveSet $directives = new DirectiveSet(),
     ): Example {
         $sourceLength = strlen($source);
 
@@ -316,6 +335,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
             code: new ExampleCode($source),
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: $ordinal,
+            directives: $directives,
         );
     }
 

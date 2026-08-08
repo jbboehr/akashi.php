@@ -64,7 +64,7 @@ final class ExampleTest extends TestCase
         $code = new ExampleCode($source);
         $fence = new FenceMetadata('php extra', '`', 3, 0);
         $markerId = new MarkerId('selected-example');
-        $directives = new DirectiveSet(Directive::SeparateProcess);
+        $directives = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
         $example = new Example(
             id: $id,
             label: 'docs/guide.md PHP example 1',
@@ -90,6 +90,7 @@ final class ExampleTest extends TestCase
         self::assertSame(1, $example->ordinal);
         self::assertSame($markerId, $example->explicitMarkerId);
         self::assertSame($directives, $example->directives);
+        self::assertTrue($example->directives->contains(Directive::Skip));
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
     }
 
@@ -98,6 +99,7 @@ final class ExampleTest extends TestCase
         $example = $this->example();
 
         self::assertNull($example->explicitMarkerId);
+        self::assertFalse($example->directives->contains(Directive::Skip));
         self::assertFalse($example->directives->contains(Directive::SeparateProcess));
     }
 

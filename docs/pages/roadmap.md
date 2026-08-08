@@ -42,9 +42,10 @@ IDEs, renderers, and static analyzers.
 
 ## Runtime and Verification
 
-Deferred runtime work includes a typed PHPUnit-familiar expected-exception model, expected output, explicit skip and
-ignore outcomes, compile-only checks, platform conditions, configurable subprocess timeouts, alternate PHP binaries and
-INI profiles, and controlled child environments.
+Authored runtime skip is implemented through PHPUnit's ordinary skipped-test reporting while preserving the example in
+its corpus. Deferred runtime work includes global ignore and conditional skip policies with explicit reasons, a typed
+PHPUnit-familiar expected-exception model, expected output, compile-only checks, platform conditions, configurable
+subprocess timeouts, alternate PHP binaries and INI profiles, and controlled child environments.
 
 The PHPStan roadmap includes an identifier-oriented expectation syntax that coexists with `//!`, richer verifier result
 objects outside PHPUnit, and source maps capable of composing multiple transformations without reporting only temporary

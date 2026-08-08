@@ -49,6 +49,7 @@ use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Transform\Exception\TransformException;
 use jbboehr\Akashi\Transform\InProcessTransformer;
 use jbboehr\Akashi\Transform\SeparateProcessTransformer;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**
@@ -58,6 +59,8 @@ use PHPUnit\Framework\ExpectationFailedException;
 final readonly class PhpUnitRuntime
 {
     /**
+     * An authored runtime skip delegates to PHPUnit's skipped-test mechanism and does not return.
+     *
      * @throws ExecutionInfrastructureException when the execution environment cannot be established or measured
      * @throws ExpectationFailedException when execution or cleanup failed
      * @throws RuntimeConfigurationException when separate-process execution has no explicit project root
@@ -70,6 +73,16 @@ final readonly class PhpUnitRuntime
         Example $example,
         ?RuntimeConfiguration $configuration = null,
     ): void {
+        if ($example->directives->contains(Directive::Skip)) {
+            Assert::markTestSkipped(sprintf(
+                'Documentation example %s (%s) at %s:%d is marked to skip runtime execution.',
+                $example->id->value,
+                $example->label,
+                $example->document->path->value,
+                $example->location->metadata->skipDirectiveLine ?? $example->location->firstCodeLine,
+            ));
+        }
+
         $executionMode = $configuration === null
             ? ExecutionMode::InProcess
             : $configuration->defaultExecutionMode;

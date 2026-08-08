@@ -58,10 +58,13 @@ use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 final class PhpUnitRuntimeTest extends TestCase
 {
     private string $workspace;
+
+    private bool $runtimeReturnRequired = false;
 
     protected function setUp(): void
     {
@@ -75,36 +78,44 @@ final class PhpUnitRuntimeTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (!is_dir($this->workspace)) {
-            return;
+        $runtimeReturnRequired = $this->runtimeReturnRequired;
+        $this->runtimeReturnRequired = false;
+
+        if (is_dir($this->workspace)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($this->workspace, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            );
+
+            foreach ($iterator as $path) {
+                if (!$path instanceof \SplFileInfo) {
+                    continue;
+                }
+
+                if ($path->isDir() && !$path->isLink()) {
+                    self::assertTrue(rmdir($path->getPathname()));
+                } else {
+                    self::assertTrue(unlink($path->getPathname()));
+                }
+            }
+
+            self::assertTrue(rmdir($this->workspace));
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->workspace, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        self::assertFalse(
+            $runtimeReturnRequired,
+            'The ordinary runtime call must return instead of changing the PHPUnit test status.',
         );
-
-        foreach ($iterator as $path) {
-            if (!$path instanceof \SplFileInfo) {
-                continue;
-            }
-
-            if ($path->isDir() && !$path->isLink()) {
-                self::assertTrue(rmdir($path->getPathname()));
-            } else {
-                self::assertTrue(unlink($path->getPathname()));
-            }
-        }
-
-        self::assertTrue(rmdir($this->workspace));
     }
 
     public function testExecutesAnExampleAndRecordsOneCompletionAssertion(): void
     {
         $before = Assert::getCount();
+        $this->runtimeReturnRequired = true;
 
         PhpUnitRuntime::assertExample($this->example("echo 'captured';"));
 
+        $this->runtimeReturnRequired = false;
         $after = Assert::getCount();
         self::assertSame($before + 1, $after);
     }
@@ -184,6 +195,67 @@ final class PhpUnitRuntimeTest extends TestCase
         $childPid = file_get_contents($this->workspace . '/child.pid');
         self::assertNotFalse($childPid);
         self::assertNotSame((string) $parentPid, $childPid);
+    }
+
+    public function testASkipDirectiveStopsBeforeConfigurationTransformationAndExecution(): void
+    {
+        $projectRoot = dirname(__DIR__, 3);
+        $unexpectedFile = $this->workspace . '/unexpected.txt';
+        $markdown = sprintf(
+            "<!-- akashi: skip -->\n<!-- akashi: separate-process -->\n```php\n"
+                . "file_put_contents(%s, 'executed');\nthrow new LogicException('executed');\n```\n",
+            var_export($unexpectedFile, true),
+        );
+        self::assertNotFalse(file_put_contents($this->workspace . '/example.md', $markdown));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/SkippedDocumentationExampleTest.php',
+            <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PHPUnit\Framework\TestCase;
+
+final class SkippedDocumentationExampleTest extends TestCase
+{
+    public function testSkippedDocumentationExample(): void
+    {
+        $corpus = MarkdownSource::forProject(__DIR__)
+            ->includeFile('example.md')
+            ->load();
+
+        foreach ($corpus as $example) {
+            PhpUnitRuntime::assertExample($example);
+        }
+
+        self::fail('A skipped documentation example must not return normally.');
+    }
+}
+PHP,
+        ));
+        $process = new Process([
+            PHP_BINARY,
+            $projectRoot . '/vendor/bin/phpunit',
+            '--no-configuration',
+            '--bootstrap',
+            $projectRoot . '/vendor/autoload.php',
+            '--colors=never',
+            '--display-skipped',
+            $this->workspace . '/SkippedDocumentationExampleTest.php',
+        ], $this->workspace);
+
+        $process->run();
+
+        $report = $process->getOutput() . $process->getErrorOutput();
+        self::assertSame(0, $process->getExitCode(), $report);
+        self::assertStringContainsString('Skipped: 1', $report);
+        self::assertStringContainsString(
+            '(example.md PHP example 1) at example.md:1 is marked to skip runtime execution.',
+            $report,
+        );
+        self::assertFileDoesNotExist($unexpectedFile);
     }
 
     public function testTheConfiguredInProcessDefaultUsesTheProjectRoot(): void

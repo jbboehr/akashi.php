@@ -50,35 +50,47 @@ final class MetadataLocationTest extends TestCase
 
         self::assertNull($location->markerLine);
         self::assertNull($location->separateProcessDirectiveLine);
+        self::assertNull($location->skipDirectiveLine);
     }
 
     public function testPreservesAssociatedMetadataLines(): void
     {
-        $location = new MetadataLocation(3, 5);
+        $location = new MetadataLocation(3, 5, 4);
 
         self::assertSame(3, $location->markerLine);
         self::assertSame(5, $location->separateProcessDirectiveLine);
+        self::assertSame(4, $location->skipDirectiveLine);
     }
 
     #[DataProvider('invalidLineProvider')]
-    public function testRejectsNonpositiveMetadataLines(?int $markerLine, ?int $directiveLine, string $message): void
-    {
+    public function testRejectsNonpositiveMetadataLines(
+        ?int $markerLine,
+        ?int $directiveLine,
+        ?int $skipDirectiveLine,
+        string $message,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
         $unexpectedLocation = (new \ReflectionClass(MetadataLocation::class))->newInstanceArgs(
-            [$markerLine, $directiveLine],
+            [$markerLine, $directiveLine, $skipDirectiveLine],
         );
 
         self::fail('Unexpectedly constructed ' . $unexpectedLocation::class . '.');
     }
 
     /**
-     * @return iterable<string, array{?int, ?int, string}>
+     * @return iterable<string, array{?int, ?int, ?int, string}>
      */
     public static function invalidLineProvider(): iterable
     {
-        yield 'marker' => [0, null, 'Marker line must be positive.'];
-        yield 'directive' => [null, -1, 'Directive line must be positive.'];
+        yield 'marker' => [0, null, null, 'Marker line must be positive.'];
+        yield 'separate-process directive' => [
+            null,
+            -1,
+            null,
+            'Separate-process directive line must be positive.',
+        ];
+        yield 'skip directive' => [null, null, -1, 'Skip directive line must be positive.'];
     }
 }

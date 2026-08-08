@@ -14,15 +14,19 @@ PhpUnitRuntime::assertExample($example, $runtimeConfiguration);
 
 See [Getting Started](../getting-started.md#run-examples-with-phpunit) for the complete data-provider example.
 
-The selected mode follows this precedence:
+Runtime disposition and mode follow this precedence:
 
-1. An authored `<!-- akashi: separate-process -->` directive.
-2. `RuntimeConfiguration::withDefaultExecutionMode()`.
-3. In-process execution.
+1. An authored `<!-- akashi: skip -->` directive asks PHPUnit to report the named data set as skipped.
+2. An authored `<!-- akashi: separate-process -->` directive selects the child backend.
+3. `RuntimeConfiguration::withDefaultExecutionMode()` selects the default backend.
+4. In-process execution is the fallback.
 
 Separate-process execution always requires `RuntimeConfiguration` with an explicit project root. Akashi rejects the call
 rather than weakening requested isolation. In-process execution may omit configuration, although supplying it gives the
 example a deliberate working directory and optional bootstrap.
+
+A skipped example remains in its corpus and data provider but is not configured, transformed, bootstrapped, or executed.
+Runtime skip does not alter PHPStan relevance selection or marked-example extraction.
 
 ## Runtime Configuration
 
@@ -94,3 +98,6 @@ the example is not trusted.
 `PhpUnitResultAsserter` reports the example ID, label, maintained Markdown location, failure phase, original cause,
 captured streams, and cleanup failures. A successful example records a completion assertion, so an example without an
 authored assertion is not marked risky. Rewritten in-process assertions also count normally in PHPUnit.
+
+`PhpUnitRuntime` delegates authored runtime skips to PHPUnit's ordinary skipped-test mechanism. The skip message names
+the example and maintained directive location; the data set is reported rather than silently filtered out.

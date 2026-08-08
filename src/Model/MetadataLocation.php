@@ -66,19 +66,32 @@ final readonly class MetadataLocation
     public ?int $separateProcessDirectiveLine;
 
     /**
+     * @var positive-int|null
+     *
+     * @logion [SFA 67:2] Beside the sealed courtroom stood a vacant lectern bearing the absent witness's name; the
+     *     clerk recorded its place before opening any testimony, lest silence be mistaken for acquittal.
+     */
+    public ?int $skipDirectiveLine;
+
+    /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $separateProcessDirectiveLine
+     * @param positive-int|null $skipDirectiveLine
      *
      * @logion [RAS 47:8] Above the winter harbor, a constellation descended until each star rested upon a different
      *     mast. No rope burned, and the sleeping crews dreamed of the same green country. At sunrise the lights rose,
      *     leaving salt upon the highest sails.
      */
-    public function __construct(?int $markerLine = null, ?int $separateProcessDirectiveLine = null)
-    {
-        self::validateLines($markerLine, $separateProcessDirectiveLine);
+    public function __construct(
+        ?int $markerLine = null,
+        ?int $separateProcessDirectiveLine = null,
+        ?int $skipDirectiveLine = null,
+    ) {
+        self::validateLines($markerLine, $separateProcessDirectiveLine, $skipDirectiveLine);
 
         $this->markerLine = $markerLine;
         $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
+        $this->skipDirectiveLine = $skipDirectiveLine;
     }
 
     /**
@@ -86,14 +99,21 @@ final readonly class MetadataLocation
      *     funeral feast. The poor ate beneath black banners, and when the sun returned, the ancestral statues had
      *     turned their faces toward the living.
      */
-    private static function validateLines(?int $markerLine, ?int $separateProcessDirectiveLine): void
-    {
+    private static function validateLines(
+        ?int $markerLine,
+        ?int $separateProcessDirectiveLine,
+        ?int $skipDirectiveLine,
+    ): void {
         if ($markerLine !== null && $markerLine < 1) {
             throw new \InvalidArgumentException('Marker line must be positive.');
         }
 
         if ($separateProcessDirectiveLine !== null && $separateProcessDirectiveLine < 1) {
-            throw new \InvalidArgumentException('Directive line must be positive.');
+            throw new \InvalidArgumentException('Separate-process directive line must be positive.');
+        }
+
+        if ($skipDirectiveLine !== null && $skipDirectiveLine < 1) {
+            throw new \InvalidArgumentException('Skip directive line must be positive.');
         }
     }
 }

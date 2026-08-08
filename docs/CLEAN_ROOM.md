@@ -175,7 +175,7 @@ The Rust review influenced only the roadmap and vocabulary used to discuss defer
 - hidden support lines motivate preserving separate authored, semantic, and possible future display views;
 - executable examples in documentation comments and externally included documentation provide user-identified behavioral
   precedent for deferred PHPDoc sources and separate code-origin and presentation locations;
-- ignored examples motivate a future explicit skip directive;
+- ignored examples informed the authored runtime-skip directive while broader ignore policies remain deferred;
 - non-running examples motivate a future parse-or-analyze-only mode;
 - expected runtime failure motivates a future typed failure expectation;
 - expected compilation failure motivates a future exact PHPStan-diagnostic expectation; and
@@ -229,6 +229,12 @@ On 2026-08-05, a narrow local symbol search for PHPUnit's public assertion count
 `Assert::getCount()` and `Assert::resetCount()` from the installed PHPUnit source file. No method body or surrounding
 implementation was opened. The search result was used only to exercise the documented assertion integration in a test;
 it did not influence Akashi's architecture or public API.
+
+On 2026-08-07, while confirming the public `Assert::markTestSkipped()` integration point, the installed PHPUnit source
+was opened around that method and its referenced skipped-test exception. This exposed the method's trivial throw and the
+internal exception class and marker interface. Those internal types were disregarded and are not used by Akashi's
+implementation or public contracts; runtime skip delegates only through PHPUnit's public `Assert::markTestSkipped()`
+method, consistent with the official PHPUnit writing-tests guide already recorded above.
 
 No competing PHP doctest documentation or prohibited implementation material was accidentally exposed.
 

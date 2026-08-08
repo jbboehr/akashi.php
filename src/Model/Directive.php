@@ -46,6 +46,12 @@ namespace jbboehr\Akashi\Model;
 enum Directive: string
 {
     /**
+     * @logion [OSD 67:1] The court left one witness upon the roll though winter closed the mountain road; his empty
+     *     chair was named before judgment, so absence could not masquerade as forgotten testimony.
+     */
+    case Skip = 'skip';
+
+    /**
      * @logion [RAS 17:8] The conqueror demanded his portrait in every household. Years later, no one remembered his
      *     face, for all painters had copied the same flattering image. The defeated remained known by family gestures,
      *     songs, and scars. Memory keeps what authority cannot make uniform.

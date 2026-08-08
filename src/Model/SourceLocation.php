@@ -93,7 +93,7 @@ final readonly class SourceLocation
     public SourceSpan $codeSpan;
 
     /**
-     * Source lines for an associated explicit marker and execution directive.
+     * Source lines for an associated explicit marker and runtime directives.
      *
      * @logion [AWC 49:24] An orchard keeper left the northern ladder against a tree long after age had taken his sight.
      *     Young workers called it useless until a storm stranded three nests upon broken branches. By sunset every
@@ -159,7 +159,13 @@ final readonly class SourceLocation
             $metadata->separateProcessDirectiveLine !== null
             && $metadata->separateProcessDirectiveLine >= $openingFenceLine
         ) {
-            throw new \InvalidArgumentException('Directive line must precede the opening fence.');
+            throw new \InvalidArgumentException(
+                'Separate-process directive line must precede the opening fence.',
+            );
+        }
+
+        if ($metadata->skipDirectiveLine !== null && $metadata->skipDirectiveLine >= $openingFenceLine) {
+            throw new \InvalidArgumentException('Skip directive line must precede the opening fence.');
         }
 
         $this->openingFenceLine = $openingFenceLine;

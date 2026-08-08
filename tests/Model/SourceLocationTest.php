@@ -139,11 +139,13 @@ final class SourceLocationTest extends TestCase
     /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $directiveLine
+     * @param positive-int|null $skipDirectiveLine
      */
     #[DataProvider('invalidMetadataLineProvider')]
     public function testRejectsMetadataThatDoesNotPrecedeTheFence(
         ?int $markerLine,
         ?int $directiveLine,
+        ?int $skipDirectiveLine,
         string $message,
     ): void {
         $this->expectException(\InvalidArgumentException::class);
@@ -156,16 +158,27 @@ final class SourceLocationTest extends TestCase
             6,
             new SourceSpan(10, 50),
             new SourceSpan(20, 40),
-            new MetadataLocation($markerLine, $directiveLine),
+            new MetadataLocation($markerLine, $directiveLine, $skipDirectiveLine),
         );
     }
 
     /**
-     * @return iterable<string, array{?int, ?int, string}>
+     * @return iterable<string, array{?int, ?int, ?int, string}>
      */
     public static function invalidMetadataLineProvider(): iterable
     {
-        yield 'marker on fence' => [4, null, 'Marker line must precede the opening fence.'];
-        yield 'directive after fence' => [null, 5, 'Directive line must precede the opening fence.'];
+        yield 'marker on fence' => [4, null, null, 'Marker line must precede the opening fence.'];
+        yield 'separate-process directive after fence' => [
+            null,
+            5,
+            null,
+            'Separate-process directive line must precede the opening fence.',
+        ];
+        yield 'skip directive after fence' => [
+            null,
+            null,
+            5,
+            'Skip directive line must precede the opening fence.',
+        ];
     }
 }

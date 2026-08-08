@@ -374,9 +374,9 @@ recognized Akashi metadata comments, but no prose or unrelated block. Marker IDs
 Selection is a separate `MarkedExampleSelector`; parsing does not need to know which marker a caller will request.
 Duplicate, missing, invalid, orphaned, and non-PHP marker failures are distinct domain exceptions with document lines.
 
-### Execution directive
+### Runtime directives
 
-The only MVP execution directive is:
+The MVP execution-backend directive is:
 
 ```html
 <!-- akashi: separate-process -->
@@ -385,10 +385,20 @@ The only MVP execution directive is:
 It follows the same immediate-association rule as a marker. Multiple adjacent recognized metadata comments may occur in
 either order. Duplicate directives and unknown `akashi:` directive names are errors, which catches authoring typos.
 
-The directive maps to `ExecutionMode::SeparateProcess`. In its absence, runtime configuration selects the default mode,
-which is `ExecutionMode::InProcess` unless changed explicitly. An authored separate-process directive takes precedence
-over that default and cannot be weakened to in-process execution. The public name follows PHPUnit's familiar “run in
-separate process” terminology; “subprocess” is reserved for internal implementation mechanics.
+The runtime-skip directive is:
+
+```html
+<!-- akashi: skip -->
+```
+
+It keeps the example in the corpus and PHPUnit data provider, then delegates the visible skipped-test outcome to PHPUnit
+before runtime configuration, transformation, bootstrap loading, or execution. Skip affects runtime only; PHPStan
+relevance selection and marked extraction remain independent. Skip takes precedence when both directives are authored.
+
+The `separate-process` directive maps to `ExecutionMode::SeparateProcess`. In its absence, runtime configuration selects
+the default mode, which is `ExecutionMode::InProcess` unless changed explicitly. An authored separate-process directive
+takes precedence over that default and cannot be weakened to in-process execution. The public name follows PHPUnit's
+familiar “run in separate process” terminology; “subprocess” is reserved for internal implementation mechanics.
 
 Consumers that do not want Markdown directives may select the mode for the whole corpus:
 
@@ -638,12 +648,13 @@ final class DocumentationExamplesTest extends TestCase
 }
 ```
 
-`PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. It
-does not store global configuration. Its optional `RuntimeConfiguration` argument supplies the explicit project root,
-bootstrap, and corpus default for one call. An authored separate-process directive takes precedence over the configured
-default; separate execution without configuration is rejected rather than inferred from the ambient working directory.
-Both backends return the same result abstraction to the same PHPUnit asserter. Advanced consumers can compose the
-transformers, executors, and asserter directly.
+`PhpUnitRuntime` is a stateless convenience facade over explicit pipeline, executor, and result-asserter objects. An
+authored runtime skip is delegated to PHPUnit before those objects are composed, retaining the named data set without
+silently executing or filtering it. The facade does not store global configuration. Its optional `RuntimeConfiguration`
+argument supplies the explicit project root, bootstrap, and corpus default for one call. An authored separate-process
+directive takes precedence over the configured default; separate execution without configuration is rejected rather than
+inferred from the ambient working directory. Both backends return the same result abstraction to the same PHPUnit
+asserter. Advanced consumers can compose the transformers, executors, and asserter directly.
 
 `PhpUnitExampleDataSets` validates every human label for uniqueness before yielding one `Example` argument under that
 label. `PhpUnitResultAsserter` translates `ExecutionFailed` into a PHPUnit assertion failure while retaining the
@@ -885,7 +896,8 @@ Public rustdoc behavior helps identify useful capabilities, but does not dictate
   code physically inside comments;
 - externally included documentation reinforces the seam between canonical code origins and presentation locations;
 - hidden supporting lines map to a future display-versus-execution source transform whose syntax remains undecided;
-- ignored examples map to an explicit selection outcome with a reason, never silent omission;
+- authored runtime skips remain visible through PHPUnit; broader ignore and conditional-skip policies map to explicit
+  outcomes with reasons, never silent omission;
 - compile-only examples map to a future execution policy separate from backend selection;
 - expected runtime failure maps to a typed expected-outcome contract using PHP exception idioms;
 - expected compilation failure maps separately to PHP parse or analyzer expectations; and

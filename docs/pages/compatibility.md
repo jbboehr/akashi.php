@@ -25,11 +25,12 @@ PHPStan to autoload. Integration namespaces require the corresponding optional c
   and synchronized copies are deferred.
 - Every fence whose first info-string word is `php` enters the corpus. General inclusion modes such as “all code blocks”
   or language inference are not implemented.
-- The only directive is `<!-- akashi: separate-process -->`.
-- Ignore, compile-only, expected compilation failure, expected runtime failure, platform condition, and hidden support
-  code semantics are deferred.
-- There is no per-fence escape hatch for a non-executable `php` fragment. Select only documents whose PHP fences belong
-  to the configured workflow, or use another fence language for illustrative fragments.
+- Runtime directives are `<!-- akashi: skip -->` and `<!-- akashi: separate-process -->`. Skip remains visible as a
+  named PHPUnit data set and does not suppress PHPStan or extraction.
+- Global ignore, compile-only, expected compilation failure, expected runtime failure, platform condition, custom skip
+  reasons, and hidden support code semantics are deferred.
+- A runtime-skipped `php` fence is not transformed or executed. For a fragment that should participate in no workflow,
+  select a narrower document set or use another fence language.
 - There is no expected-output contract yet. Stdout and stderr are captured for diagnostics but do not fail a successful
   execution by themselves.
 - Native expected exceptions do not yet have an Akashi authoring API equivalent to PHPUnit's `expectException()`.

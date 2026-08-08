@@ -98,16 +98,19 @@ configuration gives both backends an explicit project root. An in-process exampl
 PHPUnit has already loaded. A child process does not inherit that PHP state, so configure a bootstrap such as
 `withBootstrap('vendor/autoload.php')` when separate-process examples use project or dependency symbols.
 
-The illustrative `docs/examples` directory should contain only documents whose PHP fences are executable examples.
-Akashi does not yet have a per-block ignore or compile-only directive. Do not include a mixed reference-documentation
-tree wholesale when it also contains setup fragments or incomplete PHP excerpts; include executable documents
-explicitly, or label non-executable fragments with a language other than `php`.
+The illustrative `docs/examples` directory should contain documents whose PHP fences participate in documentation
+verification. Use `<!-- akashi: skip -->` immediately before a fence that should remain visible as a named PHPUnit data
+set without executing. Skip is runtime-only: a configured PHPStan workflow may still analyze that fence. Akashi does not
+yet have a global ignore or compile-only directive, so keep fragments intended for no workflow outside the selected
+documents or label them with a language other than `php`.
 
 An immediately associated `<!-- akashi: separate-process -->` directive routes one example to a child PHP process. The
 directive overrides an in-process configuration default. To route every unmarked example through the child backend, use
 `withDefaultExecutionMode(ExecutionMode::SeparateProcess)` after importing `jbboehr\Akashi\Execution\ExecutionMode`.
 Calling `assertExample()` without configuration remains available for ordinary in-process examples, but a
-separate-process example is rejected unless the caller supplies the explicit project root needed to launch it safely.
+separate-process example is rejected unless the caller supplies the explicit project root needed to launch it safely. An
+immediately associated `<!-- akashi: skip -->` directive takes precedence over both backend selection and runtime
+configuration; PHPUnit reports the named data set as skipped before Akashi transforms or executes its code.
 
 An explicitly configured in-process bootstrap is loaded once per PHPUnit process. Use it for persistent setup such as
 autoloaders and declarations; Akashi restores bootstrap changes to the working directory, error-reporting level, and

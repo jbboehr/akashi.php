@@ -22,9 +22,10 @@ $corpus = MarkdownSource::forProject(dirname(__DIR__))
 Each fluent method returns a new configuration. Akashi validates scalar path syntax immediately and performs filesystem
 validation during `load()`.
 
-Only include documents whose `php` fences are intended to participate in the configured workflow. Akashi does not yet
-provide a per-fence ignore or compile-only directive. Keep non-executable reference fragments outside the selected
-documents or give those fences a language other than `php`.
+Only include documents whose `php` fences are intended to participate in the configured workflow. A runtime-only example
+may use the `skip` directive described below, but Akashi does not yet provide a global ignore or compile-only directive.
+Keep fragments that should participate in no workflow outside the selected documents or give those fences a language
+other than `php`.
 
 Discovery follows these rules:
 
@@ -90,16 +91,20 @@ use jbboehr\Akashi\Source\MarkedExampleSelector;
 $example = (new MarkedExampleSelector())->select($corpus, 'conversion-basic');
 ```
 
-## Execution Directives
+## Runtime Directives
 
-The only execution directive currently implemented is:
+Akashi recognizes two runtime directives:
 
 ```html
 <!-- akashi: separate-process -->
 ```
 
-Place it immediately before the PHP fence. A marker and directive may be stacked in either order, with blank lines
-between the comments and fence. Prose or unrelated block nodes break the association.
+```html
+<!-- akashi: skip -->
+```
+
+Place a directive immediately before the PHP fence. A marker and multiple directives may be stacked in any order, with
+blank lines between the comments and fence. Prose or unrelated block nodes break the association.
 
 ````markdown
 <!-- akashi-example: isolated-example -->
@@ -114,3 +119,8 @@ namespace DocumentationExample;
 
 Unknown, duplicate, orphaned, and non-PHP directives fail during extraction. Akashi never silently changes an example's
 backend because an in-process transform rejected it; author the directive or configure the corpus default explicitly.
+
+`skip` keeps the example in the corpus and in its named PHPUnit data set, but `PhpUnitRuntime` asks PHPUnit to report it
+as skipped before runtime configuration, transformation, bootstrap loading, or execution. It affects runtime only:
+PHPStan may still select and analyze the example, and the extraction CLI still returns its source. When `skip` and
+`separate-process` are both present, skip takes precedence.

@@ -159,7 +159,11 @@ final readonly class CommonMarkExampleExtractor
                 count($examples) + 1,
                 $markerId,
                 $associated['directives'],
-                new MetadataLocation($markerLine, $associated['separateProcessDirectiveLine']),
+                new MetadataLocation(
+                    $markerLine,
+                    $associated['separateProcessDirectiveLine'],
+                    $associated['skipDirectiveLine'],
+                ),
             );
         }
 
@@ -329,7 +333,8 @@ final readonly class CommonMarkExampleExtractor
      *     marker: ?MarkerId,
      *     directives: DirectiveSet,
      *     markerLine: ?positive-int,
-     *     separateProcessDirectiveLine: ?positive-int
+     *     separateProcessDirectiveLine: ?positive-int,
+     *     skipDirectiveLine: ?positive-int
      * }
      *
      * @logion [OSD 48:10] Set the rescued beam within the council hall even though its charred face offendeth the new
@@ -410,6 +415,7 @@ final readonly class CommonMarkExampleExtractor
             'directives' => new DirectiveSet(...$directives),
             'markerLine' => $markerLine,
             'separateProcessDirectiveLine' => $directiveLines[Directive::SeparateProcess->value] ?? null,
+            'skipDirectiveLine' => $directiveLines[Directive::Skip->value] ?? null,
         ];
     }
 
