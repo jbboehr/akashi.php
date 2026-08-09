@@ -7,18 +7,19 @@ autoloadability alone does not create an extension point.
 
 ## Source and Corpus
 
-| Type                                          | Purpose                                                                               |
-| --------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.               |
-| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                           |
-| `jbboehr\Akashi\Document`                     | One maintained Markdown document and its line index.                                  |
-| `jbboehr\Akashi\Example`                      | Canonical extracted example, source location, fence metadata, marker, and directives. |
-| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                     |
+| Type                                          | Purpose                                                                                       |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                       |
+| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                                   |
+| `jbboehr\Akashi\Document`                     | One maintained Markdown document and its line index.                                          |
+| `jbboehr\Akashi\Example`                      | Canonical example with source, fence, marker, directives, and optional exception expectation. |
+| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                             |
 
 `Document`, `Example`, and `ExampleCorpus` form the canonical public model. Path, identifier, language, fence,
 directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public because the canonical model and
-configuration objects expose them as typed state. Their constructors enforce the same invariants used by source
-discovery; they are data contracts, not subclassing or service-replacement seams.
+configuration objects expose them as typed state. That includes `Model\ExpectedException`, which carries a normalized
+authored throwable class name without requiring the class to exist before runtime setup. Their constructors enforce the
+same invariants used by source discovery; they are data contracts, not subclassing or service-replacement seams.
 
 ## PHPUnit Runtime
 

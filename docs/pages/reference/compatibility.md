@@ -29,12 +29,15 @@ execution backends, and the PHPStan `RuleTestCase` adapter. CI runs this gate on
   and synchronized copies are deferred.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
-- Runtime directives are `<!-- akashi: skip -->` and `<!-- akashi: separate-process -->`.
-- Global ignore, compile-only, expected compilation failure, expected runtime failure, platform conditions, custom skip
-  reasons, and hidden support code are deferred.
+- Runtime directives are `<!-- akashi: skip -->`, `<!-- akashi: separate-process -->`, and the typed in-process
+  `// akashi: expect-exception ThrowableClass` expectation. Expected exceptions also accept an external
+  `<!-- akashi: expect-exception ThrowableClass -->` form; combining the forms is invalid.
+- Global ignore, compile-only, expected compilation failure, general expected runtime failure, platform conditions,
+  custom skip reasons, and hidden support code are deferred.
 - There is no expected-output contract. Stdout and stderr are captured for diagnostics but do not fail an otherwise
   successful execution.
-- Native expected exceptions do not yet have an Akashi authoring API equivalent to PHPUnit's `expectException()`.
+- Expected exceptions currently match an available `Throwable` type and its subtypes. Message and code constraints and
+  separate-process support are deferred.
 
 A runtime-skipped fence remains in the corpus and may still participate in PHPStan or extraction. For a fragment that
 should enter no workflow, select a narrower document set or use another fence language.
@@ -74,6 +77,10 @@ Akashi keeps original example code separate from prepared code and retains line 
 transforms. Parse, assertion, runtime, and PHPStan reports prefer a maintained Markdown line when the underlying tool
 supplies a usable generated line. When it cannot establish an exact mapping, it reports the example start explicitly;
 low-level metadata may still contain a temporary-file path.
+
+An expected exception changes only the interpretation of a clean in-process execution result. A matching execution
+exception passes; normal completion, a mismatched type, an unavailable or non-`Throwable` class, and any cleanup failure
+fail. It does not make infrastructure, transformation, or arbitrary process failure successful.
 
 ## PHPStan Boundary
 

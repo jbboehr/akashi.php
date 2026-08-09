@@ -50,6 +50,7 @@ use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitResultAsserter;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -184,6 +185,104 @@ TEXT;
         );
     }
 
+    public function testAcceptsASubtypeOfTheExpectedExceptionAndRecordsOneCompletionAssertion(): void
+    {
+        $result = $this->executeFailure("throw new RuntimeException('expected');");
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult($result, new ExpectedException(\Exception::class));
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testReportsWhenAnExpectedExceptionWasNotThrown(): void
+    {
+        $result = new ExecutionSucceeded(
+            $this->transform('echo 1;'),
+            'completed output',
+            0,
+            'warning output',
+        );
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString(
+            'Documentation example example-phpunit-result-01 expected RuntimeException at '
+                . 'docs/phpunit-result.md:10, but execution completed without throwing.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString("Captured stdout:\n    completed output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    warning output", $failure->getMessage());
+        self::assertNull($failure->getPrevious());
+    }
+
+    public function testReportsAWrongExceptionAtItsMaintainedLineAndPreservesIt(): void
+    {
+        $result = $this->executeFailure("echo 'before';\nthrow new LogicException('wrong');");
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString(
+            'expected RuntimeException at docs/phpunit-result.md:10, but LogicException was thrown.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString('Location: docs/phpunit-result.md:11', $failure->getMessage());
+        self::assertStringContainsString("Cause:\n    LogicException: wrong", $failure->getMessage());
+        self::assertStringContainsString("Captured stdout:\n    before", $failure->getMessage());
+        self::assertSame($result->cause, $failure->getPrevious());
+    }
+
+    public function testRejectsAnExpectedClassThatIsNotAnAvailableThrowableType(): void
+    {
+        $result = new ExecutionSucceeded($this->transform('echo 1;'), '1', 0);
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\stdClass::class));
+
+        self::assertStringContainsString(
+            'Documentation example example-phpunit-result-01 expects stdClass at docs/phpunit-result.md:10, '
+                . 'but that name does not identify an available Throwable type.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString("Captured stdout:\n    1", $failure->getMessage());
+    }
+
+    public function testRejectsAnUnavailableExpectedExceptionClass(): void
+    {
+        $result = $this->executeFailure("echo 'before';\nthrow new LogicException('actual failure');");
+        $expectedException = new ExpectedException('Akashi\\Missing\\DocumentationException');
+
+        $failure = $this->assertionFailure($result, $expectedException);
+
+        self::assertStringContainsString(
+            'expects Akashi\\Missing\\DocumentationException at docs/phpunit-result.md:10, but that name does not '
+                . 'identify an available Throwable type.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString('Location: docs/phpunit-result.md:11', $failure->getMessage());
+        self::assertStringContainsString("Cause:\n    LogicException: actual failure", $failure->getMessage());
+        self::assertStringContainsString("Captured stdout:\n    before", $failure->getMessage());
+        self::assertSame($result->cause, $failure->getPrevious());
+    }
+
+    public function testDoesNotLetAnExpectedExceptionMaskCleanupFailure(): void
+    {
+        $cause = new \RuntimeException('expected');
+        $result = new ExecutionFailed(
+            $this->transform("throw new RuntimeException('expected');"),
+            FailurePhase::Execution,
+            $cause,
+            '',
+            [new CleanupFailure(StateResource::WorkingDirectory, 'The working directory was not restored.')],
+            1,
+        );
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString('because execution did not complete cleanly.', $failure->getMessage());
+        self::assertStringContainsString('Cleanup failures:', $failure->getMessage());
+        self::assertSame($cause, $failure->getPrevious());
+    }
+
     public function testRejectsAnUnknownExecutionResultVariant(): void
     {
         $result = new class () implements ExecutionResult {
@@ -203,10 +302,12 @@ TEXT;
         return $result;
     }
 
-    private function assertionFailure(ExecutionFailed $result): ExpectationFailedException
-    {
+    private function assertionFailure(
+        ExecutionResult $result,
+        ?ExpectedException $expectedException = null,
+    ): ExpectationFailedException {
         try {
-            (new PhpUnitResultAsserter())->assertResult($result);
+            (new PhpUnitResultAsserter())->assertResult($result, $expectedException);
         } catch (ExpectationFailedException $failure) {
             return $failure;
         }

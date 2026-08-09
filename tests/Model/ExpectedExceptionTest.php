@@ -38,70 +38,47 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Model\MetadataLocation;
+use jbboehr\Akashi\Model\ExpectedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class MetadataLocationTest extends TestCase
+final class ExpectedExceptionTest extends TestCase
 {
-    public function testDefaultsToNoAssociatedMetadataLines(): void
+    #[DataProvider('validClassNameProvider')]
+    public function testNormalizesAValidGlobalClassName(string $authored, string $normalized): void
     {
-        $location = new MetadataLocation();
-
-        self::assertNull($location->markerLine);
-        self::assertNull($location->separateProcessDirectiveLine);
-        self::assertNull($location->skipDirectiveLine);
-        self::assertNull($location->expectedExceptionDirectiveLine);
+        self::assertSame($normalized, (new ExpectedException($authored))->className);
     }
 
-    public function testPreservesAssociatedMetadataLines(): void
+    /** @return iterable<string, array{string, non-empty-string}> */
+    public static function validClassNameProvider(): iterable
     {
-        $location = new MetadataLocation(3, 5, 4, 2);
-
-        self::assertSame(3, $location->markerLine);
-        self::assertSame(5, $location->separateProcessDirectiveLine);
-        self::assertSame(4, $location->skipDirectiveLine);
-        self::assertSame(2, $location->expectedExceptionDirectiveLine);
+        yield 'global built-in' => ['RuntimeException', 'RuntimeException'];
+        yield 'leading separator' => ['\\Domain\\DocumentationException', 'Domain\\DocumentationException'];
+        yield 'surrounding whitespace' => ['  Domain\\Failure  ', 'Domain\\Failure'];
+        yield 'extended identifier bytes' => ['Domain\\Échec', 'Domain\\Échec'];
     }
 
-    #[DataProvider('invalidLineProvider')]
-    public function testRejectsNonpositiveMetadataLines(
-        ?int $markerLine,
-        ?int $directiveLine,
-        ?int $skipDirectiveLine,
-        ?int $expectedExceptionDirectiveLine,
-        string $message,
-    ): void {
+    #[DataProvider('invalidClassNameProvider')]
+    public function testRejectsAnInvalidClassName(string $className): void
+    {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        $unexpectedLocation = (new \ReflectionClass(MetadataLocation::class))->newInstanceArgs(
-            [$markerLine, $directiveLine, $skipDirectiveLine, $expectedExceptionDirectiveLine],
+        $this->expectExceptionMessage(
+            'Expected exception class must be a syntactically valid global PHP class name.',
         );
 
-        self::fail('Unexpectedly constructed ' . $unexpectedLocation::class . '.');
+        new ExpectedException($className);
     }
 
-    /**
-     * @return iterable<string, array{?int, ?int, ?int, ?int, string}>
-     */
-    public static function invalidLineProvider(): iterable
+    /** @return iterable<string, array{string}> */
+    public static function invalidClassNameProvider(): iterable
     {
-        yield 'marker' => [0, null, null, null, 'Marker line must be positive.'];
-        yield 'separate-process directive' => [
-            null,
-            -1,
-            null,
-            null,
-            'Separate-process directive line must be positive.',
-        ];
-        yield 'skip directive' => [null, null, -1, null, 'Skip directive line must be positive.'];
-        yield 'expected-exception directive' => [
-            null,
-            null,
-            null,
-            0,
-            'Expected-exception directive line must be positive.',
-        ];
+        yield 'empty' => [''];
+        yield 'only whitespace' => ['  '];
+        yield 'two leading separators' => ['\\\\RuntimeException'];
+        yield 'trailing separator' => ['Domain\\'];
+        yield 'empty segment' => ['Domain\\\\Failure'];
+        yield 'invalid first character' => ['2FastException'];
+        yield 'class constant expression' => ['RuntimeException::class'];
     }
 }

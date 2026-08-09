@@ -135,6 +135,33 @@ expression and source line.
 
 Separate-process examples are not rewritten. The child PHP process enables native assertion exceptions explicitly.
 
+## Expected Exceptions
+
+For an in-process example whose intended result is a thrown exception, place an `expect-exception` directive immediately
+inside its PHP fence:
+
+<!-- akashi-example: expected-domain-exception -->
+
+```php
+// akashi: expect-exception DomainException
+
+throw new DomainException('Invalid documentation input.');
+```
+
+The visible comment may appear anywhere and applies to the whole example. Prefer placing it immediately before the
+operation expected to throw; Akashi does not attempt to infer control flow or enforce that order. An equivalent
+`<!-- akashi: expect-exception DomainException -->` comment may instead precede the fence when surrounding prose makes
+the failure clear or extracted PHP should not contain Akashi metadata. Do not combine the forms.
+
+The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
+the type after runtime setup and execution, so application exception classes may come from the configured bootstrap or
+Composer autoloader. A missing throwable, a different throwable type, or cleanup failure fails the PHPUnit data set with
+the maintained Markdown location. The mismatch keeps the actual throwable in its exception chain.
+
+This first contract intentionally matches only the throwable type. It does not match messages or codes, and it is not a
+general “any failure is success” mode. Expected exceptions are rejected for separate-process examples until that backend
+can return throwable identity without scraping child-process error text.
+
 ## Skips and Failures
 
 An authored `<!-- akashi: skip -->` directive remains a named data set, but PHPUnit reports it as skipped before Akashi

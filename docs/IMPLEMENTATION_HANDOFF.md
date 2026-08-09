@@ -806,7 +806,8 @@ already-required MVP abstraction naturally supports the future behavior.
 * expected stdout;
 * expected stderr;
 * inline expected values;
-* expected exceptions;
+* richer expected-exception contracts beyond the implemented in-process throwable type, including message, code, and
+  separate-process support;
 * panic-style or expected-failure runtime tests;
 * expected parse errors;
 * expected static-analysis failures as a generalized feature;

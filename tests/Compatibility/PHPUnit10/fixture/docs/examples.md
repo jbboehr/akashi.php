@@ -13,6 +13,12 @@ assert($result === 'AKASHI');
 throw new RuntimeException('A skipped example must not execute.');
 ```
 
+```php
+// akashi: expect-exception Exception
+
+throw new RuntimeException('An expected subtype satisfies its parent type.');
+```
+
 <!-- akashi: separate-process -->
 
 ```php

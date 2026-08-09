@@ -168,6 +168,18 @@ final readonly class SourceLocation
             throw new \InvalidArgumentException('Skip directive line must precede the opening fence.');
         }
 
+        if ($metadata->expectedExceptionDirectiveLine !== null) {
+            $isExternal = $metadata->expectedExceptionDirectiveLine < $openingFenceLine;
+            $isInline = $lastCodeLine !== null
+                && $metadata->expectedExceptionDirectiveLine >= $firstCodeLine
+                && $metadata->expectedExceptionDirectiveLine <= $lastCodeLine;
+            if (!$isExternal && !$isInline) {
+                throw new \InvalidArgumentException(
+                    'Expected-exception directive line must precede the opening fence or lie within its code content.',
+                );
+            }
+        }
+
         $this->openingFenceLine = $openingFenceLine;
         $this->firstCodeLine = $firstCodeLine;
         $this->lastCodeLine = $lastCodeLine;

@@ -47,6 +47,7 @@ use jbboehr\Akashi\Execution\Process\SubprocessExecutor;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Transform\Exception\TransformException;
+use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use jbboehr\Akashi\Transform\InProcessTransformer;
 use jbboehr\Akashi\Transform\SeparateProcessTransformer;
 use PHPUnit\Framework\Assert;
@@ -91,6 +92,17 @@ final readonly class PhpUnitRuntime
         }
 
         if ($executionMode === ExecutionMode::SeparateProcess) {
+            if ($example->expectedException !== null) {
+                throw new UnsupportedExampleException(sprintf(
+                    'Example %s expects %s at %s:%d, but expected exceptions currently require in-process execution.',
+                    $example->id->value,
+                    $example->expectedException->className,
+                    $example->document->path->value,
+                    $example->location->metadata->expectedExceptionDirectiveLine
+                        ?? $example->location->firstCodeLine,
+                ));
+            }
+
             if ($configuration === null) {
                 throw new RuntimeConfigurationException(sprintf(
                     'Example %s at %s:%d requires RuntimeConfiguration with an explicit project root for '
@@ -108,6 +120,6 @@ final readonly class PhpUnitRuntime
             $result = (new InProcessExecutor($configuration))->execute($preparedExample);
         }
 
-        (new PhpUnitResultAsserter())->assertResult($result);
+        (new PhpUnitResultAsserter())->assertResult($result, $example->expectedException);
     }
 }

@@ -74,9 +74,18 @@ final readonly class MetadataLocation
     public ?int $skipDirectiveLine;
 
     /**
+     * @var positive-int|null
+     *
+     * @logion [OSD 68:5] At the boundary of the drowned province stood a gate with neither wall nor road. Fishermen
+     *     passed beneath it before each voyage, and the sea returned those who remembered that passage with humility.
+     */
+    public ?int $expectedExceptionDirectiveLine;
+
+    /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $separateProcessDirectiveLine
      * @param positive-int|null $skipDirectiveLine
+     * @param positive-int|null $expectedExceptionDirectiveLine
      *
      * @logion [RAS 47:8] Above the winter harbor, a constellation descended until each star rested upon a different
      *     mast. No rope burned, and the sleeping crews dreamed of the same green country. At sunrise the lights rose,
@@ -86,12 +95,19 @@ final readonly class MetadataLocation
         ?int $markerLine = null,
         ?int $separateProcessDirectiveLine = null,
         ?int $skipDirectiveLine = null,
+        ?int $expectedExceptionDirectiveLine = null,
     ) {
-        self::validateLines($markerLine, $separateProcessDirectiveLine, $skipDirectiveLine);
+        self::validateLines(
+            $markerLine,
+            $separateProcessDirectiveLine,
+            $skipDirectiveLine,
+            $expectedExceptionDirectiveLine,
+        );
 
         $this->markerLine = $markerLine;
         $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
         $this->skipDirectiveLine = $skipDirectiveLine;
+        $this->expectedExceptionDirectiveLine = $expectedExceptionDirectiveLine;
     }
 
     /**
@@ -103,6 +119,7 @@ final readonly class MetadataLocation
         ?int $markerLine,
         ?int $separateProcessDirectiveLine,
         ?int $skipDirectiveLine,
+        ?int $expectedExceptionDirectiveLine,
     ): void {
         if ($markerLine !== null && $markerLine < 1) {
             throw new \InvalidArgumentException('Marker line must be positive.');
@@ -114,6 +131,10 @@ final readonly class MetadataLocation
 
         if ($skipDirectiveLine !== null && $skipDirectiveLine < 1) {
             throw new \InvalidArgumentException('Skip directive line must be positive.');
+        }
+
+        if ($expectedExceptionDirectiveLine !== null && $expectedExceptionDirectiveLine < 1) {
+            throw new \InvalidArgumentException('Expected-exception directive line must be positive.');
         }
     }
 }

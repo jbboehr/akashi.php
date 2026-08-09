@@ -136,16 +136,33 @@ final class SourceLocationTest extends TestCase
         new SourceLocation(1, 2, null, 2, new SourceSpan(4, 20), new SourceSpan(8, 9));
     }
 
+    public function testAllowsAnExpectedExceptionDirectiveInsideTheCodeContent(): void
+    {
+        $location = new SourceLocation(
+            4,
+            5,
+            7,
+            8,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation(expectedExceptionDirectiveLine: 6),
+        );
+
+        self::assertSame(6, $location->metadata->expectedExceptionDirectiveLine);
+    }
+
     /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $directiveLine
      * @param positive-int|null $skipDirectiveLine
+     * @param positive-int|null $expectedExceptionDirectiveLine
      */
     #[DataProvider('invalidMetadataLineProvider')]
     public function testRejectsMetadataThatDoesNotPrecedeTheFence(
         ?int $markerLine,
         ?int $directiveLine,
         ?int $skipDirectiveLine,
+        ?int $expectedExceptionDirectiveLine,
         string $message,
     ): void {
         $this->expectException(\InvalidArgumentException::class);
@@ -158,19 +175,25 @@ final class SourceLocationTest extends TestCase
             6,
             new SourceSpan(10, 50),
             new SourceSpan(20, 40),
-            new MetadataLocation($markerLine, $directiveLine, $skipDirectiveLine),
+            new MetadataLocation(
+                $markerLine,
+                $directiveLine,
+                $skipDirectiveLine,
+                $expectedExceptionDirectiveLine,
+            ),
         );
     }
 
     /**
-     * @return iterable<string, array{?int, ?int, ?int, string}>
+     * @return iterable<string, array{?int, ?int, ?int, ?int, string}>
      */
     public static function invalidMetadataLineProvider(): iterable
     {
-        yield 'marker on fence' => [4, null, null, 'Marker line must precede the opening fence.'];
+        yield 'marker on fence' => [4, null, null, null, 'Marker line must precede the opening fence.'];
         yield 'separate-process directive after fence' => [
             null,
             5,
+            null,
             null,
             'Separate-process directive line must precede the opening fence.',
         ];
@@ -178,7 +201,15 @@ final class SourceLocationTest extends TestCase
             null,
             null,
             5,
+            null,
             'Skip directive line must precede the opening fence.',
+        ];
+        yield 'expected-exception directive after fence' => [
+            null,
+            null,
+            null,
+            8,
+            'Expected-exception directive line must precede the opening fence or lie within its code content.',
         ];
     }
 }

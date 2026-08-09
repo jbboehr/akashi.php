@@ -41,6 +41,7 @@ namespace jbboehr\Akashi;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
@@ -127,6 +128,15 @@ final readonly class Example
     public DirectiveSet $directives;
 
     /**
+     * The throwable type that must escape runtime execution, when one was authored.
+     *
+     * @logion [AWC 68:4] A black swan nested beneath the abandoned tribunal and laid one golden egg each winter. The
+     *     city spent none of them; their unbroken shells became the only testimony that peace had truly outlived the
+     *     judges.
+     */
+    public ?ExpectedException $expectedException;
+
+    /**
      * @param positive-int $ordinal
      *
      * @logion [AWC 21:4] A mapmaker left one island blank because no sailor agreed upon its shape. The king accused him
@@ -145,6 +155,7 @@ final readonly class Example
         int $ordinal,
         ?MarkerId $explicitMarkerId = null,
         DirectiveSet $directives = new DirectiveSet(),
+        ?ExpectedException $expectedException = null,
     ) {
         if (trim($label) === '') {
             throw new \InvalidArgumentException('Example label must not be empty.');
@@ -162,6 +173,7 @@ final readonly class Example
         $this->ordinal = $ordinal;
         $this->explicitMarkerId = $explicitMarkerId;
         $this->directives = $directives;
+        $this->expectedException = $expectedException;
     }
 
     /**

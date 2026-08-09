@@ -44,6 +44,7 @@ use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
@@ -65,6 +66,7 @@ final class ExampleTest extends TestCase
         $fence = new FenceMetadata('php extra', '`', 3, 0);
         $markerId = new MarkerId('selected-example');
         $directives = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
+        $expectedException = new ExpectedException(\RuntimeException::class);
         $example = new Example(
             id: $id,
             label: 'docs/guide.md PHP example 1',
@@ -76,6 +78,7 @@ final class ExampleTest extends TestCase
             ordinal: 1,
             explicitMarkerId: $markerId,
             directives: $directives,
+            expectedException: $expectedException,
         );
 
         self::assertSame($id, $example->id);
@@ -90,6 +93,7 @@ final class ExampleTest extends TestCase
         self::assertSame(1, $example->ordinal);
         self::assertSame($markerId, $example->explicitMarkerId);
         self::assertSame($directives, $example->directives);
+        self::assertSame($expectedException, $example->expectedException);
         self::assertTrue($example->directives->contains(Directive::Skip));
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
     }
@@ -101,6 +105,7 @@ final class ExampleTest extends TestCase
         self::assertNull($example->explicitMarkerId);
         self::assertFalse($example->directives->contains(Directive::Skip));
         self::assertFalse($example->directives->contains(Directive::SeparateProcess));
+        self::assertNull($example->expectedException);
     }
 
     #[DataProvider('invalidExampleProvider')]

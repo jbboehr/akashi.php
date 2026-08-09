@@ -10,6 +10,19 @@ Directives are Akashi-owned HTML comments associated with the next PHP fence. Th
 <!-- akashi: separate-process -->
 ```
 
+An example may also declare the throwable type that successful runtime verification requires. The recommended form is
+visible inside the PHP example:
+
+```php
+// akashi: expect-exception RuntimeException
+```
+
+The alternative HTML form keeps the annotation outside the extracted PHP:
+
+```html
+<!-- akashi: expect-exception RuntimeException -->
+```
+
 ## Association Rules
 
 Place directives immediately before a fenced PHP block. Blank lines are allowed. A configured marker and multiple
@@ -26,11 +39,22 @@ echo "Hello!\n";
 ```
 ````
 
-Prose or an unrelated CommonMark block breaks the association. Unknown directives, duplicate directives, orphaned
-directives, and directives targeting non-PHP fences fail during extraction with the comment's source location.
+Prose or an unrelated CommonMark block breaks the association. Unknown directives, duplicate directives, malformed
+exception class names, orphaned directives, and directives targeting non-PHP fences fail during extraction with the
+comment's source location.
 
 Directives are deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to
 renderers and syntax highlighters.
+
+The inline expected-exception form may appear anywhere as an actual PHP line comment and applies to the whole example.
+Place it immediately before the operation expected to throw when that makes the example easier to read; Akashi does not
+infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside strings or heredocs is
+not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters, static analyzers,
+direct execution, and marked extraction all see it unchanged.
+
+Use the HTML form when surrounding prose already establishes the expected failure or an extracted consumer fixture
+should not contain Akashi metadata. An example may use only one form; combining them is rejected as duplicate metadata
+even when both name the same type.
 
 ## Runtime Semantics
 
@@ -42,10 +66,29 @@ select the example, and marked extraction still returns its authored source.
 `RuntimeConfiguration` with an explicit project root. Akashi rejects missing configuration rather than silently running
 the example in-process.
 
-When both directives are present, skip takes precedence.
+`expect-exception` uses PHPUnit-familiar type semantics for in-process examples. Its argument is a global PHP class
+name; a leading `\` is accepted but normalized away. By the time result reporting runs, that name must identify an
+available class or interface compatible with `Throwable`. A subtype satisfies an expectation for its parent type:
+
+````markdown
+```php
+// akashi: expect-exception DomainException
+
+throw new DomainException('Invalid documentation input.');
+```
+````
+
+The example fails if it completes normally, throws an incompatible type, or cannot restore guarded process state. Akashi
+preserves the actual throwable as the previous exception on a mismatch. Message and code matching are not yet
+implemented.
+
+Expected exceptions currently require in-process execution. Combining `expect-exception` with an authored or configured
+separate-process mode is rejected explicitly because the child-process result does not preserve a trustworthy throwable
+type. When `skip` is also present, skip takes precedence over configuration, transformation, and expectation handling.
 
 ## Not Implemented
 
-Akashi does not currently implement a global ignore directive, compile-only mode, expected runtime or compilation
-failure, conditional or platform-specific skip, custom skip reasons, hidden support-code syntax, or expected-exception
-directive. These remain roadmap items and must not be inferred from Rust or PHPUnit terminology.
+Akashi does not currently implement a global ignore directive, compile-only mode, general expected runtime or
+compilation failure, conditional or platform-specific skip, custom skip reasons, hidden support-code syntax,
+expected-exception message or code matching, or expected exceptions in a separate process. These remain roadmap items
+and must not be inferred from Rust or PHPUnit terminology.

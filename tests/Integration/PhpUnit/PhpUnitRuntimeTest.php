@@ -49,11 +49,13 @@ use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
+use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -154,6 +156,48 @@ final class PhpUnitRuntimeTest extends TestCase
         self::fail('A failing documentation assertion must fail the PHPUnit data set.');
     }
 
+    public function testAcceptsAnAuthoredExpectedExceptionThroughTheFacade(): void
+    {
+        $before = Assert::getCount();
+
+        PhpUnitRuntime::assertExample($this->example(
+            "throw new RuntimeException('documented failure');",
+            expectedException: new ExpectedException(\Exception::class),
+            expectedExceptionLine: 8,
+        ));
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    #[DataProvider('separateProcessExpectationProvider')]
+    public function testRejectsExpectedExceptionsForSeparateProcessExecution(bool $authoredDirective): void
+    {
+        $directives = $authoredDirective
+            ? new DirectiveSet(Directive::SeparateProcess)
+            : new DirectiveSet();
+        $configuration = RuntimeConfiguration::forProject($this->workspace);
+        if (!$authoredDirective) {
+            $configuration = $configuration->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
+        }
+
+        $this->expectException(UnsupportedExampleException::class);
+        $this->expectExceptionMessage(
+            'Example example-runtime-01 expects RuntimeException at docs/runtime.md:8, but expected exceptions '
+                . 'currently require in-process execution.',
+        );
+
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                "throw new RuntimeException('expected');",
+                directives: $directives,
+                directiveLine: $authoredDirective ? 7 : null,
+                expectedException: new ExpectedException(\RuntimeException::class),
+                expectedExceptionLine: 8,
+            ),
+            $configuration,
+        );
+    }
+
     /**
      * @param positive-int|null $directiveLine
      * @param positive-int $expectedLine
@@ -202,7 +246,8 @@ final class PhpUnitRuntimeTest extends TestCase
         $projectRoot = dirname(__DIR__, 3);
         $unexpectedFile = $this->workspace . '/unexpected.txt';
         $markdown = sprintf(
-            "<!-- akashi: skip -->\n<!-- akashi: separate-process -->\n```php\n"
+            "<!-- akashi: skip -->\n<!-- akashi: expect-exception LogicException -->\n"
+                . "<!-- akashi: separate-process -->\n```php\n"
                 . "file_put_contents(%s, 'executed');\nthrow new LogicException('executed');\n```\n",
             var_export($unexpectedFile, true),
         );
@@ -271,6 +316,24 @@ PHP,
         );
     }
 
+    public function testResolvesAnExpectedExceptionLoadedByTheRuntimeBootstrap(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/bootstrap.php',
+            "<?php\nclass AkashiBootstrapExpectedException extends RuntimeException {}\n",
+        ));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)->withBootstrap('bootstrap.php');
+
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                "throw new \\AkashiBootstrapExpectedException('expected');",
+                expectedException: new ExpectedException('AkashiBootstrapExpectedException'),
+                expectedExceptionLine: 8,
+            ),
+            $configuration,
+        );
+    }
+
     public function testPropagatesAnInProcessSetupFailureAsAnInfrastructureException(): void
     {
         $configuration = RuntimeConfiguration::forProject($this->workspace);
@@ -281,7 +344,14 @@ PHP,
             'Unable to establish the configured in-process project root: ' . $this->workspace . '.',
         );
 
-        PhpUnitRuntime::assertExample($this->example("echo 'not executed';"), $configuration);
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                "echo 'not executed';",
+                expectedException: new ExpectedException(\LogicException::class),
+                expectedExceptionLine: 8,
+            ),
+            $configuration,
+        );
     }
 
     public function testTheConfiguredSeparateProcessDefaultUsesTheProjectRootAndBootstrap(): void
@@ -328,15 +398,25 @@ PHP,
         yield 'example-start fallback' => [null, 10];
     }
 
+    /** @return iterable<string, array{bool}> */
+    public static function separateProcessExpectationProvider(): iterable
+    {
+        yield 'authored directive' => [true];
+        yield 'configured default' => [false];
+    }
+
     /**
      * @param non-empty-string $source
      * @param positive-int|null $directiveLine
+     * @param positive-int|null $expectedExceptionLine
      */
     private function example(
         string $source,
         string $id = 'example-runtime-01',
         DirectiveSet $directives = new DirectiveSet(),
         ?int $directiveLine = null,
+        ?ExpectedException $expectedException = null,
+        ?int $expectedExceptionLine = null,
     ): Example {
         $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
         if ($lineBreaks === false) {
@@ -363,13 +443,17 @@ PHP,
                 $lastCodeLine + 1,
                 new SourceSpan(0, $sourceLength),
                 new SourceSpan(0, $sourceLength),
-                new MetadataLocation(separateProcessDirectiveLine: $directiveLine),
+                new MetadataLocation(
+                    separateProcessDirectiveLine: $directiveLine,
+                    expectedExceptionDirectiveLine: $expectedExceptionLine,
+                ),
             ),
             language: new Language('php'),
             code: new ExampleCode($source),
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: 1,
             directives: $directives,
+            expectedException: $expectedException,
         );
     }
 }

@@ -63,10 +63,11 @@ formatter; check-only behavior should precede rewriting docblocks.
 
 ## Runtime and Verification
 
-Runtime skip is implemented through PHPUnit's skipped-test reporting. Deferred work includes global ignore and
-conditional skip policies with reasons, a typed PHPUnit-familiar expected-exception model, expected output, compile-only
-checks, platform conditions, configurable subprocess timeouts, alternate PHP binaries and INI profiles, and controlled
-child environments.
+Runtime skip is implemented through PHPUnit's skipped-test reporting. A typed PHPUnit-familiar exception-class
+expectation is implemented for in-process examples. Deferred extensions include message and code constraints,
+separate-process exception expectations, broader expected-failure semantics, global ignore and conditional skip policies
+with reasons, expected output, compile-only checks, platform conditions, configurable subprocess timeouts, alternate PHP
+binaries and INI profiles, and controlled child environments.
 
 The PHPStan roadmap includes an identifier-oriented expectation syntax that can coexist with `//!`, richer verifier
 results outside PHPUnit, and source maps capable of composing multiple transformations and source origins.

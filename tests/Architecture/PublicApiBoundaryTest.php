@@ -67,6 +67,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Model\DocumentPath::class,
             \jbboehr\Akashi\Model\ExampleCode::class,
             \jbboehr\Akashi\Model\ExampleId::class,
+            \jbboehr\Akashi\Model\ExpectedException::class,
             \jbboehr\Akashi\Model\FenceCharacter::class,
             \jbboehr\Akashi\Model\FenceMetadata::class,
             \jbboehr\Akashi\Model\Language::class,

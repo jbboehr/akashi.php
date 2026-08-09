@@ -129,6 +129,77 @@ MARKDOWN);
         self::assertSame(3, $examples[0]->location->metadata->separateProcessDirectiveLine);
     }
 
+    public function testAssociatesATypedExpectedExceptionWithItsSourceLine(): void
+    {
+        $examples = $this->extract(<<<'MARKDOWN'
+<!-- yumemi-example: expected-failure -->
+<!-- akashi: expect-exception \Domain\DocumentException -->
+
+```php
+throw new \Domain\DocumentException();
+```
+MARKDOWN);
+
+        self::assertCount(1, $examples);
+        self::assertSame('Domain\DocumentException', $examples[0]->expectedException?->className);
+        self::assertSame(2, $examples[0]->location->metadata->expectedExceptionDirectiveLine);
+    }
+
+    #[DataProvider('inlineExpectedExceptionProvider')]
+    public function testAssociatesAnInlineExpectedException(
+        string $markdown,
+        int $expectedLine,
+        string $expectedSource,
+    ): void {
+        $examples = $this->extract($markdown);
+
+        self::assertCount(1, $examples);
+        self::assertSame('Domain\\DocumentException', $examples[0]->expectedException?->className);
+        self::assertSame($expectedLine, $examples[0]->location->metadata->expectedExceptionDirectiveLine);
+        self::assertSame($expectedSource, $examples[0]->code->source);
+    }
+
+    /** @return iterable<string, array{string, positive-int, string}> */
+    public static function inlineExpectedExceptionProvider(): iterable
+    {
+        yield 'first code line' => [
+            "```php\n// akashi: expect-exception \\Domain\\DocumentException\nthrow new \\Domain\\DocumentException();\n```\n",
+            2,
+            "// akashi: expect-exception \\Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException();\n",
+        ];
+        yield 'after opening tag and blank line' => [
+            "```php\n<?PHP\n\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException();\n```\n",
+            4,
+            "<?PHP\n\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException();\n",
+        ];
+        yield 'after setup code' => [
+            "```php\n\$input = 'invalid';\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException(\$input);\n```\n",
+            3,
+            "\$input = 'invalid';\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException(\$input);\n",
+        ];
+    }
+
+    public function testDoesNotTreatDirectiveTextInsideAHeredocAsMetadata(): void
+    {
+        $examples = $this->extract(<<<'MARKDOWN'
+```php
+$text = <<<'TEXT'
+// akashi: expect-exception RuntimeException
+TEXT;
+echo $text;
+```
+MARKDOWN);
+
+        self::assertCount(1, $examples);
+        self::assertNull($examples[0]->expectedException);
+        self::assertNull($examples[0]->location->metadata->expectedExceptionDirectiveLine);
+    }
+
     public function testRejectsAnInvalidMarkerIdWithItsSourceLocation(): void
     {
         try {
@@ -250,6 +321,44 @@ MARKDOWN);
             "<!-- akashi: skip -->\n<!-- akashi: skip -->\n```php\necho 1;\n```\n",
             'Duplicate Akashi directive skip at docs/directives.md:2; first declared at docs/directives.md:1.',
         ];
+        yield 'missing expected exception class' => [
+            "<!-- akashi: expect-exception -->\n```php\necho 1;\n```\n",
+            'Invalid Akashi expect-exception directive at docs/directives.md:1: '
+                . 'Expected exception class must be a syntactically valid global PHP class name.',
+        ];
+        yield 'invalid expected exception class' => [
+            "<!-- akashi: expect-exception RuntimeException::class -->\n```php\necho 1;\n```\n",
+            'Invalid Akashi expect-exception directive at docs/directives.md:1: '
+                . 'Expected exception class must be a syntactically valid global PHP class name.',
+        ];
+        yield 'duplicate expected exception' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n"
+                . "<!-- akashi: expect-exception LogicException -->\n```php\necho 1;\n```\n",
+            'Duplicate Akashi directive expect-exception at docs/directives.md:2; '
+                . 'first declared at docs/directives.md:1.',
+        ];
+        yield 'missing inline expected exception class' => [
+            "```php\n// akashi: expect-exception\necho 1;\n```\n",
+            'Invalid inline Akashi expect-exception directive at docs/directives.md:2: '
+                . 'Expected exception class must be a syntactically valid global PHP class name.',
+        ];
+        yield 'invalid inline expected exception class' => [
+            "```php\n// akashi: expect-exception RuntimeException::class\necho 1;\n```\n",
+            'Invalid inline Akashi expect-exception directive at docs/directives.md:2: '
+                . 'Expected exception class must be a syntactically valid global PHP class name.',
+        ];
+        yield 'duplicate inline expected exception' => [
+            "```php\n// akashi: expect-exception RuntimeException\n"
+                . "// akashi: expect-exception LogicException\nthrow new RuntimeException();\n```\n",
+            'Duplicate inline Akashi directive expect-exception at docs/directives.md:3; '
+                . 'first declared at docs/directives.md:2.',
+        ];
+        yield 'external and inline expected exception' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n```php\n"
+                . "// akashi: expect-exception RuntimeException\nthrow new RuntimeException();\n```\n",
+            'Duplicate Akashi directive expect-exception at docs/directives.md:3; '
+                . 'first declared at docs/directives.md:1.',
+        ];
         yield 'orphaned' => [
             "<!-- akashi: skip -->\n\nIntervening prose.\n",
             'Akashi directive skip at docs/directives.md:1 is not followed by a fenced code block.',
@@ -257,6 +366,16 @@ MARKDOWN);
         yield 'non-PHP fence' => [
             "<!-- akashi: skip -->\n```shell\necho 1\n```\n",
             'Akashi directive skip at docs/directives.md:1 is followed by a shell fence, not a PHP fence.',
+        ];
+        yield 'orphaned expected exception' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n\nIntervening prose.\n",
+            'Akashi directive expect-exception RuntimeException at docs/directives.md:1 is not followed by a '
+                . 'fenced code block.',
+        ];
+        yield 'expected exception on non-PHP fence' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n```shell\necho 1\n```\n",
+            'Akashi directive expect-exception RuntimeException at docs/directives.md:1 is followed by a shell '
+                . 'fence, not a PHP fence.',
         ];
     }
 

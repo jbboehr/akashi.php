@@ -170,23 +170,28 @@ doctest, extraction, or verification behavior.
 
 ### CommonMark and selected general-purpose dependencies
 
-| Date       | Document                                                                                             | Classification                   | Design use                                                                  |
-| ---------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------- |
-| 2026-08-04 | [CommonMark 0.31.2 specification](https://spec.commonmark.org/0.31.2/)                               | Specification                    | Fenced-code parsing, indentation, containers, and info strings              |
-| 2026-08-04 | [League CommonMark overview](https://commonmark.thephpleague.com/2.x/)                               | User-facing behavioral reference | Library scope and CommonMark conformance                                    |
-| 2026-08-04 | [League CommonMark installation](https://commonmark.thephpleague.com/2.x/installation/)              | Integration guide                | PHP and extension requirements                                              |
-| 2026-08-04 | [League CommonMark customization](https://commonmark.thephpleague.com/2.x/customization/overview/)   | Integration guide                | Parser/environment construction                                             |
-| 2026-08-04 | [League CommonMark AST](https://commonmark.thephpleague.com/2.x/customization/abstract-syntax-tree/) | Integration guide                | Public traversal and source-position capabilities                           |
-| 2026-08-04 | [League CommonMark configuration](https://commonmark.thephpleague.com/2.x/configuration/)            | Integration guide                | Minimal core parser configuration                                           |
-| 2026-08-04 | [League CommonMark changelog](https://commonmark.thephpleague.com/2.x/changelog/)                    | User-facing behavioral reference | Current supported branch and relevant fixes                                 |
-| 2026-08-04 | [League CommonMark package metadata](https://packagist.org/packages/league/commonmark)               | User-facing behavioral reference | Current release and dependency constraints                                  |
-| 2026-08-04 | [PHP-Parser README](https://github.com/nikic/PHP-Parser#readme)                                      | Integration guide                | Public parsing, AST, location, name-resolution, and transformation features |
-| 2026-08-04 | [PHP-Parser package metadata](https://packagist.org/packages/nikic/php-parser)                       | User-facing behavioral reference | Current release and PHP compatibility                                       |
-| 2026-08-04 | [Symfony Process 7.4](https://symfony.com/doc/7.4/components/process.html)                           | Integration guide                | Array commands, output streams, exit status, and timeouts                   |
-| 2026-08-04 | [Symfony 7.4 release](https://symfony.com/releases/7.4)                                              | User-facing behavioral reference | PHP compatibility and LTS status                                            |
-| 2026-08-04 | [Symfony Process package metadata](https://packagist.org/packages/symfony/process)                   | User-facing behavioral reference | Current release and dependency constraints                                  |
-| 2026-08-07 | [ParaTest README](https://github.com/paratestphp/paratest#readme)                                    | Integration guide                | TestCase- and test-level parallel modes and worker-process behavior         |
-| 2026-08-07 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                        | User-facing behavioral reference | Selecting the PHP 8.2 and PHPUnit 11.5 compatible development release       |
+| Date       | Document                                                                                                             | Classification                   | Design use                                                                               |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| 2026-08-04 | [CommonMark 0.31.2 specification](https://spec.commonmark.org/0.31.2/)                                               | Specification                    | Fenced-code parsing, indentation, containers, and info strings                           |
+| 2026-08-04 | [League CommonMark overview](https://commonmark.thephpleague.com/2.x/)                                               | User-facing behavioral reference | Library scope and CommonMark conformance                                                 |
+| 2026-08-04 | [League CommonMark installation](https://commonmark.thephpleague.com/2.x/installation/)                              | Integration guide                | PHP and extension requirements                                                           |
+| 2026-08-04 | [League CommonMark customization](https://commonmark.thephpleague.com/2.x/customization/overview/)                   | Integration guide                | Parser/environment construction                                                          |
+| 2026-08-04 | [League CommonMark AST](https://commonmark.thephpleague.com/2.x/customization/abstract-syntax-tree/)                 | Integration guide                | Public traversal and source-position capabilities                                        |
+| 2026-08-04 | [League CommonMark configuration](https://commonmark.thephpleague.com/2.x/configuration/)                            | Integration guide                | Minimal core parser configuration                                                        |
+| 2026-08-04 | [League CommonMark changelog](https://commonmark.thephpleague.com/2.x/changelog/)                                    | User-facing behavioral reference | Current supported branch and relevant fixes                                              |
+| 2026-08-04 | [League CommonMark package metadata](https://packagist.org/packages/league/commonmark)                               | User-facing behavioral reference | Current release and dependency constraints                                               |
+| 2026-08-04 | [PHP-Parser README](https://github.com/nikic/PHP-Parser#readme)                                                      | Integration guide                | Public parsing, AST, location, name-resolution, and transformation features              |
+| 2026-08-04 | [PHP-Parser package metadata](https://packagist.org/packages/nikic/php-parser)                                       | User-facing behavioral reference | Current release and PHP compatibility                                                    |
+| 2026-08-04 | [Symfony Process 7.4](https://symfony.com/doc/7.4/components/process.html)                                           | Integration guide                | Array commands, output streams, exit status, and timeouts                                |
+| 2026-08-04 | [Symfony 7.4 release](https://symfony.com/releases/7.4)                                                              | User-facing behavioral reference | PHP compatibility and LTS status                                                         |
+| 2026-08-04 | [Symfony Process package metadata](https://packagist.org/packages/symfony/process)                                   | User-facing behavioral reference | Current release and dependency constraints                                               |
+| 2026-08-07 | [ParaTest README](https://github.com/paratestphp/paratest#readme)                                                    | Integration guide                | TestCase- and test-level parallel modes and worker-process behavior                      |
+| 2026-08-07 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                                        | User-facing behavioral reference | Selecting the PHP 8.2 and PHPUnit 11.5 compatible development release                    |
+| 2026-08-08 | [PHPStan `staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType) | Integration guide                | Replacing a deliberately constant PHPUnit assertion with a measured completion assertion |
+| 2026-08-08 | [PHPStan `argument.type`](https://phpstan.org/error-identifiers/argument.type)                                       | Integration guide                | Proving an associated directive line non-null before formatted diagnostics               |
+| 2026-08-08 | [PHPStan `assign.propertyType`](https://phpstan.org/error-identifiers/assign.propertyType)                           | Integration guide                | Preserving the nonempty normalized expected-exception class-name invariant               |
+| 2026-08-08 | [PHPStan `return.type`](https://phpstan.org/error-identifiers/return.type)                                           | Integration guide                | Proving the inline directive's computed source line remains positive                     |
+| 2026-08-08 | [PHPStan `smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | Integration guide                | Removing a redundant check after PHPStan proved the computed line positive               |
 
 ### Cargo and rustdoc
 
@@ -205,7 +210,8 @@ The Rust review influenced only the roadmap and vocabulary used to discuss defer
   precedent for deferred PHPDoc sources and separate code-origin and presentation locations;
 - ignored examples informed the authored runtime-skip directive while broader ignore policies remain deferred;
 - non-running examples motivate a future parse-or-analyze-only mode;
-- expected runtime failure motivates a future typed failure expectation;
+- expected runtime failure motivated the roadmap entry now implemented as a narrow in-process throwable-type
+  expectation; its PHP-oriented syntax and PHPUnit-compatible subtype matching were independently designed;
 - expected compilation failure motivates a future exact PHPStan-diagnostic expectation; and
 - Cargo's documented working-directory behavior reinforces that Akashi must make its execution directory explicit.
 

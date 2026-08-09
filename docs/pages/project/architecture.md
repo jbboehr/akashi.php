@@ -36,9 +36,11 @@ optional marker name. Loading resolves and validates paths, rejects symbolic-lin
 physical documents, sorts documents deterministically, and gives each document to `CommonMarkExampleExtractor`.
 
 The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and Akashi runtime
-directives using document structure rather than regular expressions over the whole file. It preserves original source
-text and exact line and byte spans. A nonempty ordered `ExampleCorpus` is constructed only after cross-document marker
-uniqueness and corpus ordering invariants hold.
+directives using document structure rather than regular expressions over the whole file. It also recognizes a typed
+expected-exception PHP comment token anywhere in the example or equivalent external metadata, rejects competing
+declarations, and preserves the selected declaration's source line. Token-aware recognition prevents matching text in
+strings and heredocs. It preserves original source text and exact line and byte spans. A nonempty ordered
+`ExampleCorpus` is constructed only after cross-document marker uniqueness and corpus ordering invariants hold.
 
 Discovery is separate from selection. A configured marker adds an explicit identity but does not hide unmarked fences; a
 PHPStan relevance predicate selects a subcorpus later; a runtime skip changes PHPUnit disposition without deleting the
@@ -54,7 +56,7 @@ example.
 - normalized language and fence metadata;
 - the unmodified extracted PHP source;
 - document ordinal and optional author-assigned marker ID; and
-- a typed set of runtime directives.
+- a typed set of runtime directives and an optional typed expected-exception contract.
 
 Small value objects validate paths, identifiers, source coordinates, languages, and directives at construction time.
 `ExampleCorpus` enforces nonemptiness, unique generated and marker IDs, and deterministic document/ordinal order.
@@ -123,7 +125,10 @@ The child protects PHPUnit from ordinary fatal process behavior. It is not an op
 compose a project-owned PHPUnit test class without an extension or mutable registry. It delegates named provider
 arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
 facade: it applies skip and mode precedence, prepares and executes through the selected backend, then gives the result
-to `PhpUnitResultAsserter`. The adapter and facade remain public for projects that need a custom PHPUnit method.
+and optional expected throwable type to `PhpUnitResultAsserter`. A compatible execution exception is success only when
+in-process execution has no cleanup failure; normal completion and incompatible types fail at the maintained directive
+or exception location. The subprocess backend rejects this contract because its result does not preserve throwable
+identity. The adapter and facade remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses and validates every selected example, writes
@@ -146,9 +151,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 
 ## Current and Deferred Architecture
 
-Current architecture supports Markdown sources, markers, two runtime directives and backends, PHPUnit, PHPStan
-`RuleTestCase`, and marked extraction. PHPDoc sources, external canonical examples, named regions, synchronization,
-formatting, hidden support code, generalized verifier plugins, and a standalone runner do not exist yet.
+Current architecture supports Markdown sources, markers, runtime directives and both execution backends, typed
+in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. PHPDoc sources, external
+canonical examples, named regions, synchronization, formatting, hidden support code, generalized verifier plugins, and a
+standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -41,6 +41,8 @@ namespace jbboehr\Akashi\Integration\PhpUnit;
 use jbboehr\Akashi\Execution\ExecutionFailed;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
+use jbboehr\Akashi\Execution\FailurePhase;
+use jbboehr\Akashi\Model\ExpectedException;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
 
@@ -59,8 +61,18 @@ final readonly class PhpUnitResultAsserter
      * @logion [OSD 60:9] Count the completed journey once even when no bell sounded upon the road; but if the traveler
      *     fell, raise the whole ledger before the court and conceal neither first wound nor broken gate.
      */
-    public function assertResult(ExecutionResult $result): void
+    public function assertResult(ExecutionResult $result, ?ExpectedException $expectedException = null): void
     {
+        if (!$result instanceof ExecutionSucceeded && !$result instanceof ExecutionFailed) {
+            throw new \LogicException(sprintf('Unsupported execution result variant %s.', $result::class));
+        }
+
+        if ($expectedException !== null) {
+            self::assertExpectedException($result, $expectedException);
+
+            return;
+        }
+
         if ($result instanceof ExecutionSucceeded) {
             // GreaterThanOrEqual counts as two PHPUnit constraints; this records exactly one completion assertion.
             Assert::assertGreaterThan(
@@ -72,12 +84,118 @@ final readonly class PhpUnitResultAsserter
             return;
         }
 
-        if (!$result instanceof ExecutionFailed) {
-            throw new \LogicException(sprintf('Unsupported execution result variant %s.', $result::class));
+        throw new ExpectationFailedException(
+            self::failureMessage($result),
+            null,
+            self::previousException($result->cause),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailedException when the expected throwable type is unavailable or execution does not throw
+     *     exactly one compatible throwable without cleanup failure
+     *
+     * @logion [SFA 68:6] The empress entered the ruined theater alone and found every painted audience facing the
+     *     empty royal seat. She removed her crown before the silent multitude, and only then did rain pass through the
+     *     broken roof.
+     */
+    private static function assertExpectedException(
+        ExecutionSucceeded|ExecutionFailed $result,
+        ExpectedException $expectedException,
+    ): void {
+        $example = $result->preparedExample->example;
+        $expectationLocation = sprintf(
+            '%s:%d',
+            $example->document->path->value,
+            $example->location->metadata->expectedExceptionDirectiveLine ?? $example->location->firstCodeLine,
+        );
+        $capturedStreamSections = [];
+        if ($result->stdout !== '') {
+            $capturedStreamSections[] = "Captured stdout:\n" . self::indent($result->stdout);
+        }
+
+        if ($result->stderr !== '') {
+            $capturedStreamSections[] = "Captured stderr:\n" . self::indent($result->stderr);
+        }
+
+        if (!is_a($expectedException->className, \Throwable::class, true)) {
+            $sections = [sprintf(
+                'Documentation example %s expects %s at %s, but that name does not identify an available '
+                    . 'Throwable type.',
+                $example->id->value,
+                $expectedException->className,
+                $expectationLocation,
+            )];
+            $previous = null;
+            if ($result instanceof ExecutionFailed) {
+                $sections[] = sprintf('Location: %s', self::sourceLocation($result));
+                $sections[] = "Cause:\n" . self::indent(self::throwableSummary($result->cause));
+                $previous = self::previousException($result->cause);
+            }
+
+            throw new ExpectationFailedException(
+                implode("\n", [...$sections, ...$capturedStreamSections]),
+                null,
+                $previous,
+            );
+        }
+
+        if ($result instanceof ExecutionSucceeded) {
+            throw new ExpectationFailedException(implode("\n", [
+                sprintf(
+                    'Documentation example %s expected %s at %s, but execution completed without throwing.',
+                    $example->id->value,
+                    $expectedException->className,
+                    $expectationLocation,
+                ),
+                ...$capturedStreamSections,
+            ]));
+        }
+
+        if (
+            $result->phase === FailurePhase::Execution
+            && $result->cleanupFailures === []
+            && is_a($result->cause, $expectedException->className)
+        ) {
+            Assert::assertGreaterThan(-1, $result->durationNanoseconds, sprintf(
+                'Documentation example %s threw expected %s.',
+                $example->id->value,
+                $expectedException->className,
+            ));
+
+            return;
+        }
+
+        if ($result->phase === FailurePhase::Execution && $result->cleanupFailures === []) {
+            $sections = [
+                sprintf(
+                    'Documentation example %s expected %s at %s, but %s was thrown.',
+                    $example->id->value,
+                    $expectedException->className,
+                    $expectationLocation,
+                    $result->cause::class,
+                ),
+                sprintf('Location: %s', self::sourceLocation($result)),
+                "Cause:\n" . self::indent(self::throwableSummary($result->cause)),
+                ...$capturedStreamSections,
+            ];
+
+            throw new ExpectationFailedException(
+                implode("\n", $sections),
+                null,
+                self::previousException($result->cause),
+            );
         }
 
         throw new ExpectationFailedException(
-            self::failureMessage($result),
+            sprintf(
+                "Documentation example %s could not satisfy expected %s at %s because execution did not complete "
+                    . "cleanly.\n%s",
+                $example->id->value,
+                $expectedException->className,
+                $expectationLocation,
+                self::failureMessage($result),
+            ),
             null,
             self::previousException($result->cause),
         );
