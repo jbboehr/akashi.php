@@ -117,4 +117,4 @@ removed the duplicated extractor and its tests. GitHub recorded 164 successful c
 normal and isolated consumer matrices.
 
 These two migrations complete the recorded MVP consumer acceptance gates. Akashi's public API and documented limitations
-have completed their pre-release classification review; the API remains provisional until the first tagged release.
+have completed their pre-release classification review; the API may change between minor releases before 1.0.

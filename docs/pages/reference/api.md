@@ -1,6 +1,6 @@
 # Public API
 
-Akashi is pre-1.0, so these APIs are usable but remain provisional until the first tagged release. Architecture tests
+Akashi is pre-1.0, so these APIs are usable but may change between minor releases before 1.0. Architecture tests
 classify every autoloadable Akashi declaration as an entry point, canonical model type, PHPStan diagnostic model type,
 exception, or explicitly internal declaration. This reference groups the public types by consumer workflow;
 autoloadability alone does not create an extension point.

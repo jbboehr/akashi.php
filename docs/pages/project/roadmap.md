@@ -18,8 +18,8 @@ All recorded MVP acceptance gates are complete:
 - ParaTest compatibility is covered in both TestCase-level and `--functional` test-level scheduling.
 
 The pre-release API review classified every autoloadable declaration as an entry point, canonical model type,
-analyzer-independent PHPStan diagnostic type, public exception, or explicit internal detail. The supported surface
-remains provisional until the first tag, but architecture tests prevent accidental autoloadability from becoming API.
+analyzer-independent PHPStan diagnostic type, public exception, or explicit internal detail. The supported surface may
+change between minor releases before 1.0, but architecture tests prevent accidental autoloadability from becoming API.
 
 ## Source Discovery Ergonomics
 
