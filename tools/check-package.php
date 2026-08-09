@@ -122,6 +122,12 @@ try {
         $archive = $resolvedArchive;
     }
 
+    $resolvedArchive = realpath($archive);
+    if ($resolvedArchive === false || !is_file($resolvedArchive)) {
+        throw new RuntimeException('Unable to resolve the package archive after creation.');
+    }
+
+    $archive = $resolvedArchive;
     $package = new PharData($archive);
     $archivePrefix = 'phar://' . str_replace('\\', '/', $archive) . '/';
     $files = [];

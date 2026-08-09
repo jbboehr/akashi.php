@@ -71,10 +71,26 @@ jobs:
               run: composer analyse
 
             - name: Run PHPUnit
-              run: composer test
+              shell: bash
+              run: |
+                  set +e
+                  composer test 2>&1 | tee phpunit-output.log
+                  status=${PIPESTATUS[0]}
+
+                  if [ "$status" -ne 0 ]; then
+                      output=$(tail -c 60000 phpunit-output.log)
+                      output=${output//'%'/'%25'}
+                      output=${output//$'\r'/'%0D'}
+                      output=${output//$'\n'/'%0A'}
+                      echo "::error title=PHPUnit failure::$output"
+                  fi
+
+                  exit "$status"
 
             - name: Verify Composer package archive
+              if: ${{ always() }}
               run: composer package:check
 
             - name: Smoke-test executable
+              if: ${{ always() }}
               run: php bin/akashi --version
