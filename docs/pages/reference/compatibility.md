@@ -6,15 +6,15 @@ tagged release.
 
 ## Supported Platforms and Integrations
 
-| Component         | Current boundary                                                                  |
-| ----------------- | --------------------------------------------------------------------------------- |
-| PHP               | 8.2 and later                                                                     |
-| Composer          | Runtime API 2.2 and later                                                         |
-| Markdown          | CommonMark fenced PHP blocks through `league/commonmark` 2.8                      |
-| PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines  |
-| PHPStan           | Optional consumer integration targeting PHPStan 2.x                               |
-| ParaTest          | Development-only verified runner; not required by consumers                       |
-| Operating systems | Unix-like CI is exercised; Windows-specific discovery identity remains unverified |
+| Component         | Current boundary                                                                 |
+| ----------------- | -------------------------------------------------------------------------------- |
+| PHP               | 8.2 and later                                                                    |
+| Composer          | Runtime API 2.2 and later                                                        |
+| Markdown          | CommonMark fenced PHP blocks through `league/commonmark` 2.8                     |
+| PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines |
+| PHPStan           | Optional consumer integration targeting PHPStan 2.x                              |
+| ParaTest          | Development-only verified runner; not required by consumers                      |
+| Operating systems | Linux CI is required; advisory PHP 8.2 CI is configured for macOS and Windows    |
 
 Akashi's core model, discovery, Markdown extraction, transformation, execution, and CLI do not require PHPUnit or
 PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.

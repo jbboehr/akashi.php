@@ -93,7 +93,7 @@ final class CliConformanceTest extends TestCase
     private static function executeCli(string ...$arguments): Process
     {
         $projectRoot = self::projectRoot();
-        $process = new Process([$projectRoot . '/bin/akashi', ...$arguments], $projectRoot);
+        $process = new Process([PHP_BINARY, $projectRoot . '/bin/akashi', ...$arguments], $projectRoot);
         $process->run();
 
         return $process;

@@ -2,6 +2,9 @@
 
 composer.lock linguist-generated
 
+tests/Fixtures/Compatibility/Apocrypha/marked-examples.md text eol=lf
+tests/Fixtures/Compatibility/Apocrypha/expected/*.txt text eol=lf
+
 .codex export-ignore
 .dvc export-ignore
 .editorconfig export-ignore

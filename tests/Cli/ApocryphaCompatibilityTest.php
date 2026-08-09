@@ -54,6 +54,7 @@ final class ApocryphaCompatibilityTest extends TestCase
 
         $projectRoot = dirname(__DIR__, 2);
         $process = new Process([
+            PHP_BINARY,
             $projectRoot . '/bin/akashi',
             'extract',
             '--marker-name=yumemi-example',

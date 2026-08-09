@@ -49,6 +49,9 @@ therefore requires Composer network access and a coverage driver. A failure or t
 understood; do not lower mutation thresholds or omit a supported compatibility or scheduling mode merely to produce a
 tag.
 
+Review the latest advisory `portability` workflow for the intended release commit. Its macOS and Windows jobs do not
+gate the Linux compatibility contract automatically, but each failure must be understood and recorded before tagging.
+
 Build the exact Composer distribution artifact in the ignored release directory:
 
 ```console

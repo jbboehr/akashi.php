@@ -144,7 +144,9 @@ final class RuntimeConfigurationTest extends TestCase
 
     public function testRejectsABootstrapSymlinkThatResolvesOutsideTheProject(): void
     {
-        self::assertTrue(symlink($this->workspace . '/outside.php', $this->projectRoot . '/external-bootstrap.php'));
+        if (!@symlink($this->workspace . '/outside.php', $this->projectRoot . '/external-bootstrap.php')) {
+            self::markTestSkipped('Symbolic links are unavailable on this filesystem.');
+        }
         $configuration = RuntimeConfiguration::forProject($this->projectRoot);
 
         $this->expectException(RuntimeConfigurationException::class);

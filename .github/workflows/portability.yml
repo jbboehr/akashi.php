@@ -1,0 +1,80 @@
+name: portability
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+        paths:
+            - .github/workflows/portability.yml
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: portability-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    php:
+        name: ${{ matrix.name }} / PHP 8.2 (advisory)
+        runs-on: ${{ matrix.os }}
+        continue-on-error: true
+        timeout-minutes: 20
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: macOS
+                      os: macos-latest
+                    - name: Windows
+                      os: windows-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: dom
+                  php-version: "8.2"
+                  tools: composer:v2
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              shell: bash
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-8.2-composer-${{ hashFiles('composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-8.2-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Validate Composer files
+              run: composer composer:validate
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Check whitespace
+              run: git diff --check
+
+            - name: Run PHPStan
+              run: composer analyse
+
+            - name: Run PHPUnit
+              run: composer test
+
+            - name: Verify Composer package archive
+              run: composer package:check
+
+            - name: Smoke-test executable
+              run: php bin/akashi --version

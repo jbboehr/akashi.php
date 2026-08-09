@@ -227,7 +227,7 @@ try {
         }
     }
 
-    if (($files['bin/akashi']->getPerms() & 0o111) === 0) {
+    if (DIRECTORY_SEPARATOR !== '\\' && ($files['bin/akashi']->getPerms() & 0o111) === 0) {
         throw new RuntimeException('Composer archive made bin/akashi non-executable.');
     }
 
