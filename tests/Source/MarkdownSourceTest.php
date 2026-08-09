@@ -195,7 +195,9 @@ final class MarkdownSourceTest extends TestCase
         $source = MarkdownSource::forProject($root)->includeFile('README.md');
 
         $this->expectException(ProjectRootNotFoundException::class);
-        $this->expectExceptionMessage('Project root does not exist or is not a directory: ' . $root . '.');
+        $this->expectExceptionMessage(
+            'Project root does not exist or is not a directory: ' . (new ProjectRoot($root))->value . '.',
+        );
 
         $source->loadDocuments();
     }
@@ -426,7 +428,11 @@ final class MarkdownSourceTest extends TestCase
         $this->expectException(SourceReadException::class);
         $this->expectExceptionMessage('Unable to read Markdown document: docs/guide.md.');
 
-        MarkdownSource::forProject($this->projectRoot)->includeFile('docs/guide.md')->loadDocuments();
+        try {
+            MarkdownSource::forProject($this->projectRoot)->includeFile('docs/guide.md')->loadDocuments();
+        } finally {
+            self::assertTrue(chmod($this->projectRoot . '/docs/guide.md', 0o600));
+        }
     }
 
     public function testRejectsAnUnreadableConfiguredDirectory(): void

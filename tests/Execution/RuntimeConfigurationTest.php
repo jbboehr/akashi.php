@@ -94,7 +94,7 @@ final class RuntimeConfigurationTest extends TestCase
     {
         $configuration = RuntimeConfiguration::forProject($this->projectRoot . '/vendor/..');
 
-        self::assertSame($this->projectRoot, $configuration->projectRoot->value);
+        self::assertSame(str_replace('\\', '/', $this->projectRoot), $configuration->projectRoot->value);
         self::assertNull($configuration->bootstrap);
         self::assertSame(ExecutionMode::InProcess, $configuration->defaultExecutionMode);
     }
@@ -106,7 +106,10 @@ final class RuntimeConfigurationTest extends TestCase
         $separate = $bootstrapped->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
 
         self::assertNull($base->bootstrap);
-        self::assertSame($this->projectRoot . '/vendor/autoload.php', $bootstrapped->bootstrap?->value);
+        self::assertSame(
+            str_replace('\\', '/', $this->projectRoot) . '/vendor/autoload.php',
+            $bootstrapped->bootstrap?->value,
+        );
         self::assertSame(ExecutionMode::InProcess, $bootstrapped->defaultExecutionMode);
         self::assertSame($bootstrapped->bootstrap, $separate->bootstrap);
         self::assertSame(ExecutionMode::SeparateProcess, $separate->defaultExecutionMode);
@@ -117,7 +120,9 @@ final class RuntimeConfigurationTest extends TestCase
         $missing = $this->workspace . '/missing';
 
         $this->expectException(RuntimeConfigurationException::class);
-        $this->expectExceptionMessage('Runtime project root does not exist or is not a directory: ' . $missing);
+        $this->expectExceptionMessage(
+            'Runtime project root does not exist or is not a directory: ' . str_replace('\\', '/', $missing),
+        );
 
         RuntimeConfiguration::forProject($missing);
     }

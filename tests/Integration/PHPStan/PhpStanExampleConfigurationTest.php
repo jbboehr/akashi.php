@@ -132,7 +132,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
         );
         $example = $this->example('example-relevant-01', 'docs/relevant.md', 1, 'echo 1;');
 
-        self::assertSame(realpath($this->projectRoot), $configuration->projectRoot->value);
+        self::assertSame(str_replace('\\', '/', $this->projectRoot), $configuration->projectRoot->value);
         self::assertTrue($configuration->isRelevant($example));
         self::assertSame($example, $seen);
     }
@@ -225,7 +225,9 @@ final class PhpStanExampleConfigurationTest extends TestCase
         }
 
         $this->expectException(PhpStanConfigurationException::class);
-        $this->expectExceptionMessage('PHPStan project root does not exist or is not a directory: ' . $path . '.');
+        $this->expectExceptionMessage(
+            'PHPStan project root does not exist or is not a directory: ' . str_replace('\\', '/', $path) . '.',
+        );
 
         PhpStanExampleConfiguration::forProject($path, static fn (Example $example): bool => true);
     }
@@ -283,7 +285,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
 
         $this->expectException(NoRelevantExamplesException::class);
         $this->expectExceptionMessage(
-            'No PHPStan-relevant examples were selected for project ' . $this->projectRoot . '.',
+            'No PHPStan-relevant examples were selected for project ' . $configuration->projectRoot->value . '.',
         );
 
         (new PhpStanExampleSelector())->select(

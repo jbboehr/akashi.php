@@ -176,6 +176,8 @@ final class InProcessStateGuardTest extends TestCase
         $temporaryDirectory = sys_get_temp_dir() . '/akashi-state-' . bin2hex(random_bytes(8));
         self::assertTrue(mkdir($temporaryDirectory, 0700));
         self::assertTrue(chdir($temporaryDirectory));
+        $temporaryDirectory = getcwd();
+        self::assertIsString($temporaryDirectory);
         $guard = new InProcessStateGuard();
         self::assertTrue(chdir($originalWorkingDirectory));
         self::assertTrue(rmdir($temporaryDirectory));

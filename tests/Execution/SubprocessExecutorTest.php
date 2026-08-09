@@ -243,6 +243,21 @@ PHP;
         self::assertSame(10, $prepared->sourceMap->sourceLineFor($result->generatedLine));
     }
 
+    public function testRecognizesDiagnosticsWithWindowsPathSeparators(): void
+    {
+        $source = <<<'PHP'
+file_put_contents('php://stderr', 'Fatal error: fixture in ' . str_replace('/', '\\', __FILE__) . ' on line 2');
+exit(9);
+PHP;
+        $prepared = $this->transform($source);
+
+        $result = $this->executor()->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(2, $result->generatedLine);
+        self::assertSame(10, $prepared->sourceMap->sourceLineFor($result->generatedLine));
+    }
+
     public function testRejectsADiagnosticLineOutsideThePreparedSource(): void
     {
         $source = <<<'PHP'
@@ -356,7 +371,9 @@ PHP;
 
         $this->expectException(ExecutionInfrastructureException::class);
         $this->expectExceptionMessage(
-            'Unable to establish the configured separate-process project root: ' . $projectRoot . '.',
+            'Unable to establish the configured separate-process project root: '
+            . $configuration->projectRoot->value
+            . '.',
         );
 
         (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
@@ -374,7 +391,9 @@ PHP;
             (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
             self::assertSame(
-                'Unable to establish the configured separate-process project root: ' . $projectRoot . '.',
+                'Unable to establish the configured separate-process project root: '
+                . $configuration->projectRoot->value
+                . '.',
                 $failure->getMessage(),
             );
 
@@ -395,7 +414,7 @@ PHP;
 
         $this->expectException(ExecutionInfrastructureException::class);
         $this->expectExceptionMessage(
-            'Unable to load the configured separate-process bootstrap: ' . $bootstrap . '.',
+            'Unable to load the configured separate-process bootstrap: ' . $configuration->bootstrap?->value . '.',
         );
 
         (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
@@ -413,7 +432,7 @@ PHP;
             (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
             self::assertSame(
-                'Unable to load the configured separate-process bootstrap: ' . $bootstrap . '.',
+                'Unable to load the configured separate-process bootstrap: ' . $configuration->bootstrap?->value . '.',
                 $failure->getMessage(),
             );
 

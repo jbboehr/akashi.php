@@ -263,7 +263,9 @@ PHP;
             (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
             self::assertSame(
-                'Unable to establish the configured in-process project root: ' . $workspace . '.',
+                'Unable to establish the configured in-process project root: '
+                . $configuration->projectRoot->value
+                . '.',
                 $failure->getMessage(),
             );
             self::assertSame($initialWorkingDirectory, getcwd());
@@ -319,7 +321,7 @@ PHP;
             (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
             self::assertSame(
-                'Unable to load the configured in-process bootstrap: ' . $bootstrap . '.',
+                'Unable to load the configured in-process bootstrap: ' . $configuration->bootstrap?->value . '.',
                 $failure->getMessage(),
             );
             self::assertSame($initialWorkingDirectory, getcwd());
@@ -345,7 +347,7 @@ PHP;
             (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
             self::assertSame(
-                'Unable to load the configured in-process bootstrap: ' . $bootstrap . '.',
+                'Unable to load the configured in-process bootstrap: ' . $configuration->bootstrap?->value . '.',
                 $failure->getMessage(),
             );
 
@@ -377,7 +379,10 @@ PHP));
         try {
             (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
         } catch (ExecutionInfrastructureException $failure) {
-            self::assertSame('Configured in-process bootstrap failed: ' . $bootstrap . '.', $failure->getMessage());
+            self::assertSame(
+                'Configured in-process bootstrap failed: ' . $configuration->bootstrap?->value . '.',
+                $failure->getMessage(),
+            );
             self::assertSame(0, $failure->getCode());
             self::assertInstanceOf(\RuntimeException::class, $failure->getPrevious());
             self::assertSame('broken bootstrap', $failure->getPrevious()->getMessage());

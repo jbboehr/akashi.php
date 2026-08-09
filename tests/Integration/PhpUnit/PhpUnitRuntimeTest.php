@@ -341,7 +341,9 @@ PHP,
 
         $this->expectException(ExecutionInfrastructureException::class);
         $this->expectExceptionMessage(
-            'Unable to establish the configured in-process project root: ' . $this->workspace . '.',
+            'Unable to establish the configured in-process project root: '
+            . $configuration->projectRoot->value
+            . '.',
         );
 
         PhpUnitRuntime::assertExample(

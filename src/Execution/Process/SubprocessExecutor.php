@@ -327,10 +327,11 @@ final readonly class SubprocessExecutor implements Executor
         AbsoluteFilePath $temporaryFile,
         PreparedCode $code,
     ): ?int {
+        $normalizedStderr = str_replace('\\', '/', $stderr);
         $matches = [];
         $matchCount = preg_match_all(
             '~\\bin\\s+' . preg_quote($temporaryFile->value, '~') . '(?::([1-9][0-9]*)| on line ([1-9][0-9]*))~',
-            $stderr,
+            $normalizedStderr,
             $matches,
             PREG_SET_ORDER,
         );
