@@ -418,6 +418,10 @@ final class MarkdownSourceTest extends TestCase
 
     public function testRejectsAnUnreadableDocument(): void
     {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('POSIX file permissions are unavailable on Windows.');
+        }
+
         $this->write('docs/guide.md', '# Guide');
         self::assertTrue(chmod($this->projectRoot . '/docs/guide.md', 0o000));
         clearstatcache(true, $this->projectRoot . '/docs/guide.md');

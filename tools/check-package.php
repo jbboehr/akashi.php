@@ -108,6 +108,13 @@ try {
         if (!is_file($archive)) {
             throw new RuntimeException('Composer did not create the expected package archive.');
         }
+
+        $resolvedArchive = realpath($archive);
+        if ($resolvedArchive === false || !is_file($resolvedArchive)) {
+            throw new RuntimeException('Unable to resolve the package archive after creation.');
+        }
+
+        $archive = $resolvedArchive;
     } else {
         $archiveArgument = $arguments[0];
         $archiveCandidate = preg_match('~\A(?:[A-Za-z]:[\\\\/]|[\\\\/]{2}|/)~', $archiveArgument) === 1
@@ -122,12 +129,6 @@ try {
         $archive = $resolvedArchive;
     }
 
-    $resolvedArchive = realpath($archive);
-    if ($resolvedArchive === false || !is_file($resolvedArchive)) {
-        throw new RuntimeException('Unable to resolve the package archive after creation.');
-    }
-
-    $archive = $resolvedArchive;
     $package = new PharData($archive);
     $archivePrefix = 'phar://' . str_replace('\\', '/', $archive) . '/';
     $files = [];
@@ -242,6 +243,8 @@ try {
     fwrite(STDERR, sprintf("Package check failed: %s\n", $exception->getMessage()));
     $exitCode = 1;
 } finally {
+    unset($entry, $files, $iterator, $package);
+
     try {
         $removeTemporaryRoot();
     } catch (Throwable $exception) {
