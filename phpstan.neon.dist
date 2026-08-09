@@ -1,10 +1,19 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
     - vendor/phpstan/phpstan-phpunit/extension.neon
     - vendor/phpstan/phpstan-phpunit/rules.neon
     - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
 parameters:
     level: max
+    disallowedFunctionCalls:
+        -
+            function:
+                - 'debug_zval_dump()'
+                - 'print_r()'
+                - 'var_dump()'
+            message: 'Use explicit structured formatting or project reporting APIs instead of debug output.'
     strictRules:
         disallowedShortTernary: false
     paths:

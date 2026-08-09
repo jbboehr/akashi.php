@@ -104,6 +104,10 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                              |
 | 2026-08-06 | [`RuleTestCase` 2.2 public API](https://apiref.phpstan.org/2.2.x/PHPStan.Testing.RuleTestCase.html)          | User-facing behavioral reference | `gatherAnalyserErrors()` input and diagnostic-list contract                        |
 | 2026-08-06 | [PHPStan strict rules](https://github.com/phpstan/phpstan-strict-rules#readme)                               | Integration guide                | Rule-specific configuration for permitting the short ternary operator              |
+| 2026-08-09 | [PHPStan deprecation rules](https://github.com/phpstan/phpstan-deprecation-rules#readme)                     | Integration guide                | Enabling analysis of calls to deprecated symbols                                   |
+| 2026-08-09 | [PHPStan disallowed calls](https://github.com/spaze/phpstan-disallowed-calls#readme)                         | Integration guide                | Selecting a narrow committed-debug-output policy                                   |
+| 2026-08-09 | [Disallowed-calls custom rules][disallowed-calls-custom-rules]                                               | Integration guide                | Configuring grouped function-call restrictions                                     |
+| 2026-08-09 | [PHPat getting started](https://www.phpat.dev/getting-started/)                                              | Integration guide                | Evaluating namespace architecture rules; adoption deferred                         |
 | 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax                     |
 | 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention                 |
 | 2026-08-05 | [`smaller.alwaysFalse`](https://phpstan.org/error-identifiers/smaller.alwaysFalse)                           | User-facing behavioral reference | Preserving runtime guards behind a narrower public PHPDoc contract                 |
@@ -139,6 +143,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-06 | [`missingType.iterableValue`](https://phpstan.org/error-identifiers/missingType.iterableValue)               | User-facing behavioral reference | Specifying precise element types on data-driven matcher tests                      |
 | 2026-08-09 | [`trait.unused`](https://phpstan.org/error-identifiers/trait.unused)                                         | User-facing behavioral reference | Exercising a host-declaration collision without leaving an unused test fixture     |
 | 2026-08-09 | [`method.internal`](https://phpstan.org/error-identifiers/method.internal)                                   | User-facing behavioral reference | Avoiding an internal PHPUnit assertion-counter API in an integration test          |
+
+[disallowed-calls-custom-rules]: https://github.com/spaze/phpstan-disallowed-calls/blob/main/docs/custom-rules.md
 
 ### Composer
 

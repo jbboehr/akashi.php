@@ -87,9 +87,11 @@
         "infection/infection": "^0.32.6",
         "jbboehr/doctrine-of-the-second-sun": "dev-master",
         "phpstan/phpstan": "^2.2.5",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0.13",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^11.5",
+        "spaze/phpstan-disallowed-calls": "^4.14"
     },
     "autoload-dev": {
         "psr-4": {
