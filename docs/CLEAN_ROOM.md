@@ -107,6 +107,7 @@ Dates record the review date, not the document publication date.
 | 2026-08-09 | [PHPStan deprecation rules](https://github.com/phpstan/phpstan-deprecation-rules#readme)                     | Integration guide                | Enabling analysis of calls to deprecated symbols                                   |
 | 2026-08-09 | [PHPStan disallowed calls](https://github.com/spaze/phpstan-disallowed-calls#readme)                         | Integration guide                | Selecting a narrow committed-debug-output policy                                   |
 | 2026-08-09 | [Disallowed-calls custom rules][disallowed-calls-custom-rules]                                               | Integration guide                | Configuring grouped function-call restrictions                                     |
+| 2026-08-09 | [Disallowed-call parameter conditions][disallowed-calls-parameters]                                          | Integration guide                | Permitting explicit non-output formatting modes                                    |
 | 2026-08-09 | [PHPat getting started](https://www.phpat.dev/getting-started/)                                              | Integration guide                | Evaluating namespace architecture rules; adoption deferred                         |
 | 2026-08-05 | [Error identifiers](https://phpstan.org/error-identifiers)                                                   | User-facing behavioral reference | Diagnostic identity for a possible post-MVP expectation syntax                     |
 | 2026-08-05 | [Ignoring errors](https://phpstan.org/user-guide/ignoring-errors)                                            | User-facing behavioral reference | PHPStan's documented identifier-oriented inline-comment convention                 |
@@ -145,6 +146,7 @@ Dates record the review date, not the document publication date.
 | 2026-08-09 | [`method.internal`](https://phpstan.org/error-identifiers/method.internal)                                   | User-facing behavioral reference | Avoiding an internal PHPUnit assertion-counter API in an integration test          |
 
 [disallowed-calls-custom-rules]: https://github.com/spaze/phpstan-disallowed-calls/blob/main/docs/custom-rules.md
+[disallowed-calls-parameters]: https://github.com/spaze/phpstan-disallowed-calls/blob/main/docs/allow-with-parameters.md
 
 ### Composer
 

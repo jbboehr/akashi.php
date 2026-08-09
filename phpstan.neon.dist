@@ -7,13 +7,24 @@ includes:
     - vendor/spaze/phpstan-disallowed-calls/extension.neon
 parameters:
     level: max
+    # Akashi intentionally uses eval() in its in-process executor and exercises process-control calls in tests.
+    # Keep this policy targeted rather than enabling the extension's bundled execution or dangerous-call presets.
     disallowedFunctionCalls:
         -
             function:
                 - 'debug_zval_dump()'
-                - 'print_r()'
                 - 'var_dump()'
-            message: 'Use explicit structured formatting or project reporting APIs instead of debug output.'
+            message: 'Use explicit structured formatting or project reporting APIs instead of debug dumping.'
+        -
+            function:
+                - 'print_r()'
+                - 'var_export()'
+            message: 'Use return mode for diagnostic formatting instead of writing debug output.'
+            allowParamsAnywhere:
+                -
+                    position: 2
+                    name: 'return'
+                    value: true
     strictRules:
         disallowedShortTernary: false
     paths:
