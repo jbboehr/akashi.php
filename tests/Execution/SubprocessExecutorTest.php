@@ -228,6 +228,21 @@ PHP;
         self::assertSame(10, $prepared->sourceMap->sourceLineFor($result->generatedLine));
     }
 
+    public function testRecognizesThePhpColonLineDiagnosticForm(): void
+    {
+        $source = <<<'PHP'
+file_put_contents('php://stderr', 'Fatal error: fixture in ' . __FILE__ . ':2');
+exit(9);
+PHP;
+        $prepared = $this->transform($source);
+
+        $result = $this->executor()->execute($prepared);
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertSame(2, $result->generatedLine);
+        self::assertSame(10, $prepared->sourceMap->sourceLineFor($result->generatedLine));
+    }
+
     public function testRejectsADiagnosticLineOutsideThePreparedSource(): void
     {
         $source = <<<'PHP'
@@ -272,6 +287,7 @@ PHP;
         self::assertInstanceOf(SeparateProcessExecutionException::class, $result->cause);
         self::assertSame(SeparateProcessFailureKind::Signal, $result->cause->kind);
         self::assertSame($signal, $result->cause->termSignal);
+        self::assertIsInt($result->cause->exitCode);
         self::assertNotSame(0, $result->cause->exitCode);
         self::assertSame('before', $result->stdout);
     }
@@ -324,6 +340,13 @@ PHP;
         }
     }
 
+    public function testTreatsAnAlreadyRemovedTemporaryFileAsCleanedUp(): void
+    {
+        $result = $this->executor()->execute($this->transform('unlink(__FILE__);'));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+    }
+
     public function testThrowsAnInfrastructureFailureWhenTheConfiguredProjectDisappears(): void
     {
         $projectRoot = $this->workspace . '/vanished-project';
@@ -339,6 +362,30 @@ PHP;
         (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
     }
 
+    public function testRejectsAConfiguredProjectRootThatBecameAFile(): void
+    {
+        $projectRoot = $this->workspace . '/changed-project-root';
+        self::assertTrue(mkdir($projectRoot));
+        $configuration = RuntimeConfiguration::forProject($projectRoot);
+        self::assertTrue(rmdir($projectRoot));
+        self::assertNotFalse(file_put_contents($projectRoot, 'not a directory'));
+
+        try {
+            (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to establish the configured separate-process project root: ' . $projectRoot . '.',
+                $failure->getMessage(),
+            );
+
+            return;
+        } finally {
+            self::assertTrue(unlink($projectRoot));
+        }
+
+        self::fail('A separate-process project root that became a file must be rejected before process startup.');
+    }
+
     public function testThrowsAnInfrastructureFailureWhenTheConfiguredBootstrapDisappears(): void
     {
         $bootstrap = $this->workspace . '/bootstrap.php';
@@ -352,6 +399,30 @@ PHP;
         );
 
         (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+    }
+
+    public function testRejectsAConfiguredBootstrapThatBecameADirectory(): void
+    {
+        $bootstrap = $this->workspace . '/bootstrap-directory.php';
+        self::assertNotFalse(file_put_contents($bootstrap, "<?php\n"));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)->withBootstrap('bootstrap-directory.php');
+        self::assertTrue(unlink($bootstrap));
+        self::assertTrue(mkdir($bootstrap));
+
+        try {
+            (new SubprocessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to load the configured separate-process bootstrap: ' . $bootstrap . '.',
+                $failure->getMessage(),
+            );
+
+            return;
+        } finally {
+            self::assertTrue(rmdir($bootstrap));
+        }
+
+        self::fail('A separate-process bootstrap that became a directory must be rejected before process startup.');
     }
 
     public function testRejectsAnInProcessPreparedExample(): void

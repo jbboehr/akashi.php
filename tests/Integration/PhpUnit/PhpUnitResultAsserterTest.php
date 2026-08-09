@@ -53,6 +53,7 @@ use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
@@ -195,6 +196,22 @@ TEXT;
         self::assertSame($before + 1, Assert::getCount());
     }
 
+    public function testAcceptsAnExpectedExceptionWithAZeroDuration(): void
+    {
+        $prepared = $this->transform("throw new RuntimeException('expected');");
+        $result = new ExecutionFailed(
+            $prepared,
+            FailurePhase::Execution,
+            new \RuntimeException('expected'),
+            '',
+            [],
+            0,
+            1,
+        );
+
+        (new PhpUnitResultAsserter())->assertResult($result, new ExpectedException(\RuntimeException::class));
+    }
+
     public function testReportsWhenAnExpectedExceptionWasNotThrown(): void
     {
         $result = new ExecutionSucceeded(
@@ -264,6 +281,60 @@ TEXT;
         self::assertSame($result->cause, $failure->getPrevious());
     }
 
+    public function testReportsBothCapturedStreamsForAnUnavailableExpectedException(): void
+    {
+        $result = new ExecutionFailed(
+            $this->transform("throw new LogicException('actual failure');"),
+            FailurePhase::Execution,
+            new \LogicException('actual failure'),
+            'captured output',
+            [],
+            1,
+            1,
+            'captured warning',
+        );
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException('Akashi\\Missing\\DocumentationException'),
+        );
+
+        self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
+    }
+
+    public function testReportsBothCapturedStreamsForAWrongExpectedException(): void
+    {
+        $result = new ExecutionFailed(
+            $this->transform("throw new LogicException('actual failure');"),
+            FailurePhase::Execution,
+            new \LogicException('actual failure'),
+            'captured output',
+            [],
+            1,
+            1,
+            'captured warning',
+        );
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
+    }
+
+    public function testReportsAnExpectedExceptionAtItsDirectiveLine(): void
+    {
+        $prepared = $this->transform('echo 1;', expectedExceptionDirectiveLine: 8);
+        $result = new ExecutionSucceeded($prepared, '1', 0);
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString(
+            'expected RuntimeException at docs/phpunit-result.md:8',
+            $failure->getMessage(),
+        );
+    }
+
     public function testDoesNotLetAnExpectedExceptionMaskCleanupFailure(): void
     {
         $cause = new \RuntimeException('expected');
@@ -315,17 +386,19 @@ TEXT;
         self::fail('A failed execution result must produce a PHPUnit assertion failure.');
     }
 
-    private function transform(string $source): PreparedExample
+    /** @param positive-int|null $expectedExceptionDirectiveLine */
+    private function transform(string $source, ?int $expectedExceptionDirectiveLine = null): PreparedExample
     {
         ++$this->scopeSequence;
 
         return (new InProcessTransformer())->transform(
-            $this->example($source),
+            $this->example($source, $expectedExceptionDirectiveLine),
             new ExecutionScope(sprintf('Akashi\\Generated\\PhpUnitResultFixture_%d', $this->scopeSequence)),
         );
     }
 
-    private function example(string $source): Example
+    /** @param positive-int|null $expectedExceptionDirectiveLine */
+    private function example(string $source, ?int $expectedExceptionDirectiveLine = null): Example
     {
         $sourceLength = strlen($source);
         $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
@@ -350,6 +423,7 @@ TEXT;
                 $closingFenceLine,
                 new SourceSpan(0, max(1, $sourceLength)),
                 new SourceSpan(0, $sourceLength),
+                new MetadataLocation(expectedExceptionDirectiveLine: $expectedExceptionDirectiveLine),
             ),
             language: new Language('php'),
             code: new ExampleCode($source),

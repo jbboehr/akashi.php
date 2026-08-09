@@ -137,6 +137,8 @@ Dates record the review date, not the document publication date.
 | 2026-08-06 | [`parameterByRef.type`](https://phpstan.org/error-identifiers/parameterByRef.type)                           | User-facing behavioral reference | Replacing mutable by-reference matching state with typed returned state            |
 | 2026-08-06 | [`return.type`](https://phpstan.org/error-identifiers/return.type)                                           | User-facing behavioral reference | Keeping recursive matcher state consistent with its declared return shape          |
 | 2026-08-06 | [`missingType.iterableValue`](https://phpstan.org/error-identifiers/missingType.iterableValue)               | User-facing behavioral reference | Specifying precise element types on data-driven matcher tests                      |
+| 2026-08-09 | [`trait.unused`](https://phpstan.org/error-identifiers/trait.unused)                                         | User-facing behavioral reference | Exercising a host-declaration collision without leaving an unused test fixture     |
+| 2026-08-09 | [`method.internal`](https://phpstan.org/error-identifiers/method.internal)                                   | User-facing behavioral reference | Avoiding an internal PHPUnit assertion-counter API in an integration test          |
 
 ### Composer
 
@@ -325,6 +327,12 @@ identify the supported `strictRules.disallowedShortTernary` switch. A symbol sea
 and diagnostic identifier for `DisallowedShortTernaryRule`; its implementation body was not opened. This changed only
 Akashi's own development-style policy and did not influence its runtime architecture or public API.
 
+On 2026-08-09, Infection's installed `infection/include-interceptor` 0.4.2 `src/IncludeInterceptor.php` was inspected to
+diagnose why mutations applied in the PHPUnit host process do not propagate into subprocess fixtures. This was a
+deliberate inspection of general-purpose mutation-testing infrastructure, not a documentation-test implementation. It
+influenced only the classification of two surviving mutants as instrumentation artifacts; no code, algorithm, or public
+API was copied or adapted into Akashi.
+
 ## Current dependency status
 
 Akashi requires PHP 8.2 or later and the following runtime dependencies:
@@ -335,7 +343,7 @@ Akashi requires PHP 8.2 or later and the following runtime dependencies:
 - `symfony/process` 7.4 or later within the 7.x series, for isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
-documentation and package metadata are recorded above. Apart from the narrow League CommonMark, Symfony Process, and
-PHPStan `RuleTestCase` public-API source inspections recorded above, no dependency source code or internal tests were
-consulted. PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies;
-PHPUnit and PHPStan are suggested optional integrations for consumers.
+documentation and package metadata are recorded above. Apart from the narrow League CommonMark, Symfony Process, PHPStan
+`RuleTestCase`, and Infection include-interceptor inspections recorded above, no dependency source code or internal
+tests were consulted. PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and Infection remain development-only
+dependencies; PHPUnit and PHPStan are suggested optional integrations for consumers.

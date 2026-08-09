@@ -62,7 +62,7 @@ final readonly class PhpNameResolver
     {
         $errors = new Collecting();
         $traverser = new NodeTraverser(
-            new NameResolver($errors, ['preserveOriginalNames' => true, 'replaceNodes' => false]),
+            new NameResolver($errors, ['replaceNodes' => false]),
             new ParentConnectingVisitor(),
         );
         $nodes = $traverser->traverse($parsed->statements);

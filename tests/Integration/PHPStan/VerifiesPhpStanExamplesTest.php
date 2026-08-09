@@ -58,7 +58,22 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Testing\RuleTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
+
+trait PhpStanHostCollisionTrait
+{
+}
+
+final class PhpStanHostCollisionTraitUser
+{
+    use PhpStanHostCollisionTrait;
+}
+
+enum PhpStanHostCollisionEnum
+{
+    case Value;
+}
 
 /** @implements Rule<Echo_> */
 final class DocumentationEchoRule implements Rule
@@ -103,6 +118,12 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
 
     private ?string $requiredClassDuringAnalysis = null;
 
+    /** @var list<\PHPStan\Analyser\Error>|null */
+    private ?array $controlledErrors = null;
+
+    /** @var list<string> */
+    private array $recordedAnalysisWorkingDirectories = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -114,6 +135,8 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
 
         $this->projectRoot = $projectRoot;
         self::$recordedAnalysisPath = null;
+        $this->controlledErrors = null;
+        $this->recordedAnalysisWorkingDirectories = [];
     }
 
     protected function tearDown(): void
@@ -135,6 +158,27 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
     public static function recordAnalysisPath(string $path): void
     {
         self::$recordedAnalysisPath = $path;
+    }
+
+    /**
+     * @param array<string> $files
+     *
+     * @return list<\PHPStan\Analyser\Error>
+     *
+     * This controlled test seam follows PHPStan's RuleTestCase and serialized Error shape; review it on PHPStan updates.
+     */
+    public function gatherAnalyserErrors(array $files): array
+    {
+        if ($this->controlledErrors === null) {
+            return parent::gatherAnalyserErrors($files);
+        }
+
+        $workingDirectory = getcwd();
+        self::assertIsString($workingDirectory);
+        $this->recordedAnalysisWorkingDirectories[] = $workingDirectory;
+        self::assertTrue(chdir(sys_get_temp_dir()));
+
+        return $this->controlledErrors;
     }
 
     public function testVerifiesRelevantExamplesAndCleansTheGuardedWorkspace(): void
@@ -197,6 +241,114 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         }
 
         self::fail('A mismatched PHPStan expectation must fail the PHPUnit assertion.');
+    }
+
+    public function testOrdersAndRetainsEveryReportedDiagnostic(): void
+    {
+        $this->controlledErrors = [
+            self::analyserError('later diagnostic', 3, identifier: 'akashi.later'),
+            self::analyserError('earlier diagnostic', 2, identifier: 'akashi.earlier'),
+        ];
+
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-diagnostic-order-01',
+            'docs/diagnostic-order.md',
+            1,
+            "<?php\n\$first = 1;\n\$second = 2;",
+        ));
+        $message = $failure->getMessage();
+        $earlier = strpos($message, 'source line 11 [akashi.earlier]: earlier diagnostic');
+        $later = strpos($message, 'source line 12 [akashi.later]: later diagnostic');
+
+        self::assertIsInt($earlier);
+        self::assertIsInt($later);
+        self::assertLessThan($later, $earlier);
+        self::assertStringContainsString("Expected diagnostics:\n    (none)", $message);
+    }
+
+    public function testNormalizesUnavailableDiagnosticMetadata(): void
+    {
+        $this->controlledErrors = [
+            self::analyserError('reported diagnostic', 0, tip: '   '),
+        ];
+
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-diagnostic-metadata-01',
+            'docs/diagnostic-metadata.md',
+            1,
+            '<?php $value = 1;',
+        ));
+
+        self::assertStringContainsString('    - line unavailable: reported diagnostic', $failure->getMessage());
+        self::assertStringNotContainsString('Tip:', $failure->getMessage());
+    }
+
+    public function testReportsAnOutOfRangeAnalyzerLineWithoutInventingASourceLine(): void
+    {
+        $this->controlledErrors = [self::analyserError('outside source', 999)];
+
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-diagnostic-bounds-01',
+            'docs/diagnostic-bounds.md',
+            1,
+            '<?php $value = 1;',
+        ));
+
+        self::assertStringContainsString('    - generated line 999: outside source', $failure->getMessage());
+    }
+
+    public function testRejectsAWhitespaceOnlyPhpStanMessage(): void
+    {
+        $this->controlledErrors = [self::analyserError('   ', 1)];
+
+        $this->expectException(PhpStanVerificationException::class);
+        $this->expectExceptionMessage('PHPStan returned an empty diagnostic message');
+
+        $this->assertControlledPhpStanExamples($this->example(
+            'example-empty-diagnostic-01',
+            'docs/empty-diagnostic.md',
+            1,
+            '<?php $value = 1;',
+        ));
+    }
+
+    public function testReportsWhenAnExpectedDiagnosticIsMissing(): void
+    {
+        $this->controlledErrors = [];
+
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-missing-diagnostic-01',
+            'docs/missing-diagnostic.md',
+            1,
+            "<?php\n//! expected diagnostic\n\$value = 1;",
+        ));
+
+        self::assertStringContainsString("Reported diagnostics:\n    (none)", $failure->getMessage());
+    }
+
+    public function testReestablishesTheProjectRootBeforeLoadingAndBeforeEveryAnalysis(): void
+    {
+        $this->controlledErrors = [];
+        $expectedRoot = var_export($this->projectRoot, true);
+        $first = $this->example(
+            'example-project-root-a-01',
+            'docs/project-root-a.md',
+            1,
+            sprintf(
+                "<?php\nif (getcwd() !== %s) { throw new RuntimeException('wrong load root'); }",
+                $expectedRoot,
+            ),
+        );
+        $second = $this->example(
+            'example-project-root-b-01',
+            'docs/project-root-b.md',
+            1,
+            '<?php $value = 1;',
+        );
+
+        $this->assertControlledPhpStanExamples($first, $second);
+
+        self::assertSame([$this->projectRoot, $this->projectRoot], $this->recordedAnalysisWorkingDirectories);
     }
 
     public function testAddsAnOpeningTagWithoutLosingSourceLineMapping(): void
@@ -298,6 +450,97 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         );
     }
 
+    public function testReportsGuardedOutputBufferCleanupFailure(): void
+    {
+        $this->controlledErrors = [];
+        $initialOutputLevel = ob_get_level();
+
+        try {
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-output-cleanup-01',
+                'docs/output-cleanup.md',
+                1,
+                "<?php\nob_end_clean();",
+            ));
+        } catch (PhpStanVerificationException $failure) {
+            self::assertStringContainsString('PHPStan example verification cleanup failed:', $failure->getMessage());
+            self::assertStringContainsString(
+                'output-buffer: The output buffer owned by Akashi was removed during execution.',
+                $failure->getMessage(),
+            );
+            self::assertSame($initialOutputLevel, ob_get_level());
+
+            return;
+        }
+
+        self::fail('Removing the verifier output buffer must be reported as a cleanup failure.');
+    }
+
+    public function testRemovesABrokenSymlinkThatReplacesAnAnalysisFile(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\' || !function_exists('symlink')) {
+            self::markTestSkipped('Replacing an analysis file with a symbolic link is unavailable.');
+        }
+        $this->controlledErrors = [];
+        $recordCall = sprintf('%s::recordAnalysisPath(__FILE__);', self::class);
+
+        try {
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-analysis-symlink-01',
+                'docs/analysis-symlink.md',
+                1,
+                sprintf(
+                    "<?php\n\\%s\n\$path = __FILE__; unlink(\$path); symlink(\$path . '.missing', \$path);",
+                    $recordCall,
+                ),
+            ));
+
+            self::assertNotNull(self::$recordedAnalysisPath);
+            self::assertFalse(is_link(self::$recordedAnalysisPath));
+        } finally {
+            $analysisPath = self::$recordedAnalysisPath;
+            if ($analysisPath !== null && is_link($analysisPath)) {
+                self::assertTrue(unlink($analysisPath));
+            }
+            if ($analysisPath !== null && is_dir(dirname($analysisPath))) {
+                self::assertTrue(rmdir(dirname($analysisPath)));
+            }
+        }
+    }
+
+    public function testReportsEveryCleanupFailureWhenAnAnalysisFileBecomesADirectory(): void
+    {
+        $this->controlledErrors = [];
+        $recordCall = sprintf('%s::recordAnalysisPath(__FILE__);', self::class);
+        $failure = null;
+
+        try {
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-analysis-directory-01',
+                'docs/analysis-directory.md',
+                1,
+                sprintf(
+                    "<?php\n\\%s\n\$path = __FILE__; unlink(\$path); mkdir(\$path);",
+                    $recordCall,
+                ),
+            ));
+        } catch (PhpStanVerificationException $caught) {
+            $failure = $caught;
+        } finally {
+            $analysisPath = self::$recordedAnalysisPath;
+            if ($analysisPath !== null && is_dir($analysisPath)) {
+                self::assertTrue(rmdir($analysisPath));
+            }
+            if ($analysisPath !== null && is_dir(dirname($analysisPath))) {
+                self::assertTrue(rmdir(dirname($analysisPath)));
+            }
+        }
+
+        self::assertNotNull($failure);
+        self::assertStringContainsString('temporary file path became a directory:', $failure->getMessage());
+        self::assertStringContainsString('unable to remove temporary analysis directory:', $failure->getMessage());
+    }
+
     public function testRejectsProcessTerminationBeforeLoadingAnyExample(): void
     {
         $this->expectException(PhpStanVerificationException::class);
@@ -338,6 +581,108 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         }
 
         self::fail('Duplicate PHPStan example declarations must be rejected before loading.');
+    }
+
+    public function testRejectsDuplicateClassLikeDeclarationsBeforeLoading(): void
+    {
+        $this->expectException(PhpStanVerificationException::class);
+        $this->expectExceptionMessage('duplicate class-like declaration Akashi\\DuplicateFixture\\Repeated');
+
+        $this->validateExamples(
+            $this->example(
+                'example-class-a-01',
+                'docs/class-a.md',
+                1,
+                '<?php namespace Akashi\\DuplicateFixture; class Repeated {}',
+            ),
+            $this->example(
+                'example-class-b-01',
+                'docs/class-b.md',
+                1,
+                '<?php namespace Akashi\\DuplicateFixture; class Repeated {}',
+            ),
+        );
+    }
+
+    public function testRejectsDuplicateGlobalConstantsBeforeLoading(): void
+    {
+        $this->expectException(PhpStanVerificationException::class);
+        $this->expectExceptionMessage('duplicate constant declaration AKASHI_PHPSTAN_DUPLICATE_CONSTANT');
+
+        $this->validateExamples(
+            $this->example(
+                'example-constant-a-01',
+                'docs/constant-a.md',
+                1,
+                '<?php const AKASHI_PHPSTAN_DUPLICATE_CONSTANT = 1;',
+            ),
+            $this->example(
+                'example-constant-b-01',
+                'docs/constant-b.md',
+                1,
+                '<?php const AKASHI_PHPSTAN_DUPLICATE_CONSTANT = 2;',
+            ),
+        );
+    }
+
+    #[DataProvider('loadedClassLikeDeclarationProvider')]
+    public function testRejectsEveryKindOfClassLikeDeclarationAlreadyLoadedByTheHost(
+        string $source,
+        string $name,
+    ): void {
+        $this->expectException(PhpStanVerificationException::class);
+        $this->expectExceptionMessage("class-like declaration {$name} already exists in the hosting process");
+
+        $this->validateExamples($this->example(
+            'example-loaded-class-like-01',
+            'docs/loaded-class-like.md',
+            1,
+            $source,
+        ));
+    }
+
+    /** @return iterable<string, array{string, class-string}> */
+    public static function loadedClassLikeDeclarationProvider(): iterable
+    {
+        yield 'class' => ['<?php class stdClass {}', \stdClass::class];
+        yield 'interface' => ['<?php interface Stringable {}', \Stringable::class];
+        yield 'trait' => [
+            '<?php namespace jbboehr\\Akashi\\Tests\\Integration\\PHPStan; trait PhpStanHostCollisionTrait {}',
+            PhpStanHostCollisionTrait::class,
+        ];
+        yield 'enum' => [
+            '<?php namespace jbboehr\\Akashi\\Tests\\Integration\\PHPStan; enum PhpStanHostCollisionEnum {}',
+            PhpStanHostCollisionEnum::class,
+        ];
+    }
+
+    public function testDeclarationPreflightDoesNotInvokeAutoloaders(): void
+    {
+        $autoloaded = [];
+        $autoloader = static function (string $class) use (&$autoloaded): void {
+            $autoloaded[] = $class;
+        };
+        spl_autoload_register($autoloader);
+
+        try {
+            $this->validateExamples($this->example(
+                'example-no-autoload-01',
+                'docs/no-autoload.md',
+                1,
+                <<<'PHP'
+<?php
+namespace Akashi\NoAutoloadFixture;
+class LocalClass {}
+interface LocalInterface {}
+trait LocalTrait {}
+enum LocalEnum {}
+PHP,
+            ));
+        } finally {
+            spl_autoload_unregister($autoloader);
+        }
+
+        self::assertSame([], $autoloaded);
     }
 
     public function testAllowsClassConstantsDuringDeclarationPreflight(): void
@@ -423,6 +768,72 @@ PHP,
         ));
 
         self::addToAssertionCount(1);
+    }
+
+    public function testRejectsAFullyQualifiedUppercaseBuiltInDefineCall(): void
+    {
+        $constant = 'AKASHI_PHPSTAN_QUALIFIED_DEFINE_FIXTURE';
+
+        try {
+            $this->validateExamples($this->example(
+                'example-qualified-define-01',
+                'docs/qualified-define.md',
+                1,
+                "<?php\n\\DEFINE('{$constant}', 1);",
+            ));
+        } catch (PhpStanVerificationException $failure) {
+            self::assertStringContainsString('built-in define() creates persistent process state', $failure->getMessage());
+            self::assertFalse(defined($constant));
+
+            return;
+        }
+
+        self::fail('A fully qualified built-in define() call must be rejected before loading.');
+    }
+
+    private function assertControlledPhpStanExamples(Example ...$examples): void
+    {
+        $this->assertPhpStanExamples(
+            new ExampleCorpus(...$examples),
+            PhpStanExampleConfiguration::forProject(
+                $this->projectRoot,
+                static fn (Example $example): bool => true,
+            ),
+        );
+    }
+
+    private function phpStanAssertionFailure(Example $example): ExpectationFailedException
+    {
+        try {
+            $this->assertControlledPhpStanExamples($example);
+        } catch (ExpectationFailedException $failure) {
+            return $failure;
+        }
+
+        self::fail('A PHPStan diagnostic mismatch must fail the PHPUnit assertion.');
+    }
+
+    private static function analyserError(
+        string $message,
+        ?int $line,
+        ?string $tip = null,
+        ?string $identifier = null,
+    ): \PHPStan\Analyser\Error {
+        return \PHPStan\Analyser\Error::decode([
+            'message' => $message,
+            'file' => 'analysis.php',
+            'line' => $line,
+            'canBeIgnored' => true,
+            'filePath' => null,
+            'traitFilePath' => null,
+            'tip' => $tip,
+            'nodeLine' => null,
+            'nodeType' => null,
+            'identifier' => $identifier,
+            'metadata' => [],
+            'fixedErrorDiffHash' => null,
+            'fixedErrorDiffDiff' => null,
+        ]);
     }
 
     private function validateExamples(Example ...$examples): void

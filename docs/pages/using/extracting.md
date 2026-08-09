@@ -7,6 +7,7 @@ example without making a second copy the source of truth. Extraction does not ex
 
 Choose a marker name, configure it when loading the corpus, and place the matching comment before a PHP fence:
 
+````markdown
 <!-- akashi-example: greeting -->
 
 ```php
@@ -14,6 +15,7 @@ Choose a marker name, configure it when loading the corpus, and place the matchi
 
 echo "Hello from Akashi!\n";
 ```
+````
 
 `akashi-example` is an Akashi-generic convention, not a hard-coded name. A project retaining an existing marker such as
 `yumemi-example` supplies that name explicitly.

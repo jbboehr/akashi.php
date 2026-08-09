@@ -182,6 +182,13 @@ MARKDOWN);
             "\$input = 'invalid';\n// akashi: expect-exception Domain\\DocumentException\n"
                 . "throw new \\Domain\\DocumentException(\$input);\n",
         ];
+        yield 'after an ordinary comment' => [
+            "```php\n// Explain why this fails.\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException();\n```\n",
+            3,
+            "// Explain why this fails.\n// akashi: expect-exception Domain\\DocumentException\n"
+                . "throw new \\Domain\\DocumentException();\n",
+        ];
     }
 
     public function testDoesNotTreatDirectiveTextInsideAHeredocAsMetadata(): void

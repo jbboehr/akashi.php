@@ -120,6 +120,16 @@ PHP;
         self::assertParses($prepared->code->source);
     }
 
+    public function testMapsEveryLineAfterSplittingAnInlineOpeningTag(): void
+    {
+        $prepared = $this->transform("<?php echo 1;\nthrow new RuntimeException('mapped');");
+
+        self::assertSame(10, $prepared->sourceMap->sourceLineFor(1));
+        self::assertNull($prepared->sourceMap->sourceLineFor(2));
+        self::assertSame(10, $prepared->sourceMap->sourceLineFor(3));
+        self::assertSame(11, $prepared->sourceMap->sourceLineFor(4));
+    }
+
     #[DataProvider('caseInsensitiveOpeningTagProvider')]
     public function testAcceptsCaseInsensitiveOpeningTags(string $openingTag): void
     {
@@ -340,6 +350,14 @@ PHP;
         $this->expectExceptionMessage('example-fixture-01 at docs/example.md:11');
 
         $this->transform("use Alpha as Duplicate;\nuse Beta as Duplicate;\n");
+    }
+
+    public function testMapsANameResolutionFailureOnTheLastGeneratedLine(): void
+    {
+        $this->expectException(PhpParseException::class);
+        $this->expectExceptionMessage('example-fixture-01 at docs/example.md:11');
+
+        $this->transform("use Alpha as Duplicate;\nuse Beta as Duplicate;");
     }
 
     private function transform(string $source): \jbboehr\Akashi\Transform\InProcessPreparedExample

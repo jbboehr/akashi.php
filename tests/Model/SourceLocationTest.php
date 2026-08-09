@@ -151,6 +151,21 @@ final class SourceLocationTest extends TestCase
         self::assertSame(6, $location->metadata->expectedExceptionDirectiveLine);
     }
 
+    public function testAllowsAnExpectedExceptionDirectiveOnTheLastCodeLine(): void
+    {
+        $location = new SourceLocation(
+            4,
+            5,
+            7,
+            8,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation(expectedExceptionDirectiveLine: 7),
+        );
+
+        self::assertSame(7, $location->metadata->expectedExceptionDirectiveLine);
+    }
+
     /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $directiveLine
@@ -209,6 +224,13 @@ final class SourceLocationTest extends TestCase
             null,
             null,
             8,
+            'Expected-exception directive line must precede the opening fence or lie within its code content.',
+        ];
+        yield 'expected-exception directive on opening fence' => [
+            null,
+            null,
+            null,
+            4,
             'Expected-exception directive line must precede the opening fence or lie within its code content.',
         ];
     }

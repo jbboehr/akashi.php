@@ -63,6 +63,7 @@ use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedExample;
 use jbboehr\Akashi\Transform\SeparateProcessPreparedExample;
 use jbboehr\Akashi\Transform\SourceMap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -197,6 +198,33 @@ PHP;
         self::assertSame($initialErrorReporting, error_reporting());
     }
 
+    #[DataProvider('outputBufferRestorationProvider')]
+    public function testAlwaysRestoresTheSurroundingOutputBufferDepth(string $source): void
+    {
+        $initialOutputLevel = ob_get_level();
+
+        try {
+            (new InProcessExecutor())->execute($this->transform($source));
+            $restoredOutputLevel = ob_get_level();
+        } finally {
+            while (ob_get_level() > $initialOutputLevel) {
+                ob_end_clean();
+            }
+        }
+
+        self::assertSame($initialOutputLevel, $restoredOutputLevel);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function outputBufferRestorationProvider(): iterable
+    {
+        yield 'no nested buffer' => ["echo 'plain';"];
+        yield 'one nested buffer' => ["ob_start(); echo 'nested';"];
+        yield 'multiple nested buffers' => ["ob_start(); echo 'outer'; ob_start(); echo 'inner';"];
+        yield 'authored exception' => ["ob_start(); echo 'before'; throw new RuntimeException('failed');"];
+        yield 'failed assertion' => ["ob_start(); echo 'before'; assert(false, 'failed');"];
+    }
+
     public function testConfiguredExecutionUsesTheProjectRootAndBootstrapThenRestoresTheWorkingDirectory(): void
     {
         $workspace = $this->createWorkspace();
@@ -246,6 +274,37 @@ PHP;
         self::fail('A vanished in-process project root must be reported as an infrastructure error.');
     }
 
+    public function testRejectsAnUnreadableConfiguredProjectRoot(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('POSIX directory permissions are unavailable on Windows.');
+        }
+        $workspace = $this->createWorkspace();
+        $configuration = RuntimeConfiguration::forProject($workspace);
+        self::assertTrue(chmod($workspace, 0o100));
+
+        try {
+            clearstatcache(true, $workspace);
+            if (is_readable($workspace)) {
+                self::markTestSkipped('The current user can read directories without permission bits.');
+            }
+
+            (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to establish the configured in-process project root: ' . $workspace . '.',
+                $failure->getMessage(),
+            );
+
+            return;
+        } finally {
+            self::assertTrue(chmod($workspace, 0o700));
+            self::assertTrue(rmdir($workspace));
+        }
+
+        self::fail('An unreadable in-process project root must be rejected before execution.');
+    }
+
     public function testThrowsAnInfrastructureFailureWhenTheConfiguredBootstrapDisappears(): void
     {
         $workspace = $this->createWorkspace();
@@ -271,6 +330,32 @@ PHP;
         }
 
         self::fail('A vanished in-process bootstrap must be reported as an infrastructure error.');
+    }
+
+    public function testThrowsAnInfrastructureFailureWhenTheConfiguredBootstrapBecomesADirectory(): void
+    {
+        $workspace = $this->createWorkspace();
+        $bootstrap = $workspace . '/bootstrap.php';
+        self::assertNotFalse(file_put_contents($bootstrap, "<?php\n"));
+        $configuration = RuntimeConfiguration::forProject($workspace)->withBootstrap('bootstrap.php');
+        self::assertTrue(unlink($bootstrap));
+        self::assertTrue(mkdir($bootstrap));
+
+        try {
+            (new InProcessExecutor($configuration))->execute($this->transform("echo 'not executed';"));
+        } catch (ExecutionInfrastructureException $failure) {
+            self::assertSame(
+                'Unable to load the configured in-process bootstrap: ' . $bootstrap . '.',
+                $failure->getMessage(),
+            );
+
+            return;
+        } finally {
+            self::assertTrue(rmdir($bootstrap));
+            self::assertTrue(rmdir($workspace));
+        }
+
+        self::fail('An in-process bootstrap that became a directory must be rejected before loading.');
     }
 
     public function testWrapsAThrowableFromTheConfiguredBootstrapAndRestoresGuardedState(): void

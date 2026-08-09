@@ -287,6 +287,11 @@ final class InProcessSafetyValidatorTest extends TestCase
             'duplicate local class-like declaration localthing',
             21,
         ];
+        yield 'duplicate local class after anonymous class' => [
+            "new class {};\nif (true) { class LocalThing {} }\nif (false) { class LocalThing {} }",
+            'duplicate local class-like declaration localthing',
+            22,
+        ];
         yield 'duplicate local function' => [
             "if (true) { function localFunction(): void {} }\nif (false) { function localFunction(): void {} }",
             'duplicate local function declaration localfunction',

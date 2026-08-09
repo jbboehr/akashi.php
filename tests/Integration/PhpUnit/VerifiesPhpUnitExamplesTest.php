@@ -62,6 +62,13 @@ final class VerifiesPhpUnitExamplesTest extends TestCase
         ], array_keys(iterator_to_array(self::akashiExampleDataProvider())));
     }
 
+    public function testRuntimeConfigurationHookRemainsProtectedForConsumerOverrides(): void
+    {
+        $method = new \ReflectionMethod(VerifiesPhpUnitExamples::class, 'akashiRuntimeConfiguration');
+
+        self::assertTrue($method->isProtected());
+    }
+
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
         return new ExampleCorpus(
