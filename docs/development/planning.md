@@ -26,5 +26,6 @@ with PHPUnit 10.5, outside the root ParaTest constraint, then verifies the runti
 both execution backends, and the PHPStan `RuleTestCase` adapter. `composer test:phpunit10` runs that compatibility gate,
 and `composer check:full` includes it.
 
-The current public architecture is documented in `docs/pages/project/architecture.md`. Detailed historical requirements
-and clean-room constraints remain in `docs/IMPLEMENTATION_HANDOFF.md` and `docs/CLEAN_ROOM.md`.
+The current public architecture is documented in `docs/pages/project/architecture.md`. The initial proposal is preserved
+as `docs/development/initial-architecture-plan.md`; detailed historical requirements and clean-room constraints remain
+in `docs/IMPLEMENTATION_HANDOFF.md` and `docs/CLEAN_ROOM.md`.

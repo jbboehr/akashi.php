@@ -21,6 +21,20 @@ configuration objects expose them as typed state. That includes `Model\ExpectedE
 authored throwable class name without requiring the class to exist before runtime setup. Their constructors enforce the
 same invariants used by source discovery; they are data contracts, not subclassing or service-replacement seams.
 
+The supporting value types are grouped by what they preserve:
+
+| Concern          | Types                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Project paths    | `Model\ProjectRoot`, `Model\ProjectPath`, `Model\AbsoluteFilePath`, `Model\DocumentPath`                                       |
+| Example identity | `Model\ExampleId`, `Model\MarkerId`, `Model\MarkerName`                                                                        |
+| Authored source  | `Model\ExampleCode`, `Model\Language`, `Model\LineIndex`, `Model\SourceSpan`, `Model\SourceLocation`, `Model\MetadataLocation` |
+| Fence metadata   | `Model\FenceCharacter`, `Model\FenceMetadata`                                                                                  |
+| Runtime metadata | `Model\Directive`, `Model\DirectiveSet`, `Model\ExpectedException`                                                             |
+
+Most consumers receive and inspect these values through the canonical model rather than constructing them directly.
+Direct construction remains supported for typed integrations that create documents or examples without weakening the
+model to raw arrays or ambiguous strings.
+
 ## PHPUnit Runtime
 
 | Type                                          | Purpose                                                                  |

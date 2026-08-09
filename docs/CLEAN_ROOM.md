@@ -288,6 +288,11 @@ source-level algorithm, or architecture was examined or copied. Akashi's immedia
 independent design recorded in `ARCHITECTURE.md`; the inspection only confirmed that League CommonMark's public node API
 could express it.
 
+Repository note (2026-08-09): the historical plan named `ARCHITECTURE.md` in the contemporaneous record above is now
+preserved in the source repository as `docs/development/initial-architecture-plan.md`. Composer distributions exclude
+that internal development directory; the implemented public design is documented in
+`docs/pages/project/architecture.md`.
+
 On 2026-08-05, while implementing the separate-process adapter, narrow sections of the installed Symfony Process 7.4
 `Process.php`, `ProcessTimedOutException.php`, `ProcessSignaledException.php`, and `ProcessStartFailedException.php` and
 `RuntimeException.php` files were opened to confirm documented public method contracts for process execution, separated

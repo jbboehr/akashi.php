@@ -3,6 +3,6 @@
 The public [Architecture](pages/project/architecture.md) page describes the system implemented in the current
 repository.
 
-The original implementation proposal and sequencing remain recorded in
-[IMPLEMENTATION_HANDOFF.md](IMPLEMENTATION_HANDOFF.md) and git history. Those materials are historical planning and
-clean-room evidence, not the current public architecture or a consumer guide.
+The source repository preserves the original proposal as `docs/development/initial-architecture-plan.md`. That
+historical internal record is excluded from Composer distributions and is not the current public architecture or a
+consumer guide.
