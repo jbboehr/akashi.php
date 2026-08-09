@@ -26,7 +26,11 @@ original publishing identity is unavailable.
 4. For the first tag, replace the empty changelog template with an accurate initial release entry. For later tags, move
    the accumulated `[Unreleased]` entries beneath the release version and date while retaining a new empty
    `[Unreleased]` section.
-5. Commit the changelog or any other release-only metadata, rerun the gates below, and require a clean worktree again.
+5. For the first tag, replace every `dev-master` installation example and every statement that Akashi has no tagged
+   release. Review `README.md`, `docs/pages/README.md`, the Quick Start, compatibility reference, API reference, and
+   roadmap together so the tagged source does not contradict itself. Keep accurate pre-1.0 stability qualifications;
+   publishing a first tag does not make the API stable by itself.
+6. Commit the changelog or any other release-only metadata, rerun the gates below, and require a clean worktree again.
 
 Do not add promises for deferred roadmap work. The release notes describe only behavior present in the tagged commit.
 
@@ -37,6 +41,7 @@ Run the routine and extended gates:
 ```console
 composer check
 composer check:full
+composer audit --locked
 ```
 
 The extended gate runs the isolated PHPUnit 10 consumer fixture, both ParaTest modes, and mutation testing, and
