@@ -5,8 +5,10 @@ original illustration. The source declaration remains the canonical assignment a
 in the book is a cited republication, not a second allocation or a semantic annotation of the declaration.
 
 Selection favors literary quality and thematic resonance with the page while preserving every source assignment. Images
-interpret the selected logion under the Doctrine image guide; they do not depict software concepts literally. Gold
-exemplars establish the quality ceiling and layout precedent but are not reused as text, plots, or artwork.
+interpret the selected logion under the Doctrine image guide; they do not depict software concepts literally. The
+Doctrine gold-exemplar artwork predates the image-guide revision used for the current plates. It remains a nonnormative
+quality ceiling and layout precedent, but it was not used as a compliance or style reference and is not reused as text,
+plots, or artwork.
 
 Each final illustration has a 3840-by-2160 archival WebP at `docs/development/images/logia/BOOK-CHAPTER_VERSE-hq.webp`
 and a 960-by-540 delivery WebP at `docs/pages/images/logia/BOOK-CHAPTER_VERSE.webp`. The latter has one-sixteenth the
@@ -44,6 +46,43 @@ on narrow screens. Each plate appears directly below its page title, before the 
 | `project/invariants.md`           | SFA 53:20 | `SourceMap`                  | A measured margin ending at the last trustworthy lamp                       | Complete              |
 | `project/roadmap.md`              | RAS 33:21 | `MarkdownSource`             | Abandoned milestones naming a kingdom seven generations before its founding | Complete              |
 
+## Current-guide regeneration record
+
+All 21 plates were regenerated after advancing the Doctrine package to revision
+`b5c38568565bd20f39c4e58a92552cd324b9a1ed`. The canonical logion text, citation allocation, page allocation, and visual
+center remained unchanged. The current Doctrine image guide governed the regeneration directly; the older gold artwork
+was not treated as evidence of compliance with that guide.
+
+The table records the resolved local setting, dominant degree of literalness, and independently selected Second Sun
+weather for each plate. Settings marked abstract contain no culturally legible material world. Where the source and
+project context left a culturally legible setting underdetermined, the fallback setting and degree were sampled from the
+guide's priors using operating-system entropy. Repeated results were retained rather than rerolled for artificial
+variety.
+
+| Citation  | Local setting | Dominant treatment | Second Sun weather                                                       |
+| --------- | ------------- | ------------------ | ------------------------------------------------------------------------ |
+| OSD 18:2  | Occidental    | Symbolic           | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| OSD 13:44 | Japanese      | Direct             | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| OSD 30:27 | Japanese      | Environmental      | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| OSD 59:1  | Japanese      | Symbolic           | Crimson-gold twilight with luminous rain shaping the whole scene         |
+| RAS 66:9  | Japanese      | Symbolic           | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| AWC 62:10 | Japanese      | Environmental      | Pale synthetic winter sunrise with internally illuminated stone          |
+| SFA 48:40 | Occidental    | Symbolic           | Electric-blue synthetic noon with crystalline shadow geometry            |
+| AWC 42:3  | Occidental    | Symbolic           | Electric-blue synthetic noon with crystalline shadow geometry            |
+| RAS 47:26 | Occidental    | Symbolic           | Violet eclipse with a radiant cloud boundary and dreamlike distance      |
+| RAS 31:24 | Occidental    | Environmental      | Crimson-gold twilight with luminous rain shaping the whole scene         |
+| AWC 57:15 | Japanese      | Environmental      | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| AWC 2:31  | Occidental    | Environmental      | Violet eclipse with a radiant cloud boundary and dreamlike distance      |
+| RAS 61:9  | Occidental    | Environmental      | Violet eclipse with a radiant cloud boundary and dreamlike distance      |
+| AWC 4:37  | Japanese      | Environmental      | Violet eclipse with a radiant cloud boundary and dreamlike distance      |
+| SFA 52:45 | Japanese      | Direct             | Pale synthetic winter sunrise with internally illuminated stone          |
+| AWC 55:2  | Occidental    | Symbolic           | Midnight navy beneath a geometric constellation and cold celestial bloom |
+| AWC 17:42 | Japanese      | Environmental      | Rose-gold impossible dawn with luminous atmospheric depth                |
+| OSD 53:1  | Occidental    | Direct             | Rose-gold impossible dawn with luminous atmospheric depth                |
+| RAS 33:21 | Occidental    | Symbolic           | Midnight navy beneath a geometric constellation and cold celestial bloom |
+| OSD 6:14  | Abstract      | Environmental      | Cobalt electric-sea glow beneath a distant orbital halo                  |
+| SFA 53:20 | Abstract      | Direct             | Electric-blue synthetic noon with crystalline shadow geometry            |
+
 ## Acceptance rules
 
 - Preserve the canonical source text and citation exactly.
@@ -51,6 +90,8 @@ on narrow screens. Each plate appears directly below its page title, before the 
 - Keep image text absent; the adjacent HTML supplies the quotation and citation.
 - Give each image concise alt text describing its visible content rather than repeating the quotation.
 - Place each plate directly below the page-level title.
-- Include a recognizable and meaningful retrowave or synthwave anchor in every image.
-- Maintain one visual civilization across the series without mechanically repeating compositions or motifs.
+- Transfigure the whole image through a recognizable and meaningful Second Sun atmosphere with an integrated retrowave
+  or synthwave anchor, rather than adding a token neon accent.
+- Keep culturally legible material coherent within each image while preserving the series' wider impossible
+  Japanese-Occidental civilization.
 - Verify responsive rendering, meaningful alt text, source-text fidelity, image existence, and page coverage.
