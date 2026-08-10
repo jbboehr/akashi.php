@@ -243,12 +243,25 @@ main img[alt^="Probatio Verborum Viventium"] {
     border-bottom: 1px solid var(--akashi-rule);
 }
 
+.logion-text {
+    min-width: 0;
+}
+
 .logion blockquote {
     margin: 0;
 }
 
+.logion-citation {
+    margin-top: 0.75rem;
+    color: var(--icons);
+    font-size: 0.875em;
+    text-align: right;
+}
+
 .logion img {
+    display: block;
     width: 100%;
+    height: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
 }

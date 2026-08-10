@@ -1,5 +1,16 @@
 # Diagnose Failures
 
+<figure class="logion" data-logion="AWC 57:15">
+<div class="logion-text">
+<blockquote>
+<p>The physician marked whether the wound arose beneath the blade or beneath the bandage, for one grief may require two
+remedies and neither is served by an unnamed hour.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 57:15</cite></p>
+</div>
+<img src="../images/logia/AWC-57_15.webp" alt="A physician distinguishing two injuries beneath amber and cyan diagnostic rings" width="960" height="540" loading="lazy">
+</figure>
+
 Akashi reports failures at the maintained documentation source whenever the current transformation has enough mapping
 information. Start with the phase and source path in the message, then inspect generated or temporary details only when
 the report says an exact maintained line is unavailable.

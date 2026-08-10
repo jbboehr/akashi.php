@@ -1,5 +1,16 @@
 # Configuration
 
+<figure class="logion" data-logion="RAS 61:9">
+<div class="logion-text">
+<blockquote>
+<p>The steward kept one immutable chart naming the court, the optional scroll read before testimony, and the ordinary
+road; each revision produced a new chart while the former hearing retained its own.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Revelation of the Artificial Sun 61:9</cite></p>
+</div>
+<img src="../images/logia/RAS-61_9.webp" alt="A steward holding one geometric glass chart before preserved earlier charts, a court, and an open road" width="960" height="540" loading="lazy">
+</figure>
+
 Akashi uses immutable configuration objects. There is no global registry or configuration file in the current API.
 
 ## Markdown Sources

@@ -1,5 +1,16 @@
 # Invariants
 
+<figure class="logion" data-logion="SFA 53:20">
+<div class="logion-text">
+<blockquote>
+<p>The margin ended where the final lamp stood, though darkness continued beyond it; measure confesseth its own frontier
+and therefore remaineth trustworthy within the light.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Scholia of the Fifth Archive 53:20</cite></p>
+</div>
+<img src="../images/logia/SFA-53_20.webp" alt="A luminous measured causeway ending at one final lamp before the road continues into darkness" width="960" height="540" loading="lazy">
+</figure>
+
 This page records behavior that must survive refactoring or replacement of Akashi's implementation. The
 [Architecture](architecture.md) explains how the current code works; this page states what a successor must preserve.
 

@@ -1,5 +1,17 @@
 # Directives
 
+<figure class="logion" data-logion="AWC 4:37">
+<div class="logion-text">
+<blockquote>
+<p>A dancer rehearsed her falls as carefully as her leaps. When a stage board split, she descended without injury and
+guided another performer down. The audience praised her grace; she thanked the hours spent learning the ground. Wisdom
+prepares dignity for the moment it cannot remain upright.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 4:37</cite></p>
+</div>
+<img src="../images/logia/AWC-4_37.webp" alt="A practiced dancer safely guiding another performer down through a split stage" width="960" height="540" loading="lazy">
+</figure>
+
 Directives are Akashi-owned HTML comments associated with the next PHP fence. The current runtime directives are:
 
 ```html

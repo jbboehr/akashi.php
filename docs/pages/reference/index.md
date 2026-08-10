@@ -1,5 +1,17 @@
 # Reference
 
+<figure class="logion" data-logion="AWC 2:31">
+<div class="logion-text">
+<blockquote>
+<p>An old scholar kept a basket of walnuts beside his books. For every answer he gave, he cracked one; for every question
+he could not answer, he planted one. His garden outlived his library. Let uncertainty take root before certainty has
+consumed the whole harvest.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 2:31</cite></p>
+</div>
+<img src="../images/logia/AWC-2_31.webp" alt="An old scholar planting walnuts as an orchard grows through a weathered library" width="960" height="540" loading="lazy">
+</figure>
+
 This section records exact implemented contracts rather than teaching the first workflow.
 
 - [Configuration](configuration.md): source and runtime configuration values.

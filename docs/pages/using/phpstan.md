@@ -1,5 +1,17 @@
 # PHPStan
 
+<figure class="logion" data-logion="RAS 66:9">
+<div class="logion-text">
+<blockquote>
+<p>Above the city of glass there appeared seven dim stars, each reflected in a different well. The priests drew no water
+until every reflection had been compared with its appointed star, and dawn found the vessels empty but the heavens
+rightly named.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Revelation of the Artificial Sun 66:9</cite></p>
+</div>
+<img src="../images/logia/RAS-66_9.webp" alt="Seven stars reflected in seven luminous wells before observers in a glass city at dawn" width="960" height="540" loading="lazy">
+</figure>
+
 A documentation example can be executed at runtime and independently checked as a static-analysis fixture. PHPStan is an
 optional, first-class integration: projects that do not need it can use the Markdown and PHPUnit workflow without
 installing or configuring PHPStan.

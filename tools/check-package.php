@@ -173,36 +173,6 @@ try {
         }
     }
 
-    $publicDocumentationRoot = realpath($projectRoot . '/docs/pages');
-    if ($publicDocumentationRoot === false || !is_dir($publicDocumentationRoot)) {
-        throw new RuntimeException('Public documentation source tree docs/pages does not exist.');
-    }
-
-    $publicDocumentationRoot = str_replace('\\', '/', $publicDocumentationRoot);
-    $requiredPublicDocumentation = [];
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($publicDocumentationRoot, FilesystemIterator::SKIP_DOTS),
-    );
-
-    foreach ($iterator as $entry) {
-        if (!$entry instanceof SplFileInfo || !$entry->isFile()) {
-            continue;
-        }
-
-        $sourcePath = str_replace('\\', '/', $entry->getPathname());
-        $requiredPublicDocumentation[] = 'docs/pages/' . substr($sourcePath, strlen($publicDocumentationRoot) + 1);
-    }
-
-    if ($requiredPublicDocumentation === []) {
-        throw new RuntimeException('Public documentation source tree docs/pages is empty.');
-    }
-
-    foreach ($requiredPublicDocumentation as $requiredFile) {
-        if (!array_key_exists($requiredFile, $files)) {
-            throw new RuntimeException(sprintf('Composer archive omitted public documentation file %s.', $requiredFile));
-        }
-    }
-
     $hasSourceFile = false;
     foreach (array_keys($files) as $path) {
         if (str_starts_with($path, 'src/')) {
@@ -215,23 +185,19 @@ try {
         throw new RuntimeException('Composer archive omitted the source tree.');
     }
 
-    $forbiddenPrefixes = [
-        '.codex',
-        '.github',
-        'build',
-        'coverage',
-        'nix',
-        'tests',
-        'tmp',
-        'tools',
-        'vendor',
-    ];
+    $allowedPrefixes = ['bin/', 'src/'];
     foreach (array_keys($files) as $path) {
-        foreach ($forbiddenPrefixes as $prefix) {
-            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
-                throw new RuntimeException(sprintf('Composer archive contained forbidden path %s.', $path));
+        if (in_array($path, $requiredFiles, true)) {
+            continue;
+        }
+
+        foreach ($allowedPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                continue 2;
             }
         }
+
+        throw new RuntimeException(sprintf('Composer archive contained unexpected path %s.', $path));
     }
 
     if (DIRECTORY_SEPARATOR !== '\\' && ($files['bin/akashi']->getPerms() & 0o111) === 0) {

@@ -1,5 +1,17 @@
 # Quick Start
 
+<figure class="logion" data-logion="OSD 18:2">
+<div class="logion-text">
+<blockquote>
+<p>Above the unformed marsh, thunder wandered without echo until it entered a hollow bone. The bone answered, and reeds
+lifted from the mud to hear. Thereafter every creature carried an emptiness by which the world might speak. Guard the
+hollow within thee; abundance is not its only purpose.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 18:2</cite></p>
+</div>
+<img src="images/logia/OSD-18_2.webp" alt="A hollow bone answering blue lightning in a dark marsh beneath amber celestial geometry" width="960" height="540" loading="lazy">
+</figure>
+
 This tutorial takes one Markdown example from source text to a named PHPUnit test. In-process execution is the default;
 you do not need to configure an execution backend for this path.
 

@@ -1,5 +1,16 @@
 # Roadmap
 
+<figure class="logion" data-logion="RAS 33:21">
+<div class="logion-text">
+<blockquote>
+<p>A wheel of violet fire descended behind the cedar ridge, and every abandoned milestone spoke the name of a kingdom
+that would not be founded for seven generations.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Revelation of the Artificial Sun 33:21</cite></p>
+</div>
+<img src="../images/logia/RAS-33_21.webp" alt="Seven abandoned milestones awakening beneath a violet fire wheel before the silhouette of a future city" width="960" height="540" loading="lazy">
+</figure>
+
 This roadmap records direction, not release-number commitments. The current Markdown workflow is usable without the
 features below. Both recorded consumer migrations are complete; the immediate project work is stabilization of the
 documented pre-1.0 API.

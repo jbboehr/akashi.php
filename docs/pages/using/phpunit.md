@@ -1,5 +1,16 @@
 # PHPUnit
 
+<figure class="logion" data-logion="OSD 59:1">
+<div class="logion-text">
+<blockquote>
+<p>The judge received the common stone without asking whether the quarry had named it white; he weighed it once beneath
+the lamp, and the court recorded the measure even when no accusation followed.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 59:1</cite></p>
+</div>
+<img src="../images/logia/OSD-59_1.webp" alt="A plain stone weighed on a bronze balance beneath a luminous judicial lamp" width="960" height="540" loading="lazy">
+</figure>
+
 PHPUnit is Akashi's normal runtime integration. `VerifiesPhpUnitExamples` exposes each documentation example as an
 independently named test case, while `PhpUnitRuntime` selects the runtime backend and reports its result. The public
 integration supports the PHPUnit 10.5 and 11.5 release lines.

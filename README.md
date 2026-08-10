@@ -1,9 +1,9 @@
-![Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜 — executable documentation testing for PHP](docs/pages/images/akashi-banner.png)
+![Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜 — executable documentation testing for PHP](https://jbboehr.github.io/akashi.php/images/akashi-banner.png)
 
 # Akashi
 
 [![Build](https://github.com/jbboehr/akashi.php/actions/workflows/ci.yml/badge.svg)](https://github.com/jbboehr/akashi.php/actions/workflows/ci.yml)
-[![Built with Nix](https://img.shields.io/badge/built%20with-Nix-5277C3?logo=nixos&logoColor=white)](flake.nix)
+[![Built with Nix](https://img.shields.io/badge/built%20with-Nix-5277C3?logo=nixos&logoColor=white)](https://github.com/jbboehr/akashi.php/blob/master/flake.nix)
 [![License: AGPL-3.0-only WITH romic-exception](https://img.shields.io/badge/license-AGPL--3.0--only%20WITH%20romic--exception-blue.svg)](LICENSE.md)
 [![AI burn](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fjbboehr%2F48eea04b7a73a84c397af8b9dc557556%2Fraw%2Fagent-badge.json&cacheSeconds=300)](https://github.com/arlegotin/agent-badge)
 
@@ -75,11 +75,11 @@ projects remaining on PHPUnit 10 may require `phpunit/phpunit:^10.5` instead.
 - configurable markers for stable consumer-fixture extraction
 
 Akashi executes trusted project code; neither runtime backend is a security sandbox. See
-[Compatibility and Safety](docs/pages/reference/compatibility.md) for the exact boundary.
+[Compatibility and Safety](https://jbboehr.github.io/akashi.php/reference/compatibility.html) for the exact boundary.
 
 ## Documentation and Status
 
-Start with the [Quick Start](docs/pages/quick-start.md), or read the
+Start with the [Quick Start](https://jbboehr.github.io/akashi.php/quick-start.html), or read the
 [complete documentation](https://jbboehr.github.io/akashi.php/).
 
 The Markdown workflow, both runtime backends, PHPUnit integration, PHPStan verification, and marked extraction are
@@ -89,4 +89,5 @@ public API is usable but may change between minor releases before 1.0.
 ## License
 
 Akashi is licensed under `AGPL-3.0-only WITH romic-exception`. See [LICENSE.md](LICENSE.md) and the
-[Romic Exception](docs/LICENSE_EXCEPTION.md). Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md).
+[Romic Exception](docs/LICENSE_EXCEPTION.md). Contributions follow
+[CONTRIBUTING.md](https://github.com/jbboehr/akashi.php/blob/master/CONTRIBUTING.md).

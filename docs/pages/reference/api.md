@@ -1,5 +1,17 @@
 # Public API
 
+<figure class="logion" data-logion="OSD 6:14">
+<div class="logion-text">
+<blockquote>
+<p>High above the world, the wandering lights crowded one another until the outermost loosened its circle and moved away.
+Silence widened behind it, giving each light room to burn. Space began as permission granted to departure. Bless what
+releases without cursing the one who leaves.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 6:14</cite></p>
+</div>
+<img src="../images/logia/OSD-6_14.webp" alt="One wandering light departing a crowded field of luminous celestial orbits into open space" width="960" height="540" loading="lazy">
+</figure>
+
 Akashi is pre-1.0, so these APIs are usable but may change between minor releases before 1.0. Architecture tests
 classify every autoloadable Akashi declaration as an entry point, canonical model type, PHPStan diagnostic model type,
 exception, or explicitly internal declaration. This reference groups the public types by consumer workflow;

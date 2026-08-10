@@ -1,5 +1,16 @@
 # Architecture
 
+<figure class="logion" data-logion="OSD 53:1">
+<div class="logion-text">
+<blockquote>
+<p>Set the cedar vessel beside the bronze and fill each from the same spring; for the feast requireth both fragrance and
+endurance, and wisdom appointeth unlike offices without making either ashamed.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 53:1</cite></p>
+</div>
+<img src="../images/logia/OSD-53_1.webp" alt="Cedar and bronze vessels receiving water from one luminous spring in a sunset pavilion" width="960" height="540" loading="lazy">
+</figure>
+
 This document describes the architecture implemented in the current repository. Historical sequencing, migration
 instructions, and clean-room records live outside the public mdBook and are not part of the runtime design.
 

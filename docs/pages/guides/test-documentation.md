@@ -1,5 +1,17 @@
 # Test a README and docs/
 
+<figure class="logion" data-logion="RAS 47:26">
+<div class="logion-text">
+<blockquote>
+<p>At midnight the snow upon the observatory dome rose into the air and revealed old repairs in the copper. The
+astronomers beheld no star; they saw instead the patient hands that had preserved their sight, and kept vigil until the
+snow descended again.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Revelation of the Artificial Sun 47:26</cite></p>
+</div>
+<img src="../images/logia/RAS-47_26.webp" alt="Luminous snow rising from a copper observatory dome to reveal its old repairs" width="960" height="540" loading="lazy">
+</figure>
+
 Most projects want the root README plus a recursive documentation directory, while excluding generated books, archives,
 or prose pages whose PHP fences are illustrative rather than executable.
 

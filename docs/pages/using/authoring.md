@@ -1,5 +1,16 @@
 # Authoring Examples
 
+<figure class="logion" data-logion="OSD 30:27">
+<div class="logion-text">
+<blockquote>
+<p>Receive the stranger who beareth one seed as gladly as the caravan bearing a thousand jars; harvest judgeth the gift
+by what awakeneth, not by the noise of its arrival.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 30:27</cite></p>
+</div>
+<img src="../images/logia/OSD-30_27.webp" alt="A traveler bearing one luminous seed and a caravan of jars welcomed at the same harvest gate" width="960" height="540" loading="lazy">
+</figure>
+
 Akashi discovers Markdown documents, extracts PHP fenced blocks with CommonMark, and preserves their maintained source
 locations. Corpus selection controls which documents participate; markers and directives add metadata to examples but do
 not make unmarked PHP fences disappear.

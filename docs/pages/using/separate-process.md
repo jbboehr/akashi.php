@@ -1,5 +1,16 @@
 # Separate-Process Execution
 
+<figure class="logion" data-logion="AWC 62:10">
+<div class="logion-text">
+<blockquote>
+<p>In the year of the divided tribunal, each witness crossed alone into a chamber beyond the city; the wardens returned
+voice, alarm, sentence, and elapsed hour, then erased the borrowed threshold behind him.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 62:10</cite></p>
+</div>
+<img src="../images/logia/AWC-62_10.webp" alt="A lone witness crossing a luminous causeway toward a distant tribunal as wardens tend four signals" width="960" height="540" loading="lazy">
+</figure>
+
 In-process execution is Akashi's default because it is fast, shares PHPUnit's loaded project environment, and reports
 through normal PHPUnit assertions. Select a child process for an example whose behavior cannot be isolated in the host.
 

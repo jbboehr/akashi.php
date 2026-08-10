@@ -1,5 +1,16 @@
 # CLI
 
+<figure class="logion" data-logion="SFA 52:45">
+<div class="logion-text">
+<blockquote>
+<p>Do not pity the silver mask when the actor departeth. It was fashioned to bear one sorrow before the multitude, and
+fulfillment is not diminished because the face beneath it hath returned to ordinary joy.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Scholia of the Fifth Archive 52:45</cite></p>
+</div>
+<img src="../images/logia/SFA-52_45.webp" alt="A silver sorrow-mask resting beneath a fading stage light as its actor departs into dawn" width="960" height="540" loading="lazy">
+</figure>
+
 The Composer executable is `vendor/bin/akashi`. It currently provides marked-example extraction; it is not a standalone
 documentation-test runner. Runtime examples are normally run through PHPUnit.
 

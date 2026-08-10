@@ -1,5 +1,16 @@
 # Compatibility and Safety
 
+<figure class="logion" data-logion="AWC 55:2">
+<div class="logion-text">
+<blockquote>
+<p>The wardens walked the whole circumference before admitting the procession, marking each broken hinge and hidden
+passage; the singers waited without complaint, for ceremony cannot restore a gate while passing through it.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 55:2</cite></p>
+</div>
+<img src="../images/logia/AWC-55_2.webp" alt="Wardens inspecting the complete luminous circumference of a closed gate while singers wait" width="960" height="540" loading="lazy">
+</figure>
+
 Akashi is a reusable documentation-example library for PHP projects. Its Markdown, runtime, PHPUnit, and PHPStan
 workflows are usable outside its original consumers. It remains under active development and has not published its first
 tagged release.

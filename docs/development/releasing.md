@@ -64,7 +64,10 @@ sha256sum build/release/akashi-X.Y.Z.tar
 Replace `X.Y.Z` with the release version without the leading `v`. Record the checksum in the GitHub release notes. The
 package check validates that exact archive rather than creating and checking a separate artifact. Before tagging,
 inspect the archive manifest and confirm it contains runtime source, `bin/akashi`, Composer metadata, the licenses,
-README, changelog, and public documentation, while excluding tests, tools, Nix files, caches, and workspace paths.
+README, and changelog. Confirm that it excludes the mdBook sources and assets, contributor and governance material,
+tests, tools, Nix files, caches, and workspace paths. The same `export-ignore` policy omits those documentation sources
+and assets from GitHub's generated source archives. Versioned public documentation remains available from a full Git
+clone and the deployed documentation site rather than each package or generated archive.
 
 ## Tag and publish
 
