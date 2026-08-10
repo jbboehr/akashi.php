@@ -65,6 +65,7 @@
           settings.global.excludes = [
             ".github/agent-badge/config.json"
             "docs/IMPLEMENTATION_HANDOFF.md"
+            "docs/pages/assets/heliogenesis/**"
           ];
           programs.nixfmt = {
             enable = true;

@@ -1,5 +1,6 @@
 :root {
     --content-max-width: 900px;
+    --akashi-heliogenesis-gutter: clamp(1.5rem, 3vw, 3rem);
     --akashi-heading: var(--fg);
     --akashi-rule: var(--quote-border);
     --akashi-section: var(--sidebar-active);
@@ -153,6 +154,46 @@ main a:hover {
     top: 0 !important;
 }
 
+#mdbook-sidebar[data-heliogenesis-chrome] {
+    z-index: calc(var(--heliogenesis-layer) + 1);
+}
+
+:where([data-heliogenesis-state="dawning"], [data-heliogenesis-state="radiant"])
+    #mdbook-menu-bar[data-heliogenesis-chrome] {
+    background: var(--heliogenesis-chrome-event);
+}
+
+:where([data-heliogenesis-state="receding"]) #mdbook-menu-bar[data-heliogenesis-chrome] {
+    background: var(--bg);
+}
+
+#mdbook-content > main {
+    box-sizing: border-box;
+    max-width: calc(var(--content-max-width) + 2 * var(--akashi-heliogenesis-gutter));
+    padding-right: var(--akashi-heliogenesis-gutter);
+    padding-bottom: var(--akashi-heliogenesis-gutter);
+    padding-left: var(--akashi-heliogenesis-gutter);
+    color: var(--fg);
+    background: var(--bg);
+}
+
+#mdbook-content > main > img[alt^="Probatio Verborum Viventium"]:first-child {
+    width: calc(100% + 2 * var(--akashi-heliogenesis-gutter));
+    max-width: none;
+    margin-right: calc(-1 * var(--akashi-heliogenesis-gutter));
+    margin-left: calc(-1 * var(--akashi-heliogenesis-gutter));
+}
+
+#akashi-second-sun {
+    flex: 0 0 40px;
+    margin: 5px 4px;
+}
+
+#mdbook-menu-bar .right-buttons {
+    display: flex;
+    align-items: center;
+}
+
 main img[alt^="Probatio Verborum Viventium"] {
     display: block;
     width: 100%;
@@ -170,6 +211,22 @@ main img[alt^="Probatio Verborum Viventium"] {
 }
 
 @media (min-width: 1081px) {
+    #mdbook-menu-bar .menu-title {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        width: auto;
+        transform: translateX(-50%);
+    }
+
+    html.sidebar-visible #mdbook-menu-bar .menu-title {
+        left: calc(50% + var(--sidebar-width) / 2);
+    }
+
+    #mdbook-menu-bar .right-buttons {
+        margin-left: auto;
+    }
+
     .nav-wide-wrapper {
         position: fixed;
         top: 0;
@@ -220,8 +277,15 @@ main img[alt^="Probatio Verborum Viventium"] {
     }
 
     .nav-chapters .fa-svg {
+        display: grid;
+        place-items: center;
         width: 0.65em;
         height: 0.65em;
+    }
+
+    .nav-chapters .fa-svg svg {
+        display: block;
+        margin: 0;
     }
 }
 

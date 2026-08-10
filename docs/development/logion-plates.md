@@ -53,6 +53,12 @@ All 21 plates were regenerated after advancing the Doctrine package to revision
 center remained unchanged. The current Doctrine image guide governed the regeneration directly; the older gold artwork
 was not treated as evidence of compliance with that guide.
 
+Doctrine revision `f69b9f557db8bc4c8fe0962a96c8c7e9c5b9a699` later clarified that project names are not cultural-setting
+evidence and should be omitted from image prompts when they are not semantically necessary. The regeneration prompts
+used the short name Akashi only in their intended-use preamble; setting assignments were resolved independently before
+generation. Preserve the current accepted plates, but omit the project name from any future regeneration prompt unless
+the image genuinely requires visible branding or project-specific symbolism.
+
 The table records the resolved local setting, dominant degree of literalness, and independently selected Second Sun
 weather for each plate. Settings marked abstract contain no culturally legible material world. Where the source and
 project context left a culturally legible setting underdetermined, the fallback setting and degree were sampled from the

@@ -1875,12 +1875,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/jbboehr/doctrine-of-the-second-sun.git",
-                "reference": "b5c38568565bd20f39c4e58a92552cd324b9a1ed"
+                "reference": "822fe565e8c6127e4939b0f389bb5380b1501916"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jbboehr/doctrine-of-the-second-sun/zipball/b5c38568565bd20f39c4e58a92552cd324b9a1ed",
-                "reference": "b5c38568565bd20f39c4e58a92552cd324b9a1ed",
+                "url": "https://api.github.com/repos/jbboehr/doctrine-of-the-second-sun/zipball/822fe565e8c6127e4939b0f389bb5380b1501916",
+                "reference": "822fe565e8c6127e4939b0f389bb5380b1501916",
                 "shasum": ""
             },
             "require-dev": {
@@ -1916,7 +1916,7 @@
                 "issues": "https://github.com/jbboehr/doctrine-of-the-second-sun/issues",
                 "source": "https://github.com/jbboehr/doctrine-of-the-second-sun"
             },
-            "time": "2026-08-10T02:18:59+00:00"
+            "time": "2026-08-10T07:56:41+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
