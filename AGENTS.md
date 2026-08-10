@@ -55,10 +55,13 @@ adopt the package's Code of Sovereignty.
 
 This file remains authoritative for Akashi's source scope, placement, citation allocation, preservation rules, and
 verification. The installed guides govern literary style, safe insertion, visual interpretation, and generation within
-their stated responsibilities. `vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md` governs long-term preservation
-of software knowledge and explicit replacement boundaries; apply it proportionately without inventing speculative
-abstractions or documents. The committed Codex writer and reviewer adapters under `.codex/agents/` are reviewed copies
-of the package adapters and should be compared with upstream whenever the Composer pin advances.
+their stated responsibilities. Akashi adopts the technical guidance in
+`vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md` for preserving software knowledge, conformance evidence,
+reproducibility, and explicit replacement boundaries; apply it proportionately without inventing speculative
+abstractions or documents. Formal succession, stewardship, ownership-transfer, account-custody, project-freezing, and
+other governance recommendations in Ruinenwert are optional and are not adopted unless an Akashi document states so
+independently. The committed Codex writer and reviewer adapters under `.codex/agents/` are reviewed copies of the
+package adapters and should be compared with upstream whenever the Composer pin advances.
 
 New named declarations under `src/` and PHP command entry points under `bin/` must contain exactly one `@logion` PHPDoc
 tag. Tests, fixtures, generated code, configuration, and external stubs are out of scope.

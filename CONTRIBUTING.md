@@ -33,10 +33,7 @@ composer check:full
 The full gate additionally runs both ParaTest scheduling modes and mutation testing. It requires a coverage driver and
 is intentionally more expensive than the routine gate.
 
-Release stewards must follow [`docs/development/releasing.md`](docs/development/releasing.md). If the original
-repository or publishing identities are unavailable, use the fork-oriented procedure in
-[`docs/SUCCESSION.md`](docs/SUCCESSION.md); do not wait indefinitely for an account transfer or share private
-credentials.
+Release maintainers must follow [`docs/development/releasing.md`](docs/development/releasing.md).
 
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
@@ -46,7 +43,7 @@ workflow and guidance on interpreting escaped mutants.
 
 ## Doctrine of the Second Sun
 
-Akashi adopts the literary, coding, image, generation, exemplar, and Ruinenwert stewardship guidance from the
+Akashi adopts the literary, coding, image, generation, exemplar, and Ruinenwert preservation guidance from the
 Composer-pinned `jbboehr/doctrine-of-the-second-sun` development dependency. Run `composer install`, then read the
 portable guides under `vendor/jbboehr/doctrine-of-the-second-sun/` together with Akashi's repository-specific rules in
 [`AGENTS.md`](AGENTS.md). The local rules govern where doctrine applies, citation allocation, preservation, and

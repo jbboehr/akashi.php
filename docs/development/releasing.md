@@ -5,7 +5,7 @@ GitHub or Packagist publishing authority.
 
 ## Release prerequisites
 
-A release steward needs:
+A release maintainer needs:
 
 - a clean checkout of the intended `master` commit with all tags fetched;
 - the Nix development shell and locked Composer dependencies;
@@ -14,9 +14,9 @@ A release steward needs:
 - GitHub release access; and
 - Packagist access for the package identity being published.
 
-Do not begin a release while repository or package ownership is disputed, the intended commit is not green, or artifact
-provenance cannot be established. Follow the fork procedure in [`docs/SUCCESSION.md`](../SUCCESSION.md) when the
-original publishing identity is unavailable.
+Do not begin a canonical release unless the required publishing authority is available, the intended commit is green,
+and artifact provenance can be established. Never share account credentials or private keys to work around missing
+access.
 
 ## Prepare the release commit
 
@@ -85,8 +85,8 @@ clone and the deployed documentation site rather than each package or generated 
    it has not already been registered. For later releases, verify Packagist has imported the exact tag and constraints.
 6. Verify the documentation workflow completed for `master` and the public Pages site still resolves.
 
-Signing-key rotation is allowed. Record the new public key and transition in the release notes or repository history;
-successors do not need, and must never receive, a former steward's private key.
+Signing-key rotation is allowed. Record the new public key and transition in the release notes or repository history.
+Never share a former maintainer's private key.
 
 ## Fresh-consumer verification
 

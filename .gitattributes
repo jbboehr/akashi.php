@@ -30,7 +30,6 @@ docs/DOCTRINE-STYLE-GUIDE.md export-ignore
 docs/IMPLEMENTATION_HANDOFF.md export-ignore
 docs/MIGRATING_YUMEMI.md export-ignore
 docs/STEWARD.md export-ignore
-docs/SUCCESSION.md export-ignore
 docs/book.toml export-ignore
 docs/development export-ignore
 docs/development/images/logia/*-hq* export-ignore

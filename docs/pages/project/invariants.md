@@ -12,7 +12,8 @@ and therefore remaineth trustworthy within the light.</p>
 </figure>
 
 This page records behavior that must survive refactoring or replacement of Akashi's implementation. The
-[Architecture](architecture.md) explains how the current code works; this page states what a successor must preserve.
+[Architecture](architecture.md) explains how the current code works; this page states what every compatible
+implementation must preserve.
 
 Severity describes the consequence of violating an invariant:
 

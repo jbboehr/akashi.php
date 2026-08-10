@@ -4,5 +4,9 @@ The Project Steward for this repository is:
 
 **John Boehr** <jbboehr@gmail.com>
 
-The project uses the fork-oriented continuity procedure in [`SUCCESSION.md`](SUCCESSION.md). Transfer of this steward's
-accounts or private credentials is not required for a lawful technical successor.
+This designation identifies authority over the canonical repository and publishing identities. It does not limit the
+rights granted by the project license to fork, maintain, or redistribute Akashi.
+
+A compatible fork may preserve the `jbboehr\Akashi` PHP namespace where necessary for interoperability, but should use
+its own repository and Composer package identity unless the canonical identities are validly transferred. Forking never
+requires access to the steward's accounts, credentials, or private keys.
