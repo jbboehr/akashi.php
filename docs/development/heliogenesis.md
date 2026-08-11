@@ -9,7 +9,8 @@ GitHub Pages, and the Nix documentation derivation independent of a populated `v
 records the Doctrine revision and preserves both the Doctrine and Three.js license texts. Akashi-specific mounting and
 shell selection remain in `docs/theme/akashi.js` and `docs/theme/akashi.css` rather than modifying the upstream runtime.
 The integration lights the page wrapper and navigation chrome but deliberately leaves the article unmarked so the
-reader's selected mdBook theme retains its content colors throughout the event.
+reader's selected mdBook theme retains its content colors throughout the event. The unmarked article also supplies no
+elements to Heliogenesis's optional document-tomography effect; the environmental animation remains active.
 
 The integration preserves the upstream lifecycle boundaries:
 

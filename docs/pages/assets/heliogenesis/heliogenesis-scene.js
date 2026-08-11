@@ -43,6 +43,8 @@ export function createHeliogenesisScene({
   let corona;
   let prominenceField;
   let ruptureField;
+  let tomographyField;
+  let tomographySynchronizations = 0;
   let gravityWell;
   let emberField;
   let petalField;
@@ -66,6 +68,7 @@ export function createHeliogenesisScene({
 
   const random = mulberry32(0x5ec0da7a);
   const volumeCameraLocal = new THREE.Vector3();
+  const particleFlowPosition = new THREE.Vector3();
 
   function mulberry32(seed) {
     return function next() {
@@ -2167,6 +2170,242 @@ export function createHeliogenesisScene({
     ruptureField = { group, records, shell, shellMaterial };
   }
 
+  function buildDocumentTomography() {
+    const document = canvas.ownerDocument;
+    const descriptors = [
+      { selector: "[data-heliogenesis-surface]", kind: "surface", color: 0x00dce5, depth: 2.4 },
+      { selector: "[data-heliogenesis-rule]", kind: "rule", color: 0xffbd59, depth: 0.86 },
+      { selector: "[data-heliogenesis-callout]", kind: "callout", color: 0x00f0e7, depth: 1.22 },
+      { selector: "[data-heliogenesis-code]", kind: "code", color: 0xff327f, depth: 2.15 },
+      {
+        selector: "[data-heliogenesis-surface] :is(h1, h2, h3)",
+        kind: "heading",
+        color: 0xff2c77,
+        depth: 0.7,
+      },
+    ];
+    const group = new THREE.Group();
+    const edgeSourceGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const edgeGeometry = new THREE.EdgesGeometry(edgeSourceGeometry);
+    edgeSourceGeometry.dispose();
+    const fillGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const records = [];
+    const claimed = new Set();
+    const scanGeometry = new THREE.PlaneGeometry(1, 1);
+    const scanBars = [
+      { color: 0x00f5ef, offset: 0, thickness: 0.018, opacity: 0.22, rotation: -0.018 },
+      { color: 0xff2b78, offset: 0.032, thickness: 0.038, opacity: 0.11, rotation: -0.011 },
+      { color: 0x8f66ff, offset: 0.04, thickness: 0.24, opacity: 0.035, rotation: -0.014 },
+    ].map((settings, index) => {
+      const material = new THREE.MeshBasicMaterial({
+        color: settings.color,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        depthTest: false,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      });
+      const mesh = new THREE.Mesh(scanGeometry, material);
+      mesh.frustumCulled = false;
+      mesh.renderOrder = 16 + index;
+      group.add(mesh);
+      return { ...settings, material, mesh };
+    });
+
+    descriptors.forEach(({ selector, kind, color, depth }) => {
+      document.querySelectorAll(selector).forEach((element) => {
+        if (claimed.has(element)) return;
+        claimed.add(element);
+        const index = records.length;
+        const material = new THREE.LineBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+          depthTest: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const line = new THREE.LineSegments(edgeGeometry, material);
+        line.frustumCulled = false;
+        line.renderOrder = 12 + index % 3;
+        group.add(line);
+
+        let fill = null;
+        let fillMaterial = null;
+        if (kind === "code") {
+          fillMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0a0718,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+            depthTest: false,
+            side: THREE.DoubleSide,
+            blending: THREE.NormalBlending,
+          });
+          fill = new THREE.Mesh(fillGeometry, fillMaterial);
+          fill.frustumCulled = false;
+          fill.renderOrder = 11;
+          group.add(fill);
+        }
+
+        records.push({
+          element,
+          kind,
+          line,
+          material,
+          fill,
+          fillMaterial,
+          baseDepth: depth,
+          baseX: 0,
+          baseY: 0,
+          width: 0,
+          height: 0,
+          visible: false,
+          delay: index % 6 * 0.012,
+          scanAt: 0.48,
+          phase: index * 1.61803398875,
+          driftX: Math.sin(index * 2.31 + 0.8) * 0.42,
+          driftY: Math.cos(index * 1.73 + 0.4) * 0.26,
+        });
+      });
+    });
+
+    group.visible = false;
+    scene.add(group);
+    tomographyField = { group, records, colliders: [], scanBars, scanBounds: null };
+    syncDocumentTomography();
+  }
+
+  function syncDocumentTomography() {
+    if (!tomographyField) return;
+    tomographySynchronizations += 1;
+    const colliders = [];
+    tomographyField.records.forEach((record) => {
+      const rect = record.element.getBoundingClientRect();
+      const left = rect.left - viewport.offsetLeft;
+      const top = rect.top - viewport.offsetTop;
+      const right = left + rect.width;
+      const bottom = top + rect.height;
+      const visible = rect.width > 2 && rect.height > 2 &&
+        right > 0 && bottom > 0 && left < viewport.width && top < viewport.height;
+      record.visible = visible;
+      record.line.visible = visible;
+      if (record.fill) record.fill.visible = visible;
+      if (!visible) return;
+
+      record.baseX = ((left + right) * 0.5 / viewport.width - 0.5) * viewport.worldWidth;
+      record.baseY = (0.5 - (top + bottom) * 0.5 / viewport.height) * viewport.worldHeight;
+      record.width = rect.width / viewport.width * viewport.worldWidth;
+      record.height = rect.height / viewport.height * viewport.worldHeight;
+
+      if (record.kind === "code" || record.kind === "callout") {
+        colliders.push({
+          x: record.baseX,
+          y: record.baseY,
+          halfWidth: record.width * 0.5,
+          halfHeight: record.height * 0.5,
+          phase: record.phase,
+        });
+      }
+    });
+    tomographyField.colliders = colliders;
+    const surface = tomographyField.records.find((record) => record.kind === "surface" && record.visible);
+    tomographyField.scanBounds = surface ? {
+      x: surface.baseX,
+      width: surface.width,
+      top: Math.min(viewport.worldHeight * 0.5, surface.baseY + surface.height * 0.5),
+      bottom: Math.max(-viewport.worldHeight * 0.5, surface.baseY - surface.height * 0.5),
+    } : null;
+    if (tomographyField.scanBounds) {
+      const { top, bottom } = tomographyField.scanBounds;
+      const span = Math.max(0.001, top - bottom);
+      tomographyField.records.forEach((record) => {
+        const scanPosition = clamp01((top - record.baseY) / span);
+        record.scanAt = record.kind === "surface" ? 0.48 : 0.47 + scanPosition * 0.22;
+      });
+    }
+  }
+
+  function updateDocumentTomography(progress, time, moving, rupturePhase, ruptureSnap, presence) {
+    if (!tomographyField) return;
+    tomographyField.group.visible = moving && presence > 0.002;
+    const scanArrival = smoothstep(0.47, 0.69, progress);
+    const scanPresence = smoothstep(0.47, 0.52, progress) *
+      (1 - smoothstep(0.68, 0.73, progress));
+    const scanBounds = tomographyField.scanBounds;
+    tomographyField.scanBars.forEach((bar) => {
+      const visible = moving && Boolean(scanBounds) && scanPresence > 0.002;
+      bar.mesh.visible = visible;
+      if (!visible) {
+        bar.material.opacity = 0;
+        return;
+      }
+      const y = THREE.MathUtils.lerp(scanBounds.top, scanBounds.bottom, scanArrival) + bar.offset;
+      bar.mesh.position.set(scanBounds.x, y, 0.08);
+      bar.mesh.rotation.z = bar.rotation;
+      bar.mesh.scale.set(scanBounds.width, bar.thickness * (1 + ruptureSnap * 1.8), 1);
+      bar.material.opacity = scanPresence * bar.opacity * (1 + ruptureSnap * 0.9);
+    });
+    tomographyField.records.forEach((record) => {
+      if (!record.visible || !moving) {
+        record.material.opacity = 0;
+        if (record.fillMaterial) record.fillMaterial.opacity = 0;
+        return;
+      }
+      const arrival = smoothstep(record.scanAt, record.scanAt + 0.05, progress);
+      const recession = 1 - smoothstep(0.88 + record.delay * 0.4, 0.98, progress);
+      const localPresence = arrival * recession;
+      const fracture = smoothstep(0.64 + record.delay, 0.9, progress) * rupturePhase;
+      const pulse = 0.78 + Math.sin(time * 2.2 + record.phase) * 0.22;
+      const depth = record.baseDepth * (0.08 + arrival * 0.92) * (1 + ruptureSnap * 0.24);
+      const x = record.baseX + record.driftX * fracture * fracture;
+      const y = record.baseY + record.driftY * fracture + Math.sin(time * 0.7 + record.phase) * 0.018;
+      const z = -depth * 0.5 - fracture * (0.2 + Math.abs(record.driftX) * 0.36);
+      const fractureAngle = record.kind === "surface" ? 0.07 : record.kind === "heading" ? 0.16 : 0.11;
+
+      record.line.position.set(x, y, z);
+      record.line.scale.set(record.width, record.height, depth);
+      record.line.rotation.set(
+        fracture * Math.sin(record.phase) * fractureAngle * 0.72,
+        fracture * Math.cos(record.phase * 0.7) * fractureAngle,
+        fracture * record.driftX * 0.055,
+      );
+      record.material.opacity = localPresence * pulse *
+        (record.kind === "surface" ? 0.24 : record.kind === "heading" ? 0.48 : 0.38);
+
+      if (record.fill) {
+        record.fill.position.copy(record.line.position);
+        record.fill.scale.copy(record.line.scale);
+        record.fill.rotation.copy(record.line.rotation);
+        record.fillMaterial.opacity = localPresence * (0.035 + ruptureSnap * 0.025);
+      }
+    });
+  }
+
+  function deflectFromDocumentation(position, strength, time) {
+    if (!tomographyField || strength <= 0.002) return;
+    tomographyField.colliders.forEach((collider) => {
+      const padding = 0.16;
+      const halfWidth = collider.halfWidth + padding;
+      const halfHeight = collider.halfHeight + padding;
+      const dx = position.x - collider.x;
+      const dy = position.y - collider.y;
+      const nx = Math.abs(dx) / Math.max(0.001, halfWidth);
+      const ny = Math.abs(dy) / Math.max(0.001, halfHeight);
+      const proximity = 1 - Math.max(nx, ny);
+      if (proximity <= 0) return;
+      const force = smoothstep(0, 0.58, proximity) * strength;
+      if (nx > ny) {
+        position.x += (dx < 0 ? -1 : 1) * force * (0.22 + padding);
+        position.y += Math.sin(time * 1.6 + collider.phase) * force * 0.1;
+      } else {
+        position.y += (dy < 0 ? -1 : 1) * force * (0.18 + padding);
+        position.x += Math.cos(time * 1.4 + collider.phase) * force * 0.12;
+      }
+    });
+  }
+
   function buildRegistry() {
     const ringColors = [0x00dfe5, 0xff2f83, 0xffb14f, 0x9b6dff];
     const rings = viewport.compact ? 6 : 9;
@@ -2338,6 +2577,7 @@ export function createHeliogenesisScene({
     buildRegistry();
     buildPetals();
     buildEmbers();
+    buildDocumentTomography();
     resetVisuals();
   }
 
@@ -2384,9 +2624,10 @@ export function createHeliogenesisScene({
     if (feederField) feederField.pointMaterial.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     if (innerDiskField) innerDiskField.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     if (jetField) jetField.material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+    syncDocumentTomography();
   }
 
-  function updatePetals(elapsedSeconds, alpha) {
+  function updatePetals(elapsedSeconds, alpha, collisionStrength) {
     const dummy = updatePetals.dummy || (updatePetals.dummy = new THREE.Object3D());
     petalField.forEach(({ mesh, material, records }, groupIndex) => {
       material.opacity = alpha * (groupIndex === 0 ? 0.68 : 0.78);
@@ -2398,6 +2639,7 @@ export function createHeliogenesisScene({
           const x = (record.nx - 0.5) * viewport.worldWidth + record.drift * life + Math.sin(life * 7 * record.sway + record.phase) * 0.42;
           const y = viewport.worldHeight * (0.72 - life * 1.45) + (record.ny - 0.5) * 1.4;
           dummy.position.set(x, y, record.z);
+          deflectFromDocumentation(dummy.position, collisionStrength, elapsedSeconds + record.phase);
           dummy.rotation.set(life * 5.2 + record.phase, life * record.spin * 4.4, Math.sin(life * 8 + record.phase));
           const flutter = 0.55 + Math.abs(Math.sin(life * 10 + record.phase)) * 0.62;
           dummy.scale.set(record.scale * flutter, record.scale, record.scale);
@@ -2409,7 +2651,7 @@ export function createHeliogenesisScene({
     });
   }
 
-  function updateEmbers(elapsedSeconds, alpha) {
+  function updateEmbers(elapsedSeconds, alpha, collisionStrength) {
     const positions = emberField.geometry.attributes.position.array;
     let visible = 0;
     emberField.records.forEach((record, index) => {
@@ -2422,9 +2664,17 @@ export function createHeliogenesisScene({
         return;
       }
       const direction = record.rise ? 1 : -1;
-      positions[offset] = (record.nx - 0.5) * viewport.worldWidth + record.drift * life + Math.sin(life * 8 + record.phase) * 0.28;
-      positions[offset + 1] = (record.ny - 0.5) * viewport.worldHeight + direction * life * (1.2 + Math.abs(record.drift));
-      positions[offset + 2] = record.z;
+      particleFlowPosition.set(
+        (record.nx - 0.5) * viewport.worldWidth + record.drift * life +
+          Math.sin(life * 8 + record.phase) * 0.28,
+        (record.ny - 0.5) * viewport.worldHeight + direction * life *
+          (1.2 + Math.abs(record.drift)),
+        record.z,
+      );
+      deflectFromDocumentation(particleFlowPosition, collisionStrength, elapsedSeconds + record.phase);
+      positions[offset] = particleFlowPosition.x;
+      positions[offset + 1] = particleFlowPosition.y;
+      positions[offset + 2] = particleFlowPosition.z;
       visible += 1;
     });
     emberField.geometry.attributes.position.needsUpdate = true;
@@ -2463,6 +2713,9 @@ export function createHeliogenesisScene({
       : 0;
     const ruptureSnap = moving ? impactPulse(progress, 0.69, 0.105) : 0;
     const ruptureExpansion = smoothstep(0.08, 0.94, rupturePhase);
+    const tomographyPresence = moving
+      ? smoothstep(0.48, 0.61, progress) * (1 - smoothstep(0.88, 0.98, progress))
+      : 0;
     const feederPresence = moving ? smoothstep(0.08, 0.4, progress) : 0;
     const innerDiskPresence = moving ? smoothstep(0.035, 0.18, progress) * 1.12 : 0;
     const dustPresence = moving ? smoothstep(0.12, 0.34, progress) * (0.84 - mass * 0.18) : 0;
@@ -2597,6 +2850,14 @@ export function createHeliogenesisScene({
     );
     ruptureField.shell.rotation.y = time * 0.04;
     ruptureField.shell.rotation.z = -time * 0.027;
+    updateDocumentTomography(
+      progress,
+      time,
+      moving,
+      rupturePhase,
+      ruptureSnap,
+      tomographyPresence,
+    );
 
     jetField.group.visible = jetPresence > 0.002;
     jetField.material.uniforms.uTime.value = time;
@@ -2658,8 +2919,8 @@ export function createHeliogenesisScene({
       object.rotation.z += Math.sin(time * 0.07 + index) * 0.00018;
     });
 
-    updatePetals(elapsedSeconds, consequenceAlpha);
-    updateEmbers(elapsedSeconds, consequenceAlpha);
+    updatePetals(elapsedSeconds, consequenceAlpha, tomographyPresence);
+    updateEmbers(elapsedSeconds, consequenceAlpha, tomographyPresence);
   }
 
   function resetVisuals() {
@@ -2699,15 +2960,18 @@ export function createHeliogenesisScene({
   }
 
   function start({ rise = 15000 } = {}) {
+    const startTime = view.performance.now();
     stop();
     riseDuration = Math.max(1, Number(rise) || 15000);
-    eventStartedAt = view.performance.now();
+    eventStartedAt = startTime;
+    resizeScene();
     mode = "animated";
     animationFrame = view.requestAnimationFrame(renderFrame);
   }
 
   function showReduced() {
     stop({ clear: false });
+    resizeScene();
     mode = "static";
     applyVisuals(0.88, 18.4, false);
     hydrogen.material.uniforms.uGlobalAlpha.value = 0;
@@ -2722,6 +2986,20 @@ export function createHeliogenesisScene({
   function resize() {
     resizeScene();
     if (mode !== "idle") draw();
+  }
+
+  function syncDocumentGeometry() {
+    syncDocumentTomography();
+    if (mode !== "idle") draw();
+  }
+
+  function getTomographyDiagnostics() {
+    return Object.freeze({
+      flowObstacles: tomographyField?.colliders.length || 0,
+      sampledElements: tomographyField?.records.length || 0,
+      synchronizations: tomographySynchronizations,
+      visible: Boolean(tomographyField?.group.visible),
+    });
   }
 
   function disposeSceneResources() {
@@ -2750,6 +3028,8 @@ export function createHeliogenesisScene({
     renderer?.dispose();
     renderer = null;
     scene = null;
+    tomographyField = null;
+    tomographySynchronizations = 0;
   }
 
   function destroy() {
@@ -2771,6 +3051,7 @@ export function createHeliogenesisScene({
 
   return Object.freeze({
     destroy,
+    getTomographyDiagnostics,
     quality,
     get renderedFrames() {
       return renderedFrames;
@@ -2779,5 +3060,6 @@ export function createHeliogenesisScene({
     reset: stop,
     showReduced,
     start,
+    syncDocumentGeometry,
   });
 }

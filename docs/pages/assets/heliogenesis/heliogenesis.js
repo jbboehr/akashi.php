@@ -96,6 +96,7 @@ export class Heliogenesis extends EventTarget {
     this.abortController = null;
     this.timers = new Set();
     this.resizeTimer = null;
+    this.documentSyncTimer = null;
     this.mounted = false;
     this.failed = false;
     this.failure = null;
@@ -137,6 +138,10 @@ export class Heliogenesis extends EventTarget {
       if (!this.failed) void this.prepare().catch((error) => this.fail(error));
     }, { signal });
     this.document.defaultView.addEventListener("resize", () => this.queueResize(), { signal });
+    this.document.defaultView.addEventListener("scroll", () => this.queueDocumentSync(), {
+      signal,
+      passive: true,
+    });
     this.document.defaultView.visualViewport?.addEventListener("resize", () => this.queueResize(), { signal });
     this.document.defaultView.visualViewport?.addEventListener("scroll", () => this.queueResize(), { signal });
     this.document.addEventListener("visibilitychange", () => {
@@ -228,6 +233,11 @@ export class Heliogenesis extends EventTarget {
     if (!this.mounted) return;
     this.clearTimers();
     if (this.resizeTimer !== null) this.document.defaultView.clearTimeout(this.resizeTimer);
+    this.resizeTimer = null;
+    if (this.documentSyncTimer !== null) {
+      this.document.defaultView.clearTimeout(this.documentSyncTimer);
+    }
+    this.documentSyncTimer = null;
     this.abortController.abort();
     this.scene?.destroy();
     this.layer.remove();
@@ -297,10 +307,25 @@ export class Heliogenesis extends EventTarget {
 
   queueResize() {
     if (!this.scene) return;
+    if (this.documentSyncTimer !== null) {
+      this.document.defaultView.clearTimeout(this.documentSyncTimer);
+      this.documentSyncTimer = null;
+    }
     if (this.resizeTimer !== null) this.document.defaultView.clearTimeout(this.resizeTimer);
     this.resizeTimer = this.document.defaultView.setTimeout(() => {
       this.resizeTimer = null;
       this.scene?.resize();
+    }, 140);
+  }
+
+  queueDocumentSync() {
+    if (!this.scene || this.state === "idle" || this.resizeTimer !== null) return;
+    if (this.documentSyncTimer !== null) {
+      this.document.defaultView.clearTimeout(this.documentSyncTimer);
+    }
+    this.documentSyncTimer = this.document.defaultView.setTimeout(() => {
+      this.documentSyncTimer = null;
+      if (this.state !== "idle") this.scene?.syncDocumentGeometry();
     }, 140);
   }
 

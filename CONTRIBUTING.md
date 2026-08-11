@@ -43,11 +43,11 @@ workflow and guidance on interpreting escaped mutants.
 
 ## Doctrine of the Second Sun
 
-Akashi adopts the literary, coding, image, generation, exemplar, and Ruinenwert preservation guidance from the
-Composer-pinned `jbboehr/doctrine-of-the-second-sun` development dependency. Run `composer install`, then read the
-portable guides under `vendor/jbboehr/doctrine-of-the-second-sun/` together with Akashi's repository-specific rules in
-[`AGENTS.md`](AGENTS.md). The local rules govern where doctrine applies, citation allocation, preservation, and
-verification.
+Akashi adopts the literary, coding, image, generation, and exemplar guidance, the Measure of Words for technical
+writing, and Ruinenwert preservation guidance from the Composer-pinned `jbboehr/doctrine-of-the-second-sun` development
+dependency. Run `composer install`, then read the portable guides under `vendor/jbboehr/doctrine-of-the-second-sun/`
+together with Akashi's repository-specific rules in [`AGENTS.md`](AGENTS.md). The local rules govern where doctrine
+applies, citation allocation, preservation, and verification.
 
 ## Documentation
 

@@ -48,16 +48,20 @@ every user-facing change under the `[Unreleased]` heading in `CHANGELOG.md`.
 
 ## Doctrine of the Second Sun
 
-This repository adopts the literary style, coding, image, generation, gold-exemplar, and Ruinenwert guides from
-`jbboehr/doctrine-of-the-second-sun`, pinned through Composer. The installed guides live under
-`vendor/jbboehr/doctrine-of-the-second-sun/`. The gold exemplars are a nonnormative quality ceiling. Akashi does not
-adopt the package's Code of Sovereignty.
+This repository adopts the literary style, coding, image, generation, and gold-exemplar guides, as well as the Measure
+of Words and Ruinenwert, from `jbboehr/doctrine-of-the-second-sun`, pinned through Composer. The installed guides live
+under `vendor/jbboehr/doctrine-of-the-second-sun/`. The gold exemplars are a nonnormative quality ceiling. Akashi does
+not adopt the package's Code of Sovereignty.
 
 This file remains authoritative for Akashi's source scope, placement, citation allocation, preservation rules, and
 verification. The installed guides govern literary style, safe insertion, visual interpretation, and generation within
-their stated responsibilities. Akashi adopts the technical guidance in
-`vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md` for preserving software knowledge, conformance evidence,
-reproducibility, and explicit replacement boundaries; apply it proportionately without inventing speculative
+their stated responsibilities. `vendor/jbboehr/doctrine-of-the-second-sun/MEASURE-OF-WORDS.md` governs technical
+documentation, design records, comments and docblocks, commit and change descriptions, and technical reviews and
+summaries. Put the result or decision first. Use the shortest wording that remains direct and unambiguous while
+preserving necessary constraints, reasoning, evidence, risks, tradeoffs, and unresolved questions. Do not apply the
+Measure of Words to logia, ceremonial or creative prose, project naming, or visual language. Akashi adopts the technical
+guidance in `vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md` for preserving software knowledge, conformance
+evidence, reproducibility, and explicit replacement boundaries; apply it proportionately without inventing speculative
 abstractions or documents. Formal succession, stewardship, ownership-transfer, account-custody, project-freezing, and
 other governance recommendations in Ruinenwert are optional and are not adopted unless an Akashi document states so
 independently. The committed Codex writer and reviewer adapters under `.codex/agents/` are reviewed copies of the
