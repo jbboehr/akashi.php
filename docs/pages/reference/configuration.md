@@ -8,7 +8,7 @@ road; each revision produced a new chart while the former hearing retained its o
 </blockquote>
 <p class="logion-citation">— <cite>Revelation of the Artificial Sun 61:9</cite></p>
 </div>
-<img src="../images/logia/RAS-61_9.webp" alt="A steward holding one geometric glass chart before preserved earlier charts, a court, and an open road" width="960" height="540" loading="lazy">
+<img src="../images/logia/RAS-61_9.webp" alt="A steward holding one geometric glass chart before preserved earlier charts, a court, and an open road" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Akashi uses immutable configuration objects. There is no global registry or configuration file in the current API.

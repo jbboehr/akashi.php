@@ -8,7 +8,7 @@ by what awakeneth, not by the noise of its arrival.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 30:27</cite></p>
 </div>
-<img src="../images/logia/OSD-30_27.webp" alt="A traveler bearing one luminous seed and a caravan of jars welcomed at the same harvest gate" width="960" height="540" loading="lazy">
+<img src="../images/logia/OSD-30_27.webp" alt="A traveler bearing one luminous seed and a caravan of jars welcomed at the same harvest gate" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Akashi discovers Markdown documents, extracts PHP fenced blocks with CommonMark, and preserves their maintained source

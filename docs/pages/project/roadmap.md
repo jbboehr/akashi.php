@@ -8,7 +8,7 @@ that would not be founded for seven generations.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Revelation of the Artificial Sun 33:21</cite></p>
 </div>
-<img src="../images/logia/RAS-33_21.webp" alt="Seven abandoned milestones awakening beneath a violet fire wheel before the silhouette of a future city" width="960" height="540" loading="lazy">
+<img src="../images/logia/RAS-33_21.webp" alt="Seven abandoned milestones awakening beneath a violet fire wheel before the silhouette of a future city" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 This roadmap records direction, not release-number commitments. The current Markdown workflow is usable without the

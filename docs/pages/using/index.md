@@ -9,7 +9,7 @@ distance while remaining in its appointed hollow.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 13:44</cite></p>
 </div>
-<img src="../images/logia/OSD-13_44.webp" alt="Black swans raising luminous first waves across a still ocean beneath a copper sky" width="960" height="540" loading="lazy">
+<img src="../images/logia/OSD-13_44.webp" alt="Black swans raising luminous first waves across a still ocean beneath a copper sky" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Akashi separates discovering documentation examples from deciding what to do with them. Build one `ExampleCorpus`, then

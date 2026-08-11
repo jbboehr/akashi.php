@@ -8,7 +8,7 @@ and therefore remaineth trustworthy within the light.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Scholia of the Fifth Archive 53:20</cite></p>
 </div>
-<img src="../images/logia/SFA-53_20.webp" alt="A luminous measured causeway ending at one final lamp before the road continues into darkness" width="960" height="540" loading="lazy">
+<img src="../images/logia/SFA-53_20.webp" alt="A luminous measured causeway ending at one final lamp before the road continues into darkness" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 This page records behavior that must survive refactoring or replacement of Akashi's implementation. The

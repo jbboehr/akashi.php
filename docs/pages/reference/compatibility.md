@@ -8,7 +8,7 @@ passage; the singers waited without complaint, for ceremony cannot restore a gat
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 55:2</cite></p>
 </div>
-<img src="../images/logia/AWC-55_2.webp" alt="Wardens inspecting the complete luminous circumference of a closed gate while singers wait" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-55_2.webp" alt="Wardens inspecting the complete luminous circumference of a closed gate while singers wait" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Akashi is a reusable documentation-example library for PHP projects. Its Markdown, runtime, PHPUnit, and PHPStan

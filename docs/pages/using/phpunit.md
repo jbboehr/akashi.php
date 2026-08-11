@@ -8,7 +8,7 @@ the lamp, and the court recorded the measure even when no accusation followed.</
 </blockquote>
 <p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 59:1</cite></p>
 </div>
-<img src="../images/logia/OSD-59_1.webp" alt="A plain stone weighed on a bronze balance beneath a luminous judicial lamp" width="960" height="540" loading="lazy">
+<img src="../images/logia/OSD-59_1.webp" alt="A plain stone weighed on a bronze balance beneath a luminous judicial lamp" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 PHPUnit is Akashi's normal runtime integration. `VerifiesPhpUnitExamples` exposes each documentation example as an

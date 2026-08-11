@@ -9,7 +9,7 @@ by the humbler fabric.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 42:3</cite></p>
 </div>
-<img src="../images/logia/AWC-42_3.webp" alt="A midwife safely holding a swaddled newborn in linen beside a silk-adorned cradle" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-42_3.webp" alt="A midwife safely holding a swaddled newborn in linen beside a silk-adorned cradle" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 These guides start from a concrete project task rather than an Akashi subsystem:

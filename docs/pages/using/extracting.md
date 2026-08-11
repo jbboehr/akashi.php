@@ -9,7 +9,7 @@ still fell warm from the stones.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Scholia of the Fifth Archive 48:40</cite></p>
 </div>
-<img src="../images/logia/SFA-48_40.webp" alt="A child clearing a luminous mill channel while a white horse departs and warm grain falls" width="960" height="540" loading="lazy">
+<img src="../images/logia/SFA-48_40.webp" alt="A child clearing a luminous mill channel while a white horse departs and warm grain falls" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Sometimes a documentation example should also become a real consumer fixture. Akashi can extract one stable named

@@ -8,7 +8,7 @@ endurance, and wisdom appointeth unlike offices without making either ashamed.</
 </blockquote>
 <p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 53:1</cite></p>
 </div>
-<img src="../images/logia/OSD-53_1.webp" alt="Cedar and bronze vessels receiving water from one luminous spring in a sunset pavilion" width="960" height="540" loading="lazy">
+<img src="../images/logia/OSD-53_1.webp" alt="Cedar and bronze vessels receiving water from one luminous spring in a sunset pavilion" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 This document describes the architecture implemented in the current repository. Historical sequencing, migration

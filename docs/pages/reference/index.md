@@ -9,7 +9,7 @@ consumed the whole harvest.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 2:31</cite></p>
 </div>
-<img src="../images/logia/AWC-2_31.webp" alt="An old scholar planting walnuts as an orchard grows through a weathered library" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-2_31.webp" alt="An old scholar planting walnuts as an orchard grows through a weathered library" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 This section records exact implemented contracts rather than teaching the first workflow.

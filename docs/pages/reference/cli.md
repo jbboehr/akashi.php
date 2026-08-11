@@ -8,7 +8,7 @@ fulfillment is not diminished because the face beneath it hath returned to ordin
 </blockquote>
 <p class="logion-citation">— <cite>Scholia of the Fifth Archive 52:45</cite></p>
 </div>
-<img src="../images/logia/SFA-52_45.webp" alt="A silver sorrow-mask resting beneath a fading stage light as its actor departs into dawn" width="960" height="540" loading="lazy">
+<img src="../images/logia/SFA-52_45.webp" alt="A silver sorrow-mask resting beneath a fading stage light as its actor departs into dawn" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 The Composer executable is `vendor/bin/akashi`. It currently provides marked-example extraction; it is not a standalone

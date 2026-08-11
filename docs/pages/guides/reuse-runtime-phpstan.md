@@ -8,7 +8,7 @@ wound upon the left hand.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Revelation of the Artificial Sun 31:24</cite></p>
 </div>
-<img src="../images/logia/RAS-31_24.webp" alt="Two opposed processions crossing a glass mountain while pilgrims bear matching left-hand bandages" width="960" height="540" loading="lazy">
+<img src="../images/logia/RAS-31_24.webp" alt="Two opposed processions crossing a glass mountain while pilgrims bear matching left-hand bandages" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Runtime behavior and static-analysis behavior answer different questions, but they can begin from the same maintained

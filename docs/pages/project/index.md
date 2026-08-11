@@ -9,7 +9,7 @@ clear water. Receive wonder with an open palm.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 17:42</cite></p>
 </div>
-<img src="../images/logia/AWC-17_42.webp" alt="Three merchants lowering hooks toward a moonlit well as a drinking child scatters its reflection" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-17_42.webp" alt="Three merchants lowering hooks toward a moonlit well as a drinking child scatters its reflection" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 This section explains Akashi itself rather than a consumer workflow.

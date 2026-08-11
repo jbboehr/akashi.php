@@ -8,7 +8,7 @@ remedies and neither is served by an unnamed hour.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 57:15</cite></p>
 </div>
-<img src="../images/logia/AWC-57_15.webp" alt="A physician distinguishing two injuries beneath amber and cyan diagnostic rings" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-57_15.webp" alt="A physician distinguishing two injuries beneath amber and cyan diagnostic rings" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 Akashi reports failures at the maintained documentation source whenever the current transformation has enough mapping

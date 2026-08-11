@@ -9,7 +9,7 @@ rightly named.</p>
 </blockquote>
 <p class="logion-citation">— <cite>Revelation of the Artificial Sun 66:9</cite></p>
 </div>
-<img src="../images/logia/RAS-66_9.webp" alt="Seven stars reflected in seven luminous wells before observers in a glass city at dawn" width="960" height="540" loading="lazy">
+<img src="../images/logia/RAS-66_9.webp" alt="Seven stars reflected in seven luminous wells before observers in a glass city at dawn" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 A documentation example can be executed at runtime and independently checked as a static-analysis fixture. PHPStan is an

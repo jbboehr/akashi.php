@@ -8,7 +8,7 @@ voice, alarm, sentence, and elapsed hour, then erased the borrowed threshold beh
 </blockquote>
 <p class="logion-citation">— <cite>Acts of the Western Court 62:10</cite></p>
 </div>
-<img src="../images/logia/AWC-62_10.webp" alt="A lone witness crossing a luminous causeway toward a distant tribunal as wardens tend four signals" width="960" height="540" loading="lazy">
+<img src="../images/logia/AWC-62_10.webp" alt="A lone witness crossing a luminous causeway toward a distant tribunal as wardens tend four signals" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
 In-process execution is Akashi's default because it is fast, shares PHPUnit's loaded project environment, and reports
