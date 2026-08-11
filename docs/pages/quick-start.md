@@ -17,10 +17,10 @@ you do not need to configure an execution backend for this path.
 
 ## 1. Install Akashi and PHPUnit
 
-Akashi requires PHP 8.2 or later. Until the first tagged release, install its development branch:
+Akashi requires PHP 8.2 or later. Install it with PHPUnit:
 
 ```console
-composer require --dev jbboehr/akashi:dev-master phpunit/phpunit:^11.5
+composer require --dev "jbboehr/akashi:^0.1" "phpunit/phpunit:^11.5"
 ```
 
 Akashi supports PHPUnit 10.5 and 11.5. This tutorial uses PHPUnit 11; use `phpunit/phpunit:^10.5` in a project that has

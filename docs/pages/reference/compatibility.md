@@ -12,8 +12,8 @@ passage; the singers waited without complaint, for ceremony cannot restore a gat
 </figure>
 
 Akashi is a reusable documentation-example library for PHP projects. Its Markdown, runtime, PHPUnit, and PHPStan
-workflows are usable outside its original consumers. It remains under active development and has not published its first
-tagged release.
+workflows are usable outside its original consumers. The 0.1 release remains under active pre-1.0 development, so its
+public API may change between minor releases before 1.0.
 
 ## Supported Platforms and Integrations
 
@@ -131,4 +131,4 @@ removed the duplicated extractor and its tests. GitHub recorded 164 successful c
 normal and isolated consumer matrices.
 
 These two migrations complete the recorded MVP consumer acceptance gates. Akashi's public API and documented limitations
-have completed their pre-release classification review; the API may change between minor releases before 1.0.
+have completed their initial classification review; the API may change between minor releases before 1.0.

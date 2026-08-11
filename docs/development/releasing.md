@@ -23,13 +23,11 @@ access.
 1. Confirm `git status --short` is empty and `git branch --show-current` is `master`.
 2. Run `git fetch --tags` and confirm the release commit is the intended public branch tip.
 3. Enter `nix develop` and run `composer install --no-interaction` so the committed lock is used without updating it.
-4. For the first tag, replace the empty changelog template with an accurate initial release entry. For later tags, move
-   the accumulated `[Unreleased]` entries beneath the release version and date while retaining a new empty
+4. Move the accumulated `[Unreleased]` entries beneath the release version and date while retaining a new empty
    `[Unreleased]` section.
-5. For the first tag, replace every `dev-master` installation example and every statement that Akashi has no tagged
-   release. Review `README.md`, `docs/pages/README.md`, the Quick Start, compatibility reference, API reference, and
-   roadmap together so the tagged source does not contradict itself. Keep accurate pre-1.0 stability qualifications;
-   publishing a first tag does not make the API stable by itself.
+5. Review installation examples and release-status wording in `README.md`, `docs/pages/README.md`, the Quick Start,
+   compatibility reference, API reference, and roadmap together so the tagged source does not contradict itself. Keep
+   accurate pre-1.0 stability qualifications; publishing a new tag does not make the API stable by itself.
 6. Commit the changelog or any other release-only metadata, rerun the gates below, and require a clean worktree again.
 
 Do not add promises for deferred roadmap work. The release notes describe only behavior present in the tagged commit.
@@ -81,8 +79,8 @@ clone and the deployed documentation site rather than each package or generated 
 3. Push the tag without moving any existing tag: `git push origin vX.Y.Z`.
 4. Create a GitHub release from that tag. Attach `akashi-X.Y.Z.tar`, include its SHA-256 checksum, and use the prepared
    changelog entry as the release notes.
-5. For the first canonical release, register `https://github.com/jbboehr/akashi.php` as `jbboehr/akashi` on Packagist if
-   it has not already been registered. For later releases, verify Packagist has imported the exact tag and constraints.
+5. If the package is not yet registered on Packagist, register `https://github.com/jbboehr/akashi.php` as
+   `jbboehr/akashi`. Otherwise, verify Packagist has imported the exact tag and constraints.
 6. Verify the documentation workflow completed for `master` and the public Pages site still resolves.
 
 Signing-key rotation is allowed. Record the new public key and transition in the release notes or repository history.
@@ -94,7 +92,7 @@ In a new directory outside the source checkout, create an empty Composer project
 plus PHPUnit:
 
 ```console
-composer require --dev jbboehr/akashi:X.Y.Z phpunit/phpunit:^11.5
+composer require --dev "jbboehr/akashi:X.Y.Z" "phpunit/phpunit:^11.5"
 vendor/bin/akashi --version
 vendor/bin/akashi --help
 ```

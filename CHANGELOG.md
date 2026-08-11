@@ -7,18 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-10
+
 ### Added
 
-- Discover PHP examples in Markdown files and directories as a reusable, source-aware example corpus.
-- Execute documentation examples through PHPUnit, using guarded in-process execution by default and opt-in child
-  processes for examples that require process isolation.
-- Rewrite supported native `assert()` calls into unconditional PHPUnit assertions while preserving maintained Markdown
-  locations in failure reports.
-- Verify selected documentation examples through PHPStan with deterministic matching for authored `//!` diagnostics.
-- Mark runtime examples as skipped, select separate-process execution, and declare expected in-process exceptions with
-  explicit authoring directives.
-- Extract stable, explicitly named PHP examples through the `vendor/bin/akashi extract` command for reuse in consumer
-  fixtures.
-- Support PHP 8.2 and later, PHPUnit 10.5 and 11.5, and optional PHPStan 2.x integration.
+- Discover fenced PHP examples from configured Markdown files and directories as a reusable corpus with maintained
+  source locations.
+- Execute each example as a named PHPUnit test through guarded in-process execution or opt-in child-process isolation.
+- Rewrite supported native `assert()` calls into unconditional PHPUnit assertions and report parse, execution, and
+  assertion failures against their originating documentation.
+- Author runtime skips, separate-process selection, and expected in-process exception types with explicit directives.
+- Verify selected examples through PHPStan `RuleTestCase` integration with deterministic matching for authored `//!`
+  diagnostics.
+- Extract stable, explicitly named examples for consumer fixtures through the configurable `vendor/bin/akashi extract`
+  command.
+- Configure project roots, bootstrap files, and default execution modes through immutable runtime configuration.
+- Support PHP 8.2 and later, PHPUnit 10.5 and 11.5, optional PHPStan 2.x integration, and verified ParaTest scheduling.
 
-[Unreleased]: https://github.com/jbboehr/akashi.php/commits/master
+[Unreleased]: https://github.com/jbboehr/akashi.php/compare/v0.1.0...master
+[0.1.0]: https://github.com/jbboehr/akashi.php/releases/tag/v0.1.0

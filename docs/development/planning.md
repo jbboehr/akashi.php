@@ -13,7 +13,7 @@ fixtures now use the Akashi CLI, and its duplicated extractor and tests were rem
 established. GitHub recorded 164 completed, successful check runs for that commit across the normal and isolated
 consumer matrices.
 
-All recorded MVP consumer acceptance gates are therefore complete. The pre-release public API review classified every
+All recorded MVP consumer acceptance gates are therefore complete. The initial public API review classified every
 autoloadable declaration and added a public-I/O conformance suite. No committed Akashi code or tests may depend on
 workspace checkout paths during future consumer verification.
 
@@ -63,8 +63,7 @@ must not become responsible for constructing temporary Composer projects, adding
 installing dependencies, creating or inspecting archives, defining another package's compatibility matrix, or running
 package-specific runtime assertions.
 
-This work is post-0.1 roadmap scope. It does not block the initial release and must not expand the existing Markdown
-MVP.
+This work begins after 0.1 and must not expand the existing Markdown MVP.
 
 The current public architecture is documented in `docs/pages/project/architecture.md`. The initial proposal is preserved
 as `docs/development/initial-architecture-plan.md`; detailed historical requirements and clean-room constraints remain

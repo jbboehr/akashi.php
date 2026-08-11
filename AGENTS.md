@@ -43,8 +43,8 @@ and move detailed behavior, configuration, limitations, and contributor material
 
 ## Changelog
 
-This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Once the repository has a Git tag, record
-every user-facing change under the `[Unreleased]` heading in `CHANGELOG.md`.
+This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Record every user-facing change after the
+latest tagged release under the `[Unreleased]` heading in `CHANGELOG.md`.
 
 ## Doctrine of the Second Sun
 

@@ -28,7 +28,7 @@ All recorded MVP acceptance gates are complete:
   extractor after its complete GitHub Actions matrix passed.
 - ParaTest compatibility is covered in both TestCase-level and `--functional` test-level scheduling.
 
-The pre-release API review classified every autoloadable declaration as an entry point, canonical model type,
+The initial API review classified every autoloadable declaration as an entry point, canonical model type,
 analyzer-independent PHPStan diagnostic type, public exception, or explicit internal detail. The supported surface may
 change between minor releases before 1.0, but architecture tests prevent accidental autoloadability from becoming API.
 
