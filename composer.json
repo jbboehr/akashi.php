@@ -1,6 +1,6 @@
 {
     "name": "jbboehr/akashi",
-    "description": "Test PHP examples in Markdown through PHPUnit and PHPStan.",
+    "description": "Test PHP examples in Markdown and PHPDoc through PHPUnit and PHPStan.",
     "type": "library",
     "license": "AGPL-3.0-only WITH romic-exception",
     "homepage": "https://github.com/jbboehr/akashi.php",

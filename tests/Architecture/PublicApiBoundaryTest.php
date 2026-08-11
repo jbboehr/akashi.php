@@ -54,6 +54,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
             \jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples::class,
+            \jbboehr\Akashi\Source\DocumentationSource::class,
             \jbboehr\Akashi\Source\MarkdownSource::class,
             \jbboehr\Akashi\Source\MarkedExampleSelector::class,
         ],

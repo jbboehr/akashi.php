@@ -11,9 +11,9 @@ by what awakeneth, not by the noise of its arrival.</p>
 <img src="../images/logia/OSD-30_27.webp" alt="A traveler bearing one luminous seed and a caravan of jars welcomed at the same harvest gate" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Akashi discovers Markdown documents, extracts PHP fenced blocks with CommonMark, and preserves their maintained source
-locations. Corpus selection controls which documents participate; markers and directives add metadata to examples but do
-not make unmarked PHP fences disappear.
+Akashi discovers Markdown documents and PHP source files, extracts PHP fenced blocks, and preserves their maintained
+source locations. Corpus selection controls which files participate; markers and directives add metadata to examples but
+do not make unmarked PHP fences disappear.
 
 ## Build a Corpus
 
@@ -22,21 +22,27 @@ Create a source configuration from an absolute project root, then add project-re
 ```php
 <?php
 
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 
-$corpus = MarkdownSource::forProject(dirname(__DIR__))
+$corpus = DocumentationSource::forProject(dirname(__DIR__))
     ->includeFile('README.md')
     ->includeDirectory('docs')
+    ->includeDirectory('src')
     ->exclude('docs/archive')
     ->load();
 ```
 
 Each configuration method returns a new immutable value. Scalar path syntax is checked immediately; filesystem paths,
-readability, and document identity are checked by `load()`.
+readability, and document identity are checked by `load()`. `DocumentationSource` selects case-sensitive `.md` and
+`.php` files and dispatches each format to its corresponding extractor.
 
-Directory includes are recursive and select only files with the case-sensitive `.md` extension. Exclusions match an
-exact file or a complete directory subtree. See [Configuration](../reference/configuration.md) for ordering, symlink,
-duplicate-document, and failure behavior.
+`includeFiles()` accepts an array, generator, or iterator of project-relative strings, `ProjectPath` values, or
+`SplFileInfo` objects. A Symfony Finder configured with `files()` can therefore be passed directly without adding
+Symfony Finder as an Akashi dependency. Directory includes remain available for the zero-dependency common case.
+
+Exclusions match an exact file or a complete directory subtree. See [Configuration](../reference/configuration.md) for
+ordering, symlink, duplicate-document, and failure behavior. `MarkdownSource` remains available when a project wants an
+explicitly Markdown-only manifest.
 
 Choose documents whose PHP fences are meant to participate in at least one configured workflow. Akashi currently has a
 runtime `skip` directive, but no global ignore or compile-only directive. Use another fence language for fragments that
@@ -66,6 +72,46 @@ The exact generated form is `example-{first 12 hexadecimal characters of sha1(pr
 the ordinal padded to at least two digits. Use an explicit marker ID when another tool needs an identity that survives
 reordering.
 
+## Write PHPDoc Fences
+
+Every `php` fence on the interior lines of a selected `/** ... */` comment enters the corpus, whether or not the comment
+is attached to a named declaration:
+
+````php
+<?php
+
+namespace Acme;
+
+/**
+ * Return a stable display name.
+ *
+ * ```php
+ * $name = \Acme\Text::displayName('akashi');
+ *
+ * assert($name === 'AKASHI');
+ * ```
+ */
+final class Text
+{
+    public static function displayName(string $name): string
+    {
+        return strtoupper($name);
+    }
+}
+````
+
+Akashi removes conventional docblock indentation, the leading `*`, and one following space before CommonMark parsing.
+The opening `/**` and closing `*/` lines are delimiters rather than Markdown content, so put fences and prose on the
+interior lines. An opening `<?php` tag inside the fence remains optional.
+
+The extracted code is prefix-free, while failures refer to the original `.php` path and PHPDoc line. Each docblock is
+parsed independently, so markers and directives cannot associate with a fence in a later comment. Use another fence
+language for a PHP fragment that should not enter any workflow.
+
+Akashi extracts the fence, not its surrounding declaration. The example above therefore calls the project class through
+its fully qualified, Composer-autoloadable name. Supporting declarations must already be available through normal
+project bootstrap or autoloading, or be written inside the fence.
+
 ## Labels and PHPUnit Data Sets
 
 The human-readable example label is derived from its source location and becomes the PHPUnit data-set name.
@@ -90,10 +136,12 @@ $result = convert(1, 'meter', 'centimeter');
 ```php
 <?php
 
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 
-$corpus = MarkdownSource::forProject(dirname(__DIR__))
+$corpus = DocumentationSource::forProject(dirname(__DIR__))
+    ->includeFile('README.md')
     ->includeDirectory('docs')
+    ->includeDirectory('src')
     ->withMarkerName('akashi-example')
     ->load();
 ```

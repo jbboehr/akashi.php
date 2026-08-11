@@ -167,7 +167,7 @@ the failure clear or extracted PHP should not contain Akashi metadata. Do not co
 The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
 the type after runtime setup and execution, so application exception classes may come from the configured bootstrap or
 Composer autoloader. A missing throwable, a different throwable type, or cleanup failure fails the PHPUnit data set with
-the maintained Markdown location. The mismatch keeps the actual throwable in its exception chain.
+the maintained documentation location. The mismatch keeps the actual throwable in its exception chain.
 
 This first contract intentionally matches only the throwable type. It does not match messages or codes, and it is not a
 general “any failure is success” mode. Expected exceptions are rejected for separate-process examples until that backend
@@ -179,8 +179,8 @@ An authored `<!-- akashi: skip -->` directive remains a named data set, but PHPU
 configures, transforms, bootstraps, or executes the example. It does not remove the example from PHPStan or extraction.
 
 Successful examples record one completion assertion even when they contain no native assertion. Failures report the
-example ID, label, maintained Markdown location when available, failure phase, cause, captured stdout and stderr, and
-cleanup problems. The original exception remains in the exception chain.
+example ID, label, maintained documentation location when available, failure phase, cause, captured stdout and stderr,
+and cleanup problems. The original exception remains in the exception chain.
 
 In-process execution is trusted-code isolation, not a sandbox. Read
 [Compatibility and Safety](../reference/compatibility.md) before running generated, third-party, or otherwise untrusted

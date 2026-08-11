@@ -23,4 +23,4 @@ Most projects begin with the in-process PHPUnit path from the [Quick Start](../q
 [separate-process execution](separate-process.md) only to examples that require it, and add PHPStan only when the
 project has a rule or analysis behavior worth demonstrating.
 
-[Authoring Examples](authoring.md) describes the shared Markdown corpus used by all three workflows.
+[Authoring Examples](authoring.md) describes the shared Markdown/PHPDoc corpus used by all three workflows.

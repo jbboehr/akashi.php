@@ -39,6 +39,14 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * A stable lowercase identifier for one extracted documentation example.
+ *
+ * ```php
+ * $id = new \jbboehr\Akashi\Model\ExampleId('phpdoc-example');
+ *
+ * assert($id->value === 'phpdoc-example');
+ * ```
+ *
  * @logion [RAS 14:9] Masons carved open mouths along the city wall to frighten invaders. At the first east wind, each
  *     stone mouth spoke a cruelty committed inside the gates. The citizens plastered them shut, but the words rose from
  *     the wells. A wall that guards unrepented wrong shall become its herald.

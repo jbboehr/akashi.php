@@ -21,11 +21,15 @@ autoloadability alone does not create an extension point.
 
 | Type                                          | Purpose                                                                                       |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                                     |
 | `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                       |
 | `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                                   |
-| `jbboehr\Akashi\Document`                     | One maintained Markdown document and its line index.                                          |
+| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.                            |
 | `jbboehr\Akashi\Example`                      | Canonical example with source, fence, marker, directives, and optional exception expectation. |
 | `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                             |
+
+`DocumentationSource` is the ordinary entry point for mixed corpora; `MarkdownSource` remains the explicit Markdown-only
+entry point and exposes `loadDocuments()` for consumers that need the selected documents themselves.
 
 `Document`, `Example`, and `ExampleCorpus` form the canonical public model. Path, identifier, language, fence,
 directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public because the canonical model and

@@ -23,11 +23,11 @@ then lets PHPUnit, PHPStan, or the extraction CLI consume that model through exp
 ## Example Lifecycle
 
 ```text
-Markdown files
-      │
-      ▼
-MarkdownSource ── CommonMark extraction ──► ExampleCorpus
-                                                │
+Markdown / PHP files
+         │
+         ▼
+DocumentationSource ── format extraction ──► ExampleCorpus
+                                                  │
                    ┌────────────────────────────┼─────────────────────────┐
                    ▼                            ▼                         ▼
           PHPUnit runtime                PHPStan verification      marked selection
@@ -42,9 +42,15 @@ files, Symfony Process, or PHPStan diagnostics to discover a corpus.
 
 ## Source Discovery
 
-`MarkdownSource` is an immutable manifest of an absolute project root, file and directory includes, exclusions, and an
-optional marker name. Loading resolves and validates paths, rejects symbolic-link directory traversal and duplicate
-physical documents, sorts documents deterministically, and gives each document to `CommonMarkExampleExtractor`.
+`DocumentationSource` is an immutable manifest of an absolute project root, file and directory includes, exclusions, and
+an optional marker name. Loading resolves and validates paths, rejects symbolic-link directory traversal and duplicate
+physical documents, sorts documents deterministically, and dispatches `.md` and `.php` documents by extension.
+`MarkdownSource` retains the same Markdown-only contract. Both accept bulk file iterables, including `SplFileInfo`
+values from Symfony Finder, without depending on Finder.
+
+The source manifests deliberately remain concrete configuration entry points rather than implementations of a public
+source interface. Extension-based dispatch is sufficient for the current formats, while `ExampleCorpus` is the shared
+boundary consumed by PHPUnit, PHPStan, and extraction.
 
 The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and Akashi runtime
 directives using document structure rather than regular expressions over the whole file. It also recognizes a typed
@@ -53,13 +59,18 @@ declarations, and preserves the selected declaration's source line. Token-aware 
 strings and heredocs. It preserves original source text and exact line and byte spans. A nonempty ordered
 `ExampleCorpus` is constructed only after cross-document marker uniqueness and corpus ordering invariants hold.
 
+The PHPDoc adapter locates every `T_DOC_COMMENT` with PHP's tokenizer, projects each comment's interior lines into
+CommonMark by removing conventional docblock decoration, and extracts each comment independently. It then restores the
+original PHP `Document`, line coordinates, and raw source spans. Independent parsing prevents metadata from crossing a
+docblock boundary; file-wide ordinals keep generated identities deterministic.
+
 Discovery is separate from selection. A configured marker adds an explicit identity but does not hide unmarked fences; a
 PHPStan relevance predicate selects a subcorpus later; a runtime skip changes PHPUnit disposition without deleting the
 example.
 
 ## Canonical Example Model
 
-`Document` owns the project-relative path, maintained Markdown bytes, and line index. `Example` owns:
+`Document` owns the project-relative path, maintained Markdown or PHP source bytes, and line index. `Example` owns:
 
 - generated identity and human-readable label;
 - its originating `Document`;
@@ -80,8 +91,8 @@ preparation from silently becoming the maintained representation.
 Each execution backend produces a backend-specific `PreparedExample` containing the original `Example`, generated
 `PreparedCode`, its `ExecutionMode`, and a `SourceMap`. Prepared code and its map must contain the same number of lines.
 
-The current map translates generated lines to original Markdown lines. Transforms preserve or explicitly account for
-synthetic lines, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained source location.
+The current map translates generated lines to original Markdown or PHP lines. Transforms preserve or explicitly account
+for synthetic lines, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained source location.
 Failures fall back to the example start when PHP cannot provide a reliable generated line.
 
 The model deliberately retains original locations rather than exposing only temporary files. A fully composable,
@@ -147,7 +158,7 @@ private analysis files, preloads declarations, asks `RuleTestCase` for diagnosti
 framework-neutral diagnostics to `DiagnosticMatcher`. Matching requires exact counts and deterministic one-to-one
 assignments before PHPUnit receives the result.
 
-The extraction CLI is intentionally smaller. It loads one Markdown file with an explicit marker name, selects one
+The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
 execution pipeline.
 
@@ -162,9 +173,9 @@ compose source, runtime, and verifier configuration through typed immutable valu
 
 ## Current and Deferred Architecture
 
-Current architecture supports Markdown sources, markers, runtime directives and both execution backends, typed
-in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. PHPDoc sources, external
-canonical examples, named regions, synchronization, formatting, hidden support code, generalized verifier plugins, and a
+Current architecture supports Markdown and PHPDoc sources, markers, runtime directives and both execution backends,
+typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. External canonical
+examples, named regions, synchronization, formatting, hidden support code, generalized verifier plugins, and a
 standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely

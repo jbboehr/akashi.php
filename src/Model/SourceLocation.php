@@ -85,7 +85,7 @@ final readonly class SourceLocation
     public SourceSpan $fenceSpan;
 
     /**
-     * Raw bytes for the code-content lines, including Markdown container prefixes and authored line terminators.
+     * Raw bytes for the code-content lines, including Markdown or PHPDoc container prefixes and line terminators.
      *
      * @logion [RAS 41:2] At the ford of yellow stones, the ambassador removed his jeweled shoes and found the river
      *     warmer than the bath prepared for him at the capital.

@@ -49,9 +49,10 @@ use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
+use jbboehr\Akashi\PhpDoc\PhpDocExampleExtractor;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
-use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
+use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourcePathNotFoundException;
 use jbboehr\Akashi\Source\Exception\SourceReadException;
@@ -59,39 +60,46 @@ use jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException;
 use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 
 /**
- * Immutable configuration for deterministic project-relative Markdown document discovery.
+ * Immutable mixed Markdown and PHPDoc documentation-example discovery.
  *
- * @logion [RAS 31:24] Beneath the glass mountain two processions appeared, one ascending and one descending, yet every
- *     pilgrim bore the same wound upon the left hand.
+ * @logion [RAS 69:1] Round the cloister ran a canal of cyan light, fashioned by men who had never seen water. Yet at
+ *     the eastern aperture its current bowed and became clear; and the brothers gave thanks, for the lesser radiance
+ *     knew both its office and its limit.
  */
-final readonly class MarkdownSource
+final readonly class DocumentationSource
 {
     /**
-     * @logion [SFA 30:7] The sealed flute passed through five courts without a note, but in the hut of the charcoal
-     *     burner it answered the evening wind and taught his daughters the lament of queens.
+     * The absolute project root from which all configured paths are resolved.
+     *
+     * @logion [RAS 69:2] I beheld the golden eagle above the western arcade loosen into a thousand tesserae, and each
+     *     stone took its station among the stars. Then the province vanished from the speech of its conquerors, yet
+     *     remained written in heaven where no herald could amend it.
      */
     public ProjectRoot $projectRoot;
 
     /**
      * @var list<IncludeRule>
      *
-     * @logion [RAS 33:21] A wheel of violet fire descended behind the cedar ridge, and every abandoned milestone spoke
-     *     the name of a kingdom that would not be founded for seven generations.
+     * @logion [OSD 69:3] Before the spring audience, draw the red-lacquer comb once through the mane of the consecrated
+     *     horse. If any tooth become black, postpone the audience and uncover the petitions beneath the dais; for
+     *     hidden grief entereth first through the ornaments of power.
      */
     private array $includes;
 
     /**
      * @var list<ProjectPath>
      *
-     * @logion [AWC 34:3] The keeper of the eastern hospice wrote every guest upon a strip of linen, then bound the strips
-     *     into a sail for the vessel that would carry their descendants home.
+     * @logion [RAS 69:4] Through the rose lens of the high observatory I saw no star, but the obligations of cities
+     *     moving as dark planets, each attended by a seraph who bore its unpaid weight. One city adorned its burden
+     *     with lamps and called the darkness festival; then its planet crossed before the dawn, and morning departed
+     *     from all its towers.
      */
     private array $exclusions;
 
     /**
-     * @logion [AWC 48:16] The keeper of the hill shrine planted rice in three narrow terraces after the valley fields
-     *     were taken by war. His harvest filled no granary, yet each returning household received one bowl and knew
-     *     where to rebuild. Small provision may preserve the shape of abundance.
+     * @logion [RAS 69:5] Above the nave nested nine iron cranes, and in their beaks they carried sparks gathered from
+     *     the factories beyond the sea. Whenever a vow was kept at cost, one spark descended into the sanctuary lamp;
+     *     whenever praise was purchased, one crane closed its wings. By winter only the hidden flame remained.
      */
     private ?MarkerName $markerName;
 
@@ -99,8 +107,9 @@ final readonly class MarkdownSource
      * @param list<IncludeRule> $includes
      * @param list<ProjectPath> $exclusions
      *
-     * @logion [OSD 33:10] Before crossing the plain of red grass, break bread with the shepherds at its border; the road
-     *     beyond remembereth neither rank nor the abundance of thy provisions.
+     * @logion [RAS 69:6] Upon the synthetic moon grew an orchard of marble trees, and each bore one fruit containing a
+     *     small unpainted sky. The Angel of Workmanship tasted none, but blessed the makers, saying: They enclosed what
+     *     they could not create, and concealed not the greater heaven.
      */
     private function __construct(
         ProjectRoot $projectRoot,
@@ -115,12 +124,12 @@ final readonly class MarkdownSource
     }
 
     /**
-     * Create an empty source configuration for an absolute project root.
+     * Create an empty mixed source configuration for an absolute project root.
      *
-     * Add at least one file or directory before loading documents.
+     * Add at least one file or directory before loading examples.
      *
-     * @logion [SFA 29:27] A silver moth rested upon the unopened letter through the whole voyage, and departed only when
-     *     the messenger placed it before the widow who had ceased to expect an answer.
+     * @logion [SFA 69:7] Keep no coin whose sovereign face remaineth bright through an eclipse; the metal hath learned
+     *     spectacle and forgotten night. Melt it before morning.
      */
     public static function forProject(ProjectRoot|string $projectRoot): self
     {
@@ -133,37 +142,35 @@ final readonly class MarkdownSource
     }
 
     /**
-     * Return a new configuration that includes one project-relative file.
+     * Return a new configuration that includes one project-relative Markdown or PHP file.
      *
      * @throws UnsupportedSourcePathException
      *
-     * @logion [SFA 30:21] The first stars of autumn appeared within the empty cistern, and the villagers gathered at its
-     *     rim to hear rain remembered by stone before it returned from heaven.
+     * @logion [OSD 69:8] Let the penitents stand beside the imperial canal and confess the waters taken from the poor
+     *     provinces. If the current turn uphill before the ninth name, withhold pardon and begin again; but if it reach
+     *     the basilica steps, open the granaries, for mercy that restoreth no abundance is only a word spoken
+     *     downstream.
      */
     public function includeFile(ProjectPath|string $path): self
     {
         $path = is_string($path) ? new ProjectPath($path) : $path;
-
-        if (!str_ends_with($path->value, '.md')) {
+        if (!str_ends_with($path->value, '.md') && !str_ends_with($path->value, '.php')) {
             throw new UnsupportedSourcePathException(sprintf(
-                'Configured Markdown file must use the case-sensitive .md extension: %s.',
+                'Configured documentation file must use the case-sensitive .md or .php extension: %s.',
                 $path->value,
             ));
         }
 
         return new self(
             $this->projectRoot,
-            [...$this->includes, new IncludeRule(
-                IncludeKind::File,
-                $path,
-            )],
+            [...$this->includes, new IncludeRule(IncludeKind::File, $path)],
             $this->exclusions,
             $this->markerName,
         );
     }
 
     /**
-     * Return a new configuration that includes each supplied Markdown file.
+     * Return a new configuration that includes each supplied Markdown or PHP file.
      *
      * Symfony Finder entries may be passed directly because they extend SplFileInfo.
      *
@@ -172,10 +179,9 @@ final readonly class MarkdownSource
      * @throws UnsupportedSourcePathException
      * @throws UnsafeSourcePathException
      *
-     * @logion [RAS 69:28] Before the first horizon, the Celestial Weaver drew the shadows of wandering planets through
-     *     a loom of black gold. They emerged unequal in breadth yet joined without seam, a mantle prepared for a sun not
-     *     risen. And when the lesser lights beheld it, each kept its appointed color, and darkness ceased to accuse them
-     *     of division.
+     * @logion [RAS 69:9] The black-pine garden turned during the night, root and stone together, until its narrow paths
+     *     faced the true east. The pavilion raised across the ancestral axis was crushed without sound, and at sunrise
+     *     the gardeners found every tree standing beyond its former wall, bearing the earth of its first planting.
      */
     public function includeFiles(iterable $paths): self
     {
@@ -183,7 +189,7 @@ final readonly class MarkdownSource
 
         foreach ($paths as $path) {
             if ($path instanceof \SplFileInfo) {
-                $path = ProjectDocumentLoader::projectPath($this->projectRoot, $path, 'Markdown');
+                $path = ProjectDocumentLoader::projectPath($this->projectRoot, $path, 'documentation');
             }
 
             $source = $source->includeFile($path);
@@ -195,8 +201,10 @@ final readonly class MarkdownSource
     /**
      * Return a new configuration that recursively includes one project-relative directory.
      *
-     * @logion [SFA 32:12] Snow covered the seven roads but left the old boundary stone bare, and the lost caravan slept
-     *     around it until the stars restored the names of the provinces.
+     * @logion [RAS 69:10] A crimson comet entered the cathedral and lodged among the ribs of the vault, where it burned
+     *     without consuming stone. The choir attempted the appointed octave, but the final note returned from the comet
+     *     in the voices of cities not yet founded; and the bishop commanded silence until their laws should become
+     *     worthy of song.
      */
     public function includeDirectory(ProjectPath|string $path): self
     {
@@ -212,10 +220,11 @@ final readonly class MarkdownSource
     }
 
     /**
-     * Return a new configuration excluding an exact path and, when it is a directory, its whole subtree.
+     * Return a new configuration excluding an exact path and, for a directory, its complete subtree.
      *
-     * @logion [OSD 30:27] Receive the stranger who beareth one seed as gladly as the caravan bearing a thousand jars;
-     *     harvest judgeth the gift by what awakeneth, not by the noise of its arrival.
+     * @logion [RAS 69:11] The synthetic moon shed its painted face above the western sea, and beneath the colors
+     *     appeared a clear lens turned toward the hidden sun. No city praised it, for its former splendor had departed;
+     *     yet the Angel of Lesser Lights named it faithful, and through it the blind observatories received morning.
      */
     public function exclude(ProjectPath|string $path): self
     {
@@ -228,11 +237,11 @@ final readonly class MarkdownSource
     }
 
     /**
-     * Return a new configuration that recognizes one explicit marker-comment name.
+     * Return a new configuration that recognizes one explicit marker-comment name in either source format.
      *
-     * @logion [OSD 48:28] Keep one seat empty at the harvest judgment for the laborer who died before the grain was
-     *     weighed. Though he answer no accusation and receive no wage, his absence rebuketh every account that would
-     *     call the field self-sown.
+     * @logion [OSD 69:12] Place black salt upon the tongue before swearing beneath the bronze canopy. If it become
+     *     sweet, speak nothing and depart from office; for the mouth that delighteth in the burden of an oath hath
+     *     already mistaken ceremony for fidelity.
      */
     public function withMarkerName(MarkerName|string $markerName): self
     {
@@ -245,10 +254,10 @@ final readonly class MarkdownSource
     }
 
     /**
-     * Load the selected documents and extract their PHP fenced blocks in deterministic source order.
+     * Load the selected files and extract their PHP fences in deterministic source order.
      *
-     * @throws DuplicateDocumentException
      * @throws DirectiveException
+     * @throws DuplicateDocumentException
      * @throws DuplicateMarkerException
      * @throws InvalidMarkerMetadataException
      * @throws NoDocumentsFoundException
@@ -260,17 +269,27 @@ final readonly class MarkdownSource
      * @throws SourceReadException
      * @throws UnsafeSourcePathException
      *
-     * @logion [SFA 43:4] The prince planted a cypress beside the village oven, and long after the palace roof had fallen
-     *     travelers rested in its shade while bread cooled upon the stones.
+     * @logion [RAS 69:13] At noon the orbital cemetery cast upon the earth a shadow shaped like the city its dead had
+     *     intended, with broad sanctuaries and narrow halls of judgment. The living had built otherwise; yet when the
+     *     shadow arrived, their walls moved stone by stone into the older measure, and none could remember commanding
+     *     them.
      */
     public function load(): ExampleCorpus
     {
-        $extractor = new CommonMarkExampleExtractor($this->markerName);
+        $markdown = new CommonMarkExampleExtractor($this->markerName);
+        $phpDoc = new PhpDocExampleExtractor($this->markerName);
         $examples = [];
         $markerLocations = [];
 
         foreach ($this->loadDocuments() as $document) {
-            $extracted = $extractor->extract($document);
+            $extracted = match (true) {
+                str_ends_with($document->path->value, '.md') => $markdown->extract($document),
+                str_ends_with($document->path->value, '.php') => $phpDoc->extract($document),
+                default => throw new \LogicException(sprintf(
+                    'Unsupported documentation format reached extraction: %s.',
+                    $document->path->value,
+                )),
+            };
 
             foreach ($extracted as $example) {
                 $markerId = $example->explicitMarkerId?->value;
@@ -305,15 +324,15 @@ final readonly class MarkdownSource
         }
 
         if ($examples === []) {
-            throw new NoExamplesFoundException('Configured Markdown documents did not contain any PHP fenced blocks.');
+            throw new NoExamplesFoundException(
+                'Configured documentation files did not contain any PHP fenced blocks.',
+            );
         }
 
         return new ExampleCorpus(...$examples);
     }
 
     /**
-     * Load included Markdown documents in bytewise lexical project-path order.
-     *
      * @return non-empty-list<Document>
      *
      * @throws DuplicateDocumentException
@@ -323,12 +342,13 @@ final readonly class MarkdownSource
      * @throws SourceReadException
      * @throws UnsafeSourcePathException
      *
-     * @logion [RAS 32:17] Beyond the blue gate stood a forest whose leaves bore innumerable faces, and when the wind
-     *     crossed it the whole nation whispered one plea without surrendering any name.
+     * @logion [AWC 69:14] When the magistrates pronounced pardon before restitution, the stone fish of the public
+     *     fountain leapt onto the steps and opened their mouths toward the accused. They remained there through the
+     *     summer, and no water entered the city until the stolen measure was returned.
      */
-    public function loadDocuments(): array
+    private function loadDocuments(): array
     {
-        return (new ProjectDocumentLoader('Markdown', ['.md']))->load(
+        return (new ProjectDocumentLoader('documentation', ['.md', '.php']))->load(
             $this->projectRoot,
             $this->includes,
             $this->exclusions,

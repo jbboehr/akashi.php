@@ -163,6 +163,27 @@ final class MarkdownSourceTest extends TestCase
         self::assertSame(['a.md', 'z.md'], $this->paths($documents));
     }
 
+    public function testIncludesBulkPathsAndFileInfoIterators(): void
+    {
+        $this->write('a.md', '# First');
+        $this->write('b.md', '# Second');
+        $this->write('c.md', '# Third');
+
+        $generator = static function (): \Generator {
+            yield new ProjectPath('b.md');
+            yield 'a.md';
+        };
+
+        $documents = MarkdownSource::forProject($this->projectRoot)
+            ->includeFiles($generator())
+            ->includeFiles(new \ArrayIterator([
+                new \SplFileInfo($this->projectRoot . '/c.md'),
+            ]))
+            ->loadDocuments();
+
+        self::assertSame(['a.md', 'b.md', 'c.md'], $this->paths($documents));
+    }
+
     public function testCanIncludeTheWholeProjectRoot(): void
     {
         $this->write('README.md', '# Project');

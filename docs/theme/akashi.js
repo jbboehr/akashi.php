@@ -22,6 +22,7 @@
         "using/authoring.html": [
             { id: "build-a-corpus", title: "Build a Corpus" },
             { id: "write-php-fences", title: "Write PHP Fences" },
+            { id: "write-phpdoc-fences", title: "Write PHPDoc Fences" },
             { id: "labels-and-phpunit-data-sets", title: "Labels and PHPUnit Data Sets" },
             { id: "add-a-stable-marker", title: "Add a Stable Marker" },
             { id: "add-a-runtime-directive", title: "Add a Runtime Directive" },
@@ -67,7 +68,7 @@
             { id: "temporary-locations", title: "Temporary Locations" },
         ],
         "reference/configuration.html": [
-            { id: "markdown-sources", title: "Markdown Sources" },
+            { id: "documentation-sources", title: "Documentation Sources" },
             { id: "runtime-configuration", title: "Runtime Configuration" },
             { id: "phpstan-configuration", title: "PHPStan Configuration" },
         ],

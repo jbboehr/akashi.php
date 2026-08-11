@@ -15,7 +15,7 @@ consumed the whole harvest.</p>
 This section records exact implemented contracts rather than teaching the first workflow.
 
 - [Configuration](configuration.md): source and runtime configuration values.
-- [Directives](directives.md): current Markdown directive syntax and precedence.
+- [Directives](directives.md): current documentation directive syntax and precedence.
 - [CLI](cli.md): command syntax, streams, output, and exit statuses.
 - [Public API](api.md): supported entry points and dependency boundaries.
 - [Compatibility and Safety](compatibility.md): versions, limitations, and trust model.

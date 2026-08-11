@@ -41,7 +41,7 @@ namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 use PHPUnit\Framework\TestCase;
 
 final class LandingPageExamplesTest extends TestCase
@@ -52,10 +52,11 @@ final class LandingPageExamplesTest extends TestCase
     {
         $projectRoot = dirname(__DIR__, 3);
 
-        return MarkdownSource::forProject($projectRoot)
+        return DocumentationSource::forProject($projectRoot)
             ->includeFile('README.md')
             ->includeFile('docs/pages/README.md')
             ->includeFile('docs/pages/quick-start.md')
+            ->includeFile('src/Model/ExampleId.php')
             ->load();
     }
 

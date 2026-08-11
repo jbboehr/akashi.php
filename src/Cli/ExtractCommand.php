@@ -43,7 +43,7 @@ use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\MarkedExampleSelector;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 
 /**
  * Emits one explicitly marked PHP example without execution or transformation.
@@ -91,7 +91,7 @@ final readonly class ExtractCommand implements Command
         }
 
         if (count($positionals) !== 2) {
-            throw new UsageException('The extract command requires exactly one Markdown file and marker ID.');
+            throw new UsageException('The extract command requires exactly one documentation file and marker ID.');
         }
 
         $file = $positionals[0];
@@ -99,7 +99,7 @@ final readonly class ExtractCommand implements Command
         $markerName = new MarkerName($markerName);
 
         if (trim($file) === '') {
-            throw new \InvalidArgumentException('Markdown file path must not be empty.');
+            throw new \InvalidArgumentException('Documentation file path must not be empty.');
         }
 
         $file = str_replace('\\', '/', $file);
@@ -113,7 +113,7 @@ final readonly class ExtractCommand implements Command
             $file = $workingDirectory . '/' . $file;
         }
 
-        $corpus = MarkdownSource::forProject(new ProjectRoot(dirname($file)))
+        $corpus = DocumentationSource::forProject(new ProjectRoot(dirname($file)))
             ->includeFile(basename($file))
             ->withMarkerName($markerName)
             ->load();

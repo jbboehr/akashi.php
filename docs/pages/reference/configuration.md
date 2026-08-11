@@ -13,32 +13,40 @@ road; each revision produced a new chart while the former hearing retained its o
 
 Akashi uses immutable configuration objects. There is no global registry or configuration file in the current API.
 
-## Markdown Sources
+## Documentation Sources
 
 Start with an absolute project root:
 
 ```php
-$source = MarkdownSource::forProject($projectRoot);
+$source = DocumentationSource::forProject($projectRoot);
 ```
 
 The fluent methods are:
 
-| Method                    | Contract                                                               |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `includeFile($path)`      | Add one project-relative file with the case-sensitive `.md` extension. |
-| `includeDirectory($path)` | Recursively add `.md` files below one project-relative directory.      |
-| `exclude($path)`          | Exclude an exact path and, for a directory, its complete subtree.      |
-| `withMarkerName($name)`   | Recognize one lowercase kebab-case marker-comment name.                |
-| `loadDocuments()`         | Read and return selected documents in deterministic path order.        |
-| `load()`                  | Read documents and extract a nonempty `ExampleCorpus` of PHP fences.   |
+| Method                    | Contract                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `includeFile($path)`      | Add one project-relative file with the case-sensitive `.md` or `.php` extension.         |
+| `includeFiles($paths)`    | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.  |
+| `includeDirectory($path)` | Recursively add `.md` and `.php` files below one project-relative directory.             |
+| `exclude($path)`          | Exclude an exact path and, for a directory, its complete subtree.                        |
+| `withMarkerName($name)`   | Recognize one lowercase kebab-case marker-comment name across both source formats.       |
+| `load()`                  | Read selected files and extract one nonempty, deterministically ordered `ExampleCorpus`. |
+
+`includeFiles()` consumes its iterable immediately to preserve immutable configuration. Symfony Finder entries extend
+`SplFileInfo`, so a Finder restricted to files can be passed directly. A `SplFileInfo` may carry an absolute pathname,
+but the resolved file must remain inside the configured project root. Strings and `ProjectPath` values remain
+project-relative.
+
+`MarkdownSource` retains the Markdown-only API, including `loadDocuments()`, and now also accepts `includeFiles()`. Its
+explicit files and recursive directories continue to select only the case-sensitive `.md` extension.
 
 Includes and exclusions are evaluated when loading. Configured paths must exist, documents must be readable, and
 resolved documents must remain inside the project root. Symlinked directories are not traversed. Reaching one physical
 document through multiple includes is an error. Documents are ordered by slash-normalized project-relative path using
 bytewise lexical comparison; examples within each document retain source order.
 
-An empty include set, an include/exclusion that does not exist, a selected set with no documents, and a corpus with no
-PHP fences are distinct failures. See [Authoring Examples](../using/authoring.md) for the common setup.
+An empty include set, an include/exclusion that does not exist, a selected set with no supported documents, and a corpus
+with no PHP fences are distinct failures. See [Authoring Examples](../using/authoring.md) for the common setup.
 
 ## Runtime Configuration
 

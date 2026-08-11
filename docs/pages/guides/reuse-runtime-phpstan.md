@@ -23,21 +23,23 @@ This helper belongs to the consuming project:
 <?php
 
 use jbboehr\Akashi\ExampleCorpus;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 
 final class DocumentationCorpus
 {
     public static function load(): ExampleCorpus
     {
-        return MarkdownSource::forProject(dirname(__DIR__))
+        return DocumentationSource::forProject(dirname(__DIR__))
             ->includeFile('README.md')
             ->includeDirectory('docs/examples')
+            ->includeDirectory('src')
             ->load();
     }
 }
 ```
 
-This is an ordinary project helper, not an Akashi requirement. It keeps source selection consistent between tests.
+This is an ordinary project helper, not an Akashi requirement. It keeps Markdown and PHPDoc source selection consistent
+between tests.
 
 ## Execute It with PHPUnit
 

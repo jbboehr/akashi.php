@@ -599,7 +599,9 @@ Mention a possible future generic documentation-validation module in the roadmap
 
 Create `docs/ROADMAP.md`.
 
-All of the following high-level capabilities must be acknowledged and assigned a plausible future phase or extension point, but they must **not** be implemented now unless the current Yumemi behavior strictly requires them.
+The initial Yumemi-driven implementation treated the capabilities below as deferred unless current consumer behavior
+required them. Subsequent work must preserve the explicit implementation status and remaining boundaries recorded in
+this section rather than assuming that the entire original list is still unimplemented.
 
 Do not inspect prohibited prior-art material to determine how these features are implemented. Official Cargo and rustdoc
 user-facing documentation may clarify observable behavior and terminology, but competing PHP doctest documentation and
@@ -607,11 +609,11 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 
 ### Additional sources and maintainable authoring
 
-* inline PHPDoc-comment examples;
+* inline PHPDoc-comment examples — implemented post-MVP;
 * external canonical PHP example files, including stable named regions;
 * documentation references to canonical examples;
 * optional synchronized inline presentations of external canonical examples;
-* examples attached to classes, methods, functions, and interfaces;
+* declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;
 * non-Markdown documentation formats.
@@ -621,6 +623,10 @@ always have to be maintained literally inside documentation comments.
 
 ### PHPDoc example maintainability
 
+Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples are implemented through the
+mixed `DocumentationSource`; external canonical references, synchronization, formatting, and hidden support code remain
+deferred. The requirements below preserve the design boundary and remaining sequence.
+
 > Use inline examples for short, local demonstrations. Use ordinary external PHP files as the canonical source for
 > substantial examples.
 
@@ -628,7 +634,7 @@ The goal is to keep examples easy to edit in an IDE, format with normal PHP form
 tools, execute directly, reuse in several documentation locations, synchronize without manual copy-and-paste, and
 trace to their maintained source lines when verification fails.
 
-Plan three authoring modes after the Markdown/Yumemi MVP.
+The post-MVP design has three authoring modes.
 
 #### 1. Inline examples
 
@@ -644,7 +650,8 @@ Short examples may remain directly inside a PHPDoc fenced block:
 ````
 
 This mode suits examples that are short, tightly coupled to one symbol, understandable without significant setup, and
-unlikely to be reused. This plan does not prescribe the final PHPDoc fence parser or public syntax.
+unlikely to be reused. Akashi now recognizes CommonMark PHP fences on the interior lines of selected PHPDoc comments;
+content beside the opening and closing comment delimiters is not interpreted as Markdown.
 
 #### 2. Referenced canonical examples
 
@@ -777,9 +784,9 @@ map back to the source developers actually maintain.
 
 ### Post-MVP authoring sequence
 
-Place this work after the current Markdown/Yumemi MVP and before broad plugin or runner expansion. A sensible sequence is:
+Place this work after the current Markdown/Yumemi MVP and before broad plugin or runner expansion. The sequence is:
 
-1. PHPDoc fenced examples.
+1. PHPDoc fenced examples — implemented post-MVP.
 2. External canonical PHP examples and named regions.
 3. Source-location mapping improvements.
 4. Check-only synchronization.
@@ -794,10 +801,11 @@ external files, and examples that are checked without ordinary execution. It doe
 and the clean-room prohibition on rustdoc implementation material and competing PHP doctest documentation remains
 unchanged.
 
-PHPDoc extraction, external-example references, named-region parsing, synchronization commands, formatter commands,
-hidden support code, documentation-renderer plugins, and automatic docblock rewriting are all outside the initial
-Yumemi-driven MVP. Do not add dependencies, placeholder classes, or speculative interfaces for them unless an
-already-required MVP abstraction naturally supports the future behavior.
+All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction is now implemented as
+post-MVP work. External-example references, named-region parsing, synchronization commands, formatter commands, hidden
+support code, documentation-renderer plugins, and automatic docblock rewriting remain deferred. Do not add dependencies,
+placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
+future behavior.
 
 ### Additional example semantics
 

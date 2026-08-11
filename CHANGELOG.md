@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Discover fenced PHP examples from conventional multiline PHPDoc comments while preserving their original file and line
+  locations.
+- Build one mixed Markdown/PHPDoc corpus through `DocumentationSource`, including bulk file iterables compatible with
+  `SplFileInfo` and Symfony Finder results.
+- Extract explicitly marked PHPDoc examples through the existing `vendor/bin/akashi extract` command.
+
+### Changed
+
+- `MarkdownSource` now accepts bulk file iterables through `includeFiles()` while remaining the Markdown-only source
+  entry point.
+
 ## [0.1.0] - 2026-08-10
 
 ### Added

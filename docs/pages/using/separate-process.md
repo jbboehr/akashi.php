@@ -102,7 +102,7 @@ fixed 60-second emergency timeout, and removes the temporary file in `finally`.
 
 A zero exit status is success, including `exit(0)`. Nonzero exits, signals, timeouts, startup failures, and cleanup
 failures become typed execution failures. Where PHP reports a usable line, Akashi maps it back to the maintained
-Markdown source.
+Markdown or PHPDoc source.
 
 Separate process means failure containment, not security isolation. The child inherits the parent's environment,
 filesystem and network permissions, PHP binary, and fixed Akashi INI profile. Use an operating-system sandbox or a

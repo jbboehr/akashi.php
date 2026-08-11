@@ -7,10 +7,10 @@
 [![License: AGPL-3.0-only WITH romic-exception](https://img.shields.io/badge/license-AGPL--3.0--only%20WITH%20romic--exception-blue.svg)](LICENSE.md)
 [![AI burn](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fjbboehr%2F48eea04b7a73a84c397af8b9dc557556%2Fraw%2Fagent-badge.json&cacheSeconds=300)](https://github.com/arlegotin/agent-badge)
 
-Akashi turns PHP examples in Markdown documentation into executable tests. PHP fences in a README or documentation site
-form one shared corpus that PHPUnit executes in-process by default, while individual examples can opt into a child
-process. Supported native `assert()` calls remain unconditional, failures point back to the documentation, and the same
-examples can participate in PHPStan verification or named consumer-fixture extraction.
+Akashi turns PHP examples in Markdown and PHPDoc into executable tests. PHP fences in a README, documentation site, or
+source docblock form one shared corpus that PHPUnit executes in-process by default, while individual examples can opt
+into a child process. Supported native `assert()` calls remain unconditional, failures point back to the maintained
+source, and the same examples can participate in PHPStan verification or named consumer-fixture extraction.
 
 Put an ordinary PHP fence in `README.md` or another selected Markdown file:
 
@@ -50,8 +50,8 @@ final class DocumentationExamplesTest extends TestCase
 Run `vendor/bin/phpunit`. Akashi discovers each selected PHP fence, rewrites supported native `assert()` calls so they
 cannot be disabled by PHP configuration, and executes each example as a named PHPUnit data set. The trait supplies the
 provider and test method; the project supplies only its corpus. The default backend isolates local variables and
-declarations in-process. When an assertion fails, the report identifies the maintained Markdown example rather than only
-generated code.
+declarations in-process. When an assertion fails, the report identifies the maintained documentation example rather than
+only generated code.
 
 ## Installation
 
@@ -67,6 +67,7 @@ projects remaining on PHPUnit 10 may require `phpunit/phpunit:^10.5` instead.
 ## Features
 
 - Markdown PHP examples as named PHPUnit tests
+- PHPDoc PHP examples from ordinary source files
 - fast in-process execution by default
 - opt-in child-process execution for examples that need process isolation
 - unconditional documentation assertions
@@ -82,8 +83,8 @@ Akashi executes trusted project code; neither runtime backend is a security sand
 Start with the [Quick Start](https://jbboehr.github.io/akashi.php/quick-start.html), or read the
 [complete documentation](https://jbboehr.github.io/akashi.php/).
 
-The Markdown workflow, both runtime backends, PHPUnit integration, PHPStan verification, and marked extraction are
-implemented and in active use. Both recorded consumer migrations are complete. Akashi is still pre-1.0; its categorized
+The Markdown and PHPDoc workflows, both runtime backends, PHPUnit integration, PHPStan verification, and marked
+extraction are implemented. Both recorded consumer migrations are complete. Akashi is still pre-1.0; its categorized
 public API is usable but may change between minor releases before 1.0.
 
 ## License

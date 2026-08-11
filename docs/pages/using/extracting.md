@@ -32,6 +32,18 @@ echo "Hello from Akashi!\n";
 `akashi-example` is an Akashi-generic convention, not a hard-coded name. A project retaining an existing marker such as
 `yumemi-example` supplies that name explicitly.
 
+The same marker can live inside PHPDoc and applies only to a fence in that comment:
+
+````php
+/**
+ * <!-- akashi-example: greeting -->
+ *
+ * ```php
+ * echo "Hello from Akashi!\n";
+ * ```
+ */
+````
+
 ## Extract It
 
 ```console
@@ -55,10 +67,10 @@ The same operation is available without the CLI:
 ```php
 <?php
 
+use jbboehr\Akashi\Source\DocumentationSource;
 use jbboehr\Akashi\Source\MarkedExampleSelector;
-use jbboehr\Akashi\Source\MarkdownSource;
 
-$corpus = MarkdownSource::forProject(dirname(__DIR__))
+$corpus = DocumentationSource::forProject(dirname(__DIR__))
     ->includeFile('docs/examples.md')
     ->withMarkerName('akashi-example')
     ->load();

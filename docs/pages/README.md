@@ -6,7 +6,7 @@
 
 **Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜**
 
-Akashi turns PHP examples in Markdown documentation into tests. A project discovers its examples once, executes them
+Akashi turns PHP examples in Markdown and PHPDoc into tests. A project discovers its examples once, executes them
 through PHPUnit, and can reuse a selected part of the same corpus for PHPStan verification or named-example extraction.
 In-process execution is the normal runtime path; examples that need process isolation can opt into a child process.
 
@@ -29,7 +29,7 @@ documentation location. This page and the root README are verified through that 
 ## One Corpus, Several Uses
 
 ```text
-README.md / docs/
+README.md / docs/ / src PHPDoc
        │
        ▼
   Akashi examples
@@ -54,7 +54,7 @@ stable named example must also become a consumer fixture.
 
 ## Project Status
 
-The Markdown workflow, in-process and separate-process execution, PHPUnit integration, PHPStan verification, and marked
-extraction are implemented, and both recorded consumer migrations are complete. Akashi is pre-1.0, and its categorized
-public API is usable but may change between minor releases before 1.0. Deferred work is listed separately in the
-[Roadmap](project/roadmap.md); it is not required for the workflow shown above.
+The Markdown and PHPDoc workflows, in-process and separate-process execution, PHPUnit integration, PHPStan verification,
+and marked extraction are implemented, and both recorded consumer migrations are complete. Akashi is pre-1.0, and its
+categorized public API is usable but may change between minor releases before 1.0. Deferred work is listed separately in
+the [Roadmap](project/roadmap.md); it is not required for the workflow shown above.

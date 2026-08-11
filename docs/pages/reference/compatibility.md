@@ -11,7 +11,7 @@ passage; the singers waited without complaint, for ceremony cannot restore a gat
 <img src="../images/logia/AWC-55_2.webp" alt="Wardens inspecting the complete luminous circumference of a closed gate while singers wait" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Akashi is a reusable documentation-example library for PHP projects. Its Markdown, runtime, PHPUnit, and PHPStan
+Akashi is a reusable documentation-example library for PHP projects. Its Markdown/PHPDoc, runtime, PHPUnit, and PHPStan
 workflows are usable outside its original consumers. The 0.1 release remains under active pre-1.0 development, so its
 public API may change between minor releases before 1.0.
 
@@ -21,14 +21,14 @@ public API may change between minor releases before 1.0.
 | ----------------- | -------------------------------------------------------------------------------- |
 | PHP               | 8.2 and later                                                                    |
 | Composer          | Runtime API 2.2 and later                                                        |
-| Markdown          | CommonMark fenced PHP blocks through `league/commonmark` 2.8                     |
+| Documentation     | CommonMark PHP fences in `.md` files and interior lines of PHPDoc comments       |
 | PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines |
 | PHPStan           | Optional consumer integration targeting PHPStan 2.x                              |
 | ParaTest          | Development-only verified runner; not required by consumers                      |
 | Operating systems | Linux is primary and gating; macOS and Windows have advisory PHP 8.2 CI          |
 
-Akashi's core model, discovery, Markdown extraction, transformation, execution, and CLI do not require PHPUnit or
-PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
+Akashi's core model, Markdown/PHPDoc discovery and extraction, transformation, execution, and CLI do not require PHPUnit
+or PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
 
 On pushes to `master`, the advisory macOS and Windows jobs run Composer validation, PHPStan, PHPUnit, package
 validation, and a CLI smoke test.
@@ -39,10 +39,12 @@ execution backends, and the PHPStan `RuleTestCase` adapter. CI runs this gate on
 
 ## Authoring Boundary
 
-- Markdown is the only implemented documentation source. PHPDoc fences, external canonical example files, named regions,
-  and synchronized copies are deferred.
+- Markdown and PHPDoc fences are implemented. External canonical example files, named regions, and synchronized copies
+  remain deferred.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
+- PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;
+  content beside `/**` or `*/` is not interpreted as Markdown, and symbol attachment is not exposed as model metadata.
 - Runtime directives are `<!-- akashi: skip -->`, `<!-- akashi: separate-process -->`, and the typed in-process
   `// akashi: expect-exception ThrowableClass` expectation. Expected exceptions also accept an external
   `<!-- akashi: expect-exception ThrowableClass -->` form; combining the forms is invalid.
@@ -88,9 +90,9 @@ In-process native `assert()` calls are rewritten and always evaluate their argum
 and semantic differences are documented under [Assertion Behavior](../using/phpunit.md#assertion-behavior).
 
 Akashi keeps original example code separate from prepared code and retains line mappings through its implemented
-transforms. Parse, assertion, runtime, and PHPStan reports prefer a maintained Markdown line when the underlying tool
-supplies a usable generated line. When it cannot establish an exact mapping, it reports the example start explicitly;
-low-level metadata may still contain a temporary-file path.
+transforms. Parse, assertion, runtime, and PHPStan reports prefer a maintained Markdown or PHP source line when the
+underlying tool supplies a usable generated line. When it cannot establish an exact mapping, it reports the example
+start explicitly; low-level metadata may still contain a temporary-file path.
 
 An expected exception changes only the interpretation of a clean in-process execution result. A matching execution
 exception passes; normal completion, a mismatched type, an unavailable or non-`Throwable` class, and any cleanup failure

@@ -222,8 +222,9 @@ workflows only. They did not supply Akashi runtime, doctest, extraction, or veri
 The Rust review influenced only the roadmap and vocabulary used to discuss deferred behavior:
 
 - hidden support lines motivate preserving separate authored, semantic, and possible future display views;
-- executable examples in documentation comments and externally included documentation provide user-identified behavioral
-  precedent for deferred PHPDoc sources and separate code-origin and presentation locations;
+- executable examples in documentation comments provided user-facing behavioral precedent for Akashi's independently
+  designed inline PHPDoc extraction; externally included documentation still informs the deferred separation of code
+  origin and presentation locations;
 - ignored examples informed the authored runtime-skip directive while broader ignore policies remain deferred;
 - non-running examples motivate a future parse-or-analyze-only mode;
 - expected runtime failure motivated the roadmap entry now implemented as a narrow in-process throwable-type
@@ -233,6 +234,11 @@ The Rust review influenced only the roadmap and vocabulary used to discuss defer
 
 Akashi does not adopt the names `should_panic`, `no_run`, or `compile_fail` as APIs. No Rust-specific algorithm, API
 shape, source transformation, or internal architecture was copied or adapted.
+
+Akashi's PHPDoc implementation was independently derived from its existing CommonMark example model and PHP ecosystem
+conventions. It uses PHP's public tokenizer contract to locate documentation comments, parses only conventional
+multiline comment interiors, and preserves the original PHP file and line locations. No prohibited implementation
+material or competing PHP doctest documentation was consulted for this work.
 
 ## Independently derived Akashi decisions
 

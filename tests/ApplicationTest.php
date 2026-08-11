@@ -165,6 +165,32 @@ final class ApplicationTest extends TestCase
         self::assertSame('', $result['stderr']);
     }
 
+    public function testExtractsAMarkedPhpDocExample(): void
+    {
+        $file = $this->workspace . '/examples.php';
+        self::assertNotFalse(file_put_contents($file, <<<'PHP'
+<?php
+
+/**
+ * <!-- selected-example: chosen -->
+ * ```php
+ * echo 'phpdoc';
+ * ```
+ */
+PHP));
+
+        $result = $this->runApplication([
+            'extract',
+            '--marker-name=selected-example',
+            $file,
+            'chosen',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame("echo 'phpdoc';\n", $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
     /**
      * @param list<string> $arguments
      */
@@ -199,7 +225,7 @@ final class ApplicationTest extends TestCase
         ];
         yield 'missing positional argument' => [
             ['extract', '--marker-name=selected-example', 'examples.md'],
-            'The extract command requires exactly one Markdown file and marker ID.',
+            'The extract command requires exactly one documentation file and marker ID.',
         ];
     }
 
@@ -295,7 +321,7 @@ final class ApplicationTest extends TestCase
 
         self::assertSame(ExitCode::ExtractionFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
-        self::assertStringContainsString('Markdown file path must not be empty.', $result['stderr']);
+        self::assertStringContainsString('Documentation file path must not be empty.', $result['stderr']);
     }
 
     public function testAcceptsAProjectRelativeFilePath(): void

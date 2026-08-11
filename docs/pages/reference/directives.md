@@ -12,7 +12,8 @@ prepares dignity for the moment it cannot remain upright.</p>
 <img src="../images/logia/AWC-4_37.webp" alt="A practiced dancer safely guiding another performer down through a split stage" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Directives are Akashi-owned HTML comments associated with the next PHP fence. The current runtime directives are:
+Directives are Akashi-owned HTML comments associated with the next PHP fence in a Markdown document or within the same
+PHPDoc comment. The current runtime directives are:
 
 ```html
 <!-- akashi: skip -->
@@ -54,6 +55,19 @@ echo "Hello!\n";
 Prose or an unrelated CommonMark block breaks the association. Unknown directives, duplicate directives, malformed
 exception class names, orphaned directives, and directives targeting non-PHP fences fail during extraction with the
 comment's source location.
+
+Inside PHPDoc, retain the normal leading `*` on each authored line. Akashi removes the docblock decoration before
+applying the same association rules, and metadata never crosses from one PHPDoc comment into another:
+
+````php
+/**
+ * <!-- akashi: separate-process -->
+ *
+ * ```php
+ * exit(0);
+ * ```
+ */
+````
 
 Directives are deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to
 renderers and syntax highlighters.

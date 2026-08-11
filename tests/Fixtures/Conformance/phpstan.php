@@ -33,65 +33,10 @@
  * and the Romic Exception along with this program.  If not, see
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
-
-declare(strict_types=1);
-
-namespace jbboehr\Akashi\Tests\Conformance;
-
-use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
-use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
-use jbboehr\Akashi\Source\DocumentationSource;
-use PhpParser\Node;
-use PhpParser\Node\Stmt\Echo_;
-use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Testing\RuleTestCase;
-
-/** @implements Rule<Echo_> */
-final class ConformanceEchoRule implements Rule
-{
-    public function getNodeType(): string
-    {
-        return Echo_::class;
-    }
-
-    /**
-     * @param Echo_ $node
-     *
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
-     */
-    public function processNode(Node $node, Scope $scope): array
-    {
-        return [RuleErrorBuilder::message('echo statements are forbidden by the Akashi conformance rule')
-            ->identifier('akashi.conformanceEcho')
-            ->build()];
-    }
-}
-
-/** @extends RuleTestCase<ConformanceEchoRule> */
-final class PhpStanConformanceTest extends RuleTestCase
-{
-    use VerifiesPhpStanExamples;
-
-    public function testVerifiesAMixedDocumentationCorpusThroughThePublicPhpStanAdapter(): void
-    {
-        $projectRoot = dirname(__DIR__, 2);
-        $corpus = DocumentationSource::forProject($projectRoot)
-            ->includeFiles([
-                'tests/Fixtures/Conformance/phpstan.md',
-                'tests/Fixtures/Conformance/phpstan.php',
-            ])
-            ->load();
-
-        $this->assertPhpStanExamples(
-            $corpus,
-            PhpStanExampleConfiguration::forTokens($projectRoot, '@akashi-phpstan-example'),
-        );
-    }
-
-    protected function getRule(): ConformanceEchoRule
-    {
-        return new ConformanceEchoRule();
-    }
-}
+/**
+ * ```php
+ * // @akashi-phpstan-example
+ * echo 'PHPDoc conformance';
+ * //! echo statements are forbidden by the Akashi conformance rule
+ * ```
+ */

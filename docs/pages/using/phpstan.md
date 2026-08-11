@@ -13,7 +13,7 @@ rightly named.</p>
 </figure>
 
 A documentation example can be executed at runtime and independently checked as a static-analysis fixture. PHPStan is an
-optional, first-class integration: projects that do not need it can use the Markdown and PHPUnit workflow without
+optional, first-class integration: projects that do not need it can use the documentation and PHPUnit workflow without
 installing or configuring PHPStan.
 
 The consumer supplies its PHPStan rule and extension configuration. Akashi supplies corpus selection, expectation
@@ -99,5 +99,6 @@ Requiring the files executes their top-level code. PHPStan verification is there
 documentation. Akashi captures output, restores the working directory, error-reporting level, and output-buffer stack,
 and removes temporary artifacts, but it is not a sandbox.
 
-Analyzer lines are translated back to maintained Markdown lines when the current mapping supports them. Low-level
-diagnostic metadata may retain a temporary path, while the user-facing failure report prefers the original document.
+Analyzer lines are translated back to maintained Markdown or PHPDoc lines when the current mapping supports them.
+Low-level diagnostic metadata may retain a temporary path, while the user-facing failure report prefers the original
+document.

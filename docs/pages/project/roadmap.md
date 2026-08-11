@@ -11,9 +11,9 @@ that would not be founded for seven generations.</p>
 <img src="../images/logia/RAS-33_21.webp" alt="Seven abandoned milestones awakening beneath a violet fire wheel before the silhouette of a future city" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-This roadmap records direction, not release-number commitments. The current Markdown workflow is usable without the
-features below. Both recorded consumer migrations are complete; the immediate project work is stabilization of the
-documented pre-1.0 API.
+This roadmap records direction, not release-number commitments. The current Markdown and inline PHPDoc workflows are
+usable without the features below. Both recorded consumer migrations are complete; the immediate project work is
+stabilization of the documented pre-1.0 API.
 
 ## Markdown MVP Acceptance
 
@@ -34,39 +34,37 @@ change between minor releases before 1.0, but architecture tests prevent acciden
 
 ## Source Discovery Ergonomics
 
-A possible post-stabilization convenience is an immutable bulk file include equivalent to:
+The immutable source manifests now provide a bulk file include equivalent to:
 
 ```php
-/** @param iterable<ProjectPath|string> $paths */
+/** @param iterable<ProjectPath|string|\SplFileInfo> $paths */
 public function includeFiles(iterable $paths): self;
 ```
 
-It would apply the existing `includeFile()` validation to each project-relative path without coupling Akashi to a file
-discovery library. A consumer could feed it relative pathnames from Symfony Finder or another iterator while Akashi's
-public signatures remain dependency-neutral. The exact API is deferred until consumer experience demonstrates that
-repeated `includeFile()` calls are a material ergonomic problem; Symfony Finder is not a planned Akashi dependency.
+It applies existing file validation to arrays and iterators of project-relative paths. It also accepts `SplFileInfo`, so
+Symfony Finder results can be passed directly while Akashi remains dependency-neutral. The built-in recursive directory
+selection remains available for projects that do not need an external finder.
 
 ## PHPDoc Example Maintainability
 
-Future PHPDoc support should offer three authoring modes:
+PHPDoc support is being delivered through three progressively more maintainable authoring modes:
 
-1. short inline PHPDoc fences for local demonstrations;
+1. short inline PHPDoc fences for local demonstrations — implemented;
 2. references to ordinary external PHP files or stable named regions, with the external file as source of truth; and
 3. optional synchronized inline copies for renderers that cannot include external content.
 
 Referenced canonical examples are preferred for substantial code because IDEs, formatters, PHPStan, and PHP can operate
 on them directly. Named regions are preferred over fragile line-number ranges.
 
-The suggested sequence is:
+The remaining suggested sequence is:
 
-1. PHPDoc fenced examples.
-2. External canonical PHP examples and named regions.
-3. Generalized source-location mapping.
-4. Check-only synchronization.
-5. Check-only formatter integration.
-6. Optional write-mode synchronization and formatting.
-7. Hidden support-code semantics.
-8. Documentation-renderer integrations.
+1. External canonical PHP examples and named regions.
+2. Generalized source-location mapping.
+3. Check-only synchronization.
+4. Check-only formatter integration.
+5. Optional write-mode synchronization and formatting.
+6. Hidden support-code semantics.
+7. Documentation-renderer integrations.
 
 No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
 IDEs, renderers, and static analyzers. Akashi should integrate with configured formatters rather than become a PHP
