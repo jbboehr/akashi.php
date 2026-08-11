@@ -54,10 +54,12 @@ use PhpParser\NodeFinder;
  *
  * @phpstan-type DeclarationSets array{classes: array<string, true>, functions: array<string, true>, constants: array<string, true>}
  *
+ * @readonly
+ *
  * @logion [OSD 55:1] Before the inner vigil, remove every flame that answereth to a distant master and every cord that
  *     passeth beyond the wall; devotion is not proved by permitting an unseen hand to govern the sanctuary.
  */
-final readonly class InProcessSafetyValidator
+final class InProcessSafetyValidator
 {
     /**
      * @logion [AWC 55:2] The wardens walked the whole circumference before admitting the procession, marking each

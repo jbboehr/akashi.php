@@ -42,10 +42,12 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException;
 
 /**
+ * @readonly
+ *
  * @logion [RAS 64:14] The clerk walked the testimony from first line to last, lifting only marks placed at the lawful
  *     margin and preserving their order even when no accusation stood between them.
  */
-final readonly class ExpectationParser
+final class ExpectationParser
 {
     /**
      * @return list<DiagnosticExpectation>

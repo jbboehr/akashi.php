@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [SFA 64:24] When every promise received one answer, the clerk returned an ordered bundle of cords; an empty
  *     hearing likewise passed with an empty bundle rather than a fabricated witness.
  */
-final readonly class DiagnosticsMatched implements DiagnosticMatchResult
+final class DiagnosticsMatched implements DiagnosticMatchResult
 {
     /**
      * @var list<DiagnosticAssignment>
@@ -50,7 +52,7 @@ final readonly class DiagnosticsMatched implements DiagnosticMatchResult
      * @logion [OSD 64:25] The successful cords followed the petitions' authored order, though judgments had exchanged
      *     places during deliberation to satisfy the narrower claims.
      */
-    public array $assignments;
+    public readonly array $assignments;
 
     /**
      * @param list<DiagnosticAssignment> $assignments

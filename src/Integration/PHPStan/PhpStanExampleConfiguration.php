@@ -43,16 +43,18 @@ use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException;
 use jbboehr\Akashi\Model\ProjectRoot;
 
 /**
+ * @readonly
+ *
  * @logion [SFA 65:1] The foreign examiner received one immutable chart naming both the true court and the question by
  *     which each witness would be admitted, so neither road nor summons changed midway through the hearing.
  */
-final readonly class PhpStanExampleConfiguration
+final class PhpStanExampleConfiguration
 {
     /**
      * @logion [OSD 65:2] The chart bore the canonical road discovered before deliberation, never the caller's mutable
      *     camp nor a spelling whose destination depended upon it.
      */
-    public ProjectRoot $projectRoot;
+    public readonly ProjectRoot $projectRoot;
 
     /**
      * @var \Closure(Example): bool
@@ -60,7 +62,7 @@ final readonly class PhpStanExampleConfiguration
      * @logion [RAS 65:3] One sealed question stood beside the road and judged every witness alone, admitting neither
      *     inherited tokens nor project lore that its owner had not supplied.
      */
-    private \Closure $relevancePredicate;
+    private readonly \Closure $relevancePredicate;
 
     /**
      * @param \Closure(Example): bool $relevancePredicate

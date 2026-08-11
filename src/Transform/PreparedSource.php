@@ -41,22 +41,24 @@ namespace jbboehr\Akashi\Transform;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 56:1] Bind the renewed charter to the table of its ancient roads; a decree made legible yet severed
  *     from place may command the innocent province and spare the guilty one.
  */
-final readonly class PreparedSource
+final class PreparedSource
 {
     /**
      * @logion [AWC 56:2] The bell was recast after the fire, and its first clear note carried the same mourning that
      *     had once trembled through the cracked bronze.
      */
-    public PreparedCode $code;
+    public readonly PreparedCode $code;
 
     /**
      * @logion [RAS 56:3] Around the translated constellation, the angel preserved a second chart of its former sky;
      *     thus every new radiance could answer for the darkness from which it had been moved.
      */
-    public SourceMap $sourceMap;
+    public readonly SourceMap $sourceMap;
 
     /**
      * @logion [SFA 56:4] Join testimony to direction before sealing either; truth without a road cannot reach the

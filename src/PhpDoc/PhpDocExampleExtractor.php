@@ -52,16 +52,18 @@ use jbboehr\Akashi\Model\SourceSpan;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 69:22] I saw a bronze comet driven like a nail through the eclipse; and the false noon remained
  *     fastened to the sky until the cities confessed their stolen hour.
  */
-final readonly class PhpDocExampleExtractor
+final class PhpDocExampleExtractor
 {
     /**
      * @logion [AWC 69:23] When the granary prefect denied the famine, his ledgers bled indigo through their bindings.
      *     None could close them until the hungry were numbered aloud.
      */
-    private ?MarkerName $markerName;
+    private readonly ?MarkerName $markerName;
 
     /**
      * Create an extractor with an optional explicit marker-comment name.

@@ -54,10 +54,12 @@ use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 60:19] The petitioner named one witness at the outer door; unseen stewards prepared the chamber, heard
  *     the testimony, and returned one public judgment without requiring him to traverse each office.
  */
-final readonly class PhpUnitRuntime
+final class PhpUnitRuntime
 {
     /**
      * An authored runtime skip delegates to PHPUnit's skipped-test mechanism and does not return.

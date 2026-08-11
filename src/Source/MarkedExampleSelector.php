@@ -46,11 +46,13 @@ use jbboehr\Akashi\Source\Exception\MarkerNotFoundException;
 /**
  * Selects exactly one example by its author-assigned marker ID.
  *
+ * @readonly
+ *
  * @logion [SFA 48:40] A white horse returned each spring to the abandoned mill and waited beside the motionless wheel.
  *     In the twelfth year, a child tied no bridle upon it but cleared the channel. Water arrived before noon, and the
  *     horse departed while grain still fell warm from the stones.
  */
-final readonly class MarkedExampleSelector
+final class MarkedExampleSelector
 {
     /**
      * @logion [RAS 49:12] Within the eclipse, seven flocks crossed the sun in contrary directions, yet their shadows

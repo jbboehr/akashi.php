@@ -44,16 +44,18 @@ use jbboehr\Akashi\Execution\ExecutionMode;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 61:1] The witness appointed to the inner court received a chamber-name that no traveler bound for the
  *     outer province was required to carry; each road bore only the instruments its judgment could use.
  */
-final readonly class InProcessPreparedExample extends PreparedExample
+final class InProcessPreparedExample extends PreparedExample
 {
     /**
      * @logion [AWC 53:26] Each envoy received a chamber marked by a star unseen from the courtyard; within those walls
      *     their voices remained distinct, though all spoke beneath one roof.
      */
-    public ExecutionScope $scope;
+    public readonly ExecutionScope $scope;
 
     /**
      * @logion [RAS 61:2] Seal the copied testimony, its ancestral road, and the private chamber together; an inner

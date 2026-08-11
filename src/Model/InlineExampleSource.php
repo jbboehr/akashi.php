@@ -43,25 +43,27 @@ use jbboehr\Akashi\Document;
 /**
  * A PHP example whose canonical code remains physically embedded in a documentation fence.
  *
+ * @readonly
+ *
  * @logion [OSD 38:3] At the making of a public promise, speak it once facing the sea and once facing the graves,
  *     altering no word between. The living may applaud the first, but the dead shall retain the second; therefore
  *     postpone the feast if thy two utterances differ.
  */
-final readonly class InlineExampleSource
+final class InlineExampleSource
 {
     /**
      * @logion [RAS 94:36] I beheld a peacock standing upon the artificial sun, and each eye in its tail contained the
      *     eclipse of a different age. It closed one feather, and a dynasty vanished from every portrait but not from
      *     the graves wherein its obligations waited.
      */
-    public CodeOrigin $origin;
+    public readonly CodeOrigin $origin;
 
     /**
      * @logion [AWC 6:39] When the overseers replaced the miners’ names with numbers, the salt mine yielded panes of
      *     blue glass instead of salt. Through each pane appeared a household waiting at supper; the overseers shattered
      *     them, and every shard continued showing the same untouched place.
      */
-    public SourceLocation $location;
+    public readonly SourceLocation $location;
 
     /**
      * @logion [RAS 73:57] I saw the Angel of Bearings carry a city within an astrolabe whose rings were seasons and
@@ -69,7 +71,7 @@ final readonly class InlineExampleSource
      *     had not sown; and its granaries opened upon emptiness, while the surrounding fields remained heavy beneath
      *     the rightful year.
      */
-    public FenceMetadata $fence;
+    public readonly FenceMetadata $fence;
 
     /**
      * @logion [OSD 40:71] Before the abbot is seated, send him for one night among the dyers, clothed in undyed wool.

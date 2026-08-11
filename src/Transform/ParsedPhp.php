@@ -44,16 +44,18 @@ use PhpParser\Token;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 54:1] The physicians placed the untouched herb, the distilled oil, and the record of every flame upon
  *     one table; healing was not entrusted to a bottle that could no longer answer for its garden.
  */
-final readonly class ParsedPhp
+final class ParsedPhp
 {
     /**
      * @logion [AWC 54:2] The herald unfolded the proclamation exactly as it had entered the court, including the blank
      *     first panel where the lawful seal alone was permitted to stand.
      */
-    public string $source;
+    public readonly string $source;
 
     /**
      * @var list<Stmt>
@@ -61,7 +63,7 @@ final readonly class ParsedPhp
      * @logion [RAS 54:3] In the crystal nave, every spoken vow became a pillar before its echo faded; the angel walked
      *     among them and found one promise whose foundation did not touch the earth.
      */
-    public array $statements;
+    public readonly array $statements;
 
     /**
      * @var list<Token>
@@ -69,13 +71,13 @@ final readonly class ParsedPhp
      * @logion [SFA 54:4] The child gathered each scale shed by the silver fish and laid them in the order of the river;
      *     by their small succession the elders discovered where the current had turned.
      */
-    public array $tokens;
+    public readonly array $tokens;
 
     /**
      * @logion [OSD 54:5] Keep the first itinerary beside every later copy, for a road translated into ceremony may
      *     acquire many gates while the mountain beneath it remaineth one.
      */
-    public SourceMap $sourceMap;
+    public readonly SourceMap $sourceMap;
 
     /**
      * @param list<Stmt> $statements

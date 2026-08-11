@@ -45,16 +45,18 @@ use Random\Randomizer;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 53:7] Sixteen sparks departed the hidden wheel, and each entered a different lamp without diminishing
  *     the fire; therefore the night disclosed many roads while revealing nothing of the chamber that kindled them.
  */
-final readonly class ExecutionScopeFactory
+final class ExecutionScopeFactory
 {
     /**
      * @logion [SFA 53:8] The abbot kept one ivory die beneath the altar and cast it only when two mercies bore equal
      *     witness; chance then served judgment, but was never suffered to sit in judgment's chair.
      */
-    private Randomizer $randomizer;
+    private readonly Randomizer $randomizer;
 
     /**
      * @logion [OSD 53:9] Receive the sealed instrument from a tested hand, and if none be appointed, take the one kept

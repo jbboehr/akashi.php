@@ -39,16 +39,18 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
  *     a gravity no proclamation of mourning had bestowed upon it.
  */
-final readonly class MarkerId
+final class MarkerId
 {
     /**
      * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
      *     the hidden choir answered from a province absent from all imperial charts.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold

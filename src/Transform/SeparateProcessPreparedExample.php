@@ -44,10 +44,12 @@ use jbboehr\Akashi\Execution\ExecutionMode;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 61:3] The outer-court witness carried the original tablet and its road, but no key to an inner chamber;
  *     distance itself supplied the boundary, and needless instruments were left at the gate.
  */
-final readonly class SeparateProcessPreparedExample extends PreparedExample
+final class SeparateProcessPreparedExample extends PreparedExample
 {
     /**
      * @logion [OSD 61:4] Bind the preserved testimony to its ancestral line-map beneath the seal of the distant court;

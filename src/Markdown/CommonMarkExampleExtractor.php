@@ -79,25 +79,27 @@ use League\CommonMark\Parser\MarkdownParser;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 41:26] Termites consumed a proclamation posted in the marketplace before anyone had finished reading it.
  *     Officials blamed the insects, but no citizen could repeat the command. By noon old customs had returned. A law
  *     that lives only upon plaster is already waiting for smaller mouths.
  */
-final readonly class CommonMarkExampleExtractor
+final class CommonMarkExampleExtractor
 {
     /**
      * @logion [OSD 42:9] Deep beneath the young sea, coral raised red stairways no foot could climb. Waves descended,
      *     struck their crests, and returned clothed in foam. Thus the ocean received a garment made by the least moving
      *     builders. Honor what labors without journeying.
      */
-    private MarkdownParser $parser;
+    private readonly MarkdownParser $parser;
 
     /**
      * @logion [AWC 47:20] The youngest envoy carried no gift except a clay cup from his village. At the treaty feast,
      *     the golden vessels cracked beneath boiling wine, but the little cup endured. Two kings drank from it in turn
      *     and sent the jeweled fragments home unopened.
      */
-    private ?MarkerName $markerName;
+    private readonly ?MarkerName $markerName;
 
     /**
      * @logion [RAS 42:21] An army seized every copper cooking pot to forge a monument to its campaign. The monument

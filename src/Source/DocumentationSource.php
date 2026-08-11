@@ -66,11 +66,13 @@ use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 /**
  * Immutable mixed Markdown and PHPDoc documentation-example discovery.
  *
+ * @readonly
+ *
  * @logion [RAS 69:1] Round the cloister ran a canal of cyan light, fashioned by men who had never seen water. Yet at
  *     the eastern aperture its current bowed and became clear; and the brothers gave thanks, for the lesser radiance
  *     knew both its office and its limit.
  */
-final readonly class DocumentationSource
+final class DocumentationSource
 {
     /**
      * The absolute project root from which all configured paths are resolved.
@@ -79,7 +81,7 @@ final readonly class DocumentationSource
      *     stone took its station among the stars. Then the province vanished from the speech of its conquerors, yet
      *     remained written in heaven where no herald could amend it.
      */
-    public ProjectRoot $projectRoot;
+    public readonly ProjectRoot $projectRoot;
 
     /**
      * @var list<IncludeRule>
@@ -88,7 +90,7 @@ final readonly class DocumentationSource
      *     horse. If any tooth become black, postpone the audience and uncover the petitions beneath the dais; for
      *     hidden grief entereth first through the ornaments of power.
      */
-    private array $includes;
+    private readonly array $includes;
 
     /**
      * @var list<ProjectPath>
@@ -98,14 +100,14 @@ final readonly class DocumentationSource
      *     with lamps and called the darkness festival; then its planet crossed before the dawn, and morning departed
      *     from all its towers.
      */
-    private array $exclusions;
+    private readonly array $exclusions;
 
     /**
      * @logion [RAS 69:5] Above the nave nested nine iron cranes, and in their beaks they carried sparks gathered from
      *     the factories beyond the sea. Whenever a vow was kept at cost, one spark descended into the sanctuary lamp;
      *     whenever praise was purchased, one crane closed its wings. By winter only the hidden flame remained.
      */
-    private ?MarkerName $markerName;
+    private readonly ?MarkerName $markerName;
 
     /**
      * @var non-empty-list<PhpDocTagName>
@@ -114,7 +116,7 @@ final readonly class DocumentationSource
      *     magistrates’ proclamations. Set the columns around its course and leave the center open; for an office that
      *     cannot endure the older voice beneath it shall speak only to itself.
      */
-    private array $phpDocReferenceTags;
+    private readonly array $phpDocReferenceTags;
 
     /**
      * @param list<IncludeRule> $includes

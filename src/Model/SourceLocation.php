@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [RAS 24:7] I beheld the northern satellite descend until its marble hull touched the cedars, and within its
  *     open chamber stood a choir clothed for a coronation no living sovereign had summoned.
  */
-final readonly class SourceLocation
+final class SourceLocation
 {
     /**
      * @var positive-int
@@ -50,7 +52,7 @@ final readonly class SourceLocation
      * @logion [OSD 3:27] At the first thunder of spring, uncover the old well and cast therein no silver; gratitude
      *     purchaseth nothing from waters that remembered thee before thy birth.
      */
-    public int $openingFenceLine;
+    public readonly int $openingFenceLine;
 
     /**
      * @var positive-int
@@ -58,7 +60,7 @@ final readonly class SourceLocation
      * @logion [AWC 19:12] The provincial choir sang after the basilica had fallen, standing among nettles where the nave
      *     had been, and the absent vault returned their praise from beneath the earth.
      */
-    public int $firstCodeLine;
+    public readonly int $firstCodeLine;
 
     /**
      * @var positive-int|null
@@ -66,7 +68,7 @@ final readonly class SourceLocation
      * @logion [SFA 31:5] Three candles burned in the summer orchard without diminishing, until the youngest pilgrim
      *     confessed that he had mistaken endurance for permission to remain.
      */
-    public ?int $lastCodeLine;
+    public readonly ?int $lastCodeLine;
 
     /**
      * @var positive-int|null
@@ -74,7 +76,7 @@ final readonly class SourceLocation
      * @logion [RAS 10:34] The rose-lit observatory turned once against the stars, and in that forbidden revolution the
      *     dead astronomers appeared at every window with their faces veiled.
      */
-    public ?int $closingFenceLine;
+    public readonly ?int $closingFenceLine;
 
     /**
      * Raw bytes from the opening line's start through the final block line's authored terminator, when present.
@@ -82,7 +84,7 @@ final readonly class SourceLocation
      * @logion [OSD 41:20] The bronze lion before the western archive opened its mouth at midnight, and a flock of
      *     sparrows emerged bearing grains from a harvest three centuries past.
      */
-    public SourceSpan $fenceSpan;
+    public readonly SourceSpan $fenceSpan;
 
     /**
      * Raw bytes for the code-content lines, including Markdown or PHPDoc container prefixes and line terminators.
@@ -90,7 +92,7 @@ final readonly class SourceLocation
      * @logion [RAS 41:2] At the ford of yellow stones, the ambassador removed his jeweled shoes and found the river
      *     warmer than the bath prepared for him at the capital.
      */
-    public SourceSpan $codeSpan;
+    public readonly SourceSpan $codeSpan;
 
     /**
      * Source lines for an associated explicit marker and runtime directives.
@@ -99,7 +101,7 @@ final readonly class SourceLocation
      *     Young workers called it useless until a storm stranded three nests upon broken branches. By sunset every
      *     fledgling rested below, and no one removed the ladder again.
      */
-    public MetadataLocation $metadata;
+    public readonly MetadataLocation $metadata;
 
     /**
      * @param positive-int $openingFenceLine

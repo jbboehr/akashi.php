@@ -55,11 +55,13 @@ use PhpParser\NodeFinder;
  * @phpstan-type ParsedExample array{example: Example, parsed: ParsedPhp}
  * @phpstan-type DeclarationRegistry array<string, array<string, Example>>
  *
+ * @readonly
+ *
  * @logion [RAS 66:2] I beheld the river withdrawn from its bed, and beneath it stood the milestones of an older road.
  *     The pilgrims counted them before the waters returned, for a path concealed by abundance remaineth a path, and
  *     the unwary traveler shall answer for every boundary he pretended not to see.
  */
-final readonly class PhpStanDeclarationValidator
+final class PhpStanDeclarationValidator
 {
     /**
      * @param list<ParsedExample> $examples

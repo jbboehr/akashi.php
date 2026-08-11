@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [SFA 64:32] The examiner counted both processions before comparing words, then exchanged tentative cords
  *     until every promise had one answer or the impossibility of such a judgment stood proven.
  */
-final readonly class DiagnosticMatcher
+final class DiagnosticMatcher
 {
     /**
      * @param list<DiagnosticExpectation> $expectations

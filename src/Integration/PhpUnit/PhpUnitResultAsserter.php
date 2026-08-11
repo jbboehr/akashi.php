@@ -49,10 +49,12 @@ use PHPUnit\Framework\ExpectationFailedException;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 60:8] The runner delivered white and black stones to one public court, where favorable judgment gained
  *     a witness and every grief received a name, a place, and its unbroken ancestry.
  */
-final readonly class PhpUnitResultAsserter
+final class PhpUnitResultAsserter
 {
     /**
      * @throws ExpectationFailedException when execution or cleanup failed

@@ -62,10 +62,12 @@ use Symfony\Component\Process\Process;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [AWC 62:10] In the year of the divided tribunal, each witness crossed alone into a chamber beyond the city;
  *     the wardens returned voice, alarm, sentence, and elapsed hour, then erased the borrowed threshold behind him.
  */
-final readonly class SubprocessExecutor implements Executor
+final class SubprocessExecutor implements Executor
 {
     /**
      * @logion [SFA 62:23] The outer court allotted one complete hourglass to every distant hearing, and the same
@@ -77,7 +79,7 @@ final readonly class SubprocessExecutor implements Executor
      * @logion [OSD 62:11] The distant court received one sealed chart naming its ground and preparatory scroll; no
      *     custom of the messenger's camp was permitted to redraw either boundary after the witness departed.
      */
-    private RuntimeConfiguration $configuration;
+    private readonly RuntimeConfiguration $configuration;
 
     /**
      * @logion [SFA 62:12] Appoint the foreign hearing only after its immutable chart hath been received entire, for a

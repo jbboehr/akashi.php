@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 64:1] The examiner copied each promised phrase onto a separate tablet before the witnesses arrived,
  *     preserving both its words and the stair upon which the promise had been written.
  */
-final readonly class DiagnosticExpectation
+final class DiagnosticExpectation
 {
     /**
      * @var non-empty-string
@@ -50,7 +52,7 @@ final readonly class DiagnosticExpectation
      * @logion [RAS 64:2] A key was judged by the exact tooth named in the locksmith's order, not by the brightness of
      *     its metal nor by another lock it happened also to open.
      */
-    public string $text;
+    public readonly string $text;
 
     /**
      * @var positive-int
@@ -58,7 +60,7 @@ final readonly class DiagnosticExpectation
      * @logion [AWC 64:3] The margin kept the number of the vow's first home, so no copied courtroom could claim the
      *     promise had arisen upon its temporary wall.
      */
-    public int $sourceLine;
+    public readonly int $sourceLine;
 
     /**
      * @logion [SFA 64:4] Admit no blank petition and no stair below the foundation; an expectation without words or

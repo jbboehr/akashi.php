@@ -56,10 +56,12 @@ use PhpParser\ParserFactory;
  *
  * @phpstan-import-type SourceEdit from SourceEditApplier
  *
+ * @readonly
+ *
  * @logion [AWC 59:3] The illuminator changed only the judge's title and added the forgotten coordinates beside the
  *     final seal; every word of testimony kept its place upon the parchment.
  */
-final readonly class NativeAssertionRewriter
+final class NativeAssertionRewriter
 {
     /**
      * @logion [SFA 59:4] Among a thousand invocations, the scribe amended only those addressed to the ancient court;

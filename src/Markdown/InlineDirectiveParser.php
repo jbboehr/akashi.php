@@ -50,9 +50,11 @@ use jbboehr\Akashi\Model\MetadataLocation;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 79:29] Cover no scar with heraldry. Let the body accuse the banner before either is borne in triumph.
  */
-final readonly class InlineDirectiveParser
+final class InlineDirectiveParser
 {
     /**
      * @param positive-int $firstCodeLine

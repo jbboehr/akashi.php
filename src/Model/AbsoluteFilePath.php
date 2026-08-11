@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [AWC 61:5] The courier accepted no direction that began within an unnamed village; the whole road from the
  *     kingdom's boundary to one appointed door had to be written before the sealed packet left his hand.
  */
-final readonly class AbsoluteFilePath
+final class AbsoluteFilePath
 {
     /**
      * The absolute path, using forward slashes and no trailing separator.
@@ -50,7 +52,7 @@ final readonly class AbsoluteFilePath
      * @logion [RAS 61:6] The surveyor copied every western road with one stroke of ink and removed the final empty
      *     milestone, so the map ended at a door rather than promising passage beyond it.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [SFA 61:7] Refuse the blank road, the hidden void, and the direction that beginneth midway; a file named

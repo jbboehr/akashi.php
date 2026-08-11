@@ -41,10 +41,12 @@ namespace jbboehr\Akashi\Model;
 /**
  * A normalized absolute project-root path whose filesystem existence is validated when a source is loaded.
  *
+ * @readonly
+ *
  * @logion [SFA 34:9] The winter herons divided at the mouth of the river, some remaining beside the salt reeds while
  *     others vanished inland beneath a cloud too narrow to conceal them.
  */
-final readonly class ProjectRoot
+final class ProjectRoot
 {
     /**
      * The normalized path, using forward slashes and no trailing slash except at a filesystem root.
@@ -52,7 +54,7 @@ final readonly class ProjectRoot
      * @logion [RAS 34:15] I saw dark islands withdrawn from the silver chart, yet their extinguished beacons continued
      *     to turn beneath the sea and warned ships from reefs no eye could behold.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [AWC 34:18] The archivist reserved one empty shelf in every chamber, saying that absence faithfully kept

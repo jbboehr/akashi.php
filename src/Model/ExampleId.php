@@ -43,18 +43,20 @@ namespace jbboehr\Akashi\Model;
  *
  * @akashi-example examples/example-id.php#construction
  *
+ * @readonly
+ *
  * @logion [RAS 14:9] Masons carved open mouths along the city wall to frighten invaders. At the first east wind, each
  *     stone mouth spoke a cruelty committed inside the gates. The citizens plastered them shut, but the words rose from
  *     the wells. A wall that guards unrepented wrong shall become its herald.
  */
-final readonly class ExampleId
+final class ExampleId
 {
     /**
      * @logion [OSD 22:5] For nine days, a square cloud stood above a ruined village, giving shade but no rain. When the
      *     displaced returned together, it divided into seven smaller clouds and followed them as they rebuilt. Shelter
      *     shared among the wounded increaseth without being diminished.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [AWC 8:17] Seven vultures descended upon an unburied stranger beyond the wall, yet none touched him. Each

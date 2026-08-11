@@ -63,11 +63,12 @@ final class PackageMetadataTest extends TestCase
         self::assertSame('jbboehr/akashi', $metadata['name']);
         self::assertSame('library', $metadata['type']);
         self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
+        self::assertSame('>=1.0.6 <1.99', $metadata['require']['arokettu/random-polyfill']);
         self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
         self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
         self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
-        self::assertSame('^8.2', $metadata['require']['php']);
-        self::assertSame('^7.4', $metadata['require']['symfony/process']);
+        self::assertSame('^8.1', $metadata['require']['php']);
+        self::assertSame('^6.4 || ^7.4', $metadata['require']['symfony/process']);
         self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
         self::assertSame(
             'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',

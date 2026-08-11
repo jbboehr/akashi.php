@@ -24,5 +24,5 @@ throw new RuntimeException('An expected subtype satisfies its parent type.');
 ```php
 namespace Akashi\PHPUnit10Compatibility\SeparateProcess;
 
-assert(PHP_VERSION_ID >= 80200);
+assert(PHP_VERSION_ID >= 80100);
 ```

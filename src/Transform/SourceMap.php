@@ -43,16 +43,18 @@ use jbboehr\Akashi\Model\DocumentPath;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 53:15] Beneath the western ocean, lamps were fastened along a road whose stones had sunk before the
  *     first dynasty; sailors saw only points of gold, but the exiles knew which drowned mile each flame remembered.
  */
-final readonly class SourceMap
+final class SourceMap
 {
     /**
      * @logion [SFA 53:16] The courier carried no portrait of the lost city, only its true direction written upon bone;
      *     those who followed found ruins, wells, and at last the door their fathers had sealed.
      */
-    public DocumentPath $sourcePath;
+    public readonly DocumentPath $sourcePath;
 
     /**
      * @var non-empty-list<positive-int|null>
@@ -60,7 +62,7 @@ final readonly class SourceMap
      * @logion [OSD 53:17] Hang one tablet for every stair, and leave the tablets of newly raised steps blank until
      *     stone answereth stone; a false ancestry is worse than an honest silence between courses.
      */
-    private array $sourceLines;
+    private readonly array $sourceLines;
 
     /**
      * @param array<int, int|null> $sourceLines

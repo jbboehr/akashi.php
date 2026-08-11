@@ -41,16 +41,18 @@ namespace jbboehr\Akashi\Transform;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 53:4] A chamber without windows received one shaft of noon through a hole no wider than a reed, and
  *     every painted star upon its ceiling became visible by that narrow permission.
  */
-final readonly class ExecutionScope
+final class ExecutionScope
 {
     /**
      * @logion [OSD 53:5] Write the pilgrim's appointed name upon the inner gate, but leave the outer stone uncarved;
      *     what is known within the sanctuary need not become a boast before the road.
      */
-    public string $namespace;
+    public readonly string $namespace;
 
     /**
      * @logion [AWC 53:6] The masons tested every arch with a cord knotted by their grandmothers, and no governor was

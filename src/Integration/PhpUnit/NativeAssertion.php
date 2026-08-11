@@ -43,10 +43,12 @@ use PHPUnit\Framework\Assert;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 59:1] The judge received the common stone without asking whether the quarry had named it white; he
  *     weighed it once beneath the lamp, and the court recorded the measure even when no accusation followed.
  */
-final readonly class NativeAssertion
+final class NativeAssertion
 {
     /**
      * @return true
@@ -60,7 +62,7 @@ final readonly class NativeAssertion
         string $expression,
         string $sourcePath,
         int $sourceLine,
-    ): true {
+    ): bool {
         $passed = (bool) $assertion;
 
         if (!$passed && $description instanceof \Throwable) {

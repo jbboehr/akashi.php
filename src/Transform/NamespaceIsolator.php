@@ -52,10 +52,12 @@ use PhpParser\NodeFinder;
  * @phpstan-type DeclarationSets array{classes: array<string, true>, functions: array<string, true>, constants: array<string, true>}
  * @phpstan-import-type SourceEdit from SourceEditApplier
  *
+ * @readonly
+ *
  * @logion [RAS 56:5] The celestial cartographer raised an island into a private sea, yet turned every road-stone toward
  *     the mainland from which it came; solitude preserved the houses without teaching them a counterfeit ancestry.
  */
-final readonly class NamespaceIsolator
+final class NamespaceIsolator
 {
     /**
      * @logion [OSD 56:6] Enclose each testimony within its appointed court, but bend no road toward a different city;

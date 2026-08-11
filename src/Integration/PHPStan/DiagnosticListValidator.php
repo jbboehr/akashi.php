@@ -41,10 +41,12 @@ namespace jbboehr\Akashi\Integration\PHPStan;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 64:37] One clerk examined every procession entering the diagnostic court, so its public ledgers could
  *     promise exact kinds while malformed petitions still met a guarded door at runtime.
  */
-final readonly class DiagnosticListValidator
+final class DiagnosticListValidator
 {
     /**
      * @param array<int, mixed> $expectations

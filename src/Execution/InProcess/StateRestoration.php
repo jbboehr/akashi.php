@@ -43,16 +43,18 @@ use jbboehr\Akashi\Execution\CleanupFailure;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [SFA 58:1] At the closing of the chamber, the steward presented both the gathered voice and the ledger of
  *     doors that would not return to their hinges; silence alone could certify neither.
  */
-final readonly class StateRestoration
+final class StateRestoration
 {
     /**
      * @logion [OSD 58:2] The chamber's whole echo was poured into a clear vessel before the final gate was lowered,
      *     preserving the order in which each nested vault surrendered its sound.
      */
-    public string $stdout;
+    public readonly string $stdout;
 
     /**
      * @var list<CleanupFailure>
@@ -60,7 +62,7 @@ final readonly class StateRestoration
      * @logion [RAS 58:3] The unrepaired hinges were listed from first discovery to last, for an ordered confession is
      *     the beginning of restoration even where restoration could not be completed.
      */
-    public array $cleanupFailures;
+    public readonly array $cleanupFailures;
 
     /**
      * @param array<int, mixed> $cleanupFailures

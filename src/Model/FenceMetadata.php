@@ -41,11 +41,13 @@ namespace jbboehr\Akashi\Model;
 /**
  * CommonMark syntax metadata for an extracted fenced code block.
  *
+ * @readonly
+ *
  * @logion [RAS 39:25] Red snow descended upon the statues from which all inscriptions had been chiseled, and nowhere
  *     else in the province. At sunrise their stone mouths spoke the names of forgotten artisans, while the palace
  *     façade remained white and mute before the multitude.
  */
-final readonly class FenceMetadata
+final class FenceMetadata
 {
     /**
      * Complete semantic info string after CommonMark trimming and escape processing.
@@ -54,7 +56,7 @@ final readonly class FenceMetadata
      *     and found upon it letters of decrees not yet proclaimed. The court scraped them away as corrosion; thereafter
      *     the harbor forgot the tides, and ships returned only in paintings.
      */
-    public string $infoString;
+    public readonly string $infoString;
 
     /**
      * Opening-fence character.
@@ -63,7 +65,7 @@ final readonly class FenceMetadata
      *     the promise he kept upon the sea. Call no appointed instrument idle while its witness remaineth; the dead
      *     also travel roads withheld from the living.
      */
-    public FenceCharacter $character;
+    public readonly FenceCharacter $character;
 
     /**
      * Number of characters in the opening fence.
@@ -72,7 +74,7 @@ final readonly class FenceMetadata
      *     discharged by another hand. An unworthy giver doth not make obligation profane; let the debt outlive his
      *     house, and afterward return the metal to silence.
      */
-    public int $length;
+    public readonly int $length;
 
     /**
      * CommonMark indentation of the opening fence relative to its containing block.
@@ -81,7 +83,7 @@ final readonly class FenceMetadata
      *     grain joined grain and built a wall around each oath uttered below. One city broke the wall before evening,
      *     and the next morning passed over it without entering.
      */
-    public int $indentation;
+    public readonly int $indentation;
 
     /**
      * @logion [AWC 40:26] At the Accord of the Two Provinces, each envoy laid an uncarved stone beside the treaty. The

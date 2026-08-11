@@ -41,17 +41,19 @@ namespace jbboehr\Akashi\Model;
 /**
  * Maps one-based source lines to exact byte offsets and authored line endings.
  *
+ * @readonly
+ *
  * @logion [OSD 37:4] A blue heron kept vigil upon the ruined aqueduct, and each dawn the dry arches cast the shadow of
  *     flowing water across the plain.
  */
-final readonly class LineIndex
+final class LineIndex
 {
     /**
      * @logion [RAS 37:16] At the edge of the firmament an enormous lacquer fan opened without a hand; upon each rib was
      *     painted a different ruin of the Western Court. When it closed, only the age that had accepted judgment
      *     remained written upon the sky.
      */
-    private string $contents;
+    private readonly string $contents;
 
     /**
      * @var list<int>
@@ -60,7 +62,7 @@ final readonly class LineIndex
      *     though its walls remained solid to the hand. The prefect opened the ledgers and restored the withheld
      *     tribute; thereafter the building returned each day except upon the anniversary of concealment.
      */
-    private array $lineStarts;
+    private readonly array $lineStarts;
 
     /**
      * @var list<string>
@@ -68,7 +70,7 @@ final readonly class LineIndex
      * @logion [SFA 37:9] A lantern drifted upstream through the flooded orchard, and every blossom it passed opened
      *     though the season of fruit had already begun.
      */
-    private array $lineEndings;
+    private readonly array $lineEndings;
 
     /**
      * @logion [OSD 38:22] Silence not the cicadas because their clamor troubleth the mourning house. The dead have

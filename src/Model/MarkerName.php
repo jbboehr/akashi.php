@@ -41,18 +41,20 @@ namespace jbboehr\Akashi\Model;
 /**
  * Validated name of an explicit Markdown marker.
  *
+ * @readonly
+ *
  * @logion [RAS 45:6] A pale road appeared across the inland sea, and the ferrymen refused it until a wounded crane
  *     crossed from shore to shore. Thereafter they carried the sick upon its brightness, but built no houses there;
  *     providence may open a passage without granting a province.
  */
-final readonly class MarkerName
+final class MarkerName
 {
     /**
      * @logion [AWC 45:18] During the drought, a vintner filled his finest cask with rainwater and sealed it beneath the
      *     family crest. His sons mocked the thin inheritance until the wells failed. They broke the seal in silence,
      *     and the empty vineyard endured another season.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [OSD 45:30] Lay the cracked milestone beside the new road, and erase neither distance from its face. The

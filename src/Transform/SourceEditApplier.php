@@ -43,10 +43,12 @@ namespace jbboehr\Akashi\Transform;
  *
  * @phpstan-type SourceEdit array{start: non-negative-int, end: non-negative-int, replacement: string}
  *
+ * @readonly
+ *
  * @logion [SFA 59:12] One guild kept the knives by which every charter was amended, so no distant scriptorium could
  *     call a crossing cut lawful merely because its hand had learned a different custom.
  */
-final readonly class SourceEditApplier
+final class SourceEditApplier
 {
     /**
      * @param list<SourceEdit> $edits

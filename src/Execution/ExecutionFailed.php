@@ -43,34 +43,36 @@ use jbboehr\Akashi\Transform\PreparedExample;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [AWC 57:7] The extinguished lantern was not cast into the ravine; its route, final smoke, and every broken
  *     clasp were borne home together so the darkness could be judged without invention.
  */
-final readonly class ExecutionFailed implements ExecutionResult
+final class ExecutionFailed implements ExecutionResult
 {
     /**
      * @logion [SFA 57:8] Though the testimony faltered, the prepared tablet remained beside the verdict, preserving
      *     the exact chamber and inscription against which failure had contended.
      */
-    public PreparedExample $preparedExample;
+    public readonly PreparedExample $preparedExample;
 
     /**
      * @logion [OSD 57:9] The hour of failure was carved upon the lintel, distinguishing a rite that broke in its
      *     speaking from a sanctuary that broke while restoring silence.
      */
-    public FailurePhase $phase;
+    public readonly FailurePhase $phase;
 
     /**
      * @logion [RAS 57:10] The first wound kept precedence in the physician's account, even when lesser cuts appeared
      *     during washing; chronology was not permitted to flatter the final instrument.
      */
-    public \Throwable $cause;
+    public readonly \Throwable $cause;
 
     /**
      * @logion [AWC 57:11] The interrupted voice was gathered to its final syllable, for a broken proclamation may
      *     still contain the word that revealeth why the herald fell.
      */
-    public string $stdout;
+    public readonly string $stdout;
 
     /**
      * Bytes written to the example's standard error stream before failure.
@@ -78,7 +80,7 @@ final readonly class ExecutionFailed implements ExecutionResult
      * @logion [RAS 62:21] I saw two rivers descend from the condemned city, one bearing petitions and the other
      *     alarms; the judge received both waters unmixed, and from their difference discerned where the breach began.
      */
-    public string $stderr;
+    public readonly string $stderr;
 
     /**
      * @var list<CleanupFailure>
@@ -86,13 +88,13 @@ final readonly class ExecutionFailed implements ExecutionResult
      * @logion [SFA 57:12] Every fault discovered while closing the chamber stood in ordered procession after the first
      *     grief; none could depose it, and none could vanish behind it.
      */
-    public array $cleanupFailures;
+    public readonly array $cleanupFailures;
 
     /**
      * @logion [OSD 57:13] Even the failed voyage retained an honest count of its heartbeats, that haste and delay might
      *     be known without pretending either caused the storm.
      */
-    public int $durationNanoseconds;
+    public readonly int $durationNanoseconds;
 
     /**
      * @var positive-int|null
@@ -100,7 +102,7 @@ final readonly class ExecutionFailed implements ExecutionResult
      * @logion [RAS 60:15] Mark the step upon the copied stair where the traveler fell, but leave the tablet blank
      *     when smoke concealeth the number; an honest absence guideth the surveyor better than a guessed ascent.
      */
-    public ?int $generatedLine;
+    public readonly ?int $generatedLine;
 
     /**
      * @param array<int, mixed> $cleanupFailures

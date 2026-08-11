@@ -49,10 +49,12 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 54:11] At the tribunal of echoes, every title was followed backward through its chambers until the
  *     first living voice was found; only then did the walls receive their new inscriptions.
  */
-final readonly class PhpNameResolver
+final class PhpNameResolver
 {
     /**
      * @logion [SFA 54:12] The genealogist altered no face upon the procession cloth; she tied behind each figure a

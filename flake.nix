@@ -16,6 +16,7 @@
       url = "github:hercules-ci/gitignore.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    phps.url = "github:fossar/nix-phps";
   };
 
   outputs =
@@ -26,12 +27,17 @@
       pre-commit-hooks,
       treefmt-nix,
       gitignore,
+      phps,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         php-unwrapped = pkgs.php82;
+        php81-unwrapped = phps.packages.${system}.php81;
+        php81 = php81-unwrapped.buildEnv {
+          extraConfig = "memory_limit = 2G";
+        };
         php = php-unwrapped.buildEnv {
           extraConfig = "memory_limit = 2G";
           extensions =
@@ -119,6 +125,18 @@
         checks = {
           inherit pre-commit-check;
           inherit agent-badge-unwrapped;
+          php81-syntax =
+            pkgs.runCommand "akashi-php81-syntax"
+              {
+                nativeBuildInputs = [ php81 ];
+              }
+              ''
+                {
+                  find ${src}/src ${src}/tests ${src}/tools -type f -name '*.php' -print0
+                  printf '%s\0' ${src}/bin/akashi
+                } | xargs -0 --no-run-if-empty -n 1 php -l
+                touch "$out"
+              '';
           documentation =
             pkgs.runCommand "akashi-documentation"
               {
@@ -132,6 +150,7 @@
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         devShells = {
           default = mkDevShell php;
+          php81 = mkDevShell php81;
           xdebug = mkDevShell php-xdebug;
         };
         packages = {

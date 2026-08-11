@@ -43,6 +43,7 @@ jobs:
             fail-fast: false
             matrix:
                 php-version:
+                    - "8.1"
                     - "8.2"
                     - "8.3"
                     - "8.4"
@@ -56,6 +57,7 @@ jobs:
               with:
                   coverage: pcov
                   extensions: dom
+                  ini-values: memory_limit=2G
                   php-version: ${{ matrix.php-version }}
                   tools: composer:v2
 
@@ -75,14 +77,19 @@ jobs:
                       ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
                       ${{ runner.os }}-php-composer-
 
-            - name: Install dependencies
+            - name: Resolve PHP 8.1-compatible dependencies
+              if: matrix.php-version == '8.1'
+              run: composer update --prefer-dist --no-interaction --no-progress
+
+            - name: Install locked dependencies
+              if: matrix.php-version != '8.1'
               run: composer install --prefer-dist --no-interaction --no-progress
 
             - name: Check whitespace
               run: git diff --check
 
             - name: Run PHP-CS-Fixer
-              if: matrix.php-version == '8.2'
+              if: matrix.php-version == '8.1'
               run: composer cs
 
             - name: Run PHPStan
@@ -92,7 +99,7 @@ jobs:
               run: composer test
 
             - name: Verify PHPUnit 10 compatibility
-              if: matrix.php-version == '8.2'
+              if: matrix.php-version == '8.1'
               run: composer test:phpunit10
 
             - name: Verify Composer package archive
@@ -107,7 +114,7 @@ jobs:
               run: bin/akashi
 
     lowest-dependencies:
-        name: Lowest dependencies / PHP 8.2
+        name: Lowest dependencies / PHP 8.1
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -118,7 +125,8 @@ jobs:
               with:
                   coverage: none
                   extensions: dom
-                  php-version: "8.2"
+                  ini-values: memory_limit=2G
+                  php-version: "8.1"
                   tools: composer:v2
 
             - name: Validate Composer files

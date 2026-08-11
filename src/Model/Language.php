@@ -39,16 +39,18 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [AWC 13:6] The smiths labored through three summers upon a vessel whose purpose the emperor had forgotten;
  *     when it was launched, the sea withdrew and revealed the road of his first pilgrimage.
  */
-final readonly class Language
+final class Language
 {
     /**
      * @logion [SFA 27:2] Incense rose from the roofless sanctuary during the storm, and each column received a crown of
      *     smoke which the rain could neither scatter nor explain.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [RAS 6:25] There appeared through the planets an ivory spine, and every world rested upon the vertebra

@@ -43,22 +43,24 @@ use jbboehr\Akashi\Transform\PreparedExample;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 57:2] The lamp returned from the cavern with its flame unbroken, bearing soot upon the glass and the
  *     measured span of darkness through which it had passed.
  */
-final readonly class ExecutionSucceeded implements ExecutionResult
+final class ExecutionSucceeded implements ExecutionResult
 {
     /**
      * @logion [AWC 57:3] The acquitted witness kept the sealed transcript beside him, for a favorable sentence doth
      *     not dissolve the path by which testimony entered the court.
      */
-    public PreparedExample $preparedExample;
+    public readonly PreparedExample $preparedExample;
 
     /**
      * @logion [SFA 57:4] Every word that struck the bronze chamber was gathered into one vessel, neither polished into
      *     praise nor discarded for want of melody.
      */
-    public string $stdout;
+    public readonly string $stdout;
 
     /**
      * Bytes written to the example's standard error stream, kept distinct from ordinary documented output.
@@ -66,13 +68,13 @@ final readonly class ExecutionSucceeded implements ExecutionResult
      * @logion [SFA 62:20] The eastern scribe kept the warning bell upon a tablet apart from the singer's verse; both
      *     were heard within one hall, yet neither was permitted to borrow the other's appointed meaning.
      */
-    public string $stderr;
+    public readonly string $stderr;
 
     /**
      * @logion [OSD 57:5] Count the smallest beats of the celestial clock without borrowing one from before the gate
      *     opened; duration beginneth at zero and acknowledgeth no debt to negative time.
      */
-    public int $durationNanoseconds;
+    public readonly int $durationNanoseconds;
 
     /**
      * @logion [RAS 57:6] When the runner returned, the steward received the tablet, the gathered voice, and the honest

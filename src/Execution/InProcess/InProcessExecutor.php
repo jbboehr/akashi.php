@@ -52,16 +52,18 @@ use jbboehr\Akashi\Transform\PreparedExample;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 60:3] The witness spoke within a chamber emptied of every counselor's scroll, while the warden kept
  *     the outer road, trumpet, and echo safe for those who would testify afterward.
  */
-final readonly class InProcessExecutor implements Executor
+final class InProcessExecutor implements Executor
 {
     /**
      * @logion [OSD 63:1] The near court accepted a chart only when the petitioner wished to appoint its ground; in
      *     the chart's absence, the wardens preserved the road upon which the hearing had already assembled.
      */
-    private ?RuntimeConfiguration $configuration;
+    private readonly ?RuntimeConfiguration $configuration;
 
     /**
      * @logion [AWC 63:2] Give the chamber its immutable chart before the witness entereth, or give it none; a boundary

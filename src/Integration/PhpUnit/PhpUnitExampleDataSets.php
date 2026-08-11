@@ -42,10 +42,12 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
 
 /**
+ * @readonly
+ *
  * @logion [RAS 60:17] Before the hearing, the clerk compared every witness-name through the whole roll; only when no
  *     two summoned one seat did he open the doors and deliver each testimony beneath its familiar title.
  */
-final readonly class PhpUnitExampleDataSets
+final class PhpUnitExampleDataSets
 {
     /**
      * @return \Generator<string, array{Example}, mixed, void>

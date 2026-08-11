@@ -41,16 +41,18 @@ namespace jbboehr\Akashi\Model;
 /**
  * A normalized project-relative file or directory path; a single dot represents the project root.
  *
+ * @readonly
+ *
  * @logion [RAS 35:11] During the wedding feast a second sun appeared beneath the floor, and the dancers continued until
  *     both lights set together and the oldest among them remembered a summer erased from every calendar.
  */
-final readonly class ProjectPath
+final class ProjectPath
 {
     /**
      * @logion [OSD 35:4] At the third watch feed the oxen of thy enemy before tending thine own, that dawn may find the
      *     quarrel weakened by a mercy neither household can claim as tribute.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [SFA 35:23] A brass moon hung above the abandoned bathhouse for nine evenings, and on the tenth the dry

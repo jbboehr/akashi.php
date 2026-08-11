@@ -39,10 +39,12 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 64:5] The foreign examiner's sentence entered the archive with its name, speech, counsel, and two line
  *     marks kept distinct, that later courts might compare it without importing the examiner himself.
  */
-final readonly class AnalyzerDiagnostic
+final class AnalyzerDiagnostic
 {
     /**
      * @var non-empty-string|null
@@ -50,7 +52,7 @@ final readonly class AnalyzerDiagnostic
      * @logion [RAS 64:6] Where the foreign court supplied a durable seal, the archivist preserved it; where none was
      *     given, he forged no emblem merely to make the shelf appear complete.
      */
-    public ?string $identifier;
+    public readonly ?string $identifier;
 
     /**
      * @var non-empty-string
@@ -58,7 +60,7 @@ final readonly class AnalyzerDiagnostic
      * @logion [AWC 64:7] The principal sentence was copied without ornament, for every later comparison depended upon
      *     the words the examiner had truly spoken.
      */
-    public string $message;
+    public readonly string $message;
 
     /**
      * @var non-empty-string|null
@@ -66,7 +68,7 @@ final readonly class AnalyzerDiagnostic
      * @logion [SFA 64:8] Counsel written beneath the judgment remained a second voice, neither discarded nor allowed
      *     to masquerade as part of the sentence above it.
      */
-    public ?string $tip;
+    public readonly ?string $tip;
 
     /**
      * @var positive-int|null
@@ -74,7 +76,7 @@ final readonly class AnalyzerDiagnostic
      * @logion [OSD 64:9] The temporary chamber's stair was recorded when known, useful to the courier yet never
      *     mistaken for the maintained tablet's ancestral line.
      */
-    public ?int $analyzerLine;
+    public readonly ?int $analyzerLine;
 
     /**
      * @var positive-int|null
@@ -82,7 +84,7 @@ final readonly class AnalyzerDiagnostic
      * @logion [RAS 64:10] When the road home could be proven, the archivist added the original stair; when smoke broke
      *     the trail, he left the place unknown rather than drawing a convenient path.
      */
-    public ?int $sourceLine;
+    public readonly ?int $sourceLine;
 
     /**
      * @logion [AWC 64:11] Join only a spoken judgment with lawful optional seals and stairs; blank speech and numbers

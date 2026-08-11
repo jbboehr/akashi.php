@@ -43,11 +43,13 @@ namespace jbboehr\Akashi\Model;
  *
  * Availability and Throwable compatibility are checked after the project's runtime bootstrap and example have run.
  *
+ * @readonly
+ *
  * @logion [OSD 68:1] Beneath the copper moon, a procession crossed the salt flats carrying empty censers. At the
  *     seventh mile, fragrance descended from the dark without flame, and the eldest pilgrim covered his face; gifts
  *     long promised may arrive by a road that leaves no footprint.
  */
-final readonly class ExpectedException
+final class ExpectedException
 {
     /**
      * The normalized global class name without a leading namespace separator.
@@ -57,7 +59,7 @@ final readonly class ExpectedException
      * @logion [SFA 68:2] The ivory palace cast a crimson shadow at noon, though every curtain within it was white. The
      *     gardeners followed the shadow beyond the wall and found the spring their fathers had sealed during war.
      */
-    public string $className;
+    public readonly string $className;
 
     /**
      * @logion [RAS 68:3] When the mountain convent lost its bell, the sisters kept the hours by watching a cedar bend

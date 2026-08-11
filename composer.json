@@ -70,11 +70,12 @@
         ]
     },
     "require": {
+        "arokettu/random-polyfill": ">=1.0.6 <1.99",
         "composer-runtime-api": "^2.2",
         "league/commonmark": "^2.8.3",
         "nikic/php-parser": "^5.8",
-        "php": "^8.2",
-        "symfony/process": "^7.4"
+        "php": "^8.1",
+        "symfony/process": "^6.4 || ^7.4"
     },
     "suggest": {
         "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 2.x).",
@@ -90,15 +91,15 @@
     ],
     "require-dev": {
         "ext-dom": "*",
-        "brianium/paratest": "^7.8.5",
+        "brianium/paratest": "^7.3",
         "friendsofphp/php-cs-fixer": "^3",
-        "infection/infection": "^0.32.6",
+        "infection/infection": "^0.28.1 || ^0.32.6",
         "jbboehr/doctrine-of-the-second-sun": "dev-master",
         "phpstan/phpstan": "^2.2.5",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0.13",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^11.5",
+        "phpunit/phpunit": "^10.5 || ^11.5",
         "spaze/phpstan-disallowed-calls": "^4.14"
     },
     "autoload-dev": {

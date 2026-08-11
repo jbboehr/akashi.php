@@ -181,9 +181,10 @@ project root; reference targets themselves are not marker IDs.
 
 ## Dependency Boundaries
 
-`league/commonmark`, `nikic/php-parser`, and `symfony/process` support core implemented behavior. PHPUnit and PHPStan
-are optional Composer suggestions. Their runtime types are confined to integration namespaces so core source discovery
-and the CLI can autoload without them.
+`league/commonmark`, `nikic/php-parser`, `symfony/process`, and the PHP 8.2 Random extension polyfill support core
+implemented behavior. The polyfill preserves the typed `Randomizer` seam on PHP 8.1 and defers to PHP's native extension
+on later runtimes. PHPUnit and PHPStan are optional Composer suggestions. Their runtime types are confined to
+integration namespaces so core source discovery and the CLI can autoload without them.
 
 There is no service container, mutable global registry, plugin registry, or implicit project configuration. Projects
 compose source, runtime, and verifier configuration through typed immutable values and ordinary PHPUnit test classes.

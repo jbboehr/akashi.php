@@ -19,7 +19,7 @@ public API may change between minor releases before 1.0.
 
 | Component         | Current boundary                                                                              |
 | ----------------- | --------------------------------------------------------------------------------------------- |
-| PHP               | 8.2 and later                                                                                 |
+| PHP               | 8.1 and later                                                                                 |
 | Composer          | Runtime API 2.2 and later                                                                     |
 | Documentation     | CommonMark PHP fences in Markdown/PHPDoc; PHPDoc references to canonical PHP files or regions |
 | PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines              |
@@ -30,12 +30,17 @@ public API may change between minor releases before 1.0.
 Akashi's core model, Markdown/PHPDoc discovery and extraction, transformation, execution, and CLI do not require PHPUnit
 or PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
 
+PHP 8.1 no longer receives upstream security fixes. Akashi verifies compatibility for maintained downstream runtimes and
+legacy development environments; this compatibility statement does not make an unpatched PHP 8.1 runtime suitable for a
+public-facing service.
+
 On pushes to `master`, the advisory macOS and Windows jobs run Composer validation, PHPStan, PHPUnit, package
 validation, and a CLI smoke test.
 
-Akashi develops against PHPUnit 11.5 and verifies PHPUnit 10.5 separately. `composer test:phpunit10` builds the current
-Composer archive, installs it into an isolated consumer project, and exercises runtime assertions, authored skips, both
-execution backends, and the PHPStan `RuleTestCase` adapter. CI runs this gate on PHP 8.2.
+Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its PHP 8.1 CI resolves PHPUnit 10.5 and runs the full suite.
+`composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated consumer
+project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan `RuleTestCase`
+adapter on PHP 8.1.
 
 ## Authoring Boundary
 

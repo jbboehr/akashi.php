@@ -212,6 +212,38 @@ final class PublicApiBoundaryTest extends TestCase
         }
     }
 
+    public function testReadonlyPhpDocClassesUseNativeReadonlyProperties(): void
+    {
+        $readonlyClasses = 0;
+
+        foreach (self::declarations() as $name => $declaration) {
+            if (!str_contains($declaration->getDocComment() ?: '', '@readonly')) {
+                continue;
+            }
+
+            ++$readonlyClasses;
+
+            foreach ($declaration->getProperties() as $property) {
+                if ($property->getDeclaringClass()->getName() !== $name) {
+                    continue;
+                }
+
+                self::assertFalse($property->isStatic(), sprintf(
+                    'Readonly class contract %s must not declare static property $%s.',
+                    $name,
+                    $property->getName(),
+                ));
+                self::assertTrue($property->isReadOnly(), sprintf(
+                    'Readonly class contract %s must declare property $%s readonly.',
+                    $name,
+                    $property->getName(),
+                ));
+            }
+        }
+
+        self::assertGreaterThan(0, $readonlyClasses, 'At least one class must exercise the readonly compatibility contract.');
+    }
+
     /**
      * @return array<class-string, \ReflectionClass<object>>
      */

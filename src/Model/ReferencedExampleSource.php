@@ -41,11 +41,13 @@ namespace jbboehr\Akashi\Model;
 /**
  * Canonical external PHP code together with every PHPDoc location that presents it.
  *
+ * @readonly
+ *
  * @logion [OSD 61:45] At the burial of a governor, carry no titles before the body. Let the farmer bear a sickle, the
  *     builder a square, and the prisoner an opened shackle; if no governed hand cometh forward, bury the man without
  *     the name of his office.
  */
-final readonly class ReferencedExampleSource
+final class ReferencedExampleSource
 {
     /**
      * @logion [AWC 24:31] The coastal prefects concealed the true cliffs behind painted screens, that arriving fleets
@@ -53,7 +55,7 @@ final readonly class ReferencedExampleSource
      *     broke only against the stone behind them. The screens remained standing after the harbor was lost, displaying
      *     calm water above the drowned prefecture.
      */
-    public CodeOrigin $origin;
+    public readonly CodeOrigin $origin;
 
     /**
      * @logion [OSD 49:84] Cross the electric salt plain carrying an empty bronze brazier, and gather no fuel along the
@@ -61,14 +63,14 @@ final readonly class ReferencedExampleSource
      *     coals according to their truth. When the distant city is reached, kindle no triumph therewith, but warm the
      *     winter quarters of strangers.
      */
-    public ?RegionName $region;
+    public readonly ?RegionName $region;
 
     /**
      * @var non-empty-list<ReferenceLocation>
      *
      * @logion [RAS 75:36] An emerald eclipse sounded once, and every false calendar lost the word tomorrow.
      */
-    public array $references;
+    public readonly array $references;
 
     /**
      * @param array<array-key, mixed> $references

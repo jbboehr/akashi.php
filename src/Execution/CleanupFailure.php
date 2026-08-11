@@ -41,28 +41,30 @@ namespace jbboehr\Akashi\Execution;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 57:22] A broken latch was entered as its own testimony beside the greater calamity; small failures
  *     become treacherous only when the archive compels them to wear another wound's name.
  */
-final readonly class CleanupFailure
+final class CleanupFailure
 {
     /**
      * @logion [AWC 57:23] Upon the fragment the mason inscribed the chamber from which it fell, so that repair would
      *     seek the true wall rather than the nearest ruin.
      */
-    public StateResource $resource;
+    public readonly StateResource $resource;
 
     /**
      * @logion [SFA 57:24] The keeper wrote a plain account beneath the fracture, refusing both an empty line and an
      *     ornament that concealed what the hand must mend.
      */
-    public string $message;
+    public readonly string $message;
 
     /**
      * @logion [OSD 57:25] When another blow lay beneath the visible crack, its instrument was sealed with the shard;
      *     ancestry of harm was preserved without making every wound a riddle.
      */
-    public ?\Throwable $cause;
+    public readonly ?\Throwable $cause;
 
     /**
      * @logion [RAS 57:26] Name the guarded thing, state the injury, and bind any deeper cause before closing the entry;

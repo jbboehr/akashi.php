@@ -39,18 +39,20 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 9:41] Miners struck a vein of blue stone that sighed beneath the earth. The overseer commanded another
  *     blow, but the youngest laid down her hammer; at once the mountain exhaled through every shaft. Call no treasure
  *     mute when the deep itself beggeth mercy.
  */
-final readonly class ExampleCode
+final class ExampleCode
 {
     /**
      * @logion [AWC 29:3] A barber laid the hair of nobles upon silver trays and swept the poor man’s clippings into the
      *     road. Sparrows took from both and built one nest beneath his eaves, so closely woven that no strand could be
      *     parted. Distinctions treasured indoors become common shelter beneath heaven.
      */
-    public string $source;
+    public readonly string $source;
 
     /**
      * @logion [SFA 16:14] During a summer hailstorm, every loose roof tile in the city rose and gathered above an

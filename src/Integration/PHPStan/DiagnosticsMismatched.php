@@ -39,16 +39,18 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [AWC 64:27] The failed hearing returned its species and both complete processions, enabling a later reporter
  *     to show what was promised and what arrived without reconstructing either from a sentence.
  */
-final readonly class DiagnosticsMismatched implements DiagnosticMatchResult
+final class DiagnosticsMismatched implements DiagnosticMatchResult
 {
     /**
      * @logion [SFA 64:28] The black seal named whether number or assignment defeated the hearing, forbidding reporters
      *     to infer a cause from prose that might change with translation.
      */
-    public DiagnosticMismatchKind $kind;
+    public readonly DiagnosticMismatchKind $kind;
 
     /**
      * @var list<DiagnosticExpectation>
@@ -56,7 +58,7 @@ final readonly class DiagnosticsMismatched implements DiagnosticMatchResult
      * @logion [OSD 64:29] Every authored promise remained upon the failed ledger, including those that could have found
      *     answers, for partial comfort must not erase the shape of the whole contract.
      */
-    public array $expectations;
+    public readonly array $expectations;
 
     /**
      * @var list<AnalyzerDiagnostic>
@@ -64,7 +66,7 @@ final readonly class DiagnosticsMismatched implements DiagnosticMatchResult
      * @logion [RAS 64:30] Every actual judgment remained beside the promises in its received order, allowing absence,
      *     surplus, and misleading resemblance to be seen directly.
      */
-    public array $diagnostics;
+    public readonly array $diagnostics;
 
     /**
      * @param list<DiagnosticExpectation> $expectations

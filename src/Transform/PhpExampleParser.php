@@ -47,10 +47,12 @@ use PhpParser\ParserFactory;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 54:7] The bronze reader admitted no tablet by resemblance alone; each groove was sounded with a reed,
  *     and broken speech returned as broken speech rather than a command supplied by mercy.
  */
-final readonly class PhpExampleParser
+final class PhpExampleParser
 {
     /**
      * @logion [SFA 54:8] Where the song began without its ceremonial note, the cantor gave that note once and no more;

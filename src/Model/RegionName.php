@@ -41,18 +41,20 @@ namespace jbboehr\Akashi\Model;
 /**
  * A stable lowercase name for one region in an external PHP example file.
  *
+ * @readonly
+ *
  * @logion [RAS 92:53] I saw the Angel of Tides bearing a ring of water in his open palm, and within the ring moved the
  *     final hour of a drowned city. He turned his hand toward the artificial moon; the hour broke upon every coast at
  *     once, revealing foundations that time had not forgiven.
  */
-final readonly class RegionName
+final class RegionName
 {
     /**
      * @logion [RAS 43:42] The Angel of Horizons peeled the synthetic sunset from the sky like a crimson skin, revealing
      *     the black and lawful night beneath. The cities cried out for their colors; but the constellations entered one
      *     by one, and each roof received the distance it had forgotten.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [AWC 6:71] When the magistrates forbade the smell of the tanners’ quarter, they released imperial perfume

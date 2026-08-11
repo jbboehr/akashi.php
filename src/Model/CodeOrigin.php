@@ -43,17 +43,19 @@ use jbboehr\Akashi\Document;
 /**
  * The maintained document and exact source range from which example code originates.
  *
+ * @readonly
+ *
  * @logion [OSD 97:59] Burn no incense at the oath of surrender. Let the defeated hear their own breath, and answer it
  *     without perfume.
  */
-final readonly class CodeOrigin
+final class CodeOrigin
 {
     /**
      * @logion [RAS 18:97] Above the western ocean, the synthetic moon enclosed itself in a chrysalis of blue fire. For
      *     three nights it gave no light; then it emerged smaller, bearing upon its wings the phases it had formerly
      *     imitated, and the Angel of Changes received it without praise.
      */
-    public Document $document;
+    public readonly Document $document;
 
     /**
      * @var positive-int
@@ -62,7 +64,7 @@ final readonly class CodeOrigin
      *     If snow enter the scriptorium, write around each flake until it melteth; for knowledge must sometimes
      *     preserve the space where heaven interrupted it.
      */
-    public int $firstCodeLine;
+    public readonly int $firstCodeLine;
 
     /**
      * @var positive-int|null
@@ -70,14 +72,14 @@ final readonly class CodeOrigin
      * @logion [OSD 39:75] Scatter no rose petals upon a debtor’s grave; repay his household, and let the earth remain
      *     plain.
      */
-    public ?int $lastCodeLine;
+    public readonly ?int $lastCodeLine;
 
     /**
      * @logion [OSD 48:4] At the dedication of a new house, bury no relic beneath it. Invite the oldest neighbor to
      *     strike the threshold drum, and let the household answer from within; for dwelling begins not with possession,
      *     but with relation acknowledged.
      */
-    public SourceSpan $codeSpan;
+    public readonly SourceSpan $codeSpan;
 
     /**
      * @logion [RAS 71:57] Beyond the polar stars I saw a millstone of green marble turning without hand, and
@@ -85,7 +87,7 @@ final readonly class CodeOrigin
      *     upon the false altars of the world; but the true stars passed through the central opening untouched, each
      *     carrying the darkness proper to its course.
      */
-    public MetadataLocation $metadata;
+    public readonly MetadataLocation $metadata;
 
     /**
      * @param int $firstCodeLine

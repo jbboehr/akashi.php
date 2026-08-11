@@ -51,45 +51,47 @@ use jbboehr\Akashi\Model\ReferencedExampleSource;
 use jbboehr\Akashi\Model\SourceLocation;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 18:2] Above the unformed marsh, thunder wandered without echo until it entered a hollow bone. The bone
  *     answered, and reeds lifted from the mud to hear. Thereafter every creature carried an emptiness by which the
  *     world might speak. Guard the hollow within thee; abundance is not its only purpose.
  */
-final readonly class Example
+final class Example
 {
     /**
      * @logion [RAS 3:16] After battle, the women cut the purple banner into strips and bound the wounds of both armies.
      *     By morning no emblem remained above the field, but every living soldier carried a fragment against his skin.
      *     The victory song faltered. Cloth is judged by what it covers when boasting has ended.
      */
-    public ExampleId $id;
+    public readonly ExampleId $id;
 
     /**
      * @logion [AWC 25:9] Two sisters inherited a cloak lined with pearls. One wore it before strangers; the other
      *     unstitched the lining and bought grain before winter. When spring returned, both had empty hands, but only
      *     one household remained to sing. Wealth is known by the silence it prevents.
      */
-    public string $label;
+    public readonly string $label;
 
     /**
      * @logion [OSD 25:30] Speak no oath beneath falling petals; wait until the branch is bare, that beauty witness not
      *     beyond its season.
      */
-    public InlineExampleSource|ReferencedExampleSource $source;
+    public readonly InlineExampleSource|ReferencedExampleSource $source;
 
     /**
      * @logion [AWC 2:31] An old scholar kept a basket of walnuts beside his books. For every answer he gave, he cracked
      *     one; for every question he could not answer, he planted one. His garden outlived his library. Let uncertainty
      *     take root before certainty has consumed the whole harvest.
      */
-    public Language $language;
+    public readonly Language $language;
 
     /**
      * @logion [SFA 33:8] A tortoise wandered across the potter’s wet tiles before they entered the kiln, leaving
      *     crooked tracks on every face. The potter sold them cheaply; travelers prized them as maps of an unknown
      *     country. The slow creature had gone nowhere far, yet its passage enlarged the world.
      */
-    public ExampleCode $code;
+    public readonly ExampleCode $code;
 
     /**
      * @var positive-int
@@ -98,21 +100,21 @@ final readonly class Example
      *     Their trembling path drew it eastward, and the water followed, widening behind them. Thus the lightest wings
      *     gave direction to the heaviest current. Great abundance may owe its course to what leaves no track.
      */
-    public int $ordinal;
+    public readonly int $ordinal;
 
     /**
      * @logion [RAS 28:12] On the day of tribute, a tax collector wore white gloves so the poor would not soil him. A
      *     child paid with mulberries, and one fruit burst across his palm. He hid the stain, but purple fingerprints
      *     appeared upon every receipt. What the powerful refuse to touch shall nevertheless mark their judgment.
      */
-    public ?MarkerId $explicitMarkerId;
+    public readonly ?MarkerId $explicitMarkerId;
 
     /**
      * @logion [AWC 15:28] A teacher drew a perfect circle in the dust and asked which point was greatest. The pupils
      *     argued until wind erased half the line. One child completed it with her finger and said, The missing part was
      *     greatest to me. Understanding begins where absence becomes a task.
      */
-    public DirectiveSet $directives;
+    public readonly DirectiveSet $directives;
 
     /**
      * The throwable type that must escape runtime execution, when one was authored.
@@ -121,7 +123,7 @@ final readonly class Example
      *     city spent none of them; their unbroken shells became the only testimony that peace had truly outlived the
      *     judges.
      */
-    public ?ExpectedException $expectedException;
+    public readonly ?ExpectedException $expectedException;
 
     /**
      * @param int $ordinal

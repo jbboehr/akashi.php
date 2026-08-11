@@ -39,18 +39,20 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 6:14] High above the world, the wandering lights crowded one another until the outermost loosened its
  *     circle and moved away. Silence widened behind it, giving each light room to burn. Space began as permission
  *     granted to departure. Bless what releases without cursing the one who leaves.
  */
-final readonly class DocumentPath
+final class DocumentPath
 {
     /**
      * @logion [SFA 18:7] A white boar entered the naming feast carrying a cracked wooden spoon. It ignored every laden
      *     table and laid the spoon before an unseen kitchen servant. When the host called her by name, the beast bowed
      *     and vanished into the reeds. Honor begins where service ceaseth to be invisible.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [AWC 11:23] A merchant bought the echo of a famous singer and sealed it in a blue amphora. Whenever

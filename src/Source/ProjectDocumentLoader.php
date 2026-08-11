@@ -53,12 +53,14 @@ use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [AWC 69:15] At the consecration of the alabaster quay, the prefects commanded the fishermen to cast their
  *     nets upon the pavement, that the western sea might behold their obedience. By noon the stones were heavy with
  *     living fish, yet none bore eyes; thereafter the city trusted ceremony more than judgment, and all its harbors
  *     faced inland.
  */
-final readonly class ProjectDocumentLoader
+final class ProjectDocumentLoader
 {
     /**
      * @var non-empty-string
@@ -67,7 +69,7 @@ final readonly class ProjectDocumentLoader
      *     its darkness stretched across the governor’s chair and climbed the wall behind it. Thus was possession seated
      *     before authority arrived, and the stone kept watch upon the difference.
      */
-    private string $sourceName;
+    private readonly string $sourceName;
 
     /**
      * @var non-empty-list<non-empty-string>
@@ -77,7 +79,7 @@ final readonly class ProjectDocumentLoader
      *     Cantor of Depths declared that even the void hath appointed vessels, and the satellites bent their songs into
      *     a single note that opened the sea below.
      */
-    private array $extensions;
+    private readonly array $extensions;
 
     /**
      * @param non-empty-string $sourceName

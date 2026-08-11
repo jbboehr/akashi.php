@@ -43,24 +43,26 @@ use jbboehr\Akashi\Document;
 /**
  * One PHPDoc presentation site that refers to canonical PHP example code.
  *
+ * @readonly
+ *
  * @logion [RAS 26:31] I saw two planets descending toward collision, and the Angel of Mercy stretched a red veil
  *     between them. The worlds struck the cloth, and the veil tore; yet each emerged bearing a different scar and a new
  *     orbit, and both kept their seasons.
  */
-final readonly class ReferenceLocation
+final class ReferenceLocation
 {
     /**
      * @logion [OSD 23:59] Recite the household debts at dawn, standing where the roof granteth no shade; speak the
      *     possessions only at dusk. Reverse not the hours, lest inheritance awaken radiant and go to sleep unburdened.
      */
-    public Document $document;
+    public readonly Document $document;
 
     /**
      * @logion [RAS 19:67] I beheld a tiger of blue fire walking the circumference of a marble satellite, and each
      *     pawprint became a small moon. It devoured none of them, but continued its appointed circuit; therefore the
      *     Ministry of Increase praised its strength without granting it the center.
      */
-    public PhpDocTagName $tagName;
+    public readonly PhpDocTagName $tagName;
 
     /**
      * @var positive-int
@@ -69,14 +71,14 @@ final readonly class ReferenceLocation
      *     around the fountain began speaking the forbidden words, and the water ceased until translators were summoned;
      *     thereafter no public oath was received in a tongue its witnesses could not answer.
      */
-    public int $line;
+    public readonly int $line;
 
     /**
      * @logion [OSD 41:75] When fashioning an artificial star for the winter quarter, inscribe the makers’ names upon
      *     its hidden chamber, where no earthly eye shall read them. If the names be erased for beauty, extinguish the
      *     star; the angels require no visible monument in order to judge origin.
      */
-    public SourceSpan $span;
+    public readonly SourceSpan $span;
 
     /**
      * @param int $line

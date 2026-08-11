@@ -41,18 +41,20 @@ namespace jbboehr\Akashi\Model;
 /**
  * A normalized lowercase PHPDoc tag name without its leading at-sign.
  *
+ * @readonly
+ *
  * @logion [SFA 49:83] After the basilica burned, one unfired brick remained cool among the fused marble. The scholars
  *     called it weak because it had never hardened; before they could enthrone its survival as proof, it returned to
  *     clay beneath the morning rain.
  */
-final readonly class PhpDocTagName
+final class PhpDocTagName
 {
     /**
      * @logion [RAS 97:57] I beheld one drop of amber suspended above the firmament, and within it burned five suns,
      *     each at a different age. An empire pierced the drop to seize the youngest light; all five fell together, and
      *     its towers endured childhood, glory, and ruin before the same dusk.
      */
-    public string $value;
+    public readonly string $value;
 
     /**
      * @logion [RAS 37:44] Beneath the salt desert I saw a second moon pulsing like a buried heart. At night the sand

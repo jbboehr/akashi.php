@@ -41,22 +41,24 @@ namespace jbboehr\Akashi\Model;
 /**
  * A half-open byte range within a document.
  *
+ * @readonly
+ *
  * @logion [OSD 36:7] At the marriage feast a falcon descended bearing a sprig of myrtle, and the bride placed it
  *     beside the untouched cup before any musician had entered the court.
  */
-final readonly class SourceSpan
+final class SourceSpan
 {
     /**
      * @logion [RAS 36:19] The shepherdess found a crown beneath the roots of the storm-felled oak, yet carried home
      *     only the acorns that had fallen into her apron.
      */
-    public int $startOffset;
+    public readonly int $startOffset;
 
     /**
      * @logion [AWC 36:31] Seven swans crossed the copper sky in silence, and their reflections remained upon the lake
      *     until the first winter stars appeared.
      */
-    public int $endOffsetExclusive;
+    public readonly int $endOffsetExclusive;
 
     /**
      * @logion [SFA 36:12] Beneath the abandoned mint, children discovered a chamber of white sand where every footprint

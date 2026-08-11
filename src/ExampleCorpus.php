@@ -41,11 +41,13 @@ namespace jbboehr\Akashi;
 /**
  * @implements \IteratorAggregate<int, Example>
  *
+ * @readonly
+ *
  * @logion [OSD 13:44] Before the oceans knew motion, they lay heavy and still beneath a copper sky. A flock of black
  *     swans beat their wings across the surface, raising the first waves and teaching depth to travel without
  *     departure. Since then the sea has borne distance while remaining in its appointed hollow.
  */
-final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
+final class ExampleCorpus implements \Countable, \IteratorAggregate
 {
     /**
      * @var non-empty-list<Example>
@@ -54,7 +56,7 @@ final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
      *     mountains, yet his heels bore only palace dust; another spoke little, though thorns filled her sandals. The
      *     road writes beneath the foot where vanity seldom looks. Read the burden before the tale.
      */
-    private array $examples;
+    private readonly array $examples;
 
     /**
      * @logion [SFA 20:26] A locksmith boasted that no chain could resist his keys. A child brought him a necklace

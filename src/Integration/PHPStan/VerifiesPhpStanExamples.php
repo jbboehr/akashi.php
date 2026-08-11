@@ -181,7 +181,7 @@ trait VerifiesPhpStanExamples
         for ($attempt = 0; $attempt < 10; ++$attempt) {
             try {
                 $suffix = bin2hex(random_bytes(16));
-            } catch (\Random\RandomException $cause) {
+            } catch (\Exception $cause) {
                 throw new PhpStanVerificationException(
                     'Unable to generate a private PHPStan analysis directory name.',
                     0,

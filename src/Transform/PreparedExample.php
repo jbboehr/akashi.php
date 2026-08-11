@@ -44,34 +44,36 @@ use jbboehr\Akashi\Execution\ExecutionMode;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 53:21] Bring the witness, the sealed tablet, the appointed chamber, and the road by which each arrived;
  *     judgment that forgetteth one relation may condemn truth while every object remaineth genuine.
  */
-abstract readonly class PreparedExample
+abstract class PreparedExample
 {
     /**
      * @logion [AWC 53:22] The restored mosaic kept one scorched tessera at its center, and children touched it before
      *     admiring the gold; thus the fire remained a witness within the beauty it had failed to destroy.
      */
-    public Example $example;
+    public readonly Example $example;
 
     /**
      * @logion [RAS 53:23] The scroll emerged from the chamber bearing a new seal and the same ancient fibers, and the
      *     angel of the threshold examined both before permitting its proclamation.
      */
-    public PreparedCode $code;
+    public readonly PreparedCode $code;
 
     /**
      * @logion [SFA 53:24] A river divided among seven canals yet kept stones from its first bed in every current; by
      *     those stones the farmers knew which water had crossed the ancestral field.
      */
-    public SourceMap $sourceMap;
+    public readonly SourceMap $sourceMap;
 
     /**
      * @logion [OSD 53:25] Let the chosen rite be named before the doors are closed, lest fear alter the ceremony after
      *     the witnesses have taken their places.
      */
-    public ExecutionMode $executionMode;
+    public readonly ExecutionMode $executionMode;
 
     /**
      * @logion [RAS 53:27] The celestial notary compared the length of the radiant ladder with the register of earthly

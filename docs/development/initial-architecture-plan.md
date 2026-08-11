@@ -499,6 +499,10 @@ An internal `ExecutionScopeFactory` receives PHP 8.2's native `Random\Randomizer
 fixtures are repeatable. Randomness is an implementation dependency, not consumer configuration. Do not add a Symfony
 polyfill for APIs already guaranteed by Akashi's PHP 8.2 minimum.
 
+> Superseded platform note (2026-08-11): Akashi now supports PHP 8.1 through native readonly properties and a
+> source-bearing Random extension polyfill. The paragraph above remains unchanged as part of this historical plan; the
+> current dependency boundary is recorded in the public [Architecture](../pages/project/architecture.md) chapter.
+
 Namespace rewriting remains the highest-risk transform. The owner accepted preserving global name resolution through AST
 rewriting while rejecting explicit authored namespaces in the MVP. Supporting arbitrary authored namespace blocks
 in-process can be reconsidered after this behavior is proven against the migration corpus.

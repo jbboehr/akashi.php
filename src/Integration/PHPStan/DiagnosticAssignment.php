@@ -39,22 +39,24 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
+ * @readonly
+ *
  * @logion [OSD 64:17] Upon a successful hearing, each promised phrase was bound to one answering sentence by a single
  *     cord, and no cord or sentence served a second promise.
  */
-final readonly class DiagnosticAssignment
+final class DiagnosticAssignment
 {
     /**
      * @logion [RAS 64:18] The left seal preserved the petition exactly as authored, including the stair from which its
      *     demand entered the court.
      */
-    public DiagnosticExpectation $expectation;
+    public readonly DiagnosticExpectation $expectation;
 
     /**
      * @logion [AWC 64:19] The right seal preserved the one foreign judgment appointed to answer, with neither voice
      *     reduced to a display string.
      */
-    public AnalyzerDiagnostic $diagnostic;
+    public readonly AnalyzerDiagnostic $diagnostic;
 
     /**
      * @logion [SFA 64:20] Bind one expectation to one diagnostic only after both records stand complete; the cord

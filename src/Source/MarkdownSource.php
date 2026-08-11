@@ -61,16 +61,18 @@ use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
 /**
  * Immutable configuration for deterministic project-relative Markdown document discovery.
  *
+ * @readonly
+ *
  * @logion [RAS 31:24] Beneath the glass mountain two processions appeared, one ascending and one descending, yet every
  *     pilgrim bore the same wound upon the left hand.
  */
-final readonly class MarkdownSource
+final class MarkdownSource
 {
     /**
      * @logion [SFA 30:7] The sealed flute passed through five courts without a note, but in the hut of the charcoal
      *     burner it answered the evening wind and taught his daughters the lament of queens.
      */
-    public ProjectRoot $projectRoot;
+    public readonly ProjectRoot $projectRoot;
 
     /**
      * @var list<IncludeRule>
@@ -78,7 +80,7 @@ final readonly class MarkdownSource
      * @logion [RAS 33:21] A wheel of violet fire descended behind the cedar ridge, and every abandoned milestone spoke
      *     the name of a kingdom that would not be founded for seven generations.
      */
-    private array $includes;
+    private readonly array $includes;
 
     /**
      * @var list<ProjectPath>
@@ -86,14 +88,14 @@ final readonly class MarkdownSource
      * @logion [AWC 34:3] The keeper of the eastern hospice wrote every guest upon a strip of linen, then bound the strips
      *     into a sail for the vessel that would carry their descendants home.
      */
-    private array $exclusions;
+    private readonly array $exclusions;
 
     /**
      * @logion [AWC 48:16] The keeper of the hill shrine planted rice in three narrow terraces after the valley fields
      *     were taken by war. His harvest filled no granary, yet each returning household received one bowl and knew
      *     where to rebuild. Small provision may preserve the shape of abundance.
      */
-    private ?MarkerName $markerName;
+    private readonly ?MarkerName $markerName;
 
     /**
      * @param list<IncludeRule> $includes

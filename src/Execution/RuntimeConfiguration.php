@@ -44,10 +44,12 @@ use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 
 /**
+ * @readonly
+ *
  * @logion [RAS 61:9] The steward kept one immutable chart naming the court, the optional scroll read before testimony,
  *     and the ordinary road; each revision produced a new chart while the former hearing retained its own.
  */
-final readonly class RuntimeConfiguration
+final class RuntimeConfiguration
 {
     /**
      * The validated canonical project directory.
@@ -55,7 +57,7 @@ final readonly class RuntimeConfiguration
      * @logion [AWC 61:10] The court was named by the road that truly reached its threshold, not by a painted shortcut
      *     whose turning depended upon the petitioner's camp.
      */
-    public ProjectRoot $projectRoot;
+    public readonly ProjectRoot $projectRoot;
 
     /**
      * The validated canonical bootstrap file, when explicitly configured.
@@ -63,13 +65,13 @@ final readonly class RuntimeConfiguration
      * @logion [SFA 61:11] Before testimony, the herald might read one appointed scroll; if none bore the seal, silence
      *     was preserved rather than filled with a custom inferred from another court.
      */
-    public ?AbsoluteFilePath $bootstrap;
+    public readonly ?AbsoluteFilePath $bootstrap;
 
     /**
      * @logion [OSD 61:12] The common road was marked upon the chart before witnesses arrived, yet an explicit seal upon
      *     a single tablet could still appoint the farther court without rewriting the kingdom's custom.
      */
-    public ExecutionMode $defaultExecutionMode;
+    public readonly ExecutionMode $defaultExecutionMode;
 
     /**
      * @logion [RAS 61:13] Join the canonical court, its preparatory scroll, and the ordinary road only after each hath

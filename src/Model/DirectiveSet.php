@@ -39,11 +39,13 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
+ * @readonly
+ *
  * @logion [SFA 7:22] A puppeteer blamed the wooden king whenever children booed. One night a rat chewed the strings,
  *     and the puppet made no gesture at all. The crowd watched the puppeteer’s hands hanging empty. Whoever lends his
  *     fault a painted face shall one day stand alone before it.
  */
-final readonly class DirectiveSet
+final class DirectiveSet
 {
     /**
      * @var array<string, Directive>
@@ -52,7 +54,7 @@ final readonly class DirectiveSet
      *     descended; the others followed, curious about the earth. Thus weight entered the world through the smallest
      *     touch. What falls may be answering invitation, not punishment.
      */
-    private array $directives;
+    private readonly array $directives;
 
     /**
      * @logion [AWC 23:4] A host filled every chair before the meal so no guest would feel unwanted. When a traveler

@@ -43,10 +43,12 @@ use jbboehr\Akashi\Example;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [AWC 61:17] The distant court received the witness's tablet without an inner chamber-name or altered oath;
  *     the clerk supplied only a lawful opening and preserved the road from every copied line to its origin.
  */
-final readonly class SeparateProcessTransformer
+final class SeparateProcessTransformer
 {
     /**
      * @logion [RAS 61:18] Examine the testimony for broken speech, add the ceremonial sign only when absent, and seal

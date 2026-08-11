@@ -21,10 +21,13 @@ ParaTest compatibility is verified with two workers in both default TestCase-lev
 `composer test:parallel` runs both variants; CI exercises the gate on PHP 8.2 while sequential tests cover the remaining
 PHP matrix.
 
-The normal development stack remains on PHPUnit 11.5. An isolated consumer fixture installs the current Composer archive
-with PHPUnit 10.5, outside the root ParaTest constraint, then verifies the runtime data-provider trait, authored skips,
-both execution backends, and the PHPStan `RuleTestCase` adapter. `composer test:phpunit10` runs that compatibility gate,
-and `composer check:full` includes it.
+The normal development stack remains on PHP 8.2 with PHPUnit 11.5. PHP 8.1 CI resolves the repository's compatible
+development ranges to PHPUnit 10.5, ParaTest 7.3, Infection 0.28, and Symfony 6.4, then runs the full sequential suite.
+The committed `composer.lock` records the normal PHP 8.2 toolchain. A contributor working under PHP 8.1 must run
+`composer update` rather than `composer install`, as the PHP 8.1 CI job does, and should not commit the resulting
+lockfile changes. An isolated consumer fixture also installs the current Composer archive with PHPUnit 10.5 and verifies
+the runtime data-provider trait, authored skips, both execution backends, and the PHPStan `RuleTestCase` adapter.
+`composer test:phpunit10` runs that compatibility gate, and `composer check:full` includes it.
 
 ## Deferred external PHPStan verification
 

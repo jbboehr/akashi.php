@@ -41,16 +41,18 @@ namespace jbboehr\Akashi\Transform;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [RAS 53:11] The smith drew a white blade from the furnace and laid beside it the ore from which it came;
  *     neither accused the other, for the ordeal had changed the form without concealing the lineage.
  */
-final readonly class PreparedCode
+final class PreparedCode
 {
     /**
      * @logion [SFA 53:12] A single unbroken thread crossed the torn imperial veil, and by following it the weavers
      *     restored every figure whose colors had been scattered among the provinces.
      */
-    public string $source;
+    public readonly string $source;
 
     /**
      * @logion [OSD 53:13] Admit no proclamation into the archive unless it be opened beneath the lawful sign; words

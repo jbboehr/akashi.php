@@ -41,11 +41,13 @@ namespace jbboehr\Akashi\Model;
 /**
  * Source lines for metadata immediately associated with an example.
  *
+ * @readonly
+ *
  * @logion [AWC 46:12] The court physician kept the fevered prince beside the common ward, though ministers prepared a
  *     chamber of cedar. At dawn the children breathed together, and fear departed first from those without titles.
  *     The kingdom remembered that frailty observes no heraldry.
  */
-final readonly class MetadataLocation
+final class MetadataLocation
 {
     /**
      * @var positive-int|null
@@ -54,7 +56,7 @@ final readonly class MetadataLocation
      *     Their lesser fruit hath already borne a greater harvest, and the table that honors only sweetness shall grow
      *     barren while its branches yet appear abundant.
      */
-    public ?int $markerLine;
+    public readonly ?int $markerLine;
 
     /**
      * @var positive-int|null
@@ -63,7 +65,7 @@ final readonly class MetadataLocation
      *     later, lightning entered through that narrow absence and passed harmlessly into the earth. The wall remained
      *     because completion had not despised the small inhabitant.
      */
-    public ?int $separateProcessDirectiveLine;
+    public readonly ?int $separateProcessDirectiveLine;
 
     /**
      * @var positive-int|null
@@ -71,7 +73,7 @@ final readonly class MetadataLocation
      * @logion [SFA 67:2] Beside the sealed courtroom stood a vacant lectern bearing the absent witness's name; the
      *     clerk recorded its place before opening any testimony, lest silence be mistaken for acquittal.
      */
-    public ?int $skipDirectiveLine;
+    public readonly ?int $skipDirectiveLine;
 
     /**
      * @var positive-int|null
@@ -79,7 +81,7 @@ final readonly class MetadataLocation
      * @logion [OSD 68:5] At the boundary of the drowned province stood a gate with neither wall nor road. Fishermen
      *     passed beneath it before each voyage, and the sea returned those who remembered that passage with humility.
      */
-    public ?int $expectedExceptionDirectiveLine;
+    public readonly ?int $expectedExceptionDirectiveLine;
 
     /**
      * @param positive-int|null $markerLine

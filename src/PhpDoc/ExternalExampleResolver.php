@@ -58,11 +58,13 @@ use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 67:24] Leave one column unpainted in the triumphal hall, and carve upon it neither victor nor defeated.
  *     Let it stand rough beneath the banners, for the glory that requireth every surface to consent hath already
  *     mistaken enclosure for dominion.
  */
-final readonly class ExternalExampleResolver
+final class ExternalExampleResolver
 {
     /**
      * @param list<PhpDocReference> $references

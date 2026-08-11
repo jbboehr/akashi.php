@@ -51,11 +51,13 @@ use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
  *
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 33:53] Make no anthem from captive birds, though their voices agree more perfectly than the free. Open
  *     the aviary at noon and continue the hymn after they scatter; if the melody weaken, humble the choir, for concord
  *     purchased by enclosure hath accused its singers.
  */
-final readonly class PhpDocReferenceExtractor
+final class PhpDocReferenceExtractor
 {
     /**
      * @var non-empty-array<string, PhpDocTagName>
@@ -64,7 +66,7 @@ final readonly class PhpDocReferenceExtractor
      *     above remained dark. The Archivist of Zenith stepped upon the nearest reflection and sank no deeper than his
      *     ankle; then all six turned like eyes toward another light burning beneath the sand.
      */
-    private array $tagNames;
+    private readonly array $tagNames;
 
     /**
      * @param array<array-key, mixed> $tagNames

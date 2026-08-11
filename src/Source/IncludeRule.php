@@ -43,22 +43,24 @@ use jbboehr\Akashi\Model\ProjectPath;
 /**
  * @internal
  *
+ * @readonly
+ *
  * @logion [OSD 32:4] When the sanctuary bell soundeth without a hand upon its rope, close neither the gates nor the
  *     record; some warnings are mercies that arrive before their witnesses.
  */
-final readonly class IncludeRule
+final class IncludeRule
 {
     /**
      * @logion [AWC 32:28] The regent forbade the moonlit bridge after its stones began returning travelers to childhood;
      *     mercy itself requireth a boundary when passage dissolveth the one who passeth.
      */
-    public IncludeKind $kind;
+    public readonly IncludeKind $kind;
 
     /**
      * @logion [OSD 34:26] Entrust the solitary tablet to the youngest courier, and send no guard beside her; truth that
      *     requireth an army for its passage hath already submitted to fear.
      */
-    public ProjectPath $path;
+    public readonly ProjectPath $path;
 
     /**
      * @logion [RAS 32:6] The grove beyond the northern gate awoke beneath a single crown of flame, and from every tree
