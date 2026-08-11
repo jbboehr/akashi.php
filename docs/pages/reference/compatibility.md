@@ -25,10 +25,13 @@ tagged release.
 | PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines |
 | PHPStan           | Optional consumer integration targeting PHPStan 2.x                              |
 | ParaTest          | Development-only verified runner; not required by consumers                      |
-| Operating systems | Linux CI is required; advisory PHP 8.2 CI is configured for macOS and Windows    |
+| Operating systems | Linux is primary and gating; macOS and Windows have advisory PHP 8.2 CI          |
 
 Akashi's core model, discovery, Markdown extraction, transformation, execution, and CLI do not require PHPUnit or
 PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
+
+On pushes to `master`, the advisory macOS and Windows jobs run Composer validation, PHPStan, PHPUnit, package
+validation, and a CLI smoke test.
 
 Akashi develops against PHPUnit 11.5 and verifies PHPUnit 10.5 separately. `composer test:phpunit10` builds the current
 Composer archive, installs it into an isolated consumer project, and exercises runtime assertions, authored skips, both

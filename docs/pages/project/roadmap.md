@@ -83,6 +83,30 @@ binaries and INI profiles, and controlled child environments.
 The PHPStan roadmap includes an identifier-oriented expectation syntax that can coexist with `//!`, richer verifier
 results outside PHPUnit, and source maps capable of composing multiple transformations and source origins.
 
+## External PHPStan Verification
+
+Consumer repositories sometimes construct disposable Composer projects and run PHPStan against installed packages.
+Akashi may eventually replace their shell-level diagnostic parsing without taking ownership of package installation or
+compatibility-matrix orchestration.
+
+The planned sequence is:
+
+1. Decode PHPStan JSON into a typed result without discarding top-level analyzer errors or file association merely to
+   fit the existing `AnalyzerDiagnostic` value.
+2. Represent command execution and diagnostic verification independently of PHPUnit and `RuleTestCase`.
+3. Add a thin PHPStan command adapter with an explicit project root and a typed argument vector rather than a shell
+   command string. Preserve exit status, standard streams, timeouts, signals, launch failures, and malformed analyzer
+   output as distinct outcomes.
+4. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
+   removed.
+5. Add external canonical PHP examples and named-region authoring as separate source-model work; they are not a
+   prerequisite for the decoder or command adapter.
+
+The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract. Exact
+decoder and adapter names are undecided. Akashi will not construct temporary Composer projects, add repositories,
+install dependencies, inspect packages, define another project's compatibility matrix, or run package-specific runtime
+assertions. Those responsibilities remain with the consumer repository.
+
 A standalone runner, report formats, and broader plugin seams should follow concrete consumer demand. Akashi will not
 add registries or speculative interfaces merely to anticipate them.
 

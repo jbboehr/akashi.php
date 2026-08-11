@@ -118,7 +118,7 @@ final class LogionPlateTest extends TestCase
             );
 
             $imageCount = preg_match_all(
-                '/<img src="(?<source>[^"]+)" alt="(?<alt>[^"]+)" width="960" height="540" loading="lazy">/',
+                '/<img src="(?<source>[^"]+)" alt="(?<alt>[^"]+)" width="960" height="540" loading="eager" fetchpriority="high">/',
                 $plate['plate'],
                 $imageMatches,
                 PREG_SET_ORDER,
