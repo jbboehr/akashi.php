@@ -543,42 +543,62 @@ final readonly class CommonMarkExampleExtractor
         }
 
         $semanticLines = $this->semanticLines($document, $openingLine, $node->getLiteral());
-        $inlineExpectedException = $this->inlineExpectedException($document, $openingLine + 1, $semanticLines);
-        if ($inlineExpectedException['expectedException'] !== null) {
-            $inlineLine = $inlineExpectedException['line'];
-            if ($inlineLine === null) {
-                throw new \LogicException(sprintf(
-                    'Inline expected-exception metadata is missing its source line for %s.',
-                    $document->path->value,
-                ));
-            }
+        $codeSource = $this->restoreLineEndings($document, $openingLine + 1, $semanticLines);
+        $inline = (new InlineDirectiveParser())->parse($document, $openingLine + 1, $codeSource);
+        $mergedDirectives = [];
+        foreach (Directive::cases() as $directive) {
+            $associatedLine = match ($directive) {
+                Directive::SeparateProcess => $metadataLocation->separateProcessDirectiveLine,
+                Directive::Skip => $metadataLocation->skipDirectiveLine,
+            };
+            $inlineLine = match ($directive) {
+                Directive::SeparateProcess => $inline['metadata']->separateProcessDirectiveLine,
+                Directive::Skip => $inline['metadata']->skipDirectiveLine,
+            };
 
-            if ($expectedException !== null) {
-                $externalLine = $metadataLocation->expectedExceptionDirectiveLine;
-                if ($externalLine === null) {
-                    throw new \LogicException(sprintf(
-                        'Associated expected-exception metadata is missing its source line for %s.',
-                        $document->path->value,
-                    ));
-                }
-
+            if ($associatedLine !== null && $inlineLine !== null) {
                 throw new DirectiveException(sprintf(
-                    'Duplicate Akashi directive expect-exception at %s:%d; first declared at %s:%d.',
+                    'Duplicate Akashi directive %s at %s:%d; first declared at %s:%d.',
+                    $directive->value,
                     $document->path->value,
                     $inlineLine,
                     $document->path->value,
-                    $externalLine,
+                    $associatedLine,
+                ));
+            }
+            if ($directives->contains($directive) || $inline['directives']->contains($directive)) {
+                $mergedDirectives[] = $directive;
+            }
+        }
+
+        $inlineExpectedException = $inline['expectedException'];
+        if ($expectedException !== null && $inlineExpectedException !== null) {
+            $externalLine = $metadataLocation->expectedExceptionDirectiveLine;
+            $inlineLine = $inline['metadata']->expectedExceptionDirectiveLine;
+            if ($externalLine === null || $inlineLine === null) {
+                throw new \LogicException(sprintf(
+                    'Expected-exception metadata is missing its source line for %s.',
+                    $document->path->value,
                 ));
             }
 
-            $expectedException = $inlineExpectedException['expectedException'];
-            $metadataLocation = new MetadataLocation(
-                $metadataLocation->markerLine,
-                $metadataLocation->separateProcessDirectiveLine,
-                $metadataLocation->skipDirectiveLine,
+            throw new DirectiveException(sprintf(
+                'Duplicate Akashi directive expect-exception at %s:%d; first declared at %s:%d.',
+                $document->path->value,
                 $inlineLine,
-            );
+                $document->path->value,
+                $externalLine,
+            ));
         }
+        $expectedException ??= $inlineExpectedException;
+        $directives = new DirectiveSet(...$mergedDirectives);
+        $metadataLocation = new MetadataLocation(
+            $metadataLocation->markerLine,
+            $metadataLocation->separateProcessDirectiveLine ?? $inline['metadata']->separateProcessDirectiveLine,
+            $metadataLocation->skipDirectiveLine ?? $inline['metadata']->skipDirectiveLine,
+            $metadataLocation->expectedExceptionDirectiveLine
+                ?? $inline['metadata']->expectedExceptionDirectiveLine,
+        );
 
         $lineDistance = $endLine - $openingLine;
         $semanticLineCount = count($semanticLines);
@@ -613,7 +633,14 @@ final readonly class CommonMarkExampleExtractor
             metadata: $metadataLocation,
         );
 
-        return new Example(
+        $fence = new FenceMetadata(
+            infoString: $node->getInfo() ?? '',
+            character: $node->getChar(),
+            length: $node->getLength(),
+            indentation: $node->getOffset(),
+        );
+
+        return Example::fromInline(
             id: new ExampleId(sprintf(
                 'example-%s-%02d',
                 substr(sha1($document->path->value), 0, 12),
@@ -623,95 +650,13 @@ final readonly class CommonMarkExampleExtractor
             document: $document,
             location: $location,
             language: new Language('php'),
-            code: new ExampleCode($this->restoreLineEndings($document, $firstCodeLine, $semanticLines)),
-            fence: new FenceMetadata(
-                infoString: $node->getInfo() ?? '',
-                character: $node->getChar(),
-                length: $node->getLength(),
-                indentation: $node->getOffset(),
-            ),
+            code: new ExampleCode($codeSource),
+            fence: $fence,
             ordinal: $ordinal,
             explicitMarkerId: $markerId,
             directives: $directives,
             expectedException: $expectedException,
         );
-    }
-
-    /**
-     * @param positive-int $firstCodeLine
-     * @param list<string> $semanticLines
-     *
-     * @return array{expectedException: ?ExpectedException, line: ?positive-int}
-     *
-     * @logion [RAS 68:7] At the feast of returning banners, one soldier placed a bowl of clear water before the empty
-     *     chair of his enemy. None drank from it, yet by dawn the dust had settled upon every weapon in the hall.
-     */
-    private function inlineExpectedException(Document $document, int $firstCodeLine, array $semanticLines): array
-    {
-        $expectedException = null;
-        $directiveLine = null;
-        $source = implode("\n", $semanticLines);
-        $hasOpeningTag = preg_match('/\A<\?php(?:\s|$)/i', $source) === 1;
-        $tokens = token_get_all($hasOpeningTag ? $source : "<?php\n" . $source);
-        $prependedLineCount = $hasOpeningTag ? 0 : 1;
-
-        foreach ($tokens as $token) {
-            if (!is_array($token) || $token[0] !== T_COMMENT) {
-                continue;
-            }
-
-            $matches = [];
-            if (
-                preg_match(
-                    '/\A[ \t]*\/\/[ \t]*akashi[ \t]*:[ \t]*expect-exception'
-                        . '(?:[ \t]+(.*?))?[ \t]*\z/D',
-                    $token[1],
-                    $matches,
-                ) !== 1
-            ) {
-                continue;
-            }
-
-            $sourceLine = $firstCodeLine + $token[2] - 1 - $prependedLineCount;
-            if ($sourceLine < 1) {
-                throw new \LogicException(sprintf(
-                    'Inline expected-exception metadata has an invalid source line for %s.',
-                    $document->path->value,
-                ));
-            }
-
-            if ($directiveLine !== null) {
-                throw new DirectiveException(sprintf(
-                    'Duplicate inline Akashi directive expect-exception at %s:%d; first declared at %s:%d.',
-                    $document->path->value,
-                    $sourceLine,
-                    $document->path->value,
-                    $directiveLine,
-                ));
-            }
-
-            try {
-                $expectedException = new ExpectedException($matches[1] ?? '');
-            } catch (\InvalidArgumentException $exception) {
-                throw new DirectiveException(sprintf(
-                    'Invalid inline Akashi expect-exception directive at %s:%d: %s',
-                    $document->path->value,
-                    $sourceLine,
-                    $exception->getMessage(),
-                ), previous: $exception);
-            }
-
-            $directiveLine = $sourceLine;
-        }
-
-        if ($directiveLine === null) {
-            return ['expectedException' => null, 'line' => null];
-        }
-
-        return [
-            'expectedException' => $expectedException,
-            'line' => $directiveLine,
-        ];
     }
 
     /**

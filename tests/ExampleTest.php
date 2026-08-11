@@ -46,6 +46,7 @@ use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -67,7 +68,7 @@ final class ExampleTest extends TestCase
         $markerId = new MarkerId('selected-example');
         $directives = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
         $expectedException = new ExpectedException(\RuntimeException::class);
-        $example = new Example(
+        $example = Example::fromInline(
             id: $id,
             label: 'docs/guide.md PHP example 1',
             document: $document,
@@ -83,13 +84,14 @@ final class ExampleTest extends TestCase
 
         self::assertSame($id, $example->id);
         self::assertSame('docs/guide.md PHP example 1', $example->label);
-        self::assertSame($document, $example->document);
-        self::assertSame($location, $example->location);
+        self::assertInstanceOf(InlineExampleSource::class, $example->source);
+        self::assertSame($document, $example->codeOrigin()->document);
+        self::assertSame($location, $example->source->location);
         self::assertSame($language, $example->language);
         self::assertSame('php', $example->language->value);
         self::assertSame($code, $example->code);
         self::assertSame($source, $example->code->source);
-        self::assertSame($fence, $example->fence);
+        self::assertSame($fence, $example->source->fence);
         self::assertSame(1, $example->ordinal);
         self::assertSame($markerId, $example->explicitMarkerId);
         self::assertSame($directives, $example->directives);
@@ -114,18 +116,16 @@ final class ExampleTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        $unexpectedExample = (new \ReflectionClass(Example::class))->newInstanceArgs([
-            new ExampleId('example-01'),
-            $label,
-            new Document('docs/guide.md', ''),
-            new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
-            new Language('php'),
-            new ExampleCode("echo 1;\n"),
-            new FenceMetadata('php', '`', 3, 0),
-            $ordinal,
-        ]);
-
-        self::fail('Unexpectedly constructed ' . $unexpectedExample::class . '.');
+        Example::fromInline(
+            id: new ExampleId('example-01'),
+            label: $label,
+            document: new Document('docs/guide.md', ''),
+            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
+            language: new Language('php'),
+            code: new ExampleCode("echo 1;\n"),
+            fence: new FenceMetadata('php', '`', 3, 0),
+            ordinal: $ordinal,
+        );
     }
 
     /**
@@ -139,7 +139,7 @@ final class ExampleTest extends TestCase
 
     private function example(): Example
     {
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-guide-01'),
             label: 'docs/guide.md PHP example 1',
             document: new Document('docs/guide.md', ''),

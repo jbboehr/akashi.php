@@ -42,8 +42,9 @@ use jbboehr\Akashi\Cli\Exception\UsageException;
 use jbboehr\Akashi\Model\MarkerId;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
 use jbboehr\Akashi\Source\DocumentationSource;
+use jbboehr\Akashi\Source\MarkedExampleSelector;
+use jbboehr\Akashi\Source\ProjectDocumentLoader;
 
 /**
  * Emits one explicitly marked PHP example without execution or transformation.
@@ -67,6 +68,7 @@ final readonly class ExtractCommand implements Command
     public function execute(array $arguments, \Closure $stdout): ExitCode
     {
         $markerName = null;
+        $projectRoot = null;
         $positionals = [];
 
         foreach ($arguments as $argument) {
@@ -76,6 +78,15 @@ final readonly class ExtractCommand implements Command
                 }
 
                 $markerName = substr($argument, strlen('--marker-name='));
+                continue;
+            }
+
+            if (str_starts_with($argument, '--project-root=')) {
+                if ($projectRoot !== null) {
+                    throw new UsageException('The --project-root option may be specified only once.');
+                }
+
+                $projectRoot = substr($argument, strlen('--project-root='));
                 continue;
             }
 
@@ -98,23 +109,19 @@ final readonly class ExtractCommand implements Command
         $markerId = new MarkerId($positionals[1]);
         $markerName = new MarkerName($markerName);
 
-        if (trim($file) === '') {
-            throw new \InvalidArgumentException('Documentation file path must not be empty.');
-        }
+        $file = $this->absolutePath($file, 'Documentation file');
 
-        $file = str_replace('\\', '/', $file);
-        $isAbsolute = str_starts_with($file, '/') || preg_match('/\A[a-zA-Z]:\//', $file) === 1;
-        if (!$isAbsolute) {
-            $workingDirectory = getcwd();
-            if ($workingDirectory === false) {
-                throw new \RuntimeException('Unable to determine the current working directory.');
-            }
+        $projectRoot = $projectRoot === null
+            ? new ProjectRoot(dirname($file))
+            : new ProjectRoot($this->absolutePath($projectRoot, 'Project root'));
+        $projectPath = ProjectDocumentLoader::projectPath(
+            $projectRoot,
+            new \SplFileInfo($file),
+            'documentation',
+        );
 
-            $file = $workingDirectory . '/' . $file;
-        }
-
-        $corpus = DocumentationSource::forProject(new ProjectRoot(dirname($file)))
-            ->includeFile(basename($file))
+        $corpus = DocumentationSource::forProject($projectRoot)
+            ->includeFile($projectPath)
             ->withMarkerName($markerName)
             ->load();
         $example = (new MarkedExampleSelector())->select($corpus, $markerId);
@@ -122,6 +129,30 @@ final readonly class ExtractCommand implements Command
         $stdout($this->withLegacyTrailingNewline($example->code->source));
 
         return ExitCode::Success;
+    }
+
+    /**
+     * @logion [OSD 72:92] Cut no black reed from the floodplain until the waters have withdrawn of themselves. When the
+     *     river returneth to its channel, gather only those stalks still sheltering nests, and weave them above the
+     *     sanctuary; for strength is first known by what abideth within it.
+     */
+    private function absolutePath(string $path, string $name): string
+    {
+        if (trim($path) === '') {
+            throw new \InvalidArgumentException(sprintf('%s path must not be empty.', $name));
+        }
+
+        $path = str_replace('\\', '/', $path);
+        if (str_starts_with($path, '/') || preg_match('/\A[a-zA-Z]:\//', $path) === 1) {
+            return $path;
+        }
+
+        $workingDirectory = getcwd();
+        if ($workingDirectory === false) {
+            throw new \RuntimeException('Unable to determine the current working directory.');
+        }
+
+        return $workingDirectory . '/' . $path;
     }
 
     /**

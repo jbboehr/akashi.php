@@ -80,12 +80,12 @@ MARKDOWN);
         self::assertTrue($examples[1]->directives->contains(Directive::Skip));
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
         self::assertTrue($examples[1]->directives->contains(Directive::SeparateProcess));
-        self::assertSame(1, $examples[0]->location->metadata->markerLine);
-        self::assertSame(4, $examples[0]->location->metadata->separateProcessDirectiveLine);
-        self::assertSame(3, $examples[0]->location->metadata->skipDirectiveLine);
-        self::assertSame(12, $examples[1]->location->metadata->markerLine);
-        self::assertSame(10, $examples[1]->location->metadata->separateProcessDirectiveLine);
-        self::assertSame(11, $examples[1]->location->metadata->skipDirectiveLine);
+        self::assertSame(1, $examples[0]->codeOrigin()->metadata->markerLine);
+        self::assertSame(4, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
+        self::assertSame(3, $examples[0]->codeOrigin()->metadata->skipDirectiveLine);
+        self::assertSame(12, $examples[1]->codeOrigin()->metadata->markerLine);
+        self::assertSame(10, $examples[1]->codeOrigin()->metadata->separateProcessDirectiveLine);
+        self::assertSame(11, $examples[1]->codeOrigin()->metadata->skipDirectiveLine);
         self::assertSame("<?php\necho 'first';\n", $examples[0]->code->source);
     }
 
@@ -125,8 +125,8 @@ MARKDOWN);
         self::assertCount(1, $examples);
         self::assertSame('quoted-example', $examples[0]->explicitMarkerId?->value);
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
-        self::assertSame(1, $examples[0]->location->metadata->markerLine);
-        self::assertSame(3, $examples[0]->location->metadata->separateProcessDirectiveLine);
+        self::assertSame(1, $examples[0]->codeOrigin()->metadata->markerLine);
+        self::assertSame(3, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
     }
 
     public function testAssociatesATypedExpectedExceptionWithItsSourceLine(): void
@@ -142,7 +142,7 @@ MARKDOWN);
 
         self::assertCount(1, $examples);
         self::assertSame('Domain\DocumentException', $examples[0]->expectedException?->className);
-        self::assertSame(2, $examples[0]->location->metadata->expectedExceptionDirectiveLine);
+        self::assertSame(2, $examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
     }
 
     #[DataProvider('inlineExpectedExceptionProvider')]
@@ -155,7 +155,7 @@ MARKDOWN);
 
         self::assertCount(1, $examples);
         self::assertSame('Domain\\DocumentException', $examples[0]->expectedException?->className);
-        self::assertSame($expectedLine, $examples[0]->location->metadata->expectedExceptionDirectiveLine);
+        self::assertSame($expectedLine, $examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
         self::assertSame($expectedSource, $examples[0]->code->source);
     }
 
@@ -204,7 +204,24 @@ MARKDOWN);
 
         self::assertCount(1, $examples);
         self::assertNull($examples[0]->expectedException);
-        self::assertNull($examples[0]->location->metadata->expectedExceptionDirectiveLine);
+        self::assertNull($examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
+    }
+
+    public function testAssociatesInlineRuntimeDirectivesAnywhereInTheCode(): void
+    {
+        $examples = $this->extract(<<<'MARKDOWN'
+```php
+$prepared = true;
+// akashi: skip
+echo 'not run'; // akashi: separate-process
+```
+MARKDOWN);
+
+        self::assertCount(1, $examples);
+        self::assertTrue($examples[0]->directives->contains(Directive::Skip));
+        self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
+        self::assertSame(3, $examples[0]->codeOrigin()->metadata->skipDirectiveLine);
+        self::assertSame(4, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
     }
 
     public function testRejectsAnInvalidMarkerIdWithItsSourceLocation(): void
@@ -359,6 +376,20 @@ MARKDOWN);
                 . "// akashi: expect-exception LogicException\nthrow new RuntimeException();\n```\n",
             'Duplicate inline Akashi directive expect-exception at docs/directives.md:3; '
                 . 'first declared at docs/directives.md:2.',
+        ];
+        yield 'unknown inline directive' => [
+            "```php\n// akashi: elsewhere\necho 1;\n```\n",
+            'Unknown inline Akashi directive "elsewhere" at docs/directives.md:2.',
+        ];
+        yield 'duplicate inline runtime directive' => [
+            "```php\n// akashi: skip\necho 1; // akashi: skip\n```\n",
+            'Duplicate inline Akashi directive skip at docs/directives.md:3; '
+                . 'first declared at docs/directives.md:2.',
+        ];
+        yield 'external and inline runtime directive' => [
+            "<!-- akashi: separate-process -->\n```php\n// akashi: separate-process\nexit(0);\n```\n",
+            'Duplicate Akashi directive separate-process at docs/directives.md:3; '
+                . 'first declared at docs/directives.md:1.',
         ];
         yield 'external and inline expected exception' => [
             "<!-- akashi: expect-exception RuntimeException -->\n```php\n"

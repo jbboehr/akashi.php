@@ -39,8 +39,10 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\PhpDoc;
 
 use jbboehr\Akashi\Document;
+use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\Directive;
+use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\PhpDoc\PhpDocExampleExtractor;
 use PHPUnit\Framework\TestCase;
@@ -85,21 +87,21 @@ PHP;
         self::assertSame('first-value', $examples[0]->explicitMarkerId?->value);
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
         self::assertSame("\$value = 41 + 1;\r\nassert(\$value === 42);\r\n", $examples[0]->code->source);
-        self::assertSame(9, $examples[0]->location->openingFenceLine);
-        self::assertSame(10, $examples[0]->location->firstCodeLine);
-        self::assertSame(11, $examples[0]->location->lastCodeLine);
-        self::assertSame(12, $examples[0]->location->closingFenceLine);
-        self::assertSame(6, $examples[0]->location->metadata->markerLine);
-        self::assertSame(7, $examples[0]->location->metadata->separateProcessDirectiveLine);
+        self::assertSame(9, $this->inlineSource($examples[0])->location->openingFenceLine);
+        self::assertSame(10, $this->inlineSource($examples[0])->location->firstCodeLine);
+        self::assertSame(11, $this->inlineSource($examples[0])->location->lastCodeLine);
+        self::assertSame(12, $this->inlineSource($examples[0])->location->closingFenceLine);
+        self::assertSame(6, $this->inlineSource($examples[0])->location->metadata->markerLine);
+        self::assertSame(7, $this->inlineSource($examples[0])->location->metadata->separateProcessDirectiveLine);
         self::assertSame('RuntimeException', $examples[1]->expectedException?->className);
-        self::assertSame(21, $examples[1]->location->metadata->expectedExceptionDirectiveLine);
+        self::assertSame(21, $this->inlineSource($examples[1])->location->metadata->expectedExceptionDirectiveLine);
         self::assertSame(
             " * ```PHP extra\r\n * \$value = 41 + 1;\r\n * assert(\$value === 42);\r\n * ```\r\n",
-            $document->lines->slice($examples[0]->location->fenceSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->fenceSpan),
         );
         self::assertSame(
             " * \$value = 41 + 1;\r\n * assert(\$value === 42);\r\n",
-            $document->lines->slice($examples[0]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
         );
     }
 
@@ -175,5 +177,12 @@ PHP);
 PHP);
 
         self::assertSame([], (new PhpDocExampleExtractor())->extract($document));
+    }
+
+    private function inlineSource(Example $example): InlineExampleSource
+    {
+        self::assertInstanceOf(InlineExampleSource::class, $example->source);
+
+        return $example->source;
     }
 }

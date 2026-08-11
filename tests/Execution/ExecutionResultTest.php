@@ -274,7 +274,7 @@ final class ExecutionResultTest extends TestCase
     private function preparedExample(): PreparedExample
     {
         $source = 'echo 1;';
-        $example = new Example(
+        $example = Example::fromInline(
             id: new ExampleId('example-execution-result-01'),
             label: 'Execution result fixture',
             document: new Document('docs/execution.md', $source),

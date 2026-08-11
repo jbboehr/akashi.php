@@ -434,7 +434,7 @@ PHP,
         $firstCodeLine = 10;
         $lastCodeLine = $firstCodeLine + $lineCount - 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: 'PHPUnit runtime fixture',
             document: new Document('docs/runtime.md', $source),

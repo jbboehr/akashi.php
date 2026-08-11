@@ -36,62 +36,55 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
+namespace jbboehr\Akashi\PhpDoc;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Transform\Exception\PhpParseException;
-use PhpParser\ErrorHandler\Collecting;
-use PhpParser\Node\Stmt;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
-use PhpParser\NodeVisitor\ParentConnectingVisitor;
+use jbboehr\Akashi\Model\ProjectPath;
+use jbboehr\Akashi\Model\ReferenceLocation;
+use jbboehr\Akashi\Model\RegionName;
 
 /**
+ * One parsed PHPDoc reference before its canonical PHP source is resolved.
+ *
  * @internal
  *
- * @logion [RAS 54:11] At the tribunal of echoes, every title was followed backward through its chambers until the
- *     first living voice was found; only then did the walls receive their new inscriptions.
+ * @logion [SFA 61:81] The alabaster choir screen bore one black vein unseen by those within the sanctuary. When the
+ *     chapter praised its purity, the vein flowered across the outer face; and the scholiast wrote that an enclosure
+ *     may conceal its stain from office, but never from approach.
  */
-final readonly class PhpNameResolver
+final readonly class PhpDocReference
 {
     /**
-     * @logion [SFA 54:12] The genealogist altered no face upon the procession cloth; she tied behind each figure a
-     *     thread leading to its house, so that later hands might move the image without severing its descent.
+     * @logion [SFA 75:42] The porcelain mask split along its smiling mouth, while the sorrow beneath remained whole.
+     *     The archive retained this as judgment.
      */
-    public function resolve(Example $example, ParsedPhp $parsed): ParsedPhp
-    {
-        $errors = new Collecting();
-        $traverser = new NodeTraverser(
-            new NameResolver($errors, ['replaceNodes' => false]),
-            new ParentConnectingVisitor(),
-        );
-        $nodes = $traverser->traverse($parsed->statements);
-        $resolutionErrors = $errors->getErrors();
+    public ProjectPath $path;
 
-        if ($resolutionErrors !== []) {
-            $error = $resolutionErrors[0];
-            $generatedLine = $error->getStartLine();
-            $sourceLine = $generatedLine > 0 && $generatedLine <= $parsed->sourceMap->generatedLineCount()
-                ? $parsed->sourceMap->sourceLineFor($generatedLine)
-                : null;
+    /**
+     * @logion [AWC 41:28] When the advocates purchased testimony, bronze reeds beside the chamber began repeating each
+     *     false word in the voices of children. The judges cut them down, yet their hollow roots continued beneath the
+     *     floor; thereafter every sentence was heard twice, once in authority and once in accusation.
+     */
+    public ?RegionName $region;
 
-            throw new PhpParseException(sprintf(
-                'Unable to resolve names in example %s at %s:%d: %s',
-                $example->id->value,
-                $example->codeOrigin()->document->path->value,
-                $sourceLine ?? $example->codeOrigin()->firstCodeLine,
-                $error->getRawMessage(),
-            ), previous: $error);
-        }
+    /**
+     * @logion [OSD 90:76] At the feast of succession, let the eldest serve the bread and the youngest bear the black
+     *     water jars. No heir shall eat until both have named the labor by which the house endured; for authority
+     *     entereth hungry and must learn from whose hands it shall be fed.
+     */
+    public ReferenceLocation $location;
 
-        $statements = [];
-        foreach ($nodes as $node) {
-            if (!$node instanceof Stmt) {
-                throw new \LogicException('Name resolution produced a non-statement root node.');
-            }
-            $statements[] = $node;
-        }
-
-        return new ParsedPhp($parsed->source, $statements, $parsed->tokens, $parsed->sourceMap);
+    /**
+     * @logion [RAS 75:64] From the outer dark the Angel of Accord struck a crystal tuning fork against the smallest
+     *     moon. Every planet altered its course to receive the note, save the greatest, which called its path
+     *     sufficient; and before the sound had faded, that planet wandered beyond the names of heaven.
+     */
+    public function __construct(
+        ProjectPath $path,
+        ?RegionName $region,
+        ReferenceLocation $location,
+    ) {
+        $this->path = $path;
+        $this->region = $region;
+        $this->location = $location;
     }
 }

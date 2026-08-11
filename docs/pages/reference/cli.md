@@ -17,7 +17,7 @@ documentation-test runner. Runtime examples are normally run through PHPUnit.
 ## Usage
 
 ```console
-vendor/bin/akashi extract --marker-name=NAME FILE MARKER-ID
+vendor/bin/akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
 vendor/bin/akashi --help
 vendor/bin/akashi --version
 ```
@@ -27,6 +27,10 @@ directory. Markdown markers precede their fence in the document; PHPDoc markers 
 docblock. `NAME` and `MARKER-ID` use lowercase kebab-case. The marker option may appear before or after the positional
 arguments, but it is required exactly once. Its explicit value lets the generic command support a project's existing
 comment convention.
+
+By default, Akashi treats `FILE`'s containing directory as the project root. Pass `--project-root=PATH` when `FILE`
+lives deeper in the project or its PHPDoc contains project-relative external-example references. The path may be
+absolute or relative to the current working directory, must contain `FILE`, and may be specified at most once.
 
 On successful extraction, stdout contains only the authored PHP fence source. Akashi removes an authored final line
 ending, if present, and appends exactly one LF for compatibility with its recorded consumer. It does not add headings,
@@ -45,4 +49,5 @@ Usage, extraction, and unexpected-failure diagnostics use stderr.
 |   `70` | Unexpected internal software failure.                                         |
 
 Invalid, missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and
-missing required arguments are usage failures.
+missing required arguments are usage failures. The command still selects explicit fence markers; PHPDoc external
+references are corpus sources, not extraction marker IDs.

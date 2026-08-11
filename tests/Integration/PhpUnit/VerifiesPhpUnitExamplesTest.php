@@ -82,7 +82,7 @@ final class VerifiesPhpUnitExamplesTest extends TestCase
     {
         $code = 'assert(true);';
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: $label,
             document: new Document('docs/trait.md', $code),

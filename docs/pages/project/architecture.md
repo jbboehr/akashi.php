@@ -23,18 +23,23 @@ then lets PHPUnit, PHPStan, or the extraction CLI consume that model through exp
 ## Example Lifecycle
 
 ```text
-Markdown / PHP files
-         │
-         ▼
-DocumentationSource ── format extraction ──► ExampleCorpus
-                                                  │
-                   ┌────────────────────────────┼─────────────────────────┐
-                   ▼                            ▼                         ▼
-          PHPUnit runtime                PHPStan verification      marked selection
-          transform → execute            select → analyze          extract CLI
-                   │                            │                         │
-                   ▼                            ▼                         ▼
-          PHPUnit assertions             PHPUnit assertions          stdout
+Markdown / PHPDoc files
+          │
+          ▼
+DocumentationSource
+  ├── inline PHP fences ───────────────────┐
+  └── PHPDoc references ─► PHP files/regions
+                                            │
+                                            ▼
+                                      ExampleCorpus
+                                            │
+                 ┌──────────────────────────┼──────────────────────────┐
+                 ▼                          ▼                          ▼
+          PHPUnit runtime           PHPStan verification       marked selection
+          transform → execute       select → analyze           extract CLI
+                 │                          │                          │
+                 ▼                          ▼                          ▼
+          PHPUnit assertions        PHPUnit assertions             stdout
 ```
 
 The `Example` is the shared boundary. Consumers do not need to understand parser nodes, generated namespaces, temporary
@@ -42,27 +47,35 @@ files, Symfony Process, or PHPStan diagnostics to discover a corpus.
 
 ## Source Discovery
 
-`DocumentationSource` is an immutable manifest of an absolute project root, file and directory includes, exclusions, and
-an optional marker name. Loading resolves and validates paths, rejects symbolic-link directory traversal and duplicate
-physical documents, sorts documents deterministically, and dispatches `.md` and `.php` documents by extension.
-`MarkdownSource` retains the same Markdown-only contract. Both accept bulk file iterables, including `SplFileInfo`
-values from Symfony Finder, without depending on Finder.
+`DocumentationSource` is an immutable manifest of an absolute project root, file and directory includes, exclusions, an
+optional marker name, and configured PHPDoc reference tags. Loading resolves and validates paths, rejects symbolic-link
+directory traversal and duplicate physical documents, sorts documents deterministically, and dispatches `.md` and `.php`
+documents by extension. `MarkdownSource` retains the same Markdown-only contract. Both accept bulk file iterables,
+including `SplFileInfo` values from Symfony Finder, without depending on Finder.
 
 The source manifests deliberately remain concrete configuration entry points rather than implementations of a public
 source interface. Extension-based dispatch is sufficient for the current formats, while `ExampleCorpus` is the shared
 boundary consumed by PHPUnit, PHPStan, and extraction.
 
-The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and Akashi runtime
-directives using document structure rather than regular expressions over the whole file. It also recognizes a typed
-expected-exception PHP comment token anywhere in the example or equivalent external metadata, rejects competing
-declarations, and preserves the selected declaration's source line. Token-aware recognition prevents matching text in
-strings and heredocs. It preserves original source text and exact line and byte spans. A nonempty ordered
-`ExampleCorpus` is constructed only after cross-document marker uniqueness and corpus ordering invariants hold.
+The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and external Akashi
+directives using document structure rather than regular expressions over the whole file. A shared token-aware parser
+also recognizes `skip`, `separate-process`, and typed `expect-exception` PHP line comments anywhere in fenced or
+canonical code. It rejects competing declarations and prevents matching text in strings and heredocs. Original source
+text and exact line and byte spans remain intact.
 
 The PHPDoc adapter locates every `T_DOC_COMMENT` with PHP's tokenizer, projects each comment's interior lines into
 CommonMark by removing conventional docblock decoration, and extracts each comment independently. It then restores the
 original PHP `Document`, line coordinates, and raw source spans. Independent parsing prevents metadata from crossing a
-docblock boundary; file-wide ordinals keep generated identities deterministic.
+docblock boundary; file-wide ordinals keep generated inline identities deterministic.
+
+The PHPDoc reference adapter recognizes `@akashi-example` by default, with an explicit replacement set configurable on
+`DocumentationSource`. References resolve from the canonical project root to ordinary `.php` files or token-validated
+named regions. The resolver rejects project-root escapes and malformed, nested, overlapping, mismatched, duplicate, or
+empty regions. Repeated references and in-project filesystem aliases resolve to one canonical example while retaining
+every PHPDoc presentation location. Referenced files do not have to be duplicated in the discovery include manifest.
+
+A nonempty ordered `ExampleCorpus` is constructed only after cross-document marker uniqueness, reference resolution,
+physical-source deduplication, and corpus ordering invariants hold.
 
 Discovery is separate from selection. A configured marker adds an explicit identity but does not hide unmarked fences; a
 PHPStan relevance predicate selects a subcorpus later; a runtime skip changes PHPUnit disposition without deleting the
@@ -73,15 +86,18 @@ example.
 `Document` owns the project-relative path, maintained Markdown or PHP source bytes, and line index. `Example` owns:
 
 - generated identity and human-readable label;
-- its originating `Document`;
-- line, byte, fence, marker, and directive locations;
-- normalized language and fence metadata;
+- an `InlineExampleSource` or `ReferencedExampleSource`;
+- one canonical `CodeOrigin` containing maintained document, line, byte, and directive locations;
+- fence metadata for inline examples or an optional region and all PHPDoc `ReferenceLocation` values for referenced
+  examples;
+- normalized language;
 - the unmodified extracted PHP source;
 - document ordinal and optional author-assigned marker ID; and
 - a typed set of runtime directives and an optional typed expected-exception contract.
 
 Small value objects validate paths, identifiers, source coordinates, languages, and directives at construction time.
-`ExampleCorpus` enforces nonemptiness, unique generated and marker IDs, and deterministic document/ordinal order.
+`ExampleCorpus` enforces nonemptiness, unique generated and marker IDs, and deterministic canonical path, source-line,
+and stable-ID order.
 
 Original example code remains separate from transformed code. This is necessary for diagnostics and prevents execution
 preparation from silently becoming the maintained representation.
@@ -91,13 +107,13 @@ preparation from silently becoming the maintained representation.
 Each execution backend produces a backend-specific `PreparedExample` containing the original `Example`, generated
 `PreparedCode`, its `ExecutionMode`, and a `SourceMap`. Prepared code and its map must contain the same number of lines.
 
-The current map translates generated lines to original Markdown or PHP lines. Transforms preserve or explicitly account
-for synthetic lines, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained source location.
-Failures fall back to the example start when PHP cannot provide a reliable generated line.
+The current map translates generated lines to original Markdown, PHPDoc, or external PHP lines. Transforms preserve or
+explicitly account for synthetic lines, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained
+source location. Failures fall back to the example start when PHP cannot provide a reliable generated line.
 
-The model deliberately retains original locations rather than exposing only temporary files. A fully composable,
-multi-origin source-map system is deferred, but the current representation does not discard the information needed to
-add canonical external sources and separate presentation locations later.
+The model deliberately retains original locations rather than exposing only temporary files. Canonical external code
+origins and separate PHPDoc presentation locations are implemented. A fully composable mapping across future sync,
+hidden-code, formatter, or renderer transformations remains deferred.
 
 ## In-Process Transformation
 
@@ -160,7 +176,8 @@ assignments before PHPUnit receives the result.
 
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
-execution pipeline.
+execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is below the
+project root; reference targets themselves are not marker IDs.
 
 ## Dependency Boundaries
 
@@ -173,10 +190,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 
 ## Current and Deferred Architecture
 
-Current architecture supports Markdown and PHPDoc sources, markers, runtime directives and both execution backends,
-typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. External canonical
-examples, named regions, synchronization, formatting, hidden support code, generalized verifier plugins, and a
-standalone runner do not exist yet.
+Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
+named regions, markers, token-aware runtime directives, both execution backends, typed in-process exception
+expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. Synchronization, formatting, hidden support code,
+documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

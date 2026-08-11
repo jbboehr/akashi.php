@@ -166,6 +166,22 @@ final class SourceLocationTest extends TestCase
         self::assertSame(7, $location->metadata->expectedExceptionDirectiveLine);
     }
 
+    public function testAllowsRuntimeDirectivesInsideTheCodeContent(): void
+    {
+        $location = new SourceLocation(
+            4,
+            5,
+            7,
+            8,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation(separateProcessDirectiveLine: 5, skipDirectiveLine: 7),
+        );
+
+        self::assertSame(5, $location->metadata->separateProcessDirectiveLine);
+        self::assertSame(7, $location->metadata->skipDirectiveLine);
+    }
+
     /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $directiveLine
@@ -207,17 +223,17 @@ final class SourceLocationTest extends TestCase
         yield 'marker on fence' => [4, null, null, null, 'Marker line must precede the opening fence.'];
         yield 'separate-process directive after fence' => [
             null,
-            5,
+            8,
             null,
             null,
-            'Separate-process directive line must precede the opening fence.',
+            'Separate-process directive line must precede the opening fence or lie within its code content.',
         ];
         yield 'skip directive after fence' => [
             null,
             null,
-            5,
+            8,
             null,
-            'Skip directive line must precede the opening fence.',
+            'Skip directive line must precede the opening fence or lie within its code content.',
         ];
         yield 'expected-exception directive after fence' => [
             null,

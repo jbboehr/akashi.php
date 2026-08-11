@@ -66,12 +66,12 @@ final readonly class ExpectationParser
             }
 
             $text = trim($matches[1]);
-            $sourceLine = $example->location->firstCodeLine + $offset;
+            $sourceLine = $example->codeOrigin()->firstCodeLine + $offset;
             if ($text === '') {
                 throw new ExpectationParseException(sprintf(
                     'Example %s at %s:%d contains an empty PHPStan diagnostic expectation.',
                     $example->id->value,
-                    $example->document->path->value,
+                    $example->codeOrigin()->document->path->value,
                     $sourceLine,
                 ));
             }

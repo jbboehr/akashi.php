@@ -166,6 +166,7 @@ try {
         'bin/akashi',
         'composer.json',
         'docs/LICENSE_EXCEPTION.md',
+        'examples/example-id.php',
     ];
     foreach ($requiredFiles as $requiredFile) {
         if (!array_key_exists($requiredFile, $files)) {
@@ -185,7 +186,7 @@ try {
         throw new RuntimeException('Composer archive omitted the source tree.');
     }
 
-    $allowedPrefixes = ['bin/', 'src/'];
+    $allowedPrefixes = ['bin/', 'examples/', 'src/'];
     foreach (array_keys($files) as $path) {
         if (in_array($path, $requiredFiles, true)) {
             continue;

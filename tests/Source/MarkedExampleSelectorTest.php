@@ -100,7 +100,7 @@ final class MarkedExampleSelectorTest extends TestCase
     {
         $contents = "```php\necho 1;\n```\n";
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: sprintf('docs/a.md PHP example %d', $ordinal),
             document: new Document('docs/a.md', $contents),

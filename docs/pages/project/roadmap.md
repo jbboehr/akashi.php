@@ -50,7 +50,8 @@ selection remains available for projects that do not need an external finder.
 PHPDoc support is being delivered through three progressively more maintainable authoring modes:
 
 1. short inline PHPDoc fences for local demonstrations — implemented;
-2. references to ordinary external PHP files or stable named regions, with the external file as source of truth; and
+2. references to ordinary external PHP files or stable named regions, with the external file as source of truth —
+   implemented; and
 3. optional synchronized inline copies for renderers that cannot include external content.
 
 Referenced canonical examples are preferred for substantial code because IDEs, formatters, PHPStan, and PHP can operate
@@ -58,13 +59,12 @@ on them directly. Named regions are preferred over fragile line-number ranges.
 
 The remaining suggested sequence is:
 
-1. External canonical PHP examples and named regions.
-2. Generalized source-location mapping.
-3. Check-only synchronization.
-4. Check-only formatter integration.
-5. Optional write-mode synchronization and formatting.
-6. Hidden support-code semantics.
-7. Documentation-renderer integrations.
+1. Generalized source-location mapping across multiple transformations.
+2. Check-only synchronization.
+3. Check-only formatter integration.
+4. Optional write-mode synchronization and formatting.
+5. Hidden support-code semantics.
+6. Documentation-renderer integrations.
 
 No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
 IDEs, renderers, and static analyzers. Akashi should integrate with configured formatters rather than become a PHP
@@ -97,8 +97,8 @@ The planned sequence is:
    output as distinct outcomes.
 4. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
    removed.
-5. Add external canonical PHP examples and named-region authoring as separate source-model work; they are not a
-   prerequisite for the decoder or command adapter.
+5. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
+   keeping disposable-project orchestration in the consumer.
 
 The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract. Exact
 decoder and adapter names are undecided. Akashi will not construct temporary Composer projects, add repositories,

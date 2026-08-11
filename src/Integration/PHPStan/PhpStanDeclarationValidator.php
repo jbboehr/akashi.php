@@ -216,8 +216,8 @@ final readonly class PhpStanDeclarationValidator
                     $kind,
                     $name,
                     $previous->id->value,
-                    $previous->document->path->value,
-                    $previous->location->firstCodeLine,
+                    $previous->codeOrigin()->document->path->value,
+                    $previous->codeOrigin()->firstCodeLine,
                 ),
             );
         }
@@ -258,8 +258,8 @@ final readonly class PhpStanDeclarationValidator
         throw new PhpStanVerificationException(sprintf(
             'Unsafe PHPStan example %s at %s:%d: %s.',
             $example->id->value,
-            $example->document->path->value,
-            $sourceLine ?? $example->location->firstCodeLine,
+            $example->codeOrigin()->document->path->value,
+            $sourceLine ?? $example->codeOrigin()->firstCodeLine,
             $reason,
         ));
     }

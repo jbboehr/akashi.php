@@ -96,7 +96,7 @@ final class ExampleCorpusTest extends TestCase
     public function testRejectsDocumentPathOrderViolations(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by document path and ascending document ordinal.');
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
 
         new ExampleCorpus(
             $this->example('example-b-01', 'docs/b.md', 1),
@@ -104,10 +104,10 @@ final class ExampleCorpusTest extends TestCase
         );
     }
 
-    public function testRejectsOrdinalOrderViolationsWithinADocument(): void
+    public function testRejectsSourceLineOrderViolationsWithinADocument(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by document path and ascending document ordinal.');
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
 
         new ExampleCorpus(
             $this->example('example-a-02', 'docs/a.md', 2),
@@ -115,14 +115,22 @@ final class ExampleCorpusTest extends TestCase
         );
     }
 
-    public function testRejectsEqualOrdinalsWithinADocument(): void
+    public function testAllowsEqualOrdinalsWhenStableIdsOrderTheSameSourceLine(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by document path and ascending document ordinal.');
-
-        new ExampleCorpus(
+        self::assertCount(2, new ExampleCorpus(
             $this->example('example-a-01', 'docs/a.md', 1),
             $this->example('example-a-02', 'docs/a.md', 1),
+        ));
+    }
+
+    public function testRejectsStableIdOrderViolationsOnTheSameSourceLine(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
+
+        new ExampleCorpus(
+            $this->example('example-a-02', 'docs/a.md', 1),
+            $this->example('example-a-01', 'docs/a.md', 1),
         );
     }
 
@@ -131,11 +139,18 @@ final class ExampleCorpusTest extends TestCase
      */
     private function example(string $id, string $path, int $ordinal, ?string $markerId = null): Example
     {
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: sprintf('%s PHP example %d', $path, $ordinal),
             document: new Document($path, ''),
-            location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
+            location: new SourceLocation(
+                $ordinal * 2 - 1,
+                $ordinal * 2,
+                null,
+                $ordinal * 2,
+                new SourceSpan(0, 1),
+                new SourceSpan(1, 1),
+            ),
             language: new Language('php'),
             code: new ExampleCode("echo 1;\n"),
             fence: new FenceMetadata('php', '`', 3, 0),

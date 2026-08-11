@@ -54,9 +54,9 @@ Planned Akashi work is:
    launch-failure evidence, and distinguish a diagnostic mismatch from malformed analyzer output or command failure.
 4. A compatibility migration of one consumer fixture, comparing Akashi's result with the existing harness before any
    duplicate parser is removed.
-5. Later integration with external canonical PHP examples and stable named regions. That source-model work may let
-   ordinary PHP files carry diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and
-   PHPStan, but it is not a prerequisite for decoding or command execution.
+5. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
+   diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and PHPStan; this is still not a
+   prerequisite for decoding or command execution.
 
 Illustrative API names such as `PhpStanJsonDiagnostics::decode()` are placeholders, not settled public contracts. Akashi
 must not become responsible for constructing temporary Composer projects, adding Composer repositories, resolving or

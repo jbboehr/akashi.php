@@ -42,6 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
@@ -177,14 +178,17 @@ final readonly class PhpDocExampleExtractor
             throw new \LogicException('PHPDoc example ordinal must be positive.');
         }
 
-        $location = $projected->location;
+        if (!$projected->source instanceof InlineExampleSource) {
+            throw new \LogicException('A projected PHPDoc fence must have an inline source.');
+        }
+        $location = $projected->source->location;
         $fenceEndLine = $location->closingFenceLine ?? $location->lastCodeLine ?? $location->openingFenceLine;
         $codeStart = $document->lines->lineStartOffset($location->firstCodeLine);
         $codeEnd = $location->lastCodeLine === null
             ? $codeStart
             : $document->lines->lineStartOffset($location->lastCodeLine + 1);
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId(sprintf(
                 'example-%s-%02d',
                 substr(sha1($document->path->value), 0, 12),
@@ -206,7 +210,7 @@ final readonly class PhpDocExampleExtractor
             ),
             language: $projected->language,
             code: $projected->code,
-            fence: $projected->fence,
+            fence: $projected->source->fence,
             ordinal: $ordinal,
             explicitMarkerId: $projected->explicitMarkerId,
             directives: $projected->directives,

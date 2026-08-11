@@ -39,12 +39,15 @@ declare(strict_types=1);
 namespace jbboehr\Akashi;
 
 use jbboehr\Akashi\Model\DirectiveSet;
+use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\ReferencedExampleSource;
 use jbboehr\Akashi\Model\SourceLocation;
 
 /**
@@ -69,19 +72,10 @@ final readonly class Example
     public string $label;
 
     /**
-     * @logion [SFA 14:5] A washerwoman hung a crimson robe beside a beggar’s gray blanket. A sudden gust twisted them
-     *     together so tightly that neither could be taken down alone. Their owners worked side by side until the knot
-     *     released. The wind makes brief kinships that pride would never weave; remember them after the air grows
-     *     still.
+     * @logion [OSD 25:30] Speak no oath beneath falling petals; wait until the branch is bare, that beauty witness not
+     *     beyond its season.
      */
-    public Document $document;
-
-    /**
-     * @logion [OSD 27:13] A whirlwind lifted red dust above the plain and shaped it briefly into a towering woman. She
-     *     opened her hands, and flint fell from one palm while millet fell from the other. The figure vanished, but
-     *     hunger and fire remained as siblings. Use neither gift without remembering the other.
-     */
-    public SourceLocation $location;
+    public InlineExampleSource|ReferencedExampleSource $source;
 
     /**
      * @logion [AWC 2:31] An old scholar kept a basket of walnuts beside his books. For every answer he gave, he cracked
@@ -96,13 +90,6 @@ final readonly class Example
      *     country. The slow creature had gone nowhere far, yet its passage enlarged the world.
      */
     public ExampleCode $code;
-
-    /**
-     * @logion [AWC 41:14] A jeweler crossing a meadow at sunrise saw a spider’s web strung with dew and reached for it
-     *     as though it were a necklace. The threads broke, the droplets entered the grass, and his fingers closed on
-     *     nothing. Beauty gives counsel freely until possession lays a hand upon it.
-     */
-    public FenceMetadata $fence;
 
     /**
      * @var positive-int
@@ -137,7 +124,7 @@ final readonly class Example
     public ?ExpectedException $expectedException;
 
     /**
-     * @param positive-int $ordinal
+     * @param int $ordinal
      *
      * @logion [AWC 21:4] A mapmaker left one island blank because no sailor agreed upon its shape. The king accused him
      *     of ignorance, but fishermen thanked him and entered the white space cautiously. Many returned with truer
@@ -145,6 +132,41 @@ final readonly class Example
      *     confirmed.
      */
     public function __construct(
+        ExampleId $id,
+        string $label,
+        InlineExampleSource|ReferencedExampleSource $source,
+        Language $language,
+        ExampleCode $code,
+        int $ordinal,
+        ?MarkerId $explicitMarkerId = null,
+        DirectiveSet $directives = new DirectiveSet(),
+        ?ExpectedException $expectedException = null,
+    ) {
+        if (trim($label) === '') {
+            throw new \InvalidArgumentException('Example label must not be empty.');
+        }
+
+        $this->id = $id;
+        $this->label = $label;
+        $this->source = $source;
+        $this->language = $language;
+        $this->code = $code;
+        $this->ordinal = self::validatedOrdinal($ordinal);
+        $this->explicitMarkerId = $explicitMarkerId;
+        $this->directives = $directives;
+        $this->expectedException = $expectedException;
+    }
+
+    /**
+     * Construct an example whose maintained code remains embedded in a documentation fence.
+     *
+     * @param int $ordinal
+     *
+     * @logion [RAS 79:13] At the first light the electric sea froze into a script broader than the coast, and the Angel
+     *     of Abrogation walked upon it, erasing one sentence with his heel. The ice began to move again, but the city
+     *     named by that sentence remained enclosed in winter beneath a cloudless sky.
+     */
+    public static function fromInline(
         ExampleId $id,
         string $label,
         Document $document,
@@ -156,35 +178,46 @@ final readonly class Example
         ?MarkerId $explicitMarkerId = null,
         DirectiveSet $directives = new DirectiveSet(),
         ?ExpectedException $expectedException = null,
-    ) {
-        if (trim($label) === '') {
-            throw new \InvalidArgumentException('Example label must not be empty.');
-        }
-
-        self::validateOrdinal($ordinal);
-
-        $this->id = $id;
-        $this->label = $label;
-        $this->document = $document;
-        $this->location = $location;
-        $this->language = $language;
-        $this->code = $code;
-        $this->fence = $fence;
-        $this->ordinal = $ordinal;
-        $this->explicitMarkerId = $explicitMarkerId;
-        $this->directives = $directives;
-        $this->expectedException = $expectedException;
+    ): self {
+        return new self(
+            $id,
+            $label,
+            InlineExampleSource::fromFence($document, $location, $fence),
+            $language,
+            $code,
+            $ordinal,
+            $explicitMarkerId,
+            $directives,
+            $expectedException,
+        );
     }
 
     /**
+     * Return the maintained code origin shared by every example source variant.
+     *
+     * @logion [AWC 83:38] To prevent surprise from heaven, the astronomers stretched a copper net above the capital and
+     *     vowed that no omen should descend unexamined. For many seasons the mesh caught only ash and wandering fire.
+     *     Then it caught the sunrise itself; the citizens praised the gentle twilight, until green dust fell from the
+     *     net and marked the brow of every child who had never seen morning.
+     */
+    public function codeOrigin(): CodeOrigin
+    {
+        return $this->source->origin;
+    }
+
+    /**
+     * @return positive-int
+     *
      * @logion [OSD 50:8] Bring the broken crown to the shore at ebb tide, and set it upon no living head; for the
      *     western sea remembereth the oath of its drowning, and at the seventh wave the gold shall disclose whether
      *     the dynasty ended in judgment or in flight.
      */
-    private static function validateOrdinal(int $ordinal): void
+    private static function validatedOrdinal(int $ordinal): int
     {
         if ($ordinal < 1) {
             throw new \InvalidArgumentException('Example ordinal must be positive.');
         }
+
+        return $ordinal;
     }
 }

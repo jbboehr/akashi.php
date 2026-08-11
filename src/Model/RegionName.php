@@ -36,62 +36,35 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
-
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Transform\Exception\PhpParseException;
-use PhpParser\ErrorHandler\Collecting;
-use PhpParser\Node\Stmt;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
-use PhpParser\NodeVisitor\ParentConnectingVisitor;
+namespace jbboehr\Akashi\Model;
 
 /**
- * @internal
+ * A stable lowercase name for one region in an external PHP example file.
  *
- * @logion [RAS 54:11] At the tribunal of echoes, every title was followed backward through its chambers until the
- *     first living voice was found; only then did the walls receive their new inscriptions.
+ * @logion [RAS 92:53] I saw the Angel of Tides bearing a ring of water in his open palm, and within the ring moved the
+ *     final hour of a drowned city. He turned his hand toward the artificial moon; the hour broke upon every coast at
+ *     once, revealing foundations that time had not forgiven.
  */
-final readonly class PhpNameResolver
+final readonly class RegionName
 {
     /**
-     * @logion [SFA 54:12] The genealogist altered no face upon the procession cloth; she tied behind each figure a
-     *     thread leading to its house, so that later hands might move the image without severing its descent.
+     * @logion [RAS 43:42] The Angel of Horizons peeled the synthetic sunset from the sky like a crimson skin, revealing
+     *     the black and lawful night beneath. The cities cried out for their colors; but the constellations entered one
+     *     by one, and each roof received the distance it had forgotten.
      */
-    public function resolve(Example $example, ParsedPhp $parsed): ParsedPhp
+    public string $value;
+
+    /**
+     * @logion [AWC 6:71] When the magistrates forbade the smell of the tanners’ quarter, they released imperial perfume
+     *     from the towers. The fragrance gathered as a purple cloud above the councilors and followed them even into
+     *     sleep; when fire entered the quarter, none who wore office could smell the warning.
+     */
+    public function __construct(string $value)
     {
-        $errors = new Collecting();
-        $traverser = new NodeTraverser(
-            new NameResolver($errors, ['replaceNodes' => false]),
-            new ParentConnectingVisitor(),
-        );
-        $nodes = $traverser->traverse($parsed->statements);
-        $resolutionErrors = $errors->getErrors();
-
-        if ($resolutionErrors !== []) {
-            $error = $resolutionErrors[0];
-            $generatedLine = $error->getStartLine();
-            $sourceLine = $generatedLine > 0 && $generatedLine <= $parsed->sourceMap->generatedLineCount()
-                ? $parsed->sourceMap->sourceLineFor($generatedLine)
-                : null;
-
-            throw new PhpParseException(sprintf(
-                'Unable to resolve names in example %s at %s:%d: %s',
-                $example->id->value,
-                $example->codeOrigin()->document->path->value,
-                $sourceLine ?? $example->codeOrigin()->firstCodeLine,
-                $error->getRawMessage(),
-            ), previous: $error);
+        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/D', $value) !== 1) {
+            throw new \InvalidArgumentException('Region name must be lowercase kebab-case.');
         }
 
-        $statements = [];
-        foreach ($nodes as $node) {
-            if (!$node instanceof Stmt) {
-                throw new \LogicException('Name resolution produced a non-statement root node.');
-            }
-            $statements[] = $node;
-        }
-
-        return new ParsedPhp($parsed->source, $statements, $parsed->tokens, $parsed->sourceMap);
+        $this->value = $value;
     }
 }

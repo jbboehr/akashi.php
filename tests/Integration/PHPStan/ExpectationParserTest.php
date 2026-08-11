@@ -132,7 +132,7 @@ final class ExpectationParserTest extends TestCase
         $firstCodeLine = 20;
         $lastCodeLine = $firstCodeLine + $lineCount - 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('phpstan-example-01'),
             label: 'PHPStan expectation fixture',
             document: new Document('docs/phpstan.md', $source),

@@ -86,7 +86,7 @@ final class PhpUnitExampleDataSetsTest extends TestCase
     /** @param positive-int $ordinal */
     private function example(string $id, string $label, int $ordinal): Example
     {
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: $label,
             document: new Document('docs/data-sets.md', 'echo true;'),

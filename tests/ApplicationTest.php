@@ -96,7 +96,7 @@ final class ApplicationTest extends TestCase
         self::assertSame(ExitCode::Success->value, $result['status']);
         self::assertStringStartsWith("Akashi — executable documentation testing for PHP.\n", $result['stdout']);
         self::assertStringContainsString(
-            'akashi extract --marker-name=NAME FILE MARKER-ID',
+            'akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID',
             $result['stdout'],
         );
         self::assertStringEndsWith("\n", $result['stdout']);
@@ -191,6 +191,28 @@ PHP));
         self::assertSame('', $result['stderr']);
     }
 
+    public function testExtractsAProjectRelativeDocumentWithAnExplicitProjectRoot(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/docs', 0o700));
+        $file = $this->workspace . '/docs/examples.md';
+        self::assertNotFalse(file_put_contents(
+            $file,
+            "<!-- selected-example: chosen -->\n```php\necho 'rooted';\n```\n",
+        ));
+
+        $result = $this->runApplication([
+            'extract',
+            '--marker-name=selected-example',
+            '--project-root=' . $this->workspace,
+            $file,
+            'chosen',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame("echo 'rooted';\n", $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
     /**
      * @param list<string> $arguments
      */
@@ -218,6 +240,17 @@ PHP));
         yield 'duplicate marker name' => [
             ['extract', '--marker-name=first', '--marker-name=second', 'examples.md', 'chosen'],
             'The --marker-name option may be specified only once.',
+        ];
+        yield 'duplicate project root' => [
+            [
+                'extract',
+                '--marker-name=selected-example',
+                '--project-root=first',
+                '--project-root=second',
+                'examples.md',
+                'chosen',
+            ],
+            'The --project-root option may be specified only once.',
         ];
         yield 'unknown extract option' => [
             ['extract', '--marker-name=selected-example', '--unknown', 'examples.md', 'chosen'],

@@ -88,10 +88,16 @@ final readonly class ExampleCorpus implements \Countable, \IteratorAggregate
             }
 
             if ($previous !== null) {
-                $pathComparison = strcmp($previous->document->path->value, $example->document->path->value);
-                if ($pathComparison > 0 || ($pathComparison === 0 && $previous->ordinal >= $example->ordinal)) {
+                $pathComparison = strcmp($previous->codeOrigin()->document->path->value, $example->codeOrigin()->document->path->value);
+                $lineComparison = $previous->codeOrigin()->firstCodeLine <=> $example->codeOrigin()->firstCodeLine;
+                $idComparison = strcmp($previous->id->value, $example->id->value);
+                if (
+                    $pathComparison > 0
+                    || ($pathComparison === 0 && $lineComparison > 0)
+                    || ($pathComparison === 0 && $lineComparison === 0 && $idComparison >= 0)
+                ) {
                     throw new \InvalidArgumentException(
-                        'Examples must be ordered by document path and ascending document ordinal.',
+                        'Examples must be ordered by canonical source path, source line, and example ID.',
                     );
                 }
             }

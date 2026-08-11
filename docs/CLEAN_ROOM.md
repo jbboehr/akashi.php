@@ -223,8 +223,8 @@ The Rust review influenced only the roadmap and vocabulary used to discuss defer
 
 - hidden support lines motivate preserving separate authored, semantic, and possible future display views;
 - executable examples in documentation comments provided user-facing behavioral precedent for Akashi's independently
-  designed inline PHPDoc extraction; externally included documentation still informs the deferred separation of code
-  origin and presentation locations;
+  designed inline PHPDoc extraction; externally included documentation informed the independently designed separation
+  now represented by canonical code origins and PHPDoc presentation locations;
 - ignored examples informed the authored runtime-skip directive while broader ignore policies remain deferred;
 - non-running examples motivate a future parse-or-analyze-only mode;
 - expected runtime failure motivated the roadmap entry now implemented as a narrow in-process throwable-type

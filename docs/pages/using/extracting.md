@@ -32,6 +32,9 @@ echo "Hello from Akashi!\n";
 `akashi-example` is an Akashi-generic convention, not a hard-coded name. A project retaining an existing marker such as
 `yumemi-example` supplies that name explicitly.
 
+This HTML marker is distinct from the default PHPDoc `@akashi-example` external-reference tag. A reference adds its
+canonical file or region to the corpus; it does not assign a `MARKER-ID` for the extraction command.
+
 The same marker can live inside PHPDoc and applies only to a fence in that comment:
 
 ````php
@@ -55,6 +58,9 @@ vendor/bin/akashi extract \
 
 On success, stdout contains only the authored PHP source with one final LF. This makes shell redirection and
 byte-for-byte consumer fixtures predictable. Diagnostics go to stderr.
+
+When the input is below the project root and its PHPDoc uses external references, add
+`--project-root=/absolute/project/path` so those project-relative targets resolve against the intended boundary.
 
 Markers use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate, orphaned, or
 non-PHP markers fail explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and exit-status

@@ -12,8 +12,8 @@ prepares dignity for the moment it cannot remain upright.</p>
 <img src="../images/logia/AWC-4_37.webp" alt="A practiced dancer safely guiding another performer down through a split stage" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Directives are Akashi-owned HTML comments associated with the next PHP fence in a Markdown document or within the same
-PHPDoc comment. The current runtime directives are:
+Directives may be Akashi-owned HTML comments associated with the next documentation fence, or PHP line comments inside
+the example code itself. The current runtime directives are:
 
 ```html
 <!-- akashi: skip -->
@@ -21,6 +21,13 @@ PHPDoc comment. The current runtime directives are:
 
 ```html
 <!-- akashi: separate-process -->
+```
+
+Canonical external PHP examples use the equivalent line-comment forms:
+
+```php
+// akashi: skip
+// akashi: separate-process
 ```
 
 An example may also declare the throwable type that successful runtime verification requires. The recommended form is
@@ -72,15 +79,17 @@ applying the same association rules, and metadata never crosses from one PHPDoc 
 Directives are deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to
 renderers and syntax highlighters.
 
-The inline expected-exception form may appear anywhere as an actual PHP line comment and applies to the whole example.
-Place it immediately before the operation expected to throw when that makes the example easier to read; Akashi does not
-infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside strings or heredocs is
-not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters, static analyzers,
-direct execution, and marked extraction all see it unchanged.
+Any inline directive may appear anywhere as an actual PHP line comment and applies to the whole example. Place an
+expected-exception comment immediately before the operation expected to throw when that makes the example easier to
+read; Akashi does not infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside
+strings or heredocs is not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters,
+static analyzers, direct execution, and marked extraction all see it unchanged.
 
-Use the HTML form when surrounding prose already establishes the expected failure or an extracted consumer fixture
-should not contain Akashi metadata. An example may use only one form; combining them is rejected as duplicate metadata
-even when both name the same type.
+Use the HTML form for documentation fences when surrounding prose already establishes the behavior or an extracted
+consumer fixture should not contain Akashi metadata. An example may use only one form of each directive; combining HTML
+and inline forms is rejected as duplicate metadata even when both express the same behavior. External whole-file and
+named-region examples use inline comments because their canonical code is not physically adjacent to the PHPDoc
+reference.
 
 ## Runtime Semantics
 

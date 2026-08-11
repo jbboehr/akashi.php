@@ -14,11 +14,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Build one mixed Markdown/PHPDoc corpus through `DocumentationSource`, including bulk file iterables compatible with
   `SplFileInfo` and Symfony Finder results.
 - Extract explicitly marked PHPDoc examples through the existing `vendor/bin/akashi extract` command.
+- Reference ordinary canonical PHP files or stable named regions from PHPDoc, deduplicate repeated references, preserve
+  both canonical and presentation locations, and reuse the resolved examples in PHPUnit and PHPStan workflows.
+- Author `skip`, `separate-process`, and `expect-exception` directives as token-aware PHP line comments in fenced or
+  external canonical example code.
 
 ### Changed
 
 - `MarkdownSource` now accepts bulk file iterables through `includeFiles()` while remaining the Markdown-only source
   entry point.
+- `Example` replaces its former `document`, `location`, and `fence` properties with explicit inline and referenced
+  source variants; use `codeOrigin()` for the maintained code location and inspect `source` for presentation details.
+- `akashi extract` accepts `--project-root=PATH` when its input document needs project-relative resolution.
 
 ## [0.1.0] - 2026-08-10
 

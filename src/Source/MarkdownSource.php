@@ -278,7 +278,7 @@ final readonly class MarkdownSource
                     continue;
                 }
 
-                $markerLine = $example->location->metadata->markerLine;
+                $markerLine = $example->codeOrigin()->metadata->markerLine;
                 if ($markerLine === null) {
                     throw new \LogicException('An explicitly marked example is missing its marker source line.');
                 }
@@ -288,7 +288,7 @@ final readonly class MarkdownSource
                     throw new DuplicateMarkerException(sprintf(
                         'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
                         $markerId,
-                        $example->document->path->value,
+                        $example->codeOrigin()->document->path->value,
                         $markerLine,
                         $first['path'],
                         $first['line'],
@@ -296,7 +296,7 @@ final readonly class MarkdownSource
                 }
 
                 $markerLocations[$markerId] = [
-                    'path' => $example->document->path->value,
+                    'path' => $example->codeOrigin()->document->path->value,
                     'line' => $markerLine,
                 ];
             }

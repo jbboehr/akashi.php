@@ -226,7 +226,7 @@ final class TransformValueTest extends TestCase
 
     private function example(): Example
     {
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-value-01'),
             label: 'Value fixture',
             document: new Document('docs/example.md', "echo 1;\n"),

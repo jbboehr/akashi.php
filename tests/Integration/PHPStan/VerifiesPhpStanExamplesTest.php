@@ -855,7 +855,7 @@ PHP,
         $lastCodeLine = 10 + $lineBreaks;
         $sourceLength = strlen($source);
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: $path . ' PHP example ' . $ordinal,
             document: new Document($path, $source),

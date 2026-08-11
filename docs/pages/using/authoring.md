@@ -11,9 +11,9 @@ by what awakeneth, not by the noise of its arrival.</p>
 <img src="../images/logia/OSD-30_27.webp" alt="A traveler bearing one luminous seed and a caravan of jars welcomed at the same harvest gate" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Akashi discovers Markdown documents and PHP source files, extracts PHP fenced blocks, and preserves their maintained
-source locations. Corpus selection controls which files participate; markers and directives add metadata to examples but
-do not make unmarked PHP fences disappear.
+Akashi discovers Markdown documents and PHP source files, extracts PHP fenced blocks and PHPDoc references to canonical
+PHP files, and preserves their maintained source locations. Corpus selection controls which documentation files
+participate; markers and directives add metadata to examples but do not make unmarked PHP fences disappear.
 
 ## Build a Corpus
 
@@ -64,9 +64,10 @@ assert($message === 'Hello, Akashi!');
 Backtick and tilde fences, longer fences, indentation, block quotes, and other CommonMark structure are handled by the
 CommonMark parser. Additional info-string words are retained as metadata but do not currently change Akashi behavior.
 
-Every example retains the original code, document, fence metadata, line and byte spans, and its ordinal in the document.
-Generated IDs combine a hash of the project-relative path with that ordinal. Moving the document or inserting an earlier
-PHP fence therefore changes the generated ID.
+Every inline example retains the original code, document, fence metadata, line and byte spans, and its ordinal in the
+document. Generated inline IDs combine a hash of the project-relative path with that ordinal. Moving the document or
+inserting an earlier PHP fence therefore changes the generated ID. Referenced examples instead derive stable IDs from
+their canonical project-relative path and optional region name.
 
 The exact generated form is `example-{first 12 hexadecimal characters of sha1(project-relative path)}-{ordinal}`, with
 the ordinal padded to at least two digits. Use an explicit marker ID when another tool needs an identity that survives
@@ -111,6 +112,66 @@ language for a PHP fragment that should not enter any workflow.
 Akashi extracts the fence, not its surrounding declaration. The example above therefore calls the project class through
 its fully qualified, Composer-autoloadable name. Supporting declarations must already be available through normal
 project bootstrap or autoloading, or be written inside the fence.
+
+## Reference Canonical PHP Examples
+
+Use an inline PHPDoc fence for a short demonstration tied closely to one symbol. For a substantial or reused example,
+keep ordinary PHP as the source of truth and reference it from PHPDoc:
+
+```php
+/**
+ * @akashi-example examples/conversion.php#basic-conversion
+ */
+```
+
+The target is relative to the configured project root. It names either a whole case-sensitive `.php` file or one stable
+named region. A canonical region file remains ordinary valid PHP:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+// akashi-region: basic-conversion
+$result = convert(1, 'meter', 'centimeter');
+
+assert($result === 100);
+// akashi-region-end: basic-conversion
+```
+
+Akashi executes and analyzes only the bytes between the named marker lines. The surrounding opening tag, bootstrap, and
+other regions keep the complete file directly executable and friendly to IDEs, formatters, and static-analysis tools.
+Whole-file references use the complete file instead. A named region must not rely on a surrounding `require`, `use`, or
+other file-level setup being copied into the example; keep required source inside the region or provide project setup
+through the normal runtime and PHPStan configuration.
+
+Region markers must be standalone PHP line comments with matching lowercase kebab-case names. Missing, malformed,
+orphaned, mismatched, nested, duplicate, and empty regions fail during `load()` instead of being guessed at. Stable
+names are deliberately used instead of line-number ranges, which unrelated edits would shift.
+
+The default reference tag is `@akashi-example`. To consume another public tag convention, replace the accepted set:
+
+```php
+$source = DocumentationSource::forProject(dirname(__DIR__))
+    ->includeDirectory('src')
+    ->withPhpDocReferenceTags('example');
+```
+
+Pass more than one name to accept a migration overlap, for example
+`withPhpDocReferenceTags('akashi-example', 'example')`. Akashi's model remains independent of PHPDocumentor; configuring
+`example` does not adopt PHPDocumentor's line-range behavior or trailing-description syntax.
+
+The canonical PHP file need not also be in the include manifest. It must resolve to a readable `.php` file inside the
+same canonical project root. Multiple PHPDoc sites may reference the same whole file or region; Akashi creates one
+example and retains every presentation site for tooling and future renderer integrations. Failures point to the
+canonical PHP code line, while `ReferencedExampleSource::$references` preserves the referring PHPDoc locations.
+Resolution is not recursive: PHPDoc inside a referenced file is scanned only when that file is also selected by the
+source manifest.
+
+External references are currently a PHPDoc authoring mode. Markdown continues to use physically embedded fences; sync,
+formatter, hidden-support-code, and renderer-inclusion features remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

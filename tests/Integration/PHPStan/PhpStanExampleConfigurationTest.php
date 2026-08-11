@@ -127,7 +127,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
             static function (Example $example) use (&$seen): bool {
                 $seen = $example;
 
-                return $example->document->path->value === 'docs/relevant.md';
+                return $example->codeOrigin()->document->path->value === 'docs/relevant.md';
             },
         );
         $example = $this->example('example-relevant-01', 'docs/relevant.md', 1, 'echo 1;');
@@ -321,7 +321,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
     ): Example {
         $sourceLength = strlen($source);
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId($id),
             label: $path . ' PHP example ' . $ordinal,
             document: new Document($path, $documentContents ?? $source),

@@ -40,12 +40,17 @@ namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\ProjectPath;
+use jbboehr\Akashi\Model\ReferenceLocation;
+use jbboehr\Akashi\Model\ReferencedExampleSource;
 use jbboehr\Akashi\Source\DocumentationSource;
+use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
 use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
 use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException;
 use jbboehr\Akashi\Source\Exception\UnsafeSourcePathException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationSourceTest extends TestCase
@@ -224,6 +229,357 @@ PHP);
             ->load();
     }
 
+    public function testResolvesAndDeduplicatesCanonicalNamedExamplesWithPresentationLocations(): void
+    {
+        $this->write('src/Conversion.php', <<<'PHP'
+<?php
+/** @akashi-example examples/conversion.php#basic-conversion */
+final class Conversion
+{
+    /**
+     * @akashi-example examples/conversion.php#basic-conversion
+     */
+    public function convert(): void {}
+}
+PHP);
+        $this->write('examples/conversion.php', <<<'PHP'
+<?php
+
+// akashi-region: basic-conversion
+// akashi: separate-process
+// akashi: expect-exception RuntimeException
+throw new RuntimeException('documented');
+// akashi-region-end: basic-conversion
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Conversion.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        $example = $examples[0];
+        self::assertInstanceOf(ReferencedExampleSource::class, $example->source);
+        self::assertSame('examples/conversion.php#basic-conversion referenced PHP example', $example->label);
+        self::assertSame('examples/conversion.php', $example->codeOrigin()->document->path->value);
+        self::assertSame(4, $example->codeOrigin()->firstCodeLine);
+        self::assertSame(6, $example->codeOrigin()->lastCodeLine);
+        self::assertSame(
+            "// akashi: separate-process\n"
+                . "// akashi: expect-exception RuntimeException\n"
+                . "throw new RuntimeException('documented');\n",
+            $example->code->source,
+        );
+        self::assertTrue($example->directives->contains(Directive::SeparateProcess));
+        self::assertSame('RuntimeException', $example->expectedException?->className);
+        self::assertSame(4, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
+        self::assertSame(5, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
+        self::assertSame('basic-conversion', $example->source->region?->value);
+        self::assertSame(
+            ['src/Conversion.php:2', 'src/Conversion.php:6'],
+            array_map(
+                static fn (ReferenceLocation $reference): string => sprintf(
+                    '%s:%d',
+                    $reference->document->path->value,
+                    $reference->line,
+                ),
+                $example->source->references,
+            ),
+        );
+    }
+
+    public function testConfiguredReferenceTagsReplaceTheDefaultAndMayBeCombined(): void
+    {
+        $this->write('src/Examples.php', <<<'PHP'
+<?php
+/**
+ * @example examples/legacy.php
+ * @akashi-example examples/native.php
+ */
+PHP);
+        $this->write('examples/legacy.php', "<?php\nassert(1 === 1);\n");
+        $this->write('examples/native.php', "<?php\nassert(2 === 2);\n");
+
+        $legacy = DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->withPhpDocReferenceTags('example')
+            ->load();
+        self::assertSame(
+            ['examples/legacy.php'],
+            array_map(
+                static fn (Example $example): string => $example->codeOrigin()->document->path->value,
+                iterator_to_array($legacy),
+            ),
+        );
+
+        $combined = DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->withPhpDocReferenceTags('akashi-example', 'example')
+            ->load();
+        self::assertSame(
+            ['examples/legacy.php', 'examples/native.php'],
+            array_map(
+                static fn (Example $example): string => $example->codeOrigin()->document->path->value,
+                iterator_to_array($combined),
+            ),
+        );
+    }
+
+    public function testWholeFileReferencesMayContainNamedRegionMarkers(): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/example.php */\n",
+        );
+        $this->write('examples/example.php', <<<'PHP'
+<?php
+
+// akashi-region: selected
+assert(true);
+// akashi-region-end: selected
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Examples.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        self::assertSame('examples/example.php', $examples[0]->codeOrigin()->document->path->value);
+        self::assertSame("<?php\n\n// akashi-region: selected\nassert(true);\n// akashi-region-end: selected", $examples[0]->code->source);
+        self::assertFalse($examples[0]->directives->contains(Directive::SeparateProcess));
+        self::assertFalse($examples[0]->directives->contains(Directive::Skip));
+    }
+
+    public function testReportsThePresentationSiteForAMissingReferencedFile(): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/missing.php */\n",
+        );
+
+        $this->expectException(InvalidExampleReferenceException::class);
+        $this->expectExceptionMessage(
+            'Referenced example file does not exist or is not a file: examples/missing.php. Referenced at src/Examples.php:2.',
+        );
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->load();
+    }
+
+    public function testDoesNotRecursivelyDiscoverReferencesInsideCanonicalExampleFiles(): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/first.php */\n",
+        );
+        $this->write('examples/first.php', <<<'PHP'
+<?php
+/** @akashi-example examples/not-selected.php */
+assert(true);
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Examples.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        self::assertSame('examples/first.php', $examples[0]->codeOrigin()->document->path->value);
+    }
+
+    #[DataProvider('invalidRegionProvider')]
+    public function testRejectsInvalidNamedRegions(string $source, string $message): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/example.php#selected */\n",
+        );
+        $this->write('examples/example.php', $source);
+
+        $this->expectException(InvalidExampleReferenceException::class);
+        $this->expectExceptionMessage($message);
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->load();
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function invalidRegionProvider(): iterable
+    {
+        yield 'missing' => ["<?php\necho 1;\n", 'Referenced region selected was not found'];
+        yield 'unclosed' => [
+            "<?php\n// akashi-region: selected\necho 1;\n",
+            'Region selected at examples/example.php:2 has no matching end marker.',
+        ];
+        yield 'nested' => [
+            "<?php\n// akashi-region: selected\n// akashi-region: inner\necho 1;\n"
+                . "// akashi-region-end: inner\n// akashi-region-end: selected\n",
+            'Region inner at examples/example.php:3 is nested inside region selected from line 2.',
+        ];
+        yield 'orphaned end' => [
+            "<?php\n// akashi-region-end: selected\n",
+            'Orphaned region end selected at examples/example.php:2.',
+        ];
+        yield 'mismatched end' => [
+            "<?php\n// akashi-region: selected\necho 1;\n// akashi-region-end: other\n",
+            'Region selected at examples/example.php:2 ends with mismatched name other at line 4.',
+        ];
+        yield 'empty' => [
+            "<?php\n// akashi-region: selected\n\n// akashi-region-end: selected\n",
+            'Region selected in examples/example.php contains no PHP source.',
+        ];
+        yield 'duplicate' => [
+            "<?php\n// akashi-region: selected\necho 1;\n// akashi-region-end: selected\n"
+                . "// akashi-region: selected\necho 2;\n// akashi-region-end: selected\n",
+            'Duplicate region selected in examples/example.php.',
+        ];
+        yield 'malformed' => [
+            "<?php\n// akashi-region: INVALID\necho 1;\n",
+            'Malformed region marker at examples/example.php:2.',
+        ];
+        yield 'not standalone' => [
+            "<?php\necho 1; // akashi-region: selected\n// akashi-region-end: selected\n",
+            'Region marker at examples/example.php:2 must be a standalone line comment.',
+        ];
+        yield 'invalid PHP' => [
+            "<?php\n// akashi-region: selected\nif (\n// akashi-region-end: selected\n",
+            'Unable to parse referenced example file examples/example.php:',
+        ];
+    }
+
+    public function testRejectsAReferencedSymlinkThatEscapesTheProjectRoot(): void
+    {
+        $outside = $this->workspace . '/outside.php';
+        self::assertNotFalse(file_put_contents($outside, "<?php\nassert(true);\n"));
+        self::assertTrue(mkdir($this->projectRoot . '/examples', 0o700, true));
+        if (!@symlink($outside, $this->projectRoot . '/examples/outside.php')) {
+            self::markTestSkipped('Creating symbolic links is unavailable on this platform.');
+        }
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/outside.php */\n",
+        );
+
+        $this->expectException(InvalidExampleReferenceException::class);
+        $this->expectExceptionMessage('Referenced example file resolves outside the project root');
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->load();
+    }
+
+    public function testDeduplicatesAnInProjectSymlinkAliasByItsPhysicalFile(): void
+    {
+        $this->write('examples/canonical.php', "<?php\nassert(true);\n");
+        if (!@symlink('canonical.php', $this->projectRoot . '/examples/alias.php')) {
+            self::markTestSkipped('Creating symbolic links is unavailable on this platform.');
+        }
+        $this->write('src/Examples.php', <<<'PHP'
+<?php
+/**
+ * @akashi-example examples/alias.php
+ * @akashi-example examples/canonical.php
+ */
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Examples.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        self::assertSame('examples/canonical.php', $examples[0]->codeOrigin()->document->path->value);
+        self::assertInstanceOf(ReferencedExampleSource::class, $examples[0]->source);
+        self::assertCount(2, $examples[0]->source->references);
+    }
+
+    public function testUsesTheLexicallyFirstHardLinkAliasAsTheCanonicalPath(): void
+    {
+        $this->write('examples/z-canonical.php', "<?php\nassert(true);\n");
+        if (!@link(
+            $this->projectRoot . '/examples/z-canonical.php',
+            $this->projectRoot . '/examples/a-alias.php',
+        )) {
+            self::markTestSkipped('Creating hard links is unavailable on this platform.');
+        }
+        $this->write('src/Examples.php', <<<'PHP'
+<?php
+/**
+ * @akashi-example examples/z-canonical.php
+ * @akashi-example examples/a-alias.php
+ */
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Examples.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        self::assertSame('examples/a-alias.php', $examples[0]->codeOrigin()->document->path->value);
+        self::assertSame(
+            'example-' . substr(sha1('external:examples/a-alias.php'), 0, 16),
+            $examples[0]->id->value,
+        );
+        self::assertInstanceOf(ReferencedExampleSource::class, $examples[0]->source);
+        self::assertCount(2, $examples[0]->source->references);
+    }
+
+    #[DataProvider('invalidReferenceTargetProvider')]
+    public function testRejectsMalformedReferenceTargets(string $tag, string $message): void
+    {
+        $this->write('src/Examples.php', "<?php\n/** {$tag} */\n");
+
+        $this->expectException(InvalidExampleReferenceException::class);
+        $this->expectExceptionMessage($message);
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->load();
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function invalidReferenceTargetProvider(): iterable
+    {
+        yield 'missing target' => [
+            '@akashi-example',
+            'Reference target must contain exactly one path and optional region.',
+        ];
+        yield 'colon typo' => [
+            '@akashi-example: examples/example.php',
+            'Reference tag must be followed by exactly one path and optional region.',
+        ];
+        yield 'trailing description' => [
+            '@akashi-example examples/example.php description',
+            'Reference target must contain exactly one path and optional region.',
+        ];
+        yield 'wrong extension' => [
+            '@akashi-example examples/example.inc',
+            'Referenced example path must use the case-sensitive .php extension.',
+        ];
+        yield 'invalid region' => [
+            '@akashi-example examples/example.php#Invalid',
+            'Region name must be lowercase kebab-case.',
+        ];
+    }
+
+    public function testRejectsDuplicateConfiguredReferenceTagNamesImmediately(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicate PHPDoc reference tag akashi-example.');
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->withPhpDocReferenceTags('akashi-example', 'akashi-example');
+    }
+
     public function testRejectsASelectedManifestWithoutExamples(): void
     {
         $this->write('README.md', '# No examples');
@@ -231,7 +587,7 @@ PHP);
 
         $this->expectException(NoExamplesFoundException::class);
         $this->expectExceptionMessage(
-            'Configured documentation files did not contain any PHP fenced blocks.',
+            'Configured documentation files did not contain any PHP fenced blocks or external example references.',
         );
 
         DocumentationSource::forProject($this->projectRoot)->includeDirectory('.')->load();

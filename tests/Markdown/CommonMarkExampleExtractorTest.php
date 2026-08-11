@@ -42,6 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Model\FenceCharacter;
+use jbboehr\Akashi\Model\InlineExampleSource;
 use PHPUnit\Framework\TestCase;
 
 final class CommonMarkExampleExtractorTest extends TestCase
@@ -79,17 +80,17 @@ final class CommonMarkExampleExtractorTest extends TestCase
             array_map(static fn (Example $example): string => $example->code->source, $examples),
         );
 
-        self::assertSame('php extra', $examples[0]->fence->infoString);
-        self::assertSame(FenceCharacter::Backtick, $examples[0]->fence->character);
-        self::assertSame(4, $examples[0]->fence->length);
-        self::assertSame(0, $examples[0]->fence->indentation);
-        self::assertSame('PHP container-metadata', $examples[1]->fence->infoString);
-        self::assertSame(FenceCharacter::Tilde, $examples[1]->fence->character);
-        self::assertSame(3, $examples[1]->fence->length);
-        self::assertSame(3, $examples[1]->fence->indentation);
-        self::assertSame('php quote', $examples[2]->fence->infoString);
-        self::assertSame(0, $examples[2]->fence->indentation);
-        self::assertSame('php unclosed', $examples[3]->fence->infoString);
+        self::assertSame('php extra', $this->inlineSource($examples[0])->fence->infoString);
+        self::assertSame(FenceCharacter::Backtick, $this->inlineSource($examples[0])->fence->character);
+        self::assertSame(4, $this->inlineSource($examples[0])->fence->length);
+        self::assertSame(0, $this->inlineSource($examples[0])->fence->indentation);
+        self::assertSame('PHP container-metadata', $this->inlineSource($examples[1])->fence->infoString);
+        self::assertSame(FenceCharacter::Tilde, $this->inlineSource($examples[1])->fence->character);
+        self::assertSame(3, $this->inlineSource($examples[1])->fence->length);
+        self::assertSame(3, $this->inlineSource($examples[1])->fence->indentation);
+        self::assertSame('php quote', $this->inlineSource($examples[2])->fence->infoString);
+        self::assertSame(0, $this->inlineSource($examples[2])->fence->indentation);
+        self::assertSame('php unclosed', $this->inlineSource($examples[3])->fence->infoString);
     }
 
     public function testMapsClosedAndUnclosedFenceLocationsAndRawSpans(): void
@@ -98,44 +99,44 @@ final class CommonMarkExampleExtractorTest extends TestCase
         $examples = $this->extractor->extract($document);
 
         self::assertSame([3, 4, 5, 6], [
-            $examples[0]->location->openingFenceLine,
-            $examples[0]->location->firstCodeLine,
-            $examples[0]->location->lastCodeLine,
-            $examples[0]->location->closingFenceLine,
+            $this->inlineSource($examples[0])->location->openingFenceLine,
+            $this->inlineSource($examples[0])->location->firstCodeLine,
+            $this->inlineSource($examples[0])->location->lastCodeLine,
+            $this->inlineSource($examples[0])->location->closingFenceLine,
         ]);
         self::assertSame(
             "````php extra\n<?php\necho \"```\";\n`````\n",
-            $document->lines->slice($examples[0]->location->fenceSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->fenceSpan),
         );
         self::assertSame(
             "<?php\necho \"```\";\n",
-            $document->lines->slice($examples[0]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
         );
 
         self::assertSame([13, 14, 15, 16], [
-            $examples[2]->location->openingFenceLine,
-            $examples[2]->location->firstCodeLine,
-            $examples[2]->location->lastCodeLine,
-            $examples[2]->location->closingFenceLine,
+            $this->inlineSource($examples[2])->location->openingFenceLine,
+            $this->inlineSource($examples[2])->location->firstCodeLine,
+            $this->inlineSource($examples[2])->location->lastCodeLine,
+            $this->inlineSource($examples[2])->location->closingFenceLine,
         ]);
         self::assertSame(
             "> <?php\n> echo 'quoted';\n",
-            $document->lines->slice($examples[2]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[2])->location->codeSpan),
         );
         self::assertNotSame(
             $examples[2]->code->source,
-            $document->lines->slice($examples[2]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[2])->location->codeSpan),
         );
 
         self::assertSame([26, 27, 28, null], [
-            $examples[3]->location->openingFenceLine,
-            $examples[3]->location->firstCodeLine,
-            $examples[3]->location->lastCodeLine,
-            $examples[3]->location->closingFenceLine,
+            $this->inlineSource($examples[3])->location->openingFenceLine,
+            $this->inlineSource($examples[3])->location->firstCodeLine,
+            $this->inlineSource($examples[3])->location->lastCodeLine,
+            $this->inlineSource($examples[3])->location->closingFenceLine,
         ]);
         self::assertSame(
             "`````php unclosed\n<?php\necho \"```\";\n",
-            $document->lines->slice($examples[3]->location->fenceSpan),
+            $document->lines->slice($this->inlineSource($examples[3])->location->fenceSpan),
         );
     }
 
@@ -149,11 +150,11 @@ final class CommonMarkExampleExtractorTest extends TestCase
         self::assertSame("<?php\r\necho 1;\r\n", $examples[0]->code->source);
         self::assertSame(
             "```PHP metadata\r\n<?php\r\necho 1;\r\n```\r\n",
-            $document->lines->slice($examples[0]->location->fenceSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->fenceSpan),
         );
         self::assertSame(
             "<?php\r\necho 1;\r\n",
-            $document->lines->slice($examples[0]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
         );
     }
 
@@ -169,9 +170,9 @@ final class CommonMarkExampleExtractorTest extends TestCase
         self::assertSame("<?php\necho 'listed';\n", $examples[0]->code->source);
         self::assertSame(
             "    <?php\n    echo 'listed';\n",
-            $document->lines->slice($examples[0]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
         );
-        self::assertSame(0, $examples[0]->fence->indentation);
+        self::assertSame(0, $this->inlineSource($examples[0])->fence->indentation);
     }
 
     public function testRepresentsClosedAndUnclosedEmptyFences(): void
@@ -181,15 +182,15 @@ final class CommonMarkExampleExtractorTest extends TestCase
 
         self::assertCount(2, $examples);
         self::assertSame('', $examples[0]->code->source);
-        self::assertNull($examples[0]->location->lastCodeLine);
-        self::assertSame(2, $examples[0]->location->closingFenceLine);
+        self::assertNull($this->inlineSource($examples[0])->location->lastCodeLine);
+        self::assertSame(2, $this->inlineSource($examples[0])->location->closingFenceLine);
         self::assertSame(
-            $examples[0]->location->codeSpan->startOffset,
-            $examples[0]->location->codeSpan->endOffsetExclusive,
+            $this->inlineSource($examples[0])->location->codeSpan->startOffset,
+            $this->inlineSource($examples[0])->location->codeSpan->endOffsetExclusive,
         );
         self::assertSame('', $examples[1]->code->source);
-        self::assertNull($examples[1]->location->lastCodeLine);
-        self::assertNull($examples[1]->location->closingFenceLine);
+        self::assertNull($this->inlineSource($examples[1])->location->lastCodeLine);
+        self::assertNull($this->inlineSource($examples[1])->location->closingFenceLine);
     }
 
     public function testRequiresAnExactCaseInsensitivePhpInfoWord(): void
@@ -222,7 +223,7 @@ final class CommonMarkExampleExtractorTest extends TestCase
 
         self::assertCount(1, $examples);
         self::assertSame(
-            $document->lines->slice($examples[0]->location->codeSpan),
+            $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
             $examples[0]->code->source,
         );
         self::assertSame('example-c2bba259c960-01', $examples[0]->id->value);
@@ -252,5 +253,12 @@ final class CommonMarkExampleExtractorTest extends TestCase
         self::assertNotFalse($contents);
 
         return new Document($path, $contents);
+    }
+
+    private function inlineSource(Example $example): InlineExampleSource
+    {
+        self::assertInstanceOf(InlineExampleSource::class, $example->source);
+
+        return $example->source;
     }
 }

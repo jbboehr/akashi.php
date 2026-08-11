@@ -36,62 +36,37 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Transform;
-
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Transform\Exception\PhpParseException;
-use PhpParser\ErrorHandler\Collecting;
-use PhpParser\Node\Stmt;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
-use PhpParser\NodeVisitor\ParentConnectingVisitor;
+namespace jbboehr\Akashi\Model;
 
 /**
- * @internal
+ * A normalized lowercase PHPDoc tag name without its leading at-sign.
  *
- * @logion [RAS 54:11] At the tribunal of echoes, every title was followed backward through its chambers until the
- *     first living voice was found; only then did the walls receive their new inscriptions.
+ * @logion [SFA 49:83] After the basilica burned, one unfired brick remained cool among the fused marble. The scholars
+ *     called it weak because it had never hardened; before they could enthrone its survival as proof, it returned to
+ *     clay beneath the morning rain.
  */
-final readonly class PhpNameResolver
+final readonly class PhpDocTagName
 {
     /**
-     * @logion [SFA 54:12] The genealogist altered no face upon the procession cloth; she tied behind each figure a
-     *     thread leading to its house, so that later hands might move the image without severing its descent.
+     * @logion [RAS 97:57] I beheld one drop of amber suspended above the firmament, and within it burned five suns,
+     *     each at a different age. An empire pierced the drop to seize the youngest light; all five fell together, and
+     *     its towers endured childhood, glory, and ruin before the same dusk.
      */
-    public function resolve(Example $example, ParsedPhp $parsed): ParsedPhp
+    public string $value;
+
+    /**
+     * @logion [RAS 37:44] Beneath the salt desert I saw a second moon pulsing like a buried heart. At night the sand
+     *     became transparent, and the ministers of the lower heaven walked inverted around it; but the city that dug
+     *     toward its light descended into day and found no night by which to return.
+     */
+    public function __construct(string $value)
     {
-        $errors = new Collecting();
-        $traverser = new NodeTraverser(
-            new NameResolver($errors, ['replaceNodes' => false]),
-            new ParentConnectingVisitor(),
-        );
-        $nodes = $traverser->traverse($parsed->statements);
-        $resolutionErrors = $errors->getErrors();
-
-        if ($resolutionErrors !== []) {
-            $error = $resolutionErrors[0];
-            $generatedLine = $error->getStartLine();
-            $sourceLine = $generatedLine > 0 && $generatedLine <= $parsed->sourceMap->generatedLineCount()
-                ? $parsed->sourceMap->sourceLineFor($generatedLine)
-                : null;
-
-            throw new PhpParseException(sprintf(
-                'Unable to resolve names in example %s at %s:%d: %s',
-                $example->id->value,
-                $example->codeOrigin()->document->path->value,
-                $sourceLine ?? $example->codeOrigin()->firstCodeLine,
-                $error->getRawMessage(),
-            ), previous: $error);
+        if (preg_match('/\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*\z/D', $value) !== 1) {
+            throw new \InvalidArgumentException(
+                'PHPDoc tag name must be lowercase kebab-case without a leading at-sign.',
+            );
         }
 
-        $statements = [];
-        foreach ($nodes as $node) {
-            if (!$node instanceof Stmt) {
-                throw new \LogicException('Name resolution produced a non-statement root node.');
-            }
-            $statements[] = $node;
-        }
-
-        return new ParsedPhp($parsed->source, $statements, $parsed->tokens, $parsed->sourceMap);
+        $this->value = $value;
     }
 }

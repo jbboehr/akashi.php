@@ -66,7 +66,14 @@ final class InProcessSafetyValidatorTest extends TestCase
                 $exception->getMessage(),
             );
             self::assertStringContainsString($reason, $exception->getMessage());
-            self::assertStringContainsString('Use <!-- akashi: separate-process -->.', $exception->getMessage());
+            self::assertStringContainsString(
+                'Add // akashi: separate-process to the example code',
+                $exception->getMessage(),
+            );
+            self::assertStringContainsString(
+                'use <!-- akashi: separate-process --> before a documentation fence.',
+                $exception->getMessage(),
+            );
         }
     }
 
@@ -378,7 +385,7 @@ PHP);
         $lastCodeLine = $sourceLength === 0 ? null : $firstCodeLine + $lineCount - 1;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-safety-01'),
             label: 'Safety fixture',
             document: new Document('docs/safety.md', $source),

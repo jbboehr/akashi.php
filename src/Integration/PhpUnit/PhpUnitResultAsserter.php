@@ -106,8 +106,8 @@ final readonly class PhpUnitResultAsserter
         $example = $result->preparedExample->example;
         $expectationLocation = sprintf(
             '%s:%d',
-            $example->document->path->value,
-            $example->location->metadata->expectedExceptionDirectiveLine ?? $example->location->firstCodeLine,
+            $example->codeOrigin()->document->path->value,
+            $example->codeOrigin()->metadata->expectedExceptionDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
         );
         $capturedStreamSections = [];
         if ($result->stdout !== '') {
@@ -259,8 +259,8 @@ final readonly class PhpUnitResultAsserter
 
         return sprintf(
             '%s:%d (example start; exact failing line unavailable)',
-            $example->document->path->value,
-            $example->location->firstCodeLine,
+            $example->codeOrigin()->document->path->value,
+            $example->codeOrigin()->firstCodeLine,
         );
     }
 

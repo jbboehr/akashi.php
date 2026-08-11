@@ -481,7 +481,7 @@ PHP;
         $lastCodeLine = $sourceLength === 0 ? null : $firstCodeLine + $lineCount - 1;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-subprocess-executor-01'),
             label: 'Subprocess executor fixture',
             document: new Document('docs/subprocess.md', $source),

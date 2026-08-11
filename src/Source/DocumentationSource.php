@@ -47,10 +47,14 @@ use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
 use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
 use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\PhpDocTagName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
+use jbboehr\Akashi\PhpDoc\ExternalExampleResolver;
 use jbboehr\Akashi\PhpDoc\PhpDocExampleExtractor;
+use jbboehr\Akashi\PhpDoc\PhpDocReferenceExtractor;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
+use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
 use jbboehr\Akashi\Source\Exception\NoDocumentsFoundException;
 use jbboehr\Akashi\Source\Exception\NoExamplesFoundException;
 use jbboehr\Akashi\Source\Exception\ProjectRootNotFoundException;
@@ -104,8 +108,18 @@ final readonly class DocumentationSource
     private ?MarkerName $markerName;
 
     /**
+     * @var non-empty-list<PhpDocTagName>
+     *
+     * @logion [OSD 21:27] Pave not the spring that singeth beneath the forum, though its waters disturb the
+     *     magistrates’ proclamations. Set the columns around its course and leave the center open; for an office that
+     *     cannot endure the older voice beneath it shall speak only to itself.
+     */
+    private array $phpDocReferenceTags;
+
+    /**
      * @param list<IncludeRule> $includes
      * @param list<ProjectPath> $exclusions
+     * @param non-empty-list<PhpDocTagName> $phpDocReferenceTags
      *
      * @logion [RAS 69:6] Upon the synthetic moon grew an orchard of marble trees, and each bore one fruit containing a
      *     small unpainted sky. The Angel of Workmanship tasted none, but blessed the makers, saying: They enclosed what
@@ -116,11 +130,13 @@ final readonly class DocumentationSource
         array $includes,
         array $exclusions,
         ?MarkerName $markerName,
+        array $phpDocReferenceTags,
     ) {
         $this->projectRoot = $projectRoot;
         $this->includes = $includes;
         $this->exclusions = $exclusions;
         $this->markerName = $markerName;
+        $this->phpDocReferenceTags = $phpDocReferenceTags;
     }
 
     /**
@@ -138,6 +154,7 @@ final readonly class DocumentationSource
             [],
             [],
             null,
+            [new PhpDocTagName('akashi-example')],
         );
     }
 
@@ -166,6 +183,7 @@ final readonly class DocumentationSource
             [...$this->includes, new IncludeRule(IncludeKind::File, $path)],
             $this->exclusions,
             $this->markerName,
+            $this->phpDocReferenceTags,
         );
     }
 
@@ -216,6 +234,7 @@ final readonly class DocumentationSource
             )],
             $this->exclusions,
             $this->markerName,
+            $this->phpDocReferenceTags,
         );
     }
 
@@ -233,6 +252,7 @@ final readonly class DocumentationSource
             $this->includes,
             [...$this->exclusions, is_string($path) ? new ProjectPath($path) : $path],
             $this->markerName,
+            $this->phpDocReferenceTags,
         );
     }
 
@@ -250,15 +270,53 @@ final readonly class DocumentationSource
             $this->includes,
             $this->exclusions,
             is_string($markerName) ? new MarkerName($markerName) : $markerName,
+            $this->phpDocReferenceTags,
         );
     }
 
     /**
-     * Load the selected files and extract their PHP fences in deterministic source order.
+     * Return a new configuration that recognizes exactly the supplied PHPDoc external-example tags.
+     *
+     * @logion [RAS 75:5] Above the abandoned observatory hung a honeycomb of amber chambers, and within each cell a
+     *     different century slept beneath its appointed sky. The Angel of Seasons broke no wax, but breathed across the
+     *     whole; and one age awoke before its hour, pouring golden heat upon the others until its own chamber melted
+     *     and fell dark into the sea.
+     */
+    public function withPhpDocReferenceTags(
+        PhpDocTagName|string $first,
+        PhpDocTagName|string ...$additional,
+    ): self {
+        $tags = [$first, ...$additional];
+        $normalized = [];
+        $seen = [];
+        foreach ($tags as $tag) {
+            $tag = is_string($tag) ? new PhpDocTagName($tag) : $tag;
+            if (isset($seen[$tag->value])) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Duplicate PHPDoc reference tag %s.',
+                    $tag->value,
+                ));
+            }
+            $seen[$tag->value] = true;
+            $normalized[] = $tag;
+        }
+
+        return new self(
+            $this->projectRoot,
+            $this->includes,
+            $this->exclusions,
+            $this->markerName,
+            $normalized,
+        );
+    }
+
+    /**
+     * Load the selected files and resolve their PHP examples in deterministic canonical-source order.
      *
      * @throws DirectiveException
      * @throws DuplicateDocumentException
      * @throws DuplicateMarkerException
+     * @throws InvalidExampleReferenceException
      * @throws InvalidMarkerMetadataException
      * @throws NoDocumentsFoundException
      * @throws NoExamplesFoundException
@@ -278,7 +336,9 @@ final readonly class DocumentationSource
     {
         $markdown = new CommonMarkExampleExtractor($this->markerName);
         $phpDoc = new PhpDocExampleExtractor($this->markerName);
+        $referenceExtractor = new PhpDocReferenceExtractor($this->phpDocReferenceTags);
         $examples = [];
+        $references = [];
         $markerLocations = [];
 
         foreach ($this->loadDocuments() as $document) {
@@ -291,13 +351,17 @@ final readonly class DocumentationSource
                 )),
             };
 
+            if (str_ends_with($document->path->value, '.php')) {
+                array_push($references, ...$referenceExtractor->extract($document));
+            }
+
             foreach ($extracted as $example) {
                 $markerId = $example->explicitMarkerId?->value;
                 if ($markerId === null) {
                     continue;
                 }
 
-                $markerLine = $example->location->metadata->markerLine;
+                $markerLine = $example->codeOrigin()->metadata->markerLine;
                 if ($markerLine === null) {
                     throw new \LogicException('An explicitly marked example is missing its marker source line.');
                 }
@@ -307,7 +371,7 @@ final readonly class DocumentationSource
                     throw new DuplicateMarkerException(sprintf(
                         'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
                         $markerId,
-                        $example->document->path->value,
+                        $example->codeOrigin()->document->path->value,
                         $markerLine,
                         $first['path'],
                         $first['line'],
@@ -315,7 +379,7 @@ final readonly class DocumentationSource
                 }
 
                 $markerLocations[$markerId] = [
-                    'path' => $example->document->path->value,
+                    'path' => $example->codeOrigin()->document->path->value,
                     'line' => $markerLine,
                 ];
             }
@@ -323,9 +387,22 @@ final readonly class DocumentationSource
             array_push($examples, ...$extracted);
         }
 
+        array_push(
+            $examples,
+            ...(new ExternalExampleResolver())->resolve($this->projectRoot, $references),
+        );
+
+        usort($examples, static function (\jbboehr\Akashi\Example $left, \jbboehr\Akashi\Example $right): int {
+            return strcmp(
+                $left->codeOrigin()->document->path->value,
+                $right->codeOrigin()->document->path->value,
+            ) ?: $left->codeOrigin()->firstCodeLine <=> $right->codeOrigin()->firstCodeLine
+                ?: strcmp($left->id->value, $right->id->value);
+        });
+
         if ($examples === []) {
             throw new NoExamplesFoundException(
-                'Configured documentation files did not contain any PHP fenced blocks.',
+                'Configured documentation files did not contain any PHP fenced blocks or external example references.',
             );
         }
 

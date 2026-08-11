@@ -84,7 +84,7 @@ final class Application
 Akashi — executable documentation testing for PHP.
 
 Usage:
-  akashi extract --marker-name=NAME FILE MARKER-ID
+  akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
   akashi --help
   akashi --version
 

@@ -275,10 +275,11 @@ final readonly class InProcessSafetyValidator
             : null;
 
         throw new UnsupportedExampleException(sprintf(
-            'Unsupported in-process example %s at %s:%d: %s. Use <!-- akashi: separate-process -->.',
+            'Unsupported in-process example %s at %s:%d: %s. Add // akashi: separate-process to the example code, '
+                . 'or use <!-- akashi: separate-process --> before a documentation fence.',
             $example->id->value,
-            $example->document->path->value,
-            $sourceLine ?? $example->location->firstCodeLine,
+            $example->codeOrigin()->document->path->value,
+            $sourceLine ?? $example->codeOrigin()->firstCodeLine,
             $reason,
         ));
     }

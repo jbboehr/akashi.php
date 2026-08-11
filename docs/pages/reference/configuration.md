@@ -23,14 +23,15 @@ $source = DocumentationSource::forProject($projectRoot);
 
 The fluent methods are:
 
-| Method                    | Contract                                                                                 |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| `includeFile($path)`      | Add one project-relative file with the case-sensitive `.md` or `.php` extension.         |
-| `includeFiles($paths)`    | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.  |
-| `includeDirectory($path)` | Recursively add `.md` and `.php` files below one project-relative directory.             |
-| `exclude($path)`          | Exclude an exact path and, for a directory, its complete subtree.                        |
-| `withMarkerName($name)`   | Recognize one lowercase kebab-case marker-comment name across both source formats.       |
-| `load()`                  | Read selected files and extract one nonempty, deterministically ordered `ExampleCorpus`. |
+| Method                              | Contract                                                                                      |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| `includeFile($path)`                | Add one project-relative file with the case-sensitive `.md` or `.php` extension.              |
+| `includeFiles($paths)`              | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.       |
+| `includeDirectory($path)`           | Recursively add `.md` and `.php` files below one project-relative directory.                  |
+| `exclude($path)`                    | Exclude an exact path and, for a directory, its complete subtree.                             |
+| `withMarkerName($name)`             | Recognize one lowercase kebab-case marker-comment name across both source formats.            |
+| `withPhpDocReferenceTags(...$tags)` | Replace the default `@akashi-example` external-reference tag with one or more accepted names. |
+| `load()`                            | Read selected sources and return one nonempty, deterministically ordered `ExampleCorpus`.     |
 
 `includeFiles()` consumes its iterable immediately to preserve immutable configuration. Symfony Finder entries extend
 `SplFileInfo`, so a Finder restricted to files can be passed directly. A `SplFileInfo` may carry an absolute pathname,
@@ -43,10 +44,17 @@ explicit files and recursive directories continue to select only the case-sensit
 Includes and exclusions are evaluated when loading. Configured paths must exist, documents must be readable, and
 resolved documents must remain inside the project root. Symlinked directories are not traversed. Reaching one physical
 document through multiple includes is an error. Documents are ordered by slash-normalized project-relative path using
-bytewise lexical comparison; examples within each document retain source order.
+bytewise lexical comparison. The final mixed corpus is ordered by canonical code path, first code line, and stable
+example ID, so inline and referenced examples remain deterministic together.
+
+External PHP files referenced by selected PHPDoc do not also need to appear in the include manifest. They must resolve
+to readable case-sensitive `.php` files inside the same canonical project root. Repeated references to the same whole
+file or named region produce one example with every PHPDoc presentation location retained. See
+[Authoring Examples](../using/authoring.md#reference-canonical-php-examples).
 
 An empty include set, an include/exclusion that does not exist, a selected set with no supported documents, and a corpus
-with no PHP fences are distinct failures. See [Authoring Examples](../using/authoring.md) for the common setup.
+with no PHP fences or external references are distinct failures. See [Authoring Examples](../using/authoring.md) for the
+common setup.
 
 ## Runtime Configuration
 

@@ -79,8 +79,8 @@ final readonly class PhpUnitRuntime
                 'Documentation example %s (%s) at %s:%d is marked to skip runtime execution.',
                 $example->id->value,
                 $example->label,
-                $example->document->path->value,
-                $example->location->metadata->skipDirectiveLine ?? $example->location->firstCodeLine,
+                $example->codeOrigin()->document->path->value,
+                $example->codeOrigin()->metadata->skipDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
             ));
         }
 
@@ -97,9 +97,9 @@ final readonly class PhpUnitRuntime
                     'Example %s expects %s at %s:%d, but expected exceptions currently require in-process execution.',
                     $example->id->value,
                     $example->expectedException->className,
-                    $example->document->path->value,
-                    $example->location->metadata->expectedExceptionDirectiveLine
-                        ?? $example->location->firstCodeLine,
+                    $example->codeOrigin()->document->path->value,
+                    $example->codeOrigin()->metadata->expectedExceptionDirectiveLine
+                        ?? $example->codeOrigin()->firstCodeLine,
                 ));
             }
 
@@ -108,8 +108,8 @@ final readonly class PhpUnitRuntime
                     'Example %s at %s:%d requires RuntimeConfiguration with an explicit project root for '
                     . 'separate-process execution.',
                     $example->id->value,
-                    $example->document->path->value,
-                    $example->location->metadata->separateProcessDirectiveLine ?? $example->location->firstCodeLine,
+                    $example->codeOrigin()->document->path->value,
+                    $example->codeOrigin()->metadata->separateProcessDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
                 ));
             }
 

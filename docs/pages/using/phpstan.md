@@ -99,6 +99,7 @@ Requiring the files executes their top-level code. PHPStan verification is there
 documentation. Akashi captures output, restores the working directory, error-reporting level, and output-buffer stack,
 and removes temporary artifacts, but it is not a sandbox.
 
-Analyzer lines are translated back to maintained Markdown or PHPDoc lines when the current mapping supports them.
-Low-level diagnostic metadata may retain a temporary path, while the user-facing failure report prefers the original
-document.
+Analyzer lines are translated back to maintained Markdown, inline PHPDoc, or canonical external PHP lines when the
+current mapping supports them. Low-level diagnostic metadata may retain a temporary path, while the user-facing failure
+report prefers the canonical maintained document. This means one ordinary named-region file can serve direct tooling,
+runtime verification, and PHPStan verification without copying its code into every PHPDoc presentation site.

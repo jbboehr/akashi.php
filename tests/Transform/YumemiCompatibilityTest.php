@@ -87,7 +87,11 @@ final class YumemiCompatibilityTest extends TestCase
 
         foreach ($unsupported as $message) {
             self::assertStringContainsString('authored namespace declarations are not supported in-process', $message);
-            self::assertStringContainsString('Use <!-- akashi: separate-process -->.', $message);
+            self::assertStringContainsString('Add // akashi: separate-process to the example code', $message);
+            self::assertStringContainsString(
+                'use <!-- akashi: separate-process --> before a documentation fence.',
+                $message,
+            );
         }
     }
 }

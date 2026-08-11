@@ -19,33 +19,40 @@ autoloadability alone does not create an extension point.
 
 ## Source and Corpus
 
-| Type                                          | Purpose                                                                                       |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                                     |
-| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                       |
-| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                                   |
-| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.                            |
-| `jbboehr\Akashi\Example`                      | Canonical example with source, fence, marker, directives, and optional exception expectation. |
-| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                             |
+| Type                                          | Purpose                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                                  |
+| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                    |
+| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                                |
+| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.                         |
+| `jbboehr\Akashi\Example`                      | Canonical example with a typed source variant, code, directives, and optional expectation. |
+| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                          |
 
 `DocumentationSource` is the ordinary entry point for mixed corpora; `MarkdownSource` remains the explicit Markdown-only
 entry point and exposes `loadDocuments()` for consumers that need the selected documents themselves.
 
-`Document`, `Example`, and `ExampleCorpus` form the canonical public model. Path, identifier, language, fence,
-directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public because the canonical model and
-configuration objects expose them as typed state. That includes `Model\ExpectedException`, which carries a normalized
-authored throwable class name without requiring the class to exist before runtime setup. Their constructors enforce the
-same invariants used by source discovery; they are data contracts, not subclassing or service-replacement seams.
+`Document`, `Example`, and `ExampleCorpus` form the canonical public model. `Example::$source` is either
+`Model\InlineExampleSource` for a Markdown/PHPDoc fence or `Model\ReferencedExampleSource` for a canonical external PHP
+file or named region. `Example::codeOrigin()` returns the maintained code location without requiring callers to switch
+on that presentation distinction. A referenced source also retains each `Model\ReferenceLocation` where PHPDoc presents
+the canonical example. Typed integrations constructing inline examples can use `Example::fromInline()` to derive a
+matching `CodeOrigin` from one fenced `SourceLocation`.
+
+Path, identifier, language, fence, directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public
+because the canonical model and configuration objects expose them as typed state. That includes
+`Model\ExpectedException`, which carries a normalized authored throwable class name without requiring the class to exist
+before runtime setup. Their constructors enforce the same invariants used by source discovery; they are data contracts,
+not subclassing or service-replacement seams.
 
 The supporting value types are grouped by what they preserve:
 
-| Concern          | Types                                                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Project paths    | `Model\ProjectRoot`, `Model\ProjectPath`, `Model\AbsoluteFilePath`, `Model\DocumentPath`                                       |
-| Example identity | `Model\ExampleId`, `Model\MarkerId`, `Model\MarkerName`                                                                        |
-| Authored source  | `Model\ExampleCode`, `Model\Language`, `Model\LineIndex`, `Model\SourceSpan`, `Model\SourceLocation`, `Model\MetadataLocation` |
-| Fence metadata   | `Model\FenceCharacter`, `Model\FenceMetadata`                                                                                  |
-| Runtime metadata | `Model\Directive`, `Model\DirectiveSet`, `Model\ExpectedException`                                                             |
+| Concern          | Types                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project paths    | `Model\ProjectRoot`, `Model\ProjectPath`, `Model\AbsoluteFilePath`, `Model\DocumentPath`                                                                                                                                                    |
+| Example identity | `Model\ExampleId`, `Model\MarkerId`, `Model\MarkerName`, `Model\RegionName`, `Model\PhpDocTagName`                                                                                                                                          |
+| Authored source  | `Model\ExampleCode`, `Model\Language`, `Model\LineIndex`, `Model\CodeOrigin`, `Model\SourceSpan`, `Model\SourceLocation`, `Model\MetadataLocation`, `Model\InlineExampleSource`, `Model\ReferencedExampleSource`, `Model\ReferenceLocation` |
+| Fence metadata   | `Model\FenceCharacter`, `Model\FenceMetadata`                                                                                                                                                                                               |
+| Runtime metadata | `Model\Directive`, `Model\DirectiveSet`, `Model\ExpectedException`                                                                                                                                                                          |
 
 Most consumers receive and inspect these values through the canonical model rather than constructing them directly.
 Direct construction remains supported for typed integrations that create documents or examples without weakening the
@@ -82,9 +89,9 @@ matching model. Direct consumers may use that typed model with `ExpectationParse
 
 ## Exceptions
 
-Source-loading failures, including malformed marker and directive metadata, share `Source\Exception\SourceException`;
-transformation failures share `Transform\Exception\TransformException`; execution failures share
-`Execution\Exception\ExecutionException`; and PHPStan integration failures share
+Source-loading failures, including malformed marker, directive, reference, and named-region metadata, share
+`Source\Exception\SourceException`; transformation failures share `Transform\Exception\TransformException`; execution
+failures share `Execution\Exception\ExecutionException`; and PHPStan integration failures share
 `Integration\PHPStan\Exception\PhpStanException`. Specific subclasses preserve distinctions such as missing paths,
 unsupported examples, runtime configuration, empty PHPStan selection, and verification infrastructure.
 

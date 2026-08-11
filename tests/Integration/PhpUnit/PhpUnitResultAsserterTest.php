@@ -412,7 +412,7 @@ TEXT;
         $lastCodeLine = $sourceLength === 0 ? null : $firstCodeLine + $lineCount - 1;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-phpunit-result-01'),
             label: 'PHPUnit result fixture',
             document: new Document('docs/phpunit-result.md', $source),

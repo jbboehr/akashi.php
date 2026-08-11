@@ -105,7 +105,7 @@ final readonly class NativeAssertionRewriter
             $sourceLine = $this->sourceLine($example, $parsed, $assertion->value);
             $metadata = ($descriptionPresent ? '' : ', description: null')
                 . ', expression: ' . $this->phpStringLiteral($expression)
-                . ', sourcePath: ' . $this->phpStringLiteral($example->document->path->value)
+                . ', sourcePath: ' . $this->phpStringLiteral($example->codeOrigin()->document->path->value)
                 . ', sourceLine: ' . $sourceLine;
 
             $edits[] = [
@@ -242,7 +242,7 @@ final readonly class NativeAssertionRewriter
             ? $parsed->sourceMap->sourceLineFor($generatedLine)
             : null;
 
-        return $sourceLine ?? $example->location->firstCodeLine;
+        return $sourceLine ?? $example->codeOrigin()->firstCodeLine;
     }
 
     /**
@@ -285,7 +285,7 @@ final readonly class NativeAssertionRewriter
         throw new UnsupportedExampleException(sprintf(
             'Unable to transform native assertion in example %s at %s:%d: %s.',
             $example->id->value,
-            $example->document->path->value,
+            $example->codeOrigin()->document->path->value,
             $this->sourceLine($example, $parsed, $node),
             $reason,
         ));

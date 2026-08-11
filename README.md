@@ -67,7 +67,7 @@ projects remaining on PHPUnit 10 may require `phpunit/phpunit:^10.5` instead.
 ## Features
 
 - Markdown PHP examples as named PHPUnit tests
-- PHPDoc PHP examples from ordinary source files
+- inline PHPDoc examples and references to canonical PHP files or named regions
 - fast in-process execution by default
 - opt-in child-process execution for examples that need process isolation
 - unconditional documentation assertions
@@ -83,9 +83,9 @@ Akashi executes trusted project code; neither runtime backend is a security sand
 Start with the [Quick Start](https://jbboehr.github.io/akashi.php/quick-start.html), or read the
 [complete documentation](https://jbboehr.github.io/akashi.php/).
 
-The Markdown and PHPDoc workflows, both runtime backends, PHPUnit integration, PHPStan verification, and marked
-extraction are implemented. Both recorded consumer migrations are complete. Akashi is still pre-1.0; its categorized
-public API is usable but may change between minor releases before 1.0.
+The Markdown, inline PHPDoc, and canonical external-example workflows, both runtime backends, PHPUnit integration,
+PHPStan verification, and marked extraction are implemented. Both recorded consumer migrations are complete. Akashi is
+still pre-1.0; its categorized public API is usable but may change between minor releases before 1.0.
 
 ## License
 

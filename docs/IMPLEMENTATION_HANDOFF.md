@@ -610,8 +610,8 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 ### Additional sources and maintainable authoring
 
 * inline PHPDoc-comment examples — implemented post-MVP;
-* external canonical PHP example files, including stable named regions;
-* documentation references to canonical examples;
+* external canonical PHP example files, including stable named regions — implemented post-MVP;
+* documentation references to canonical examples — implemented post-MVP;
 * optional synchronized inline presentations of external canonical examples;
 * declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
@@ -623,9 +623,10 @@ always have to be maintained literally inside documentation comments.
 
 ### PHPDoc example maintainability
 
-Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples are implemented through the
-mixed `DocumentationSource`; external canonical references, synchronization, formatting, and hidden support code remain
-deferred. The requirements below preserve the design boundary and remaining sequence.
+Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples and references to external
+canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; synchronization,
+formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and remaining
+sequence.
 
 > Use inline examples for short, local demonstrations. Use ordinary external PHP files as the canonical source for
 > substantial examples.
@@ -634,7 +635,7 @@ The goal is to keep examples easy to edit in an IDE, format with normal PHP form
 tools, execute directly, reuse in several documentation locations, synchronize without manual copy-and-paste, and
 trace to their maintained source lines when verification fails.
 
-The post-MVP design has three authoring modes.
+The post-MVP design has three authoring modes; the first two are implemented.
 
 #### 1. Inline examples
 
@@ -656,11 +657,11 @@ content beside the opening and closing comment delimiters is not interpreted as 
 #### 2. Referenced canonical examples
 
 Substantial examples should normally live in ordinary valid PHP files, optionally divided into stable named regions.
-An illustrative future reference may resemble:
+The default reference syntax is:
 
 ```php
 /**
- * @example examples/conversion.php#basic-conversion
+ * @akashi-example examples/conversion.php#basic-conversion
  */
 ```
 
@@ -669,13 +670,15 @@ with a canonical file such as:
 ```php
 <?php
 
-// akashi-example: basic-conversion
+// akashi-region: basic-conversion
 $result = convert(1, 'meter', 'centimeter');
 assert($result === 100);
-// akashi-example-end
+// akashi-region-end: basic-conversion
 ```
 
-The syntax is illustrative and remains unsettled. The design principles are:
+Reference targets are project-root-relative case-sensitive `.php` paths with an optional lowercase kebab-case region.
+`DocumentationSource::withPhpDocReferenceTags()` can replace the default tag with `example` or accept both during a
+migration. The implemented design principles are:
 
 * the external PHP file is the source of truth;
 * it remains ordinary valid PHP usable by IDEs, formatters, the PHP runtime, and static analyzers;
@@ -685,8 +688,8 @@ The syntax is illustrative and remains unsettled. The design principles are:
 * a documentation reference has a presentation location distinct from the canonical code origin, and both remain
   traceable.
 
-PHPDocumentor's current `@example` behavior may become one future frontend, but Akashi's source and example model must
-remain independent of any documentation generator.
+PHPDocumentor's `@example` spelling can be configured as one frontend, but Akashi's source and example model remains
+independent of any documentation generator and does not adopt line-number ranges or trailing descriptions.
 
 #### 3. Synchronized inline examples
 
@@ -719,9 +722,9 @@ synchronization regions fail instead of being guessed at.
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.
 
-### Future source-location mapping
+### Source-location mapping
 
-Every future example source and each transformation must preserve enough information to map:
+Every example source and each transformation must preserve enough information to map:
 
 ```text
 generated or executed PHP line
@@ -734,18 +737,17 @@ formatter errors and diffs, synchronized examples, hidden support code, and futu
 original maintained source location is available, Akashi must not report only an opaque temporary-file location.
 
 Mappings may need to compose across extraction, support-code handling, PHP transformation, and temporary-file
-generation. The future source model must therefore be able to represent an inline Markdown fence, an inline PHPDoc
-fence, an external whole PHP file, a named region within an external PHP file, and an inline example synchronized from
-an external source. Conceptually distinguish:
+generation. The model now represents inline Markdown and PHPDoc fences, external whole PHP files, and named regions;
+an inline example synchronized from an external source remains deferred. It conceptually distinguishes:
 
 * canonical code origin;
 * documentation reference or presentation location;
 * transformed execution source; and
 * verifier diagnostics.
 
-One example may have several presentation locations that reuse one canonical source. A single source line range is not
-always sufficient after transformations. Preserve the architectural seam now, but avoid speculative complexity in the
-MVP public API.
+One referenced example may have several PHPDoc presentation locations that reuse one canonical source. A single source
+line range is not always sufficient after transformations. The implemented typed source variants preserve that seam
+without introducing a general plugin or source-map framework.
 
 ### Hidden support code
 
@@ -787,7 +789,7 @@ map back to the source developers actually maintain.
 Place this work after the current Markdown/Yumemi MVP and before broad plugin or runner expansion. The sequence is:
 
 1. PHPDoc fenced examples — implemented post-MVP.
-2. External canonical PHP examples and named regions.
+2. External canonical PHP examples and named regions — implemented post-MVP.
 3. Source-location mapping improvements.
 4. Check-only synchronization.
 5. Check-only formatter integration.
@@ -801,11 +803,11 @@ external files, and examples that are checked without ordinary execution. It doe
 and the clean-room prohibition on rustdoc implementation material and competing PHP doctest documentation remains
 unchanged.
 
-All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction is now implemented as
-post-MVP work. External-example references, named-region parsing, synchronization commands, formatter commands, hidden
-support code, documentation-renderer plugins, and automatic docblock rewriting remain deferred. Do not add dependencies,
-placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
-future behavior.
+All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
+references, and named-region parsing are now implemented as post-MVP work. Synchronization commands, formatter commands,
+hidden support code, documentation-renderer plugins, and automatic docblock rewriting remain deferred. Do not add
+dependencies, placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally
+supports the future behavior.
 
 ### Additional example semantics
 

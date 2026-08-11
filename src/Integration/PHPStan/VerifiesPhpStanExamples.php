@@ -104,8 +104,8 @@ trait VerifiesPhpStanExamples
                     throw new PhpStanVerificationException(sprintf(
                         'Unable to load PHPStan example %s at %s:%d: %s: %s',
                         $file['example']->id->value,
-                        $file['example']->document->path->value,
-                        $file['example']->location->firstCodeLine,
+                        $file['example']->codeOrigin()->document->path->value,
+                        $file['example']->codeOrigin()->firstCodeLine,
                         $cause::class,
                         $cause->getMessage() !== '' ? $cause->getMessage() : '(no message)',
                     ), 0, $cause);
@@ -323,8 +323,8 @@ trait VerifiesPhpStanExamples
                 throw new PhpStanVerificationException(sprintf(
                     'PHPStan returned an empty diagnostic message for example %s at %s:%d%s.',
                     $example->id->value,
-                    $example->document->path->value,
-                    $sourceLine ?? $example->location->firstCodeLine,
+                    $example->codeOrigin()->document->path->value,
+                    $sourceLine ?? $example->codeOrigin()->firstCodeLine,
                     $identifier !== null && trim($identifier) !== '' ? sprintf(' [%s]', $identifier) : '',
                 ));
             }
@@ -351,7 +351,7 @@ trait VerifiesPhpStanExamples
         $lines = [
             sprintf('PHPStan diagnostics did not match documentation example %s.', $example->id->value),
             sprintf('Label: %s', $example->label),
-            sprintf('Location: %s:%d', $example->document->path->value, $example->location->firstCodeLine),
+            sprintf('Location: %s:%d', $example->codeOrigin()->document->path->value, $example->codeOrigin()->firstCodeLine),
             sprintf('Mismatch: %s', $mismatch->kind->value),
             'Expected diagnostics:',
         ];

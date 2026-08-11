@@ -155,27 +155,25 @@ final readonly class SourceLocation
             throw new \InvalidArgumentException('Marker line must precede the opening fence.');
         }
 
-        if (
-            $metadata->separateProcessDirectiveLine !== null
-            && $metadata->separateProcessDirectiveLine >= $openingFenceLine
-        ) {
-            throw new \InvalidArgumentException(
-                'Separate-process directive line must precede the opening fence.',
-            );
-        }
+        foreach ([
+            'Separate-process' => $metadata->separateProcessDirectiveLine,
+            'Skip' => $metadata->skipDirectiveLine,
+            'Expected-exception' => $metadata->expectedExceptionDirectiveLine,
+        ] as $name => $directiveLine) {
+            if ($directiveLine === null) {
+                continue;
+            }
 
-        if ($metadata->skipDirectiveLine !== null && $metadata->skipDirectiveLine >= $openingFenceLine) {
-            throw new \InvalidArgumentException('Skip directive line must precede the opening fence.');
-        }
-
-        if ($metadata->expectedExceptionDirectiveLine !== null) {
-            $isExternal = $metadata->expectedExceptionDirectiveLine < $openingFenceLine;
+            $isExternal = $directiveLine < $openingFenceLine;
             $isInline = $lastCodeLine !== null
-                && $metadata->expectedExceptionDirectiveLine >= $firstCodeLine
-                && $metadata->expectedExceptionDirectiveLine <= $lastCodeLine;
+                && $directiveLine >= $firstCodeLine
+                && $directiveLine <= $lastCodeLine;
             if (!$isExternal && !$isInline) {
                 throw new \InvalidArgumentException(
-                    'Expected-exception directive line must precede the opening fence or lie within its code content.',
+                    sprintf(
+                        '%s directive line must precede the opening fence or lie within its code content.',
+                        $name,
+                    ),
                 );
             }
         }

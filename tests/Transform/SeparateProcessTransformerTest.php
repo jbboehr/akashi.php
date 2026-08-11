@@ -131,7 +131,7 @@ final class SeparateProcessTransformerTest extends TestCase
         $lastCodeLine = $sourceLength === 0 ? null : $firstCodeLine + $lineCount - 1;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
-        return new Example(
+        return Example::fromInline(
             id: new ExampleId('example-separate-transform-01'),
             label: 'Separate-process transform fixture',
             document: new Document('docs/separate.md', $source),

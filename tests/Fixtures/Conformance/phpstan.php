@@ -33,6 +33,7 @@
  * and the Romic Exception along with this program.  If not, see
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
+/** @akashi-example tests/Fixtures/Conformance/phpstan-external-example.php#echo-diagnostic */
 /**
  * ```php
  * // @akashi-phpstan-example

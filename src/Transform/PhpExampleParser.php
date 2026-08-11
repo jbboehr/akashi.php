@@ -62,7 +62,7 @@ final readonly class PhpExampleParser
         $hasOpeningTag = preg_match('/\A<\?php(?:\s|$)/i', $authoredSource) === 1;
         $source = $hasOpeningTag ? $authoredSource : "<?php\n" . $authoredSource;
         $sourceMap = new SourceMap(
-            $example->document->path,
+            $example->codeOrigin()->document->path,
             $this->sourceLines($example, $authoredSource, !$hasOpeningTag),
         );
         $parser = (new ParserFactory())->createForHostVersion();
@@ -78,8 +78,8 @@ final readonly class PhpExampleParser
             throw new PhpParseException(sprintf(
                 'Unable to parse example %s at %s:%d.',
                 $example->id->value,
-                $example->document->path->value,
-                $example->location->firstCodeLine,
+                $example->codeOrigin()->document->path->value,
+                $example->codeOrigin()->firstCodeLine,
             ));
         }
 
@@ -102,7 +102,7 @@ final readonly class PhpExampleParser
 
         $authoredLineCount = $lineBreaks + 1;
         $sourceLines = [];
-        $lastCodeLine = $example->location->lastCodeLine;
+        $lastCodeLine = $example->codeOrigin()->lastCodeLine;
 
         for ($index = 0; $index < $authoredLineCount; ++$index) {
             if ($lastCodeLine === null) {
@@ -110,7 +110,7 @@ final readonly class PhpExampleParser
                 continue;
             }
 
-            $sourceLines[] = min($example->location->firstCodeLine + $index, $lastCodeLine);
+            $sourceLines[] = min($example->codeOrigin()->firstCodeLine + $index, $lastCodeLine);
         }
 
         if ($syntheticOpeningTag) {
@@ -138,8 +138,8 @@ final readonly class PhpExampleParser
         return new PhpParseException(sprintf(
             'Unable to parse example %s at %s:%d: %s',
             $example->id->value,
-            $example->document->path->value,
-            $sourceLine ?? $example->location->firstCodeLine,
+            $example->codeOrigin()->document->path->value,
+            $sourceLine ?? $example->codeOrigin()->firstCodeLine,
             $error->getRawMessage(),
         ), previous: $error);
     }

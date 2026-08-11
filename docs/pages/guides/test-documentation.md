@@ -46,8 +46,9 @@ until each `php` fence is intended for at least one workflow. Akashi does not ye
 directives. For non-executable fragments, use another language label such as `php.ini` or `text`, or keep the document
 outside this source set.
 
-Use `DocumentationSource` instead when the same corpus should also include `.php` files containing PHPDoc examples. It
-has the same file, directory, and exclusion model and dispatches selected files by extension.
+Use `DocumentationSource` instead when the same corpus should also include `.php` files containing inline PHPDoc fences
+or references to canonical PHP examples. It has the same file, directory, and exclusion model and dispatches selected
+files by extension.
 
 ## Use It in PHPUnit
 
