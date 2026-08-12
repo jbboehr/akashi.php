@@ -53,20 +53,20 @@ PHPDoc support is being delivered through three progressively more maintainable 
 2. references to ordinary external PHP files or stable named regions, with the external file as source of truth —
    implemented; and
 3. optional synchronized inline copies for renderers that cannot include external content — read-only parsing and
-   comparison implemented; CLI and writes deferred.
+   comparison plus check-only CLI reporting implemented; writes deferred.
 
 Referenced canonical examples are preferred for substantial code because IDEs, formatters, PHPStan, and PHP can operate
 on them directly. Named regions are preferred over fragile line-number ranges.
 
-The read-only library foundation for check-only synchronization is implemented: it parses strictly delimited
-synchronized presentations in Markdown and PHPDoc, shares canonical path and named-region validation with external
-references, and returns typed mismatches without changing files. The remaining suggested sequence is:
+The read-only check-only synchronization path is implemented: the library parses strictly delimited synchronized
+presentations in Markdown and PHPDoc, shares canonical path and named-region validation with external references, and
+returns typed mismatches without changing files. The `sync --check` CLI applies that behavior to explicit files with
+stable diagnostics and process statuses. The remaining suggested sequence is:
 
-1. CLI reporting for check-only synchronization.
-2. Check-only formatter integration.
-3. Optional write-mode synchronization and formatting.
-4. Hidden support-code semantics.
-5. Documentation-renderer integrations.
+1. Check-only formatter integration.
+2. Optional write-mode synchronization and formatting.
+3. Hidden support-code semantics.
+4. Documentation-renderer integrations.
 
 Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
 named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the

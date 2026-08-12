@@ -196,7 +196,16 @@ locations. Directive names are case-sensitive; a case variant that resembles an 
 malformed rather than silently ignored.
 
 `SynchronizationChecker` parses this form in Markdown and conventional multiline PHPDoc comments and returns typed
-`SynchronizationMismatch` values without modifying the document. A CLI command and write mode remain deferred.
+`SynchronizationMismatch` values without modifying the document. To check explicit files in CI without writing them,
+run:
+
+```console
+vendor/bin/akashi sync --check --project-root=. README.md docs/examples.md src/Example.php
+```
+
+The command is silent when every presentation is current. Stale or invalid presentations are reported on stderr and exit
+with status `1`. See the [CLI reference](../reference/cli.md#check-synchronized-presentations) for the exact path,
+stream, and exit-status contract. Synchronization write mode remains deferred.
 
 `SynchronizationRegion::$embeddedCode` contains the logical, undecorated PHP seen by CommonMark. Its `location` and
 `regionSpan` point into the original maintained document, so slicing those spans returns raw Markdown indentation or
@@ -214,7 +223,7 @@ Comparison is intentionally narrow and deterministic:
 
 Malformed, orphaned, nested, overlapping, or incomplete synchronization structures fail rather than being guessed at.
 Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
-regions. Formatter, hidden-support-code, renderer-inclusion, CLI, and rewriting features remain deferred.
+regions. Formatter, hidden-support-code, renderer-inclusion, and rewriting features remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

@@ -61,13 +61,13 @@ final class ExtractCommand implements Command
 {
     /**
      * @param list<string> $arguments
-     * @param \Closure(non-empty-string): void $stdout
+     * @param \Closure(non-empty-string): void $output
      *
      * @logion [RAS 53:20] At noon the black pines cast their shadows upon the sky, and every abandoned satellite
      *     darkened where a branch crossed its forgotten name. The priests covered no altar, for the earth itself had
      *     risen to perform the eclipse.
      */
-    public function execute(array $arguments, \Closure $stdout): ExitCode
+    public function execute(array $arguments, \Closure $output): ExitCode
     {
         $markerName = null;
         $projectRoot = null;
@@ -128,7 +128,7 @@ final class ExtractCommand implements Command
             ->load();
         $example = (new MarkedExampleSelector())->select($corpus, $markerId);
 
-        $stdout($this->withLegacyTrailingNewline($example->code->source));
+        $output($this->withLegacyTrailingNewline($example->code->source));
 
         return ExitCode::Success;
     }

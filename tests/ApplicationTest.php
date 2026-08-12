@@ -40,7 +40,10 @@ namespace jbboehr\Akashi\Tests;
 
 use Composer\InstalledVersions;
 use jbboehr\Akashi\Application;
+use jbboehr\Akashi\Cli\Command;
 use jbboehr\Akashi\Cli\ExitCode;
+use jbboehr\Akashi\Cli\ExtractCommand;
+use jbboehr\Akashi\Cli\SyncCheckCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -99,6 +102,10 @@ final class ApplicationTest extends TestCase
             'akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID',
             $result['stdout'],
         );
+        self::assertStringContainsString(
+            'akashi sync --check [--project-root=PATH] FILE [FILE ...]',
+            $result['stdout'],
+        );
         self::assertStringEndsWith("\n", $result['stdout']);
         self::assertSame('', $result['stderr']);
     }
@@ -113,6 +120,8 @@ final class ApplicationTest extends TestCase
         yield 'short root option' => [['-h']];
         yield 'long command option' => [['extract', '--help']];
         yield 'short command option' => [['extract', '-h']];
+        yield 'long sync option' => [['sync', '--help']];
+        yield 'short sync option' => [['sync', '-h']];
     }
 
     /**
@@ -260,6 +269,26 @@ PHP));
             ['extract', '--marker-name=selected-example', 'examples.md'],
             'The extract command requires exactly one documentation file and marker ID.',
         ];
+        yield 'missing sync check mode' => [
+            ['sync', 'README.md'],
+            'The sync command currently requires --check.',
+        ];
+        yield 'duplicate sync check mode' => [
+            ['sync', '--check', '--check', 'README.md'],
+            'The --check option may be specified only once.',
+        ];
+        yield 'missing sync file' => [
+            ['sync', '--check'],
+            'The sync command requires at least one Markdown or PHP file.',
+        ];
+        yield 'unknown sync option' => [
+            ['sync', '--check', '--write', 'README.md'],
+            'Unknown sync option: --write.',
+        ];
+        yield 'duplicate sync project root' => [
+            ['sync', '--check', '--project-root=first', '--project-root=second', 'README.md'],
+            'The --project-root option may be specified only once.',
+        ];
     }
 
     public function testReportsExtractionFailuresWithoutWritingToStandardOutput(): void
@@ -274,7 +303,7 @@ PHP));
             'missing',
         ]);
 
-        self::assertSame(ExitCode::ExtractionFailure->value, $result['status']);
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString(
             'Marker ID missing was not found in the example corpus.',
@@ -295,7 +324,7 @@ PHP));
             'chosen',
         ]);
 
-        self::assertSame(ExitCode::ExtractionFailure->value, $result['status']);
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString($message, $result['stderr']);
     }
@@ -337,7 +366,7 @@ PHP));
             'Invalid ID',
         ]);
 
-        self::assertSame(ExitCode::ExtractionFailure->value, $result['status']);
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString('Marker ID must use lowercase kebab-case.', $result['stderr']);
         self::assertStringNotContainsString('does not exist', $result['stderr']);
@@ -352,7 +381,7 @@ PHP));
             'chosen',
         ]);
 
-        self::assertSame(ExitCode::ExtractionFailure->value, $result['status']);
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString('Documentation file path must not be empty.', $result['stderr']);
     }
@@ -424,6 +453,234 @@ PHP));
         self::assertSame('', $result['stderr']);
     }
 
+    public function testChecksSeveralCurrentSynchronizedDocumentsWithoutOutput(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n\necho 'current';\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/example.md',
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'current';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/Example.php',
+            <<<'PHP'
+<?php
+
+/**
+ * <!-- akashi-sync: canonical.php -->
+ * ```php
+ * <?php
+ *
+ * echo 'current';
+ * ```
+ * <!-- akashi-sync-end -->
+ */
+PHP,
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/example.md',
+            $this->workspace . '/Example.php',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testReportsEveryStaleSynchronizedPresentationWithItsCanonicalLocation(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n\necho 'current';\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/first.md',
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'stale';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/second.md',
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'also stale';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/second.md',
+            '--check',
+            $this->workspace . '/first.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame(
+            "first.md:1: synchronized code differs from canonical.php (canonical code: canonical.php:1).\n"
+                . "second.md:1: synchronized code differs from canonical.php (canonical code: canonical.php:1).\n"
+                . "2 synchronized presentations are stale.\n",
+            $result['stderr'],
+        );
+    }
+
+    public function testReportsMalformedSynchronizationAsACommandFailure(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/malformed.md',
+            "<!-- akashi-sync: canonical.php -->\n```php\necho 'unterminated';\n```\n",
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/malformed.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringStartsWith('Synchronization check failed:', $result['stderr']);
+        self::assertStringContainsString('has no following end directive', $result['stderr']);
+    }
+
+    public function testUsesTheWorkingDirectoryAsTheDefaultRootAndReportsANamedCanonicalRegion(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/docs', 0o700));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n"
+                . "// akashi-region: selected\n"
+                . "echo 'current';\n"
+                . "// akashi-region-end: selected\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/docs/example.md',
+            "<!-- akashi-sync: canonical.php#selected -->\n"
+                . "```php\necho 'stale';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+        $previousDirectory = getcwd();
+        self::assertNotFalse($previousDirectory);
+        self::assertTrue(chdir($this->workspace));
+
+        try {
+            $result = $this->runApplication(['sync', '--check', 'docs/example.md']);
+        } finally {
+            self::assertTrue(chdir($previousDirectory));
+        }
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame(
+            "docs/example.md:1: synchronized code differs from canonical.php#selected "
+                . "(canonical code: canonical.php:3).\n"
+                . "1 synchronized presentation is stale.\n",
+            $result['stderr'],
+        );
+    }
+
+    public function testRejectsAnUnsupportedSynchronizationFileWithoutIgnoringIt(): void
+    {
+        self::assertNotFalse(file_put_contents($this->workspace . '/example.md', "# No synchronized regions\n"));
+        self::assertNotFalse(file_put_contents($this->workspace . '/ignored.txt', "not Markdown\n"));
+
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/example.md',
+            $this->workspace . '/ignored.txt',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString(
+            'Synchronization file must use the case-sensitive .md or .php extension',
+            $result['stderr'],
+        );
+    }
+
+    public function testRejectsAWhitespaceOnlySynchronizationProjectRoot(): void
+    {
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=  ',
+            'example.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('Project root path must not be empty.', $result['stderr']);
+    }
+
+    public function testNormalizesBackslashesInASynchronizationFilePath(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n\necho 'current';\n",
+        ));
+        $file = $this->workspace . '/example.md';
+        self::assertNotFalse(file_put_contents(
+            $file,
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'current';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            str_replace('/', '\\', $file),
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testCommandsHonorTheInterfaceNamedOutputArgument(): void
+    {
+        $extractFile = $this->workspace . '/extract.md';
+        self::assertNotFalse(file_put_contents(
+            $extractFile,
+            "<!-- selected-example: chosen -->\n```php\necho 'selected';\n```\n",
+        ));
+        $canonicalFile = $this->workspace . '/canonical.php';
+        self::assertNotFalse(file_put_contents($canonicalFile, "echo 'current';\n"));
+        $syncFile = $this->workspace . '/sync.md';
+        self::assertNotFalse(file_put_contents(
+            $syncFile,
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\necho 'stale';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+
+        $extraction = $this->executeCommandWithNamedArguments(
+            new ExtractCommand(),
+            ['--marker-name=selected-example', $extractFile, 'chosen'],
+        );
+        $synchronization = $this->executeCommandWithNamedArguments(
+            new SyncCheckCommand(),
+            ['--check', '--project-root=' . $this->workspace, $syncFile],
+        );
+
+        self::assertSame(ExitCode::Success, $extraction['status']);
+        self::assertSame("echo 'selected';\n", $extraction['output']);
+        self::assertSame(ExitCode::CommandFailure, $synchronization['status']);
+        self::assertStringStartsWith('sync.md:1: synchronized code differs', $synchronization['output']);
+    }
+
     public function testReportsUnexpectedFailuresWithTheSoftwareExitCode(): void
     {
         $stderr = '';
@@ -462,5 +719,23 @@ PHP));
         );
 
         return ['status' => $status, 'stdout' => $stdout, 'stderr' => $stderr];
+    }
+
+    /**
+     * @param list<string> $arguments
+     *
+     * @return array{status: ExitCode, output: string}
+     */
+    private function executeCommandWithNamedArguments(Command $command, array $arguments): array
+    {
+        $output = '';
+        $status = $command->execute(
+            arguments: $arguments,
+            output: static function (string $message) use (&$output): void {
+                $output .= $message;
+            },
+        );
+
+        return ['status' => $status, 'output' => $output];
     }
 }

@@ -53,7 +53,7 @@ final class ExitCodeTest extends TestCase
 
         self::assertSame([
             'Success' => 0,
-            'ExtractionFailure' => 1,
+            'CommandFailure' => 1,
             'UsageError' => 2,
             'SoftwareError' => 70,
         ], $actual);

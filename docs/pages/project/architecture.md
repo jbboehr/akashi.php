@@ -186,8 +186,9 @@ comment as consecutive Markdown blocks; blank separator lines are allowed so nor
 structure. `SynchronizationRegion` retains the presentation document, exact raw region and code spans, logical
 undecorated code, fence metadata, and canonical target. `SynchronizationChecker` resolves that target through the same
 project-containment and named-region rules as PHPDoc references, normalizes only line endings and a missing final
-newline, and returns typed mismatches with both presentation and canonical origins. It performs no file writes; CLI
-reporting and deterministic rewriting remain separate future layers.
+newline, and returns typed mismatches with both presentation and canonical origins. The `sync --check` CLI loads
+explicit Markdown or PHP files through the shared project-containment loader and reports those mismatches on stderr with
+stable process statuses. Both layers perform no file writes; deterministic rewriting remains a separate future layer.
 
 ## Dependency Boundaries
 
@@ -203,10 +204,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 ## Current and Deferred Architecture
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
-named regions, read-only synchronized-presentation inspection, markers, token-aware runtime directives, both execution
-backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction.
-Synchronization CLI/write modes, formatting, hidden support code, documentation-renderer inclusion, generalized verifier
-plugins, and a standalone runner do not exist yet.
+named regions, read-only synchronized-presentation inspection through the library and check-only CLI, markers,
+token-aware runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan
+`RuleTestCase`, and marked extraction. Synchronization write mode, formatting, hidden support code,
+documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

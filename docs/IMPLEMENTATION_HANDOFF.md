@@ -613,7 +613,7 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 * external canonical PHP example files, including stable named regions — implemented post-MVP;
 * documentation references to canonical examples — implemented post-MVP;
 * optional synchronized inline presentations of external canonical examples — read-only parsing and comparison
-  implemented post-MVP; CLI reporting and rewriting deferred;
+  plus check-only CLI reporting implemented post-MVP; rewriting deferred;
 * declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;
@@ -626,7 +626,7 @@ always have to be maintained literally inside documentation comments.
 
 Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples and references to external
 canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; read-only parsing and
-comparison of synchronized presentations are also implemented. Synchronization CLI/reporting and rewriting,
+comparison of synchronized presentations and check-only CLI reporting are also implemented. Synchronization rewriting,
 formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and remaining
 sequence.
 
@@ -711,11 +711,10 @@ The implemented read-only synchronization syntax is:
  */
 ````
 
-Possible commands may resemble:
+The implemented check-only command is:
 
 ```console
-vendor/bin/akashi sync
-vendor/bin/akashi sync --check
+vendor/bin/akashi sync --check [--project-root=PATH] FILE [FILE ...]
 ```
 
 The comments and explicitly closed PHP fence must remain consecutive Markdown blocks; optional blank separator lines are
@@ -726,10 +725,11 @@ Markdown indentation and conventional PHPDoc leading `*` decoration are containe
 remain canonical code and are neither inserted nor removed. The typed region keeps logical embedded code separate from
 raw source spans into the maintained presentation.
 
-The read-only parser and typed mismatch model are implemented. The command names remain provisional: no synchronization
-CLI or write mode exists yet. The external file or named region remains canonical. A future check-only mode should fail
-CI when the embedded copy is stale. A write mode may update only the embedded copy; it must not silently alter unrelated
-prose or comment formatting. Malformed synchronization regions fail instead of being guessed at.
+The read-only parser, typed mismatch model, and check-only CLI are implemented. The command checks explicit Markdown or
+PHP files, reports presentation and canonical locations on stderr, returns stable process statuses, and makes no file
+changes. The external file or named region remains canonical. A future write mode may update only the embedded copy; it
+must not silently alter unrelated prose or comment formatting. Malformed synchronization regions fail instead of being
+guessed at.
 
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.
@@ -803,7 +803,7 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 1. PHPDoc fenced examples — implemented post-MVP.
 2. External canonical PHP examples and named regions — implemented post-MVP.
 3. Source-location mapping improvements.
-4. Check-only synchronization — read-only library parsing and mismatch model implemented; CLI reporting deferred.
+4. Check-only synchronization — read-only library parsing, mismatch model, and CLI reporting implemented.
 5. Check-only formatter integration.
 6. Optional write-mode synchronization and formatting.
 7. Hidden support-code semantics.
@@ -816,10 +816,10 @@ and the clean-room prohibition on rustdoc implementation material and competing 
 unchanged.
 
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
-references, and named-region parsing are now implemented as post-MVP work. Synchronization commands, formatter commands,
-hidden support code, documentation-renderer plugins, and automatic docblock rewriting remain deferred. Do not add
-dependencies, placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally
-supports the future behavior.
+references, named-region parsing, and check-only synchronization are now implemented as post-MVP work. Synchronization
+write commands, formatter commands, hidden support code, documentation-renderer plugins, and automatic docblock
+rewriting remain deferred. Do not add dependencies, placeholder classes, or speculative interfaces for them unless an
+already-required abstraction naturally supports the future behavior.
 
 ### Additional example semantics
 

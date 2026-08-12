@@ -63,6 +63,11 @@ fi
 
 (
     cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi sync --check --project-root=. docs/sync.md
+)
+
+(
+    cd -- "$CONSUMER_DIR"
     vendor/bin/phpunit \
         --no-configuration \
         --bootstrap vendor/autoload.php \

@@ -42,6 +42,7 @@ use Composer\InstalledVersions;
 use jbboehr\Akashi\Cli\Exception\UsageException;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
+use jbboehr\Akashi\Cli\SyncCheckCommand;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
@@ -85,12 +86,16 @@ Akashi — executable documentation testing for PHP.
 
 Usage:
   akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
+  akashi sync --check [--project-root=PATH] FILE [FILE ...]
   akashi --help
   akashi --version
 
 Commands:
   extract  Write one explicitly marked PHP example to stdout.
+  sync     Check synchronized presentations against canonical PHP sources.
 HELP;
+
+        $commandName = null;
 
         try {
             if ($arguments === [] || $arguments === ['--help'] || $arguments === ['-h']) {
@@ -106,26 +111,32 @@ HELP;
                 return ExitCode::Success->value;
             }
 
-            if ($arguments === ['extract', '--help'] || $arguments === ['extract', '-h']) {
+            if (
+                $arguments === ['extract', '--help']
+                || $arguments === ['extract', '-h']
+                || $arguments === ['sync', '--help']
+                || $arguments === ['sync', '-h']
+            ) {
                 $stdout($help . "\n");
 
                 return ExitCode::Success->value;
             }
 
             $commandName = array_shift($arguments);
-            if ($commandName !== 'extract') {
-                throw new UsageException(sprintf('Unknown command: %s.', $commandName));
-            }
-
-            return (new ExtractCommand())->execute($arguments, $stdout)->value;
+            return match ($commandName) {
+                'extract' => (new ExtractCommand())->execute($arguments, $stdout)->value,
+                'sync' => (new SyncCheckCommand())->execute($arguments, $stderr)->value,
+                default => throw new UsageException(sprintf('Unknown command: %s.', $commandName)),
+            };
         } catch (UsageException $exception) {
             $stderr(sprintf("Usage error: %s\n\n%s\n", $exception->getMessage(), $help));
 
             return ExitCode::UsageError->value;
         } catch (SourceException | \InvalidArgumentException $exception) {
-            $stderr(sprintf("Extraction failed: %s\n", $exception->getMessage()));
+            $label = $commandName === 'sync' ? 'Synchronization check' : 'Extraction';
+            $stderr(sprintf("%s failed: %s\n", $label, $exception->getMessage()));
 
-            return ExitCode::ExtractionFailure->value;
+            return ExitCode::CommandFailure->value;
         } catch (\Throwable $exception) {
             $stderr(sprintf(
                 "Akashi failed unexpectedly: %s: %s\n",

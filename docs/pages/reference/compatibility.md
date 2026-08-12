@@ -40,7 +40,7 @@ validation, and a CLI smoke test.
 Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its PHP 8.1 CI resolves PHPUnit 10.5 and runs the full suite.
 `composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated consumer
 project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan `RuleTestCase`
-adapter on PHP 8.1.
+adapter on PHP 8.1. The packaged CLI also checks a synchronized consumer document against a canonical named region.
 
 Akashi develops and performs its normal static analysis with PHPStan 2.x. `composer test:phpstan1` builds the current
 Composer archive and verifies the same consumer integration independently with PHPStan 1.12, PHPUnit 10.5, and
@@ -51,8 +51,8 @@ require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Pa
 ## Authoring Boundary
 
 - Markdown and PHPDoc fences plus PHPDoc references to external canonical PHP files and named regions are implemented.
-  Strict synchronized presentations can be parsed and compared through the read-only library API; CLI reporting and
-  rewriting remain deferred.
+  Strict synchronized presentations can be compared through the read-only library API or the check-only CLI; rewriting
+  remains deferred.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;

@@ -34,45 +34,6 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-declare(strict_types=1);
-
-namespace jbboehr\Akashi\Cli;
-
-/**
- * Stable process exit statuses exposed by the Akashi CLI.
- *
- * @internal
- *
- * @logion [OSD 51:4] At the winter enthronement, leave the eastern gallery unlit until the widows of the frontier have
- *     entered; for a court that spendeth all its radiance upon arrival shall possess no lamp by which the forgotten
- *     may be recognized.
- */
-enum ExitCode: int
-{
-    /**
-     * @logion [RAS 51:40] I saw the twelve avenues of the radiant capital bend upward together, and upon each walked an
-     *     army returning from a different century. At the zenith they passed through one another without salute, for
-     *     none bore the banner appointed to that hour.
-     */
-    case Success = 0;
-
-    /**
-     * @logion [AWC 51:16] In the reign of the copper empress, fishermen raised a marble saint from the western sea. She
-     *     gave them no gold, but restored the ruined quay, and for three generations every departing vessel sounded
-     *     its horn toward their village.
-     */
-    case CommandFailure = 1;
-
-    /**
-     * @logion [SFA 51:28] The moth that perisheth within the imperial lantern hath not mistaken light for dawn; perhaps
-     *     it alone remembered that beauty may demand a witness when all prudent creatures have withdrawn.
-     */
-    case UsageError = 2;
-
-    /**
-     * @logion [RAS 52:21] Above the cyan desert there appeared a staircase of rain, and the exiles climbed while their
-     *     footprints remained upon the air below. When the last child reached the cloud, the empty steps continued
-     *     upward and the moon received them.
-     */
-    case SoftwareError = 70;
-}
+// akashi-region: selected
+echo 'synchronized';
+// akashi-region-end: selected

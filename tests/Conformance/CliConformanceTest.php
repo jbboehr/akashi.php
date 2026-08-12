@@ -90,6 +90,36 @@ final class CliConformanceTest extends TestCase
         self::assertSame('', $extraction->getErrorOutput());
     }
 
+    public function testSynchronizationChecksUseStableOutputAndStatuses(): void
+    {
+        $projectRoot = self::projectRoot();
+        $current = self::executeCli(
+            'sync',
+            '--check',
+            '--project-root=' . $projectRoot,
+            $projectRoot . '/tests/Fixtures/Conformance/sync.md',
+        );
+
+        self::assertSame(0, $current->getExitCode(), $current->getErrorOutput());
+        self::assertSame('', $current->getOutput());
+        self::assertSame('', $current->getErrorOutput());
+
+        $stale = self::executeCli(
+            'sync',
+            '--check',
+            '--project-root=' . $projectRoot,
+            $projectRoot . '/tests/Fixtures/Conformance/sync-stale.md',
+        );
+
+        self::assertSame(1, $stale->getExitCode());
+        self::assertSame('', $stale->getOutput());
+        self::assertStringStartsWith(
+            'tests/Fixtures/Conformance/sync-stale.md:1: synchronized code differs',
+            $stale->getErrorOutput(),
+        );
+        self::assertStringEndsWith("1 synchronized presentation is stale.\n", $stale->getErrorOutput());
+    }
+
     private static function executeCli(string ...$arguments): Process
     {
         $projectRoot = self::projectRoot();

@@ -42,7 +42,10 @@ use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
 use jbboehr\Akashi\Source\MarkdownSource;
+// akashi-region: sync-check
 use PHPUnit\Framework\TestCase;
+
+// akashi-region-end: sync-check
 
 final class DocumentationExamplesCompatibility extends TestCase
 {

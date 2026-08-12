@@ -39,7 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Cli;
 
 /**
- * A framework-independent CLI operation invoked with already-routed arguments.
+ * A framework-independent CLI operation invoked with already-routed arguments and output.
  *
  * @internal
  *
@@ -51,11 +51,11 @@ interface Command
 {
     /**
      * @param list<string> $arguments
-     * @param \Closure(non-empty-string): void $stdout
+     * @param \Closure(non-empty-string): void $output
      *
      * @logion [AWC 52:33] After the northern siege, the gardeners replanted the palace maze according to the invaders'
      *     map. In spring every false turning flowered crimson, while the true path remained bare beneath the feet of
      *     those who still remembered the queen.
      */
-    public function execute(array $arguments, \Closure $stdout): ExitCode;
+    public function execute(array $arguments, \Closure $output): ExitCode;
 }
