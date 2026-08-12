@@ -73,12 +73,12 @@
         "arokettu/random-polyfill": ">=1.0.6 <1.99",
         "composer-runtime-api": "^2.2",
         "league/commonmark": "^2.8.3",
-        "nikic/php-parser": "^5.8",
+        "nikic/php-parser": "^4.19.5 || ^5.8",
         "php": "^8.1",
         "symfony/process": "^6.4 || ^7.4"
     },
     "suggest": {
-        "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 2.x).",
+        "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 1.12 or 2.x).",
         "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5)."
     },
     "autoload": {
@@ -119,6 +119,7 @@
         ],
         "check:full": [
             "@check",
+            "@test:phpstan1",
             "@test:phpunit10",
             "@test:parallel",
             "@infection:ci"
@@ -134,6 +135,7 @@
         "infection:ci": "infection --no-progress --min-msi=90 --min-covered-msi=90",
         "package:check": "php tools/check-package.php",
         "test": "phpunit --colors=never --no-coverage",
+        "test:phpstan1": "bash tests/Compatibility/PHPStan1/run",
         "test:phpunit10": "bash tests/Compatibility/PHPUnit10/run",
         "test:parallel": [
             "@test:parallel:cases",

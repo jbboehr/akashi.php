@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Support PHPStan 1.12 when consumers explicitly select PHP-Parser 4.19.5, while retaining PHPStan 2.x and PHP-Parser 5
+  as the normal development path.
 - Support PHP 8.1 through native readonly properties, PHPStan class-level readonly contracts, the Random extension
   polyfill, Symfony Process 6.4, PHPUnit 10.5, and dedicated PHP 8.1 CI and Nix validation.
 - `MarkdownSource` now accepts bulk file iterables through `includeFiles()` while remaining the Markdown-only source

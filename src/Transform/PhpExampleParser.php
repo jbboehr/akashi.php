@@ -43,6 +43,7 @@ use jbboehr\Akashi\Transform\Exception\PhpParseException;
 use PhpParser\Error;
 use PhpParser\ErrorHandler\Collecting;
 use PhpParser\ParserFactory;
+use PhpToken;
 
 /**
  * @internal
@@ -85,7 +86,7 @@ final class PhpExampleParser
             ));
         }
 
-        return new ParsedPhp($source, array_values($statements), array_values($parser->getTokens()), $sourceMap);
+        return new ParsedPhp($source, array_values($statements), array_values(PhpToken::tokenize($source)), $sourceMap);
     }
 
     /**

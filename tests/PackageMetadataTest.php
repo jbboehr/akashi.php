@@ -66,10 +66,13 @@ final class PackageMetadataTest extends TestCase
         self::assertSame('>=1.0.6 <1.99', $metadata['require']['arokettu/random-polyfill']);
         self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
         self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
-        self::assertSame('^5.8', $metadata['require']['nikic/php-parser']);
+        self::assertSame('^4.19.5 || ^5.8', $metadata['require']['nikic/php-parser']);
         self::assertSame('^8.1', $metadata['require']['php']);
         self::assertSame('^6.4 || ^7.4', $metadata['require']['symfony/process']);
-        self::assertArrayHasKey('phpstan/phpstan', $metadata['suggest']);
+        self::assertSame(
+            'Enables PHPStan documentation-example verification (PHPStan 1.12 or 2.x).',
+            $metadata['suggest']['phpstan/phpstan'],
+        );
         self::assertSame(
             'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',
             $metadata['suggest']['phpunit/phpunit'],

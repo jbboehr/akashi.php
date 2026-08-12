@@ -212,7 +212,7 @@ final class NamespaceIsolator
         $offset = null;
         foreach ($parsed->tokens as $token) {
             if ($token->id === T_OPEN_TAG) {
-                $offset = $token->getEndPos();
+                $offset = $token->pos + strlen($token->text);
                 break;
             }
         }

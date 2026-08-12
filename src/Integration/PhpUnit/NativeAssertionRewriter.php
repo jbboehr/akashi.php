@@ -50,6 +50,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\NodeFinder;
 use PhpParser\ParserFactory;
+use PhpToken;
 
 /**
  * @internal
@@ -140,7 +141,7 @@ final class NativeAssertionRewriter
         $rewritten = new ParsedPhp(
             $source,
             array_values($statements),
-            array_values($parser->getTokens()),
+            array_values(PhpToken::tokenize($source)),
             $parsed->sourceMap,
         );
 

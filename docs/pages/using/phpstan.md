@@ -82,6 +82,21 @@ The consumer still implements `getRule()` and, when needed, `getAdditionalConfig
 [Reuse Examples for Runtime and PHPStan](../guides/reuse-runtime-phpstan.md) for a complete combined pattern and a clear
 division between Akashi, PHPStan, and project-owned setup.
 
+### PHPStan 1.12
+
+Akashi supports both PHPStan 1.12 and PHPStan 2.x. PHPStan 2.x is the normal development and recommended integration
+line. A PHPStan 1.12 project must explicitly select PHP-Parser 4 alongside Akashi:
+
+```console
+composer require --dev "phpstan/phpstan:^1.12" "nikic/php-parser:^4.19.5"
+```
+
+PHPStan 1 embeds APIs built against PHP-Parser 4, while Akashi's own parser integration supports PHP-Parser 4.19.5 and
+5.x. The explicit pin prevents Composer from selecting PHP-Parser 5 for a PHPStan 1 process. PHPStan 2 projects need no
+special parser pin during normal dependency resolution. A PHPStan 2 project that deliberately resolves with
+`--prefer-lowest` should explicitly require `nikic/php-parser:^5.8`; otherwise Composer may select Parser 4 from
+Akashi's dual compatibility range even though PHPStan 2 expects Parser 5 APIs in the shared process.
+
 Akashi preserves `RuleTestCase` semantics: the diagnostics under test come from the rule returned by the consumer's
 `getRule()`. Additional configuration can register extensions that participate in parsing, reflection, or type
 inference, but it does not turn the test into a complete `phpstan analyse` run or automatically execute every configured

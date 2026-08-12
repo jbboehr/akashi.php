@@ -102,6 +102,10 @@ jobs:
               if: matrix.php-version == '8.1'
               run: composer test:phpunit10
 
+            - name: Verify PHPStan 1 compatibility
+              if: matrix.php-version == '8.1'
+              run: composer test:phpstan1
+
             - name: Verify Composer package archive
               if: matrix.php-version == '8.2'
               run: composer package:check

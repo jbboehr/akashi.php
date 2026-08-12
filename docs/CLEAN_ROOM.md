@@ -104,6 +104,9 @@ Dates record the review date, not the document publication date.
 | 2026-08-04 | [Output formats](https://phpstan.org/user-guide/output-format)                                               | Integration guide                | Considered machine-readable diagnostics; not needed for the direct adapter         |
 | 2026-08-04 | [`RuleTestCase` public API](https://apiref.phpstan.org/2.1.x/PHPStan.Testing.RuleTestCase.html)              | User-facing behavioral reference | Public extension points and declared method contracts                              |
 | 2026-08-06 | [`RuleTestCase` 2.2 public API](https://apiref.phpstan.org/2.2.x/PHPStan.Testing.RuleTestCase.html)          | User-facing behavioral reference | `gatherAnalyserErrors()` input and diagnostic-list contract                        |
+| 2026-08-11 | [`RuleTestCase` 1.12 public API](https://apiref.phpstan.org/1.12.x/PHPStan.Testing.RuleTestCase.html)        | User-facing behavioral reference | Confirming the public analyzer adapter contract on the PHPStan 1 line              |
+| 2026-08-11 | [`Error` 1.12 public API](https://apiref.phpstan.org/1.12.x/PHPStan.Analyser.Error.html)                     | User-facing behavioral reference | Confirming diagnostic accessors and decoding on the PHPStan 1 line                 |
+| 2026-08-11 | [PHPStan 1.12 release roadmap](https://phpstan.org/blog/phpstan-1-12-road-to-phpstan-2-0)                    | User-facing behavioral reference | Establishing PHPStan 1.12 as the final PHPStan 1 minor compatibility line          |
 | 2026-08-06 | [PHPStan strict rules](https://github.com/phpstan/phpstan-strict-rules#readme)                               | Integration guide                | Rule-specific configuration for permitting the short ternary operator              |
 | 2026-08-09 | [PHPStan deprecation rules](https://github.com/phpstan/phpstan-deprecation-rules#readme)                     | Integration guide                | Enabling analysis of calls to deprecated symbols                                   |
 | 2026-08-09 | [PHPStan disallowed calls](https://github.com/spaze/phpstan-disallowed-calls#readme)                         | Integration guide                | Selecting a narrow committed-debug-output policy                                   |
@@ -312,6 +315,12 @@ observed documented public node attributes, source positions, and resolved names
 test, implementation algorithm, or architecture material was opened or copied; the transform and source-edit design
 remains independently derived from Akashi's recorded requirements.
 
+On 2026-08-11, the public declarations and narrow constructor/token contracts of PHP-Parser 4.19.5's `ParserFactory`,
+`NodeTraverser`, `NameResolver`, and `Lexer` were inspected to identify the supported intersection with PHP-Parser 5. No
+internal tests, parsing algorithm, or source architecture was copied. The resulting compatibility seam uses PHP's native
+`PhpToken`, the documented visitor-registration API, and the already-recorded AST attributes rather than either major
+version's private implementation.
+
 On 2026-08-05, while implementing metadata-comment association, the installed League CommonMark 2.8.3 files
 `src/Extension/CommonMark/Node/Block/HtmlBlock.php` and `src/Node/Node.php` were opened to confirm the public
 `TYPE_2_COMMENT` constant and the public `previous()`, `next()`, and `parent()` node methods. This was a narrow
@@ -377,11 +386,14 @@ Akashi requires PHP 8.1 or later and the following runtime dependencies:
   later runtimes;
 - `composer-runtime-api` 2.2 or later, for locating the project autoloader through Composer's generated binary proxy;
 - `league/commonmark` 2.8.3 or later within the 2.x series, for standards-conforming Markdown parsing;
-- `nikic/php-parser` 5.8 or later within the 5.x series, for PHP parsing and later source transformation; and
+- `nikic/php-parser` 4.19.5 or later within the 4.x series, or 5.8 or later within the 5.x series, for PHP parsing and
+  later source transformation; and
 - `symfony/process` 6.4 or 7.4, for isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
-documentation and package metadata are recorded above. Apart from the narrow League CommonMark, Symfony Process and PHP
-8.2 polyfill, PHPStan `RuleTestCase`, Infection include-interceptor, and Composer archiver inspections recorded above,
-no dependency source code or internal tests were consulted. PHPUnit, PHPStan and its extensions, PHP-CS-Fixer, and
-Infection remain development-only dependencies; PHPUnit and PHPStan are suggested optional integrations for consumers.
+documentation and package metadata are recorded above. Apart from the narrow PHP-Parser, League CommonMark, Symfony
+Process and PHP 8.2 polyfill, PHPStan `RuleTestCase`, Infection include-interceptor, and Composer archiver inspections
+recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and its extensions,
+PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested optional
+integrations for consumers. The normal development stack uses PHPStan 2.x and PHP-Parser 5; the isolated compatibility
+gate uses PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin.

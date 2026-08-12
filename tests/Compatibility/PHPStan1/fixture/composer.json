@@ -1,0 +1,21 @@
+{
+    "name": "jbboehr/akashi-phpstan1-compatibility",
+    "description": "Isolated consumer fixture for Akashi's PHPStan 1.12 compatibility gate.",
+    "type": "project",
+    "license": "proprietary",
+    "require-dev": {
+        "jbboehr/akashi": "dev-compatibility",
+        "nikic/php-parser": "^4.19.5",
+        "phpstan/phpstan": "^1.12",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Akashi\\PHPUnit10Compatibility\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
+    }
+}

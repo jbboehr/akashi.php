@@ -39,7 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Transform;
 
 use PhpParser\Node\Stmt;
-use PhpParser\Token;
+use PhpToken;
 
 /**
  * @internal
@@ -66,7 +66,7 @@ final class ParsedPhp
     public readonly array $statements;
 
     /**
-     * @var list<Token>
+     * @var list<PhpToken>
      *
      * @logion [SFA 54:4] The child gathered each scale shed by the silver fish and laid them in the order of the river;
      *     by their small succession the elders discovered where the current had turned.
@@ -81,7 +81,7 @@ final class ParsedPhp
 
     /**
      * @param list<Stmt> $statements
-     * @param list<Token> $tokens
+     * @param list<PhpToken> $tokens
      *
      * @logion [AWC 54:6] The examiner counted the tablets, the wax impressions, and the names of their witnesses before
      *     closing the chest; no abundance excused a missing order among them.

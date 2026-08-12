@@ -29,6 +29,11 @@ lockfile changes. An isolated consumer fixture also installs the current Compose
 the runtime data-provider trait, authored skips, both execution backends, and the PHPStan `RuleTestCase` adapter.
 `composer test:phpunit10` runs that compatibility gate, and `composer check:full` includes it.
 
+The normal static-analysis stack remains on PHPStan 2.x and PHP-Parser 5. An additional packaged-consumer gate installs
+PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin and exercises the same PHPUnit `RuleTestCase` adapter. Akashi keeps
+its parser-facing token representation independent of PHP-Parser's version-specific token class. Run the gate with
+`composer test:phpstan1`; `composer check:full` includes it.
+
 ## Deferred external PHPStan verification
 
 Yumemi-style consumer tests may create disposable Composer projects, install a package under test and another package,

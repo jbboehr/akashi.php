@@ -63,10 +63,9 @@ final class PhpNameResolver
     public function resolve(Example $example, ParsedPhp $parsed): ParsedPhp
     {
         $errors = new Collecting();
-        $traverser = new NodeTraverser(
-            new NameResolver($errors, ['replaceNodes' => false]),
-            new ParentConnectingVisitor(),
-        );
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor(new NameResolver($errors, ['replaceNodes' => false]));
+        $traverser->addVisitor(new ParentConnectingVisitor());
         $nodes = $traverser->traverse($parsed->statements);
         $resolutionErrors = $errors->getErrors();
 

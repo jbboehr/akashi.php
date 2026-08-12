@@ -51,6 +51,7 @@ use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
 use jbboehr\Akashi\Transform\ExecutionScopeFactory;
 use jbboehr\Akashi\Transform\InProcessPreparedExample;
+use jbboehr\Akashi\Transform\PhpExampleParser;
 use jbboehr\Akashi\Transform\PreparedCode;
 use jbboehr\Akashi\Transform\PreparedSource;
 use jbboehr\Akashi\Transform\ParsedPhp;
@@ -62,6 +63,16 @@ use Random\Randomizer;
 
 final class TransformValueTest extends TestCase
 {
+    public function testParsedTokensUseTheNativeVersionIndependentRepresentation(): void
+    {
+        $parsed = (new PhpExampleParser())->parse($this->example());
+
+        self::assertNotEmpty($parsed->tokens);
+        foreach ($parsed->tokens as $token) {
+            self::assertSame(\PhpToken::class, $token::class);
+        }
+    }
+
     public function testRepresentsPreparedCodeAndMappedLines(): void
     {
         $code = new PreparedCode("<?php\r\necho 1;\r\n");

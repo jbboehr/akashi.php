@@ -23,7 +23,7 @@ public API may change between minor releases before 1.0.
 | Composer          | Runtime API 2.2 and later                                                                     |
 | Documentation     | CommonMark PHP fences in Markdown/PHPDoc; PHPDoc references to canonical PHP files or regions |
 | PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines              |
-| PHPStan           | Optional consumer integration targeting PHPStan 2.x                                           |
+| PHPStan           | Optional integration supporting 1.12 with a PHP-Parser 4 pin, and 2.x by default              |
 | ParaTest          | Development-only verified runner; not required by consumers                                   |
 | Operating systems | Linux is primary and gating; macOS and Windows have advisory PHP 8.2 CI                       |
 
@@ -41,6 +41,12 @@ Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its PHP 8.1 CI resolv
 `composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated consumer
 project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan `RuleTestCase`
 adapter on PHP 8.1.
+
+Akashi develops and performs its normal static analysis with PHPStan 2.x. `composer test:phpstan1` builds the current
+Composer archive and verifies the same consumer integration independently with PHPStan 1.12, PHPUnit 10.5, and
+PHP-Parser 4.19.5. PHPStan 1 consumers must explicitly require `nikic/php-parser:^4.19.5`; PHPStan 2 consumers use the
+normal PHP-Parser 5 dependency resolution. PHPStan 2 projects using `composer update --prefer-lowest` must explicitly
+require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Parser 4 for PHPStan 2's process.
 
 ## Authoring Boundary
 
