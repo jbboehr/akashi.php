@@ -43,7 +43,8 @@ The check-only synchronization path is implemented across the read-only library 
 `akashi-sync` regions in Markdown and conventional multiline PHPDoc allow formatter-compatible blank separators, resolve
 through the existing canonical external-source rules, and produce typed mismatches without rewriting files.
 `sync --check` checks explicit files, reports both maintained presentation and canonical locations, and uses stable exit
-statuses. Unified diff presentation and every write mode remain deferred.
+statuses. It renders deterministic unified diffs from stale presentations to canonical replacements through a direct PHP
+8.1-compatible `sebastian/diff` dependency. Every write mode remains deferred.
 
 ## Deferred external PHPStan verification
 

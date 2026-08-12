@@ -203,9 +203,10 @@ run:
 vendor/bin/akashi sync --check --project-root=. README.md docs/examples.md src/Example.php
 ```
 
-The command is silent when every presentation is current. Stale or invalid presentations are reported on stderr and exit
+The command is silent when every presentation is current. Stale presentations receive a source-labelled unified diff
+from their embedded code to the canonical replacement. Stale or invalid presentations are reported on stderr and exit
 with status `1`. See the [CLI reference](../reference/cli.md#check-synchronized-presentations) for the exact path,
-stream, and exit-status contract. Synchronization write mode remains deferred.
+stream, diff, and exit-status contract. Synchronization write mode remains deferred.
 
 `SynchronizationRegion::$embeddedCode` contains the logical, undecorated PHP seen by CommonMark. Its `location` and
 `regionSpan` point into the original maintained document, so slicing those spans returns raw Markdown indentation or

@@ -526,7 +526,21 @@ PHP,
         self::assertSame('', $result['stdout']);
         self::assertSame(
             "first.md:1: synchronized code differs from canonical.php (canonical code: canonical.php:1).\n"
+                . "--- first.md:3 (presentation)\n"
+                . "+++ canonical.php:1 (canonical)\n"
+                . "@@ -1,3 +1,3 @@\n"
+                . " <?php\n"
+                . " \n"
+                . "-echo 'stale';\n"
+                . "+echo 'current';\n"
                 . "second.md:1: synchronized code differs from canonical.php (canonical code: canonical.php:1).\n"
+                . "--- second.md:3 (presentation)\n"
+                . "+++ canonical.php:1 (canonical)\n"
+                . "@@ -1,3 +1,3 @@\n"
+                . " <?php\n"
+                . " \n"
+                . "-echo 'also stale';\n"
+                . "+echo 'current';\n"
                 . "2 synchronized presentations are stale.\n",
             $result['stderr'],
         );
@@ -550,6 +564,35 @@ PHP,
         self::assertSame('', $result['stdout']);
         self::assertStringStartsWith('Synchronization check failed:', $result['stderr']);
         self::assertStringContainsString('has no following end directive', $result['stderr']);
+    }
+
+    public function testReportsAUnifiedDiffForAnEmptyPresentation(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "echo 'canonical';\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/empty.md',
+            "<!-- akashi-sync: canonical.php -->\n```php\n```\n<!-- akashi-sync-end -->\n",
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/empty.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString(
+            "--- empty.md:3 (presentation)\n"
+                . "+++ canonical.php:1 (canonical)\n"
+                . "@@ -1,0 +1 @@\n"
+                . "+echo 'canonical';\n",
+            $result['stderr'],
+        );
     }
 
     public function testUsesTheWorkingDirectoryAsTheDefaultRootAndReportsANamedCanonicalRegion(): void
@@ -583,6 +626,11 @@ PHP,
         self::assertSame(
             "docs/example.md:1: synchronized code differs from canonical.php#selected "
                 . "(canonical code: canonical.php:3).\n"
+                . "--- docs/example.md:3 (presentation)\n"
+                . "+++ canonical.php:3 (canonical)\n"
+                . "@@ -1 +1 @@\n"
+                . "-echo 'stale';\n"
+                . "+echo 'current';\n"
                 . "1 synchronized presentation is stale.\n",
             $result['stderr'],
         );

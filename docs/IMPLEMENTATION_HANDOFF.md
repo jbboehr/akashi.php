@@ -726,10 +726,10 @@ remain canonical code and are neither inserted nor removed. The typed region kee
 raw source spans into the maintained presentation.
 
 The read-only parser, typed mismatch model, and check-only CLI are implemented. The command checks explicit Markdown or
-PHP files, reports presentation and canonical locations on stderr, returns stable process statuses, and makes no file
-changes. The external file or named region remains canonical. A future write mode may update only the embedded copy; it
-must not silently alter unrelated prose or comment formatting. Malformed synchronization regions fail instead of being
-guessed at.
+PHP files, reports presentation and canonical locations plus a unified diff from stale to canonical code on stderr,
+returns stable process statuses, and makes no file changes. The external file or named region remains canonical. A
+future write mode may update only the embedded copy; it must not silently alter unrelated prose or comment formatting.
+Malformed synchronization regions fail instead of being guessed at.
 
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.

@@ -221,6 +221,7 @@ workflows only. They did not supply Akashi runtime, doctest, extraction, or veri
 | 2026-08-11 | [PHPUnit package metadata](https://packagist.org/packages/phpunit/phpunit)                                                                                           | User-facing behavioral reference | Resolving PHPUnit 10.5 on PHP 8.1 and PHPUnit 11.5 on later runtimes                                     |
 | 2026-08-11 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                                                                                        | User-facing behavioral reference | Resolving ParaTest 7.3 on PHP 8.1 without weakening the current PHP 8.2 toolchain                        |
 | 2026-08-11 | [Infection package metadata](https://packagist.org/packages/infection/infection)                                                                                     | User-facing behavioral reference | Resolving Infection 0.28 on PHP 8.1 while retaining Infection 0.32 on PHP 8.2                            |
+| 2026-08-11 | [`sebastian/diff` package metadata](https://packagist.org/packages/sebastian/diff)                                                                                   | User-facing behavioral reference | Selecting compatible unified-diff releases for PHP 8.1 and later                                         |
 
 ### Cargo and rustdoc
 
@@ -377,6 +378,12 @@ confirm that `composer archive` builds tar files from working-tree filesystem me
 only the decision not to assert a POSIX executable permission bit on Windows; Akashi continues to enforce that archive
 invariant on platforms that represent it. No Composer algorithm or architecture was copied or adapted.
 
+On 2026-08-11, the installed `sebastian/diff` 6.0.2 public `Differ` and `UnifiedDiffOutputBuilder` declarations were
+opened to confirm their constructor and diff-output contracts. This was a narrow public-API inspection of an allowed
+general-purpose dependency. Akashi invokes that library directly and does not copy or adapt its diff algorithm, output
+builder implementation, internal tests, or architecture. Package metadata for 5.1.1 established the PHP 8.1-compatible
+constraint; the isolated PHP 8.1 consumer gate verifies the shared public API in practice.
+
 ## Current dependency status
 
 Akashi requires PHP 8.1 or later and the following runtime dependencies:
@@ -387,13 +394,15 @@ Akashi requires PHP 8.1 or later and the following runtime dependencies:
 - `composer-runtime-api` 2.2 or later, for locating the project autoloader through Composer's generated binary proxy;
 - `league/commonmark` 2.8.3 or later within the 2.x series, for standards-conforming Markdown parsing;
 - `nikic/php-parser` 4.19.5 or later within the 4.x series, or 5.8 or later within the 5.x series, for PHP parsing and
-  later source transformation; and
+  later source transformation;
+- `sebastian/diff` 5.1.1 or later within the 5.x series, or 6.0.2 or later within the 6.x series, for deterministic
+  source-labelled unified diffs; and
 - `symfony/process` 6.4 or 7.4, for isolated example execution.
 
 These are general-purpose integration libraries rather than documentation-test frameworks. Their official public
 documentation and package metadata are recorded above. Apart from the narrow PHP-Parser, League CommonMark, Symfony
-Process and PHP 8.2 polyfill, PHPStan `RuleTestCase`, Infection include-interceptor, and Composer archiver inspections
-recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and its extensions,
-PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested optional
-integrations for consumers. The normal development stack uses PHPStan 2.x and PHP-Parser 5; the isolated compatibility
-gate uses PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin.
+Process, `sebastian/diff`, PHP 8.2 polyfill, PHPStan `RuleTestCase`, Infection include-interceptor, and Composer
+archiver inspections recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and
+its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested
+optional integrations for consumers. The normal development stack uses PHPStan 2.x and PHP-Parser 5; the isolated
+compatibility gate uses PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin.

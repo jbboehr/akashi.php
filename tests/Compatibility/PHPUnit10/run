@@ -66,6 +66,27 @@ fi
     vendor/bin/akashi sync --check --project-root=. docs/sync.md
 )
 
+sync_stderr="$WORK_ROOT/sync-stderr"
+readonly sync_stderr
+if (
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi sync --check --project-root=. docs/sync-stale.md 2>"$sync_stderr"
+); then
+    printf 'Expected the stale synchronization check to fail.\n' >&2
+    exit 1
+else
+    sync_status=$?
+    readonly sync_status
+fi
+if [[ $sync_status -ne 1 ]]; then
+    printf 'Expected stale synchronization status 1, got %d.\n' "$sync_status" >&2
+    exit 1
+fi
+grep -Fq -- '--- docs/sync-stale.md:4 (presentation)' "$sync_stderr"
+grep -Fq -- '+++ tests/DocumentationExamplesCompatibility.php:46 (canonical)' "$sync_stderr"
+grep -Fq -- '-use PHPUnit\Framework\Assert;' "$sync_stderr"
+grep -Fq -- '+use PHPUnit\Framework\TestCase;' "$sync_stderr"
+
 (
     cd -- "$CONSUMER_DIR"
     vendor/bin/phpunit \

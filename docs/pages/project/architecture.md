@@ -188,13 +188,15 @@ undecorated code, fence metadata, and canonical target. `SynchronizationChecker`
 project-containment and named-region rules as PHPDoc references, normalizes only line endings and a missing final
 newline, and returns typed mismatches with both presentation and canonical origins. The `sync --check` CLI loads
 explicit Markdown or PHP files through the shared project-containment loader and reports those mismatches on stderr with
-stable process statuses. Both layers perform no file writes; deterministic rewriting remains a separate future layer.
+stable process statuses and source-labelled unified diffs from presentation to canonical code. Both layers perform no
+file writes; deterministic rewriting remains a separate future layer.
 
 ## Dependency Boundaries
 
-`league/commonmark`, `nikic/php-parser`, `symfony/process`, and the PHP 8.2 Random extension polyfill support core
-implemented behavior. Parser output is normalized with PHP's native `PhpToken`, keeping source edits independent of the
-token class that differs between PHP-Parser 4 and 5. The polyfill preserves the typed `Randomizer` seam on PHP 8.1 and
+`league/commonmark`, `nikic/php-parser`, `sebastian/diff`, `symfony/process`, and the PHP 8.2 Random extension polyfill
+support core implemented behavior. Parser output is normalized with PHP's native `PhpToken`, keeping source edits
+independent of the token class that differs between PHP-Parser 4 and 5. `sebastian/diff` supplies unified-diff
+formatting without making PHPUnit a CLI dependency. The polyfill preserves the typed `Randomizer` seam on PHP 8.1 and
 defers to PHP's native extension on later runtimes. PHPUnit and PHPStan are optional Composer suggestions. Their runtime
 types are confined to integration namespaces so core source discovery and the CLI can autoload without them.
 

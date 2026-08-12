@@ -61,7 +61,7 @@ on them directly. Named regions are preferred over fragile line-number ranges.
 The read-only check-only synchronization path is implemented: the library parses strictly delimited synchronized
 presentations in Markdown and PHPDoc, shares canonical path and named-region validation with external references, and
 returns typed mismatches without changing files. The `sync --check` CLI applies that behavior to explicit files with
-stable diagnostics and process statuses. The remaining suggested sequence is:
+stable diagnostics, source-labelled unified diffs, and process statuses. The remaining suggested sequence is:
 
 1. Check-only formatter integration.
 2. Optional write-mode synchronization and formatting.

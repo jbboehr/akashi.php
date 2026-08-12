@@ -74,7 +74,7 @@ compatible release on later PHP versions.
 - source-aware parse, execution, assertion, and PHPStan failures
 - one reusable example corpus for runtime and static-analysis verification
 - configurable markers for stable consumer-fixture extraction
-- check-only synchronization of rendered copies with canonical PHP sources
+- check-only synchronization of rendered copies with canonical PHP sources and source-labelled unified diffs
 
 Akashi executes trusted project code; neither runtime backend is a security sandbox. See
 [Compatibility and Safety](https://jbboehr.github.io/akashi.php/reference/compatibility.html) for the exact boundary.

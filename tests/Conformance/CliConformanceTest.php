@@ -117,6 +117,14 @@ final class CliConformanceTest extends TestCase
             'tests/Fixtures/Conformance/sync-stale.md:1: synchronized code differs',
             $stale->getErrorOutput(),
         );
+        self::assertStringContainsString(
+            "--- tests/Fixtures/Conformance/sync-stale.md:4 (presentation)\n"
+                . "+++ tests/Fixtures/Conformance/sync.php:38 (canonical)\n"
+                . "@@ -1 +1 @@\n"
+                . "-echo 'stale';\n"
+                . "+echo 'synchronized';\n",
+            $stale->getErrorOutput(),
+        );
         self::assertStringEndsWith("1 synchronized presentation is stale.\n", $stale->getErrorOutput());
     }
 

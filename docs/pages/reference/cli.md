@@ -59,9 +59,12 @@ files are accepted.
 
 A current set of presentations exits successfully without output. For each stale presentation, stderr identifies the
 start directive's maintained document and line, its authored canonical target, and the resolved canonical code location.
-Akashi then prints a count and exits with status `1`. Malformed regions, unresolved targets, duplicate input files,
-unreadable files, and paths outside the project root also use status `1`. Options may appear before or after file
-arguments, but `--check` and `--project-root` may each be specified at most once.
+It then prints a unified diff from the stale presentation (`-`) to the canonical replacement (`+`); both diff headers
+carry their maintained path and first code line. Diff input uses the same narrow line-ending and final-newline
+normalization as synchronization comparison. Akashi finally prints a mismatch count and exits with status `1`. Malformed
+regions, unresolved targets, duplicate input files, unreadable files, and paths outside the project root also use status
+`1`. Options may appear before or after file arguments, but `--check` and `--project-root` may each be specified at most
+once.
 
 ## Exit Statuses
 

@@ -45,6 +45,8 @@ use jbboehr\Akashi\Source\IncludeRule;
 use jbboehr\Akashi\Source\ProjectDocumentLoader;
 use jbboehr\Akashi\Synchronization\SynchronizationChecker;
 use jbboehr\Akashi\Synchronization\SynchronizationMismatch;
+use SebastianBergmann\Diff\Differ;
+use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 
 /**
  * Checks explicitly selected synchronized presentations against their canonical PHP sources without writing files.
@@ -192,7 +194,7 @@ final class SyncCheckCommand implements Command
             $target .= '#' . $mismatch->region->targetRegion->value;
         }
 
-        return sprintf(
+        $description = sprintf(
             "%s:%d: synchronized code differs from %s (canonical code: %s:%d).\n",
             $mismatch->region->document->path->value,
             $mismatch->region->directiveLine,
@@ -200,5 +202,18 @@ final class SyncCheckCommand implements Command
             $mismatch->canonicalOrigin->document->path->value,
             $mismatch->canonicalOrigin->firstCodeLine,
         );
+        $header = sprintf(
+            "--- %s:%d (presentation)\n+++ %s:%d (canonical)\n",
+            $mismatch->region->document->path->value,
+            $mismatch->region->location->firstCodeLine,
+            $mismatch->canonicalOrigin->document->path->value,
+            $mismatch->canonicalOrigin->firstCodeLine,
+        );
+        $diff = (new Differ(new UnifiedDiffOutputBuilder($header, true)))->diff(
+            $mismatch->region->embeddedCode->source,
+            $mismatch->expectedCode->source,
+        );
+
+        return $description . $diff;
     }
 }

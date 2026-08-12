@@ -20,8 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   external canonical example code.
 - Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named
   regions through a read-only typed library API.
-- Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-aware stderr
-  diagnostics, stable process statuses, and no writes.
+- Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-labelled
+  unified diffs on stderr, stable process statuses, and no writes.
 
 ### Changed
 
