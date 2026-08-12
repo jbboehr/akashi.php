@@ -40,9 +40,7 @@ namespace jbboehr\Akashi\PhpDoc;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Model\PhpDocTagName;
-use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ReferenceLocation;
-use jbboehr\Akashi\Model\RegionName;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
 
@@ -136,7 +134,7 @@ final class PhpDocReferenceExtractor
 
                 $target = $matches[2] ?? '';
                 try {
-                    [$path, $region] = $this->target($target);
+                    [$path, $region] = ExternalExampleResolver::parseTarget($target);
                 } catch (\InvalidArgumentException $exception) {
                     throw new InvalidExampleReferenceException(sprintf(
                         'Invalid @%s example reference at %s:%d: %s',
@@ -206,31 +204,4 @@ final class PhpDocReferenceExtractor
         return $normalized;
     }
 
-    /**
-     * @return array{ProjectPath, ?RegionName}
-     *
-     * @logion [AWC 55:39] During the census of ancestral houses, the recorders erased a defeated lineage and burned its
-     *     names in the archive brazier. Black snow began falling inside the chamber though summer blazed outside; they
-     *     swept it into the avenue, where it rose grain by grain into a wall around the recorders, leaving the erased
-     *     households free and unnamed beneath the sun.
-     */
-    private function target(string $target): array
-    {
-        if ($target === '' || preg_match('/\s/', $target) === 1) {
-            throw new \InvalidArgumentException('Reference target must contain exactly one path and optional region.');
-        }
-        if (substr_count($target, '#') > 1) {
-            throw new \InvalidArgumentException('Reference target must contain at most one region separator.');
-        }
-
-        $parts = explode('#', $target, 2);
-        $pathValue = $parts[0];
-        $regionValue = $parts[1] ?? null;
-        $path = new ProjectPath($pathValue);
-        if (!str_ends_with($path->value, '.php')) {
-            throw new \InvalidArgumentException('Referenced example path must use the case-sensitive .php extension.');
-        }
-
-        return [$path, $regionValue === null ? null : new RegionName($regionValue)];
-    }
 }

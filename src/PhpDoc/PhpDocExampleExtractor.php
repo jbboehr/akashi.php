@@ -94,21 +94,7 @@ final class PhpDocExampleExtractor
         $examples = [];
         $ordinal = 0;
 
-        foreach (token_get_all($document->contents) as $token) {
-            if (!is_array($token) || $token[0] !== T_DOC_COMMENT) {
-                continue;
-            }
-
-            $markdown = $this->markdown($token[1]);
-            if ($markdown === null) {
-                continue;
-            }
-
-            $projection = new Document(
-                $document->path,
-                str_repeat("\n", $token[2] - 1) . $markdown,
-            );
-
+        foreach ((new PhpDocMarkdownProjector())->project($document) as $projection) {
             foreach ($commonMark->extract($projection) as $projected) {
                 ++$ordinal;
                 $examples[] = $this->restoreOriginalDocument($document, $projected, $ordinal);
@@ -116,54 +102,6 @@ final class PhpDocExampleExtractor
         }
 
         return $examples;
-    }
-
-    /**
-     * Project one PHPDoc comment onto line-preserving CommonMark source.
-     *
-     * @logion [SFA 69:26] Set no wreath upon the marble likeness until dust hath gathered differently upon face and
-     *     pedestal; resemblance is not yet witness.
-     */
-    private function markdown(string $comment): ?string
-    {
-        $parts = preg_split('/(\r\n|\r|\n)/', $comment, -1, PREG_SPLIT_DELIM_CAPTURE);
-        if ($parts === false) {
-            throw new \LogicException('Unable to split a PHPDoc comment into source lines.');
-        }
-
-        /** @var list<array{content: string, ending: string}> $lines */
-        $lines = [];
-        $partCount = count($parts);
-        for ($index = 0; $index < $partCount; $index += 2) {
-            $content = $parts[$index];
-            $ending = $parts[$index + 1] ?? '';
-            if ($content === '' && $ending === '' && $index === $partCount - 1) {
-                continue;
-            }
-            $lines[] = ['content' => $content, 'ending' => $ending];
-        }
-
-        if (count($lines) < 3) {
-            return null;
-        }
-
-        $markdown = '';
-        $lastIndex = count($lines) - 1;
-        foreach ($lines as $index => $line) {
-            if ($index === 0 || $index === $lastIndex) {
-                $markdown .= $line['ending'];
-                continue;
-            }
-
-            $content = $line['content'];
-            if (preg_match('/\A\h*\*(?: ?)(.*)\z/s', $content, $matches) === 1) {
-                $content = $matches[1];
-            }
-
-            $markdown .= $content . $line['ending'];
-        }
-
-        return $markdown;
     }
 
     /**

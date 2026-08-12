@@ -115,7 +115,7 @@ source location. Failures fall back to the example start when PHP cannot provide
 
 The model deliberately retains original locations rather than exposing only temporary files. Canonical external code
 origins and separate PHPDoc presentation locations are implemented. Mapping one generated artifact to several source
-origins, as future synchronization, hidden-code, formatter, or renderer work may require, remains deferred.
+origins, as future synchronization rewriting, hidden-code, formatter, or renderer work may require, remains deferred.
 
 ## In-Process Transformation
 
@@ -181,6 +181,14 @@ author-assigned ID, and writes the original code with its documented final-newli
 execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is below the
 project root; reference targets themselves are not marker IDs.
 
+The read-only synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end`
+comment as consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid
+structure. `SynchronizationRegion` retains the presentation document, exact raw region and code spans, logical
+undecorated code, fence metadata, and canonical target. `SynchronizationChecker` resolves that target through the same
+project-containment and named-region rules as PHPDoc references, normalizes only line endings and a missing final
+newline, and returns typed mismatches with both presentation and canonical origins. It performs no file writes; CLI
+reporting and deterministic rewriting remain separate future layers.
+
 ## Dependency Boundaries
 
 `league/commonmark`, `nikic/php-parser`, `symfony/process`, and the PHP 8.2 Random extension polyfill support core
@@ -195,9 +203,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 ## Current and Deferred Architecture
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
-named regions, markers, token-aware runtime directives, both execution backends, typed in-process exception
-expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. Synchronization, formatting, hidden support code,
-documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not exist yet.
+named regions, read-only synchronized-presentation inspection, markers, token-aware runtime directives, both execution
+backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction.
+Synchronization CLI/write modes, formatting, hidden support code, documentation-renderer inclusion, generalized verifier
+plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

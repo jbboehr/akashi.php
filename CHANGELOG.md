@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   both canonical and presentation locations, and reuse the resolved examples in PHPUnit and PHPStan workflows.
 - Author `skip`, `separate-process`, and `expect-exception` directives as token-aware PHP line comments in fenced or
   external canonical example code.
+- Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named
+  regions through a read-only typed library API.
 
 ### Changed
 

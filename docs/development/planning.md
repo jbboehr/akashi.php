@@ -36,8 +36,13 @@ its parser-facing token representation independent of PHP-Parser's version-speci
 
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and
-named regions. Synthetic generated lines remain unmapped, and a future multi-origin model is deferred until a feature
-such as synchronization or hidden support code requires it.
+named regions. Synthetic generated lines remain unmapped, and a future general multi-origin mapping model is deferred
+until synchronization rewriting, hidden support code, or another transformation requires it.
+
+The first synchronization slice is also implemented as a read-only library seam. Strictly delimited `akashi-sync`
+regions in Markdown and conventional multiline PHPDoc allow formatter-compatible blank separators, resolve through the
+existing canonical external-source rules, and produce typed mismatches without rewriting files. A check-only CLI, diff
+presentation, stable exit behavior, and every write mode remain deferred.
 
 ## Deferred external PHPStan verification
 

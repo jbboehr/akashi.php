@@ -46,6 +46,7 @@ use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MetadataLocation;
+use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ReferenceLocation;
 use jbboehr\Akashi\Model\ReferencedExampleSource;
@@ -67,6 +68,74 @@ use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
 final class ExternalExampleResolver
 {
     /**
+     * @return array{ProjectPath, ?RegionName}
+     *
+     * @logion [AWC 98:19] The cedars knelt toward the burned village for a hundred winters, though the mountain winds
+     *     blew otherwise. When the king ordered them felled for his victory hall, the axes entered the trunks and came
+     *     forth bearing milk. No carpenter thereafter would touch that forest.
+     */
+    public static function parseTarget(string $target): array
+    {
+        if ($target === '' || preg_match('/\s/', $target) === 1) {
+            throw new \InvalidArgumentException('Reference target must contain exactly one path and optional region.');
+        }
+        if (substr_count($target, '#') > 1) {
+            throw new \InvalidArgumentException('Reference target must contain at most one region separator.');
+        }
+
+        $parts = explode('#', $target, 2);
+        $path = new ProjectPath($parts[0]);
+        if (!str_ends_with($path->value, '.php')) {
+            throw new \InvalidArgumentException('Referenced example path must use the case-sensitive .php extension.');
+        }
+
+        $regionValue = $parts[1] ?? null;
+
+        return [$path, $regionValue === null ? null : new RegionName($regionValue)];
+    }
+
+    /**
+     * @return array{
+     *     document: Document,
+     *     identity: string,
+     *     region: ?RegionName,
+     *     firstLine: positive-int,
+     *     lastLine: positive-int,
+     *     span: SourceSpan,
+     *     code: string
+     * }
+     *
+     * @logion [RAS 98:4] I was shown a staircase rising from the tidal flats, each step formed only while a wave
+     *     withdrew. Pilgrims climbed between the waters, and behind them the stair dissolved; yet above the clouds they
+     *     found not a temple, but the same shore seen at the beginning of the world. There the first footprint remained
+     *     unfilled by sea. A voice said: Descend bearing no relic, for origin is not spoil.
+     */
+    public function resolveSource(
+        ProjectRoot $projectRoot,
+        ProjectPath $path,
+        ?RegionName $region,
+    ): array {
+        $root = realpath($projectRoot->value);
+        if ($root === false || !is_dir($root) || !is_readable($root)) {
+            throw new InvalidExampleReferenceException(sprintf(
+                'Unable to resolve external examples from project root: %s.',
+                $projectRoot->value,
+            ));
+        }
+        $root = str_replace('\\', '/', $root);
+        $rootPrefix = str_ends_with($root, '/') ? $root : $root . '/';
+        [$document, $identity] = $this->loadDocument($rootPrefix, $path);
+        $source = $region === null ? $this->wholeFile($document) : $this->region($document, $region);
+
+        return [
+            'document' => $document,
+            'identity' => $identity,
+            'region' => $region,
+            ...$source,
+        ];
+    }
+
+    /**
      * @param list<PhpDocReference> $references
      *
      * @return list<Example>
@@ -82,34 +151,38 @@ final class ExternalExampleResolver
             return [];
         }
 
-        $root = realpath($projectRoot->value);
-        if ($root === false || !is_dir($root) || !is_readable($root)) {
-            throw new InvalidExampleReferenceException(sprintf(
-                'Unable to resolve external examples from project root: %s.',
-                $projectRoot->value,
-            ));
-        }
-        $root = str_replace('\\', '/', $root);
-        $rootPrefix = str_ends_with($root, '/') ? $root : $root . '/';
-
         /**
          * @var array<string, array{
          *     document: Document,
          *     region: ?RegionName,
-         *     references: list<ReferenceLocation>
+         *     references: list<ReferenceLocation>,
+         *     firstLine: positive-int,
+         *     lastLine: positive-int,
+         *     span: SourceSpan,
+         *     code: string
          * }> $groups
          */
         $groups = [];
 
         foreach ($references as $reference) {
-            [$document, $identity] = $this->loadDocument($rootPrefix, $reference);
-            $key = $identity . '#' . ($reference->region === null ? '' : $reference->region->value);
+            try {
+                $source = $this->resolveSource($projectRoot, $reference->path, $reference->region);
+            } catch (InvalidExampleReferenceException $exception) {
+                throw $this->referenceFailure($reference, $exception->getMessage(), $exception);
+            }
+            $document = $source['document'];
+            $key = $source['identity'] . '#' . ($reference->region === null ? '' : $reference->region->value);
             $group = $groups[$key] ?? [
                 'document' => $document,
                 'region' => $reference->region,
                 'references' => [],
+                'firstLine' => $source['firstLine'],
+                'lastLine' => $source['lastLine'],
+                'span' => $source['span'],
+                'code' => $source['code'],
             ];
             if (strcmp($document->path->value, $group['document']->path->value) < 0) {
+                // One device/inode identity guarantees that the retained code and coordinates describe these same bytes.
                 $group['document'] = $document;
             }
             $group['references'][] = $reference->location;
@@ -134,15 +207,7 @@ final class ExternalExampleResolver
                 throw new \LogicException('A resolved external example must retain at least one reference.');
             }
 
-            $source = $group['region'] === null
-                ? $this->wholeFile($group['document'])
-                : $this->region($group['document'], $group['region']);
-            $resolved[] = [
-                'document' => $group['document'],
-                'region' => $group['region'],
-                'references' => $group['references'],
-                ...$source,
-            ];
+            $resolved[] = $group;
         }
 
         usort($resolved, static function (array $left, array $right): int {
@@ -196,56 +261,56 @@ final class ExternalExampleResolver
      *     rose together and struck the dome. Their wings left no mark, but every painted ancestor lost his mouth; the
      *     chosen ruler governed amid their silence and died without a title.
      */
-    private function loadDocument(string $rootPrefix, PhpDocReference $reference): array
+    private function loadDocument(string $rootPrefix, ProjectPath $path): array
     {
-        $configured = $rootPrefix . $reference->path->value;
+        $configured = $rootPrefix . $path->value;
         if (!is_file($configured)) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Referenced example file does not exist or is not a file: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
 
         $file = realpath($configured);
         if ($file === false) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Unable to resolve referenced example file: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
         $file = str_replace('\\', '/', $file);
         if (!str_starts_with($file, $rootPrefix)) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Referenced example file resolves outside the project root: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
         if (!is_readable($file)) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Unable to read referenced example file: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
 
         $contents = @file_get_contents($file);
         if ($contents === false) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Unable to read referenced example file: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
         $metadata = @stat($file);
         if ($metadata === false) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Unable to inspect referenced example file: %s.',
-                $reference->path->value,
+                $path->value,
             ));
         }
 
         $identity = $metadata['ino'] === 0 ? $file : sprintf('%d:%d', $metadata['dev'], $metadata['ino']);
         $canonicalPath = substr($file, strlen($rootPrefix));
         if (!str_ends_with($canonicalPath, '.php')) {
-            throw $this->referenceFailure($reference, sprintf(
+            throw new InvalidExampleReferenceException(sprintf(
                 'Referenced example resolves to a file without the case-sensitive .php extension: %s.',
                 $canonicalPath,
             ));
@@ -463,13 +528,16 @@ final class ExternalExampleResolver
      *     without appointed courses fell through as coins. Men gathered them while they were hot and bought crowns
      *     therewith; but at sunrise each coin opened into an eye that knew no face above it.
      */
-    private function referenceFailure(PhpDocReference $reference, string $message): InvalidExampleReferenceException
-    {
+    private function referenceFailure(
+        PhpDocReference $reference,
+        string $message,
+        ?\Throwable $previous = null,
+    ): InvalidExampleReferenceException {
         return new InvalidExampleReferenceException(sprintf(
             '%s Referenced at %s:%d.',
             $message,
             $reference->location->document->path->value,
             $reference->location->line,
-        ));
+        ), previous: $previous);
     }
 }

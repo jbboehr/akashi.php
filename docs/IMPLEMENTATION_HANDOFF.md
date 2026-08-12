@@ -612,7 +612,8 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 * inline PHPDoc-comment examples — implemented post-MVP;
 * external canonical PHP example files, including stable named regions — implemented post-MVP;
 * documentation references to canonical examples — implemented post-MVP;
-* optional synchronized inline presentations of external canonical examples;
+* optional synchronized inline presentations of external canonical examples — read-only parsing and comparison
+  implemented post-MVP; CLI reporting and rewriting deferred;
 * declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;
@@ -624,7 +625,8 @@ always have to be maintained literally inside documentation comments.
 ### PHPDoc example maintainability
 
 Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples and references to external
-canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; synchronization,
+canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; read-only parsing and
+comparison of synchronized presentations are also implemented. Synchronization CLI/reporting and rewriting,
 formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and remaining
 sequence.
 
@@ -693,16 +695,18 @@ independent of any documentation generator and does not adopt line-number ranges
 
 #### 3. Synchronized inline examples
 
-An optional compatibility mode may support renderers that require code to be physically embedded in PHPDoc or Markdown.
-Illustrative future syntax may resemble:
+An optional compatibility mode supports renderers that require code to be physically embedded in PHPDoc or Markdown.
+The implemented read-only synchronization syntax is:
 
 ````php
 /**
  * <!-- akashi-sync: examples/conversion.php#basic-conversion -->
+ *
  * ```php
  * $result = convert(1, 'meter', 'centimeter');
  * assert($result === 100);
  * ```
+ *
  * <!-- akashi-sync-end -->
  */
 ````
@@ -714,10 +718,18 @@ vendor/bin/akashi sync
 vendor/bin/akashi sync --check
 ```
 
-The command names and synchronization syntax are provisional. The external file or named region remains canonical.
-Synchronization must be deterministic, and a check-only mode should fail CI when the embedded copy is stale. A write
-mode may update only the embedded copy; it must not silently alter unrelated prose or comment formatting. Malformed
-synchronization regions fail instead of being guessed at.
+The comments and explicitly closed PHP fence must remain consecutive Markdown blocks; optional blank separator lines are
+accepted for formatter compatibility, but other intervening content is not. The target uses the same project-relative
+`.php` path and optional named-region grammar as PHPDoc references. Line endings compare as LF and a missing final
+newline is normalized to one LF; additional blank lines inside the fence and logical code indentation remain significant.
+Markdown indentation and conventional PHPDoc leading `*` decoration are containers rather than code. PHP opening tags
+remain canonical code and are neither inserted nor removed. The typed region keeps logical embedded code separate from
+raw source spans into the maintained presentation.
+
+The read-only parser and typed mismatch model are implemented. The command names remain provisional: no synchronization
+CLI or write mode exists yet. The external file or named region remains canonical. A future check-only mode should fail
+CI when the embedded copy is stale. A write mode may update only the embedded copy; it must not silently alter unrelated
+prose or comment formatting. Malformed synchronization regions fail instead of being guessed at.
 
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.
@@ -737,8 +749,8 @@ formatter errors and diffs, synchronized examples, hidden support code, and futu
 original maintained source location is available, Akashi must not report only an opaque temporary-file location.
 
 Mappings may need to compose across extraction, support-code handling, PHP transformation, and temporary-file
-generation. The model now represents inline Markdown and PHPDoc fences, external whole PHP files, and named regions;
-an inline example synchronized from an external source remains deferred. It conceptually distinguishes:
+generation. The model now represents inline Markdown and PHPDoc fences, external whole PHP files, named regions, and
+read-only synchronized presentations. It conceptually distinguishes:
 
 * canonical code origin;
 * documentation reference or presentation location;
@@ -791,7 +803,7 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 1. PHPDoc fenced examples — implemented post-MVP.
 2. External canonical PHP examples and named regions — implemented post-MVP.
 3. Source-location mapping improvements.
-4. Check-only synchronization.
+4. Check-only synchronization — read-only library parsing and mismatch model implemented; CLI reporting deferred.
 5. Check-only formatter integration.
 6. Optional write-mode synchronization and formatting.
 7. Hidden support-code semantics.

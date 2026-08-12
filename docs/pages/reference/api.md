@@ -58,6 +58,14 @@ Most consumers receive and inspect these values through the canonical model rath
 Direct construction remains supported for typed integrations that create documents or examples without weakening the
 model to raw arrays or ambiguous strings.
 
+## Synchronization
+
+| Type                                      | Purpose                                                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `Synchronization\SynchronizationChecker`  | Parse synchronized Markdown/PHPDoc presentations and return stale copies without writes. |
+| `Synchronization\SynchronizationRegion`   | Preserve one presentation, its canonical target, fence metadata, and exact source spans. |
+| `Synchronization\SynchronizationMismatch` | Pair a stale presentation with its canonical origin and expected normalized PHP code.    |
+
 ## PHPUnit Runtime
 
 | Type                                          | Purpose                                                                  |
@@ -92,8 +100,10 @@ matching model. Direct consumers may use that typed model with `ExpectationParse
 Source-loading failures, including malformed marker, directive, reference, and named-region metadata, share
 `Source\Exception\SourceException`; transformation failures share `Transform\Exception\TransformException`; execution
 failures share `Execution\Exception\ExecutionException`; and PHPStan integration failures share
-`Integration\PHPStan\Exception\PhpStanException`. Specific subclasses preserve distinctions such as missing paths,
-unsupported examples, runtime configuration, empty PHPStan selection, and verification infrastructure.
+`Integration\PHPStan\Exception\PhpStanException`. Synchronization structure and resolution failures share
+`Synchronization\Exception\SynchronizationException`, which is also a source-exception subtype. Specific subclasses
+preserve distinctions such as missing paths, unsupported examples, runtime configuration, empty PHPStan selection, and
+verification infrastructure.
 
 These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.

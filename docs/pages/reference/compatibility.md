@@ -51,7 +51,8 @@ require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Pa
 ## Authoring Boundary
 
 - Markdown and PHPDoc fences plus PHPDoc references to external canonical PHP files and named regions are implemented.
-  Synchronized copies remain deferred.
+  Strict synchronized presentations can be parsed and compared through the read-only library API; CLI reporting and
+  rewriting remain deferred.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;

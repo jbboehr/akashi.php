@@ -170,8 +170,51 @@ canonical PHP code line, while `ReferencedExampleSource::$references` preserves 
 Resolution is not recursive: PHPDoc inside a referenced file is scanned only when that file is also selected by the
 source manifest.
 
-External references are currently a PHPDoc authoring mode. Markdown continues to use physically embedded fences; sync,
-formatter, hidden-support-code, and renderer-inclusion features remain deferred.
+External references are currently a PHPDoc authoring mode. Markdown continues to use physically embedded fences.
+
+## Synchronized Presentations
+
+Some documentation renderers cannot include an external file directly. Akashi can inspect an inline presentation whose
+canonical source remains an ordinary PHP file or named region:
+
+````markdown
+<!-- akashi-sync: examples/conversion.php#basic-conversion -->
+
+```php
+$result = convert(1, 'meter', 'centimeter');
+assert($result === 100);
+```
+
+<!-- akashi-sync-end -->
+````
+
+The start comment, PHP fence, and end comment must remain consecutive Markdown blocks, with only optional blank lines
+between them. This form is stable under formatters such as Prettier, which insert those blank lines. The fence must be
+explicitly closed and labelled `php`. The target follows the same project-relative `.php` path and optional lowercase
+named-region rules as a PHPDoc external reference. The same canonical target may be presented in several documentation
+locations. Directive names are case-sensitive; a case variant that resembles an Akashi directive is rejected as
+malformed rather than silently ignored.
+
+`SynchronizationChecker` parses this form in Markdown and conventional multiline PHPDoc comments and returns typed
+`SynchronizationMismatch` values without modifying the document. A CLI command and write mode remain deferred.
+
+`SynchronizationRegion::$embeddedCode` contains the logical, undecorated PHP seen by CommonMark. Its `location` and
+`regionSpan` point into the original maintained document, so slicing those spans returns raw Markdown indentation or
+PHPDoc leading `*` decoration. This distinction preserves both comparison-ready code and the exact authored bytes that a
+future writer would need.
+
+Comparison is intentionally narrow and deterministic:
+
+- CRLF and CR line endings compare as LF;
+- a missing final newline is treated as one final LF, while additional trailing blank lines remain significant;
+- Markdown fence indentation and conventional PHPDoc indentation and leading `*` decoration are containers, not code;
+- indentation inside the logical PHP fence remains significant; and
+- PHP opening tags are canonical code and are not inserted, removed, or case-normalized. A synchronized whole-file
+  presentation therefore includes its opening tag when the canonical file does.
+
+Malformed, orphaned, nested, overlapping, or incomplete synchronization structures fail rather than being guessed at.
+Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
+regions. Formatter, hidden-support-code, renderer-inclusion, CLI, and rewriting features remain deferred.
 
 ## Labels and PHPUnit Data Sets
 
