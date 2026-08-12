@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Compose generated-line mappings across sequential transforms so runtime failures continue to identify maintained
+  Markdown, PHPDoc, whole-file, and named-region source lines.
 - Support PHPStan 1.12 when consumers explicitly select PHP-Parser 4.19.5, while retaining PHPStan 2.x and PHP-Parser 5
   as the normal development path.
 - Support PHP 8.1 through native readonly properties, PHPStan class-level readonly contracts, the Random extension

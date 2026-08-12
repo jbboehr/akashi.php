@@ -270,18 +270,15 @@ final class NamespaceIsolator
         }
         $insertionLine = $lineBreaks + 1;
 
-        $sourceLines = [];
-        for ($line = 1; $line <= $parsed->sourceMap->generatedLineCount(); ++$line) {
-            $sourceLines[] = $parsed->sourceMap->sourceLineFor($line);
-        }
+        $generatedLines = range(1, $parsed->sourceMap->generatedLineCount());
 
         if ($atLineStart) {
-            array_splice($sourceLines, $insertionLine - 1, 0, [null]);
+            array_splice($generatedLines, $insertionLine - 1, 0, [null]);
         } else {
-            $originalLine = $sourceLines[$insertionLine - 1];
-            array_splice($sourceLines, $insertionLine - 1, 1, [$originalLine, null, $originalLine]);
+            $generatedLine = $generatedLines[$insertionLine - 1];
+            array_splice($generatedLines, $insertionLine - 1, 1, [$generatedLine, null, $generatedLine]);
         }
 
-        return new SourceMap($parsed->sourceMap->sourcePath, $sourceLines);
+        return $parsed->sourceMap->compose($generatedLines);
     }
 }

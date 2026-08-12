@@ -59,12 +59,15 @@ on them directly. Named regions are preferred over fragile line-number ranges.
 
 The remaining suggested sequence is:
 
-1. Generalized source-location mapping across multiple transformations.
-2. Check-only synchronization.
-3. Check-only formatter integration.
-4. Optional write-mode synchronization and formatting.
-5. Hidden support-code semantics.
-6. Documentation-renderer integrations.
+1. Check-only synchronization.
+2. Check-only formatter integration.
+3. Optional write-mode synchronization and formatting.
+4. Hidden support-code semantics.
+5. Documentation-renderer integrations.
+
+Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
+named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the
+current pipeline no longer requires each transform to reconstruct the original map itself.
 
 No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
 IDEs, renderers, and static analyzers. Akashi should integrate with configured formatters rather than become a PHP
@@ -79,7 +82,7 @@ with reasons, expected output, compile-only checks, platform conditions, configu
 binaries and INI profiles, and controlled child environments.
 
 The PHPStan roadmap includes an identifier-oriented expectation syntax that can coexist with `//!`, richer verifier
-results outside PHPUnit, and source maps capable of composing multiple transformations and source origins.
+results outside PHPUnit, and source mappings that can associate diagnostics with multiple maintained origins.
 
 ## External PHPStan Verification
 

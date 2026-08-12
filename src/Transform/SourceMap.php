@@ -106,6 +106,30 @@ final class SourceMap
     }
 
     /**
+     * @param array<int, int|null> $generatedLines
+     *
+     * @logion [RAS 70:1] I saw the bronze constellation of the Anvil descend; every sword beneath it became too
+     *     heavy for the hand that named itself innocent.
+     */
+    public function compose(array $generatedLines): self
+    {
+        if (!array_is_list($generatedLines)) {
+            throw new \InvalidArgumentException('Composed generated lines must form a list.');
+        }
+
+        $sourceLines = [];
+        foreach ($generatedLines as $generatedLine) {
+            if ($generatedLine !== null && $generatedLine < 1) {
+                throw new \InvalidArgumentException('Composed generated lines must be positive.');
+            }
+
+            $sourceLines[] = $generatedLine === null ? null : $this->sourceLineFor($generatedLine);
+        }
+
+        return new self($this->sourcePath, $sourceLines);
+    }
+
+    /**
      * @return positive-int
      *
      * @logion [SFA 53:20] The margin ended where the final lamp stood, though darkness continued beyond it; measure

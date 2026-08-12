@@ -107,13 +107,15 @@ preparation from silently becoming the maintained representation.
 Each execution backend produces a backend-specific `PreparedExample` containing the original `Example`, generated
 `PreparedCode`, its `ExecutionMode`, and a `SourceMap`. Prepared code and its map must contain the same number of lines.
 
-The current map translates generated lines to original Markdown, PHPDoc, or external PHP lines. Transforms preserve or
-explicitly account for synthetic lines, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained
+The current map translates generated lines to original Markdown, PHPDoc, or external PHP lines. A transform describes
+each output line in terms of its input map, and Akashi composes that relation back to the maintained source. Synthetic
+lines remain explicitly unmapped. This lets sequential transforms preserve useful locations without depending on which
+source adapter produced the example, allowing assertion, parse, runtime, and PHPStan reporting to prefer a maintained
 source location. Failures fall back to the example start when PHP cannot provide a reliable generated line.
 
 The model deliberately retains original locations rather than exposing only temporary files. Canonical external code
-origins and separate PHPDoc presentation locations are implemented. A fully composable mapping across future sync,
-hidden-code, formatter, or renderer transformations remains deferred.
+origins and separate PHPDoc presentation locations are implemented. Mapping one generated artifact to several source
+origins, as future synchronization, hidden-code, formatter, or renderer work may require, remains deferred.
 
 ## In-Process Transformation
 

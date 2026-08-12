@@ -140,6 +140,51 @@ final class TransformValueTest extends TestCase
         $map->sourceLineFor($line);
     }
 
+    public function testComposesGeneratedLinesThroughMultipleTransformations(): void
+    {
+        $map = new SourceMap(new DocumentPath('docs/example.md'), [10, 11]);
+
+        $first = $map->compose([1, null, 2]);
+        $second = $first->compose([1, 2, null, 3]);
+
+        self::assertSame('docs/example.md', $second->sourcePath->value);
+        self::assertSame(4, $second->generatedLineCount());
+        self::assertSame(10, $second->sourceLineFor(1));
+        self::assertNull($second->sourceLineFor(2));
+        self::assertNull($second->sourceLineFor(3));
+        self::assertSame(11, $second->sourceLineFor(4));
+    }
+
+    public function testRejectsComposedGeneratedLinesThatAreNotAList(): void
+    {
+        $map = new SourceMap(new DocumentPath('docs/example.md'), [1]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Composed generated lines must form a list.');
+
+        $map->compose([1 => 1]);
+    }
+
+    public function testRejectsANonpositiveComposedGeneratedLine(): void
+    {
+        $map = new SourceMap(new DocumentPath('docs/example.md'), [1]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Composed generated lines must be positive.');
+
+        $map->compose([0]);
+    }
+
+    public function testRejectsAComposedGeneratedLineOutsideThePreviousMap(): void
+    {
+        $map = new SourceMap(new DocumentPath('docs/example.md'), [1]);
+
+        $this->expectException(\OutOfBoundsException::class);
+        $this->expectExceptionMessage('Generated line 2 is outside the source map.');
+
+        $map->compose([2]);
+    }
+
     /**
      * @return iterable<string, array{int}>
      */
