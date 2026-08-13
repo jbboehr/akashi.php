@@ -58,6 +58,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Source\MarkdownSource::class,
             \jbboehr\Akashi\Source\MarkedExampleSelector::class,
             \jbboehr\Akashi\Synchronization\SynchronizationChecker::class,
+            \jbboehr\Akashi\Synchronization\SynchronizationWriter::class,
         ],
         'canonical model' => [
             \jbboehr\Akashi\Document::class,
@@ -129,6 +130,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Source\Exception\UnsupportedSourcePathException::class,
             \jbboehr\Akashi\Synchronization\Exception\InvalidSynchronizationRegionException::class,
             \jbboehr\Akashi\Synchronization\Exception\SynchronizationException::class,
+            \jbboehr\Akashi\Synchronization\Exception\SynchronizationWriteException::class,
             \jbboehr\Akashi\Transform\Exception\PhpParseException::class,
             \jbboehr\Akashi\Transform\Exception\TransformException::class,
             \jbboehr\Akashi\Transform\Exception\UnsupportedExampleException::class,

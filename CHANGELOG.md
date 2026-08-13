@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   regions, and render corrected documents in memory without changing their surrounding prose or formatting.
 - Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-labelled
   unified diffs on stderr, stable process statuses, and no writes.
+- Update synchronized presentations with `akashi sync --write` after validating the complete input set, using stale-byte
+  protection and same-directory atomic replacement for each changed document.
 
 ### Changed
 

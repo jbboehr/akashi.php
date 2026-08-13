@@ -55,6 +55,6 @@ stable named example must also become a consumer fixture.
 ## Project Status
 
 The Markdown and PHPDoc workflows, in-process and separate-process execution, PHPUnit integration, PHPStan verification,
-marked extraction, and check-only synchronization are implemented, and both recorded consumer migrations are complete.
+marked extraction, and check/write synchronization are implemented, and both recorded consumer migrations are complete.
 Akashi is pre-1.0, and its categorized public API is usable but may change between minor releases before 1.0. Deferred
 work is listed separately in the [Roadmap](project/roadmap.md); it is not required for the workflow shown above.

@@ -696,7 +696,7 @@ independent of any documentation generator and does not adopt line-number ranges
 #### 3. Synchronized inline examples
 
 An optional compatibility mode supports renderers that require code to be physically embedded in PHPDoc or Markdown.
-The implemented read-only synchronization syntax is:
+The implemented synchronization syntax is:
 
 ````php
 /**
@@ -711,10 +711,11 @@ The implemented read-only synchronization syntax is:
  */
 ````
 
-The implemented check-only command is:
+The implemented CLI modes are:
 
 ```console
 vendor/bin/akashi sync --check [--project-root=PATH] FILE [FILE ...]
+vendor/bin/akashi sync --write [--project-root=PATH] FILE [FILE ...]
 ```
 
 The comments and explicitly closed PHP fence must remain consecutive Markdown blocks; optional blank separator lines are
@@ -725,13 +726,15 @@ Markdown indentation and conventional PHPDoc leading `*` decoration are containe
 remain canonical code and are neither inserted nor removed. The typed region keeps logical embedded code separate from
 raw source spans into the maintained presentation.
 
-The parser, typed mismatch model, in-memory document rewriter, and check-only CLI are implemented. The rewriter applies
+The parser, typed mismatch model, in-memory document rewriter, and check/write CLI are implemented. The rewriter applies
 only nonoverlapping code-span edits, preserves presentation containers and line endings, and rejects a result that no
-longer parses and verifies as the same synchronization structure and canonical snapshot. The command checks explicit
-Markdown or PHP files, reports presentation and canonical locations plus a unified diff from stale to canonical code on
-stderr, returns stable process statuses, and makes no file changes. The external file or named region remains canonical.
-A future filesystem write mode may persist only the embedded-copy changes; it must not silently alter unrelated prose or
-comment formatting. Malformed synchronization regions fail instead of being guessed at.
+longer parses and verifies as the same synchronization structure and canonical snapshot. Check mode reports presentation
+and canonical locations plus a unified diff from stale to canonical code on stderr. Write mode validates the complete
+selected set before mutation, rechecks maintained and canonical snapshots, and atomically replaces each changed document
+through a flushed temporary sibling while preserving its permission bits. It refuses stale bytes and symbolic-link
+paths and does not alter unrelated prose or comment formatting. A batch whose rewritten selected PHP document is also a
+selected whole-file canonical dependency is rejected before mutation; named-region dependencies remain valid. The
+external file or named region remains canonical. Malformed synchronization regions fail instead of being guessed at.
 
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.
@@ -806,7 +809,7 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 2. External canonical PHP examples and named regions — implemented post-MVP.
 3. Source-location mapping improvements.
 4. Check-only synchronization — library parsing, mismatch model, in-memory rewriting, and CLI reporting implemented.
-5. Atomic filesystem synchronization writing.
+5. Atomic filesystem synchronization writing — implemented post-MVP.
 6. Check-only formatter integration.
 7. Optional write-mode formatting.
 8. Hidden support-code semantics.
@@ -819,9 +822,9 @@ and the clean-room prohibition on rustdoc implementation material and competing 
 unchanged.
 
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
-references, named-region parsing, check-only synchronization, and in-memory synchronized-presentation rewriting are now
-implemented as post-MVP work. Filesystem synchronization write commands, formatter commands, hidden support code,
-documentation-renderer plugins, and automatic on-disk docblock rewriting remain deferred. Do not add dependencies,
+references, named-region parsing, check-only synchronization, in-memory synchronized-presentation rewriting, and atomic
+filesystem synchronization writes are now implemented as post-MVP work. Formatter commands, hidden support code,
+documentation-renderer plugins, and formatter-driven docblock rewriting remain deferred. Do not add dependencies,
 placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
 future behavior.
 

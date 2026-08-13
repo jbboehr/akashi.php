@@ -182,21 +182,28 @@ author-assigned ID, and writes the original code with its documented final-newli
 execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is below the
 project root; reference targets themselves are not marker IDs.
 
-The read-only synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end`
-comment as consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid
-structure. `SynchronizationRegion` retains the presentation document, exact raw region and code spans, logical
-undecorated code, fence metadata, and canonical target. `SynchronizationChecker` resolves that target through the same
-project-containment and named-region rules as PHPDoc references, normalizes only line endings and a missing final
-newline, and returns typed mismatches with both presentation and canonical origins. The `sync --check` CLI loads
-explicit Markdown or PHP files through the shared project-containment loader and reports those mismatches on stderr with
-stable process statuses and source-labelled unified diffs from presentation to canonical code.
+The synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end` comment as
+consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid structure.
+`SynchronizationRegion` retains the presentation document, exact raw region and code spans, logical undecorated code,
+fence metadata, and canonical target. `SynchronizationChecker` resolves that target through the same project-containment
+and named-region rules as PHPDoc references, normalizes only line endings and a missing final newline, and returns typed
+mismatches with both presentation and canonical origins. The `sync --check` CLI loads explicit Markdown or PHP files
+through the shared project-containment loader and reports those mismatches on stderr with stable process statuses and
+source-labelled unified diffs from presentation to canonical code. Write mode renders and validates the complete
+selected set before mutation, rechecks maintained and canonical snapshots, and then reports each changed path
+deterministically. It rejects a selected whole-file canonical dependency when the selected canonical PHP document would
+also change; named-region dependencies remain valid because presentation edits cannot overlap their tokenized executable
+regions.
 
 The same checker can apply all nonoverlapping mismatch edits to the original byte spans and return a new immutable
 `Document`. It derives the presentation container prefix and line ending from the authored fence, changes only code
 content, and re-parses and verifies the result before returning it. Unsafe canonical content that would terminate a
 fence or PHPDoc comment is rejected against its original presentation line and canonical target. Verification uses the
 already resolved canonical snapshot rather than rereading source files. This pure library operation performs no
-filesystem writes; atomic persistence and a write-mode CLI remain deferred.
+filesystem writes. `SynchronizationWriter` supplies the separate persistence boundary: it rejects stale bytes and
+symbolic-link paths, writes and flushes a temporary sibling, preserves permission bits, and atomically replaces one
+document. Batch validation belongs to the CLI; individual replacements remain atomic even if a later filesystem failure
+interrupts a multi-file write.
 
 ## Dependency Boundaries
 
@@ -213,10 +220,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 ## Current and Deferred Architecture
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
-named regions, synchronized-presentation inspection and in-memory rewriting through the library, check-only CLI,
+named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write CLI,
 markers, token-aware runtime directives, both execution backends, typed in-process exception expectations, PHPUnit,
-PHPStan `RuleTestCase`, and marked extraction. Filesystem synchronization write mode, formatting, hidden support code,
-documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not exist yet.
+PHPStan `RuleTestCase`, and marked extraction. Formatting, hidden support code, documentation-renderer inclusion,
+generalized verifier plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

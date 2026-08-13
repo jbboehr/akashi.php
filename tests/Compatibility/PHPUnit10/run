@@ -87,6 +87,23 @@ grep -Fq -- '+++ tests/DocumentationExamplesCompatibility.php:46 (canonical)' "$
 grep -Fq -- '-use PHPUnit\Framework\Assert;' "$sync_stderr"
 grep -Fq -- '+use PHPUnit\Framework\TestCase;' "$sync_stderr"
 
+cp -- "$CONSUMER_DIR/docs/sync-stale.md" "$CONSUMER_DIR/docs/sync-write.md"
+sync_write_stderr="$WORK_ROOT/sync-write-stderr"
+readonly sync_write_stderr
+(
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi sync --write --project-root=. docs/sync-write.md 2>"$sync_write_stderr"
+)
+if [[ $(<"$sync_write_stderr") != 'Updated docs/sync-write.md.' ]]; then
+    printf 'Unexpected synchronization write report:\n%s\n' "$(<"$sync_write_stderr")" >&2
+    exit 1
+fi
+grep -Fq -- 'use PHPUnit\Framework\TestCase;' "$CONSUMER_DIR/docs/sync-write.md"
+(
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi sync --check --project-root=. docs/sync-write.md
+)
+
 (
     cd -- "$CONSUMER_DIR"
     vendor/bin/phpunit \

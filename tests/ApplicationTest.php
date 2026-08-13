@@ -43,7 +43,7 @@ use jbboehr\Akashi\Application;
 use jbboehr\Akashi\Cli\Command;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
-use jbboehr\Akashi\Cli\SyncCheckCommand;
+use jbboehr\Akashi\Cli\SyncCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -103,7 +103,7 @@ final class ApplicationTest extends TestCase
             $result['stdout'],
         );
         self::assertStringContainsString(
-            'akashi sync --check [--project-root=PATH] FILE [FILE ...]',
+            'akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]',
             $result['stdout'],
         );
         self::assertStringEndsWith("\n", $result['stdout']);
@@ -269,21 +269,29 @@ PHP));
             ['extract', '--marker-name=selected-example', 'examples.md'],
             'The extract command requires exactly one documentation file and marker ID.',
         ];
-        yield 'missing sync check mode' => [
+        yield 'missing sync mode' => [
             ['sync', 'README.md'],
-            'The sync command currently requires --check.',
+            'The sync command requires exactly one of --check or --write.',
         ];
         yield 'duplicate sync check mode' => [
             ['sync', '--check', '--check', 'README.md'],
             'The --check option may be specified only once.',
         ];
+        yield 'duplicate sync write mode' => [
+            ['sync', '--write', '--write', 'README.md'],
+            'The --write option may be specified only once.',
+        ];
         yield 'missing sync file' => [
             ['sync', '--check'],
             'The sync command requires at least one Markdown or PHP file.',
         ];
-        yield 'unknown sync option' => [
+        yield 'mutually exclusive sync modes' => [
             ['sync', '--check', '--write', 'README.md'],
-            'Unknown sync option: --write.',
+            'The --check and --write options are mutually exclusive.',
+        ];
+        yield 'unknown sync option' => [
+            ['sync', '--check', '--unknown', 'README.md'],
+            'Unknown sync option: --unknown.',
         ];
         yield 'duplicate sync project root' => [
             ['sync', '--check', '--project-root=first', '--project-root=second', 'README.md'],
@@ -495,6 +503,247 @@ PHP,
         self::assertSame('', $result['stderr']);
     }
 
+    public function testWritesSeveralSynchronizedDocumentsInDeterministicPathOrder(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n\necho 'current';\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/first.md',
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'stale';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/Second.php',
+            <<<'PHP'
+<?php
+
+/**
+ * <!-- akashi-sync: canonical.php -->
+ * ```php
+ * <?php
+ *
+ * echo 'also stale';
+ * ```
+ * <!-- akashi-sync-end -->
+ */
+PHP,
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/Second.php',
+            '--write',
+            $this->workspace . '/first.md',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame("Updated Second.php.\nUpdated first.md.\n", $result['stderr']);
+        self::assertSame(
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho 'current';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+            file_get_contents($this->workspace . '/first.md'),
+        );
+        self::assertSame(
+            <<<'PHP'
+<?php
+
+/**
+ * <!-- akashi-sync: canonical.php -->
+ * ```php
+ * <?php
+ *
+ * echo 'current';
+ * ```
+ * <!-- akashi-sync-end -->
+ */
+PHP,
+            file_get_contents($this->workspace . '/Second.php'),
+        );
+    }
+
+    public function testWriteIsSilentWhenEveryPresentationIsCurrent(): void
+    {
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $contents = "<!-- akashi-sync: canonical.php -->\n"
+            . "```php\necho 'current';\n```\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/example.md', $contents));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/example.md',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+        self::assertSame($contents, file_get_contents($this->workspace . '/example.md'));
+    }
+
+    public function testWriteValidatesEveryDocumentBeforeChangingTheFirstOne(): void
+    {
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $stale = "<!-- akashi-sync: canonical.php -->\n"
+            . "```php\necho 'stale';\n```\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/first.md', $stale));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/second.md',
+            "<!-- akashi-sync: canonical.php -->\n```php\necho 'unterminated';\n```\n",
+        ));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/first.md',
+            $this->workspace . '/second.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringStartsWith('Synchronization failed:', $result['stderr']);
+        self::assertSame($stale, file_get_contents($this->workspace . '/first.md'));
+    }
+
+    public function testWriteRejectsASelectedSymbolicLinkBeforeCanonicalization(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('Symbolic-link creation is not generally available to Windows test users.');
+        }
+
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $stale = "<!-- akashi-sync: canonical.php -->\n"
+            . "```php\necho 'stale';\n```\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/target.md', $stale));
+        self::assertTrue(symlink($this->workspace . '/target.md', $this->workspace . '/alias.md'));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/alias.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('write paths must not use symbolic links', $result['stderr']);
+        self::assertSame($stale, file_get_contents($this->workspace . '/target.md'));
+        self::assertTrue(is_link($this->workspace . '/alias.md'));
+    }
+
+    public function testWriteRejectsASelectedPathThroughASymbolicLinkDirectory(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('Symbolic-link creation is not generally available to Windows test users.');
+        }
+
+        self::assertTrue(mkdir($this->workspace . '/real', 0o700));
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $stale = "<!-- akashi-sync: canonical.php -->\n"
+            . "```php\necho 'stale';\n```\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/real/example.md', $stale));
+        self::assertTrue(symlink($this->workspace . '/real', $this->workspace . '/alias'));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/alias/example.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('write paths must not use symbolic links', $result['stderr']);
+        self::assertSame($stale, file_get_contents($this->workspace . '/real/example.md'));
+    }
+
+    public function testWriteRejectsAChangingSelectedWholeFileCanonicalDependency(): void
+    {
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $source = "<?php\n\n"
+            . "/**\n"
+            . " * <!-- akashi-sync: canonical.php -->\n"
+            . " * ```php\n"
+            . " * echo 'stale';\n"
+            . " * ```\n"
+            . " * <!-- akashi-sync-end -->\n"
+            . " */\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/source.php', $source));
+        $dependent = "<!-- akashi-sync: source.php -->\n"
+            . "~~~php\n"
+            . $source
+            . "~~~\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/dependent.md', $dependent));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/source.php',
+            $this->workspace . '/dependent.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString(
+            'whole-file canonical source source.php is also being rewritten',
+            $result['stderr'],
+        );
+        self::assertSame($source, file_get_contents($this->workspace . '/source.php'));
+        self::assertSame($dependent, file_get_contents($this->workspace . '/dependent.md'));
+    }
+
+    public function testWriteAllowsASelectedNamedRegionDependencyUnaffectedByPhpDocRewriting(): void
+    {
+        self::assertNotFalse(file_put_contents($this->workspace . '/canonical.php', "echo 'current';\n"));
+        $source = "<?php\n"
+            . "// akashi-region: stable\n"
+            . "echo 'stable';\n"
+            . "// akashi-region-end: stable\n\n"
+            . "/**\n"
+            . " * <!-- akashi-sync: canonical.php -->\n"
+            . " * ```php\n"
+            . " * echo 'stale';\n"
+            . " * ```\n"
+            . " * <!-- akashi-sync-end -->\n"
+            . " */\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/source.php', $source));
+        $dependent = "<!-- akashi-sync: source.php#stable -->\n"
+            . "```php\n"
+            . "echo 'stable';\n"
+            . "```\n"
+            . "<!-- akashi-sync-end -->\n";
+        self::assertNotFalse(file_put_contents($this->workspace . '/dependent.md', $dependent));
+
+        $result = $this->runApplication([
+            'sync',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/source.php',
+            $this->workspace . '/dependent.md',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame("Updated source.php.\n", $result['stderr']);
+        $rewrittenSource = file_get_contents($this->workspace . '/source.php');
+        self::assertNotFalse($rewrittenSource);
+        self::assertStringContainsString(" * echo 'current';\n", $rewrittenSource);
+        self::assertSame($dependent, file_get_contents($this->workspace . '/dependent.md'));
+    }
+
     public function testReportsEveryStaleSynchronizedPresentationWithItsCanonicalLocation(): void
     {
         self::assertNotFalse(file_put_contents(
@@ -562,7 +811,7 @@ PHP,
 
         self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
-        self::assertStringStartsWith('Synchronization check failed:', $result['stderr']);
+        self::assertStringStartsWith('Synchronization failed:', $result['stderr']);
         self::assertStringContainsString('has no following end directive', $result['stderr']);
     }
 
@@ -719,7 +968,7 @@ PHP,
             ['--marker-name=selected-example', $extractFile, 'chosen'],
         );
         $synchronization = $this->executeCommandWithNamedArguments(
-            new SyncCheckCommand(),
+            new SyncCommand(),
             ['--check', '--project-root=' . $this->workspace, $syncFile],
         );
 

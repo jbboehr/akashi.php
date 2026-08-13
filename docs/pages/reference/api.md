@@ -60,15 +60,21 @@ model to raw arrays or ambiguous strings.
 
 ## Synchronization
 
-| Type                                      | Purpose                                                                                   |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `Synchronization\SynchronizationChecker`  | Inspect presentations and render corrected immutable documents without filesystem writes. |
-| `Synchronization\SynchronizationRegion`   | Preserve one presentation, its canonical target, fence metadata, and exact source spans.  |
-| `Synchronization\SynchronizationMismatch` | Pair a stale presentation with its canonical origin and expected normalized PHP code.     |
+| Type                                      | Purpose                                                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `Synchronization\SynchronizationChecker`  | Inspect presentations and render corrected immutable documents.                          |
+| `Synchronization\SynchronizationWriter`   | Atomically persist one corrected document when its maintained bytes are still current.   |
+| `Synchronization\SynchronizationRegion`   | Preserve one presentation, its canonical target, fence metadata, and exact source spans. |
+| `Synchronization\SynchronizationMismatch` | Pair a stale presentation with its canonical origin and expected normalized PHP code.    |
 
 `SynchronizationChecker::rewrite()` replaces only stale code spans in memory. It preserves directives, fences, prose,
 Markdown or PHPDoc container prefixes, and the presentation's line-ending convention, then re-parses and verifies the
 result against the already resolved canonical snapshot. The method performs no filesystem writes.
+
+`SynchronizationWriter::write()` accepts the original loaded `Document` and its rendered replacement. It verifies the
+maintained bytes, rejects symbolic-link paths, and uses a flushed same-directory temporary file plus atomic rename. The
+writer preserves permission bits; callers that need validation across several documents should render the complete set
+before invoking it, as the CLI does.
 
 ## PHPUnit Runtime
 
@@ -104,7 +110,7 @@ matching model. Direct consumers may use that typed model with `ExpectationParse
 Source-loading failures, including malformed marker, directive, reference, and named-region metadata, share
 `Source\Exception\SourceException`; transformation failures share `Transform\Exception\TransformException`; execution
 failures share `Execution\Exception\ExecutionException`; and PHPStan integration failures share
-`Integration\PHPStan\Exception\PhpStanException`. Synchronization structure and resolution failures share
+`Integration\PHPStan\Exception\PhpStanException`. Synchronization structure, resolution, and persistence failures share
 `Synchronization\Exception\SynchronizationException`, which is also a source-exception subtype. Specific subclasses
 preserve distinctions such as missing paths, unsupported examples, runtime configuration, empty PHPStan selection, and
 verification infrastructure.

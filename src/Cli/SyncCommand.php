@@ -43,13 +43,15 @@ use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\IncludeKind;
 use jbboehr\Akashi\Source\IncludeRule;
 use jbboehr\Akashi\Source\ProjectDocumentLoader;
+use jbboehr\Akashi\Synchronization\Exception\SynchronizationWriteException;
 use jbboehr\Akashi\Synchronization\SynchronizationChecker;
 use jbboehr\Akashi\Synchronization\SynchronizationMismatch;
+use jbboehr\Akashi\Synchronization\SynchronizationWriter;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 
 /**
- * Checks explicitly selected synchronized presentations against their canonical PHP sources without writing files.
+ * Checks or updates explicitly selected synchronized presentations against their canonical PHP sources.
  *
  * @internal
  *
@@ -60,7 +62,7 @@ use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
  *     crossed upon the naked channel, carrying their sick westward; but the admiral waited for the river to bow. It did
  *     not, and his bronze fleet whitened beneath the sun.
  */
-final class SyncCheckCommand implements Command
+final class SyncCommand implements Command
 {
     /**
      * @param list<string> $arguments
@@ -73,17 +75,32 @@ final class SyncCheckCommand implements Command
      */
     public function execute(array $arguments, \Closure $output): ExitCode
     {
-        $check = false;
+        $mode = null;
         $projectRoot = null;
         $files = [];
 
         foreach ($arguments as $argument) {
             if ($argument === '--check') {
-                if ($check) {
+                if ($mode === 'check') {
                     throw new UsageException('The --check option may be specified only once.');
                 }
+                if ($mode !== null) {
+                    throw new UsageException('The --check and --write options are mutually exclusive.');
+                }
 
-                $check = true;
+                $mode = 'check';
+                continue;
+            }
+
+            if ($argument === '--write') {
+                if ($mode === 'write') {
+                    throw new UsageException('The --write option may be specified only once.');
+                }
+                if ($mode !== null) {
+                    throw new UsageException('The --check and --write options are mutually exclusive.');
+                }
+
+                $mode = 'write';
                 continue;
             }
 
@@ -103,14 +120,18 @@ final class SyncCheckCommand implements Command
             $files[] = $argument;
         }
 
-        if (!$check) {
-            throw new UsageException('The sync command currently requires --check.');
+        if ($mode === null) {
+            throw new UsageException('The sync command requires exactly one of --check or --write.');
         }
         if ($files === []) {
             throw new UsageException('The sync command requires at least one Markdown or PHP file.');
         }
 
         $projectRoot = new ProjectRoot($this->absolutePath($projectRoot ?? '.', 'Project root'));
+        $canonicalProjectRoot = realpath($projectRoot->value);
+        if ($canonicalProjectRoot !== false) {
+            $canonicalProjectRoot = str_replace('\\', '/', $canonicalProjectRoot);
+        }
         $includes = [];
         foreach ($files as $file) {
             if (!str_ends_with($file, '.md') && !str_ends_with($file, '.php')) {
@@ -120,19 +141,113 @@ final class SyncCheckCommand implements Command
                 ));
             }
 
+            $absoluteFile = $this->absolutePath($file, 'Synchronization file');
+            if ($mode === 'write' && $canonicalProjectRoot !== false) {
+                $cursor = str_replace('\\', '/', $absoluteFile);
+                while (true) {
+                    if (is_link($cursor)) {
+                        throw new SynchronizationWriteException(sprintf(
+                            'Synchronization write paths must not use symbolic links: %s.',
+                            $file,
+                        ));
+                    }
+
+                    $canonicalCursor = realpath($cursor);
+                    if (
+                        $canonicalCursor !== false
+                        && (DIRECTORY_SEPARATOR === '\\'
+                            ? strcasecmp(str_replace('\\', '/', $canonicalCursor), $canonicalProjectRoot) === 0
+                            : str_replace('\\', '/', $canonicalCursor) === $canonicalProjectRoot)
+                    ) {
+                        break;
+                    }
+
+                    $parent = str_replace('\\', '/', dirname($cursor));
+                    if ($parent === $cursor) {
+                        break;
+                    }
+                    $cursor = $parent;
+                }
+            }
+
             $includes[] = new IncludeRule(
                 IncludeKind::File,
                 ProjectDocumentLoader::projectPath(
                     $projectRoot,
-                    new \SplFileInfo($this->absolutePath($file, 'Synchronization file')),
+                    new \SplFileInfo($absoluteFile),
                     'synchronization',
                 ),
             );
         }
 
-        $documents = (new ProjectDocumentLoader('synchronization', ['.md', '.php']))
-            ->load($projectRoot, $includes, []);
+        $loader = new ProjectDocumentLoader('synchronization', ['.md', '.php']);
+        $documents = $loader->load($projectRoot, $includes, []);
         $checker = SynchronizationChecker::forProject($projectRoot);
+
+        if ($mode === 'write') {
+            $rewritten = [];
+            foreach ($documents as $document) {
+                $replacement = $checker->rewrite($document);
+                if ($replacement->contents !== $document->contents) {
+                    $rewritten[$document->path->value] = $replacement;
+                }
+            }
+
+            if ($rewritten === []) {
+                return ExitCode::Success;
+            }
+
+            foreach ($documents as $document) {
+                foreach ($checker->regions($document) as $region) {
+                    if (
+                        $region->targetRegion === null
+                        && array_key_exists($region->targetPath->value, $rewritten)
+                    ) {
+                        throw new SynchronizationWriteException(sprintf(
+                            'Cannot safely update %s because its whole-file canonical source %s is also being rewritten; '
+                                . 'write the canonical source separately, then rerun synchronization.',
+                            $document->path->value,
+                            $region->targetPath->value,
+                        ));
+                    }
+                }
+            }
+
+            // Validate every maintained document and canonical snapshot again before the first filesystem change.
+            $validatedDocuments = $loader->load($projectRoot, $includes, []);
+            foreach ($validatedDocuments as $index => $document) {
+                $original = $documents[$index];
+                if ($document->path->value !== $original->path->value || $document->contents !== $original->contents) {
+                    throw new SynchronizationWriteException(sprintf(
+                        'Synchronization document changed during validation; refusing to write any files: %s.',
+                        $original->path->value,
+                    ));
+                }
+
+                $replacement = $checker->rewrite($document);
+                $firstReplacement = $rewritten[$document->path->value] ?? $document;
+                if ($replacement->contents !== $firstReplacement->contents) {
+                    throw new SynchronizationWriteException(sprintf(
+                        'Canonical synchronization source changed during validation; refusing to write any files for: %s.',
+                        $document->path->value,
+                    ));
+                }
+            }
+
+            $writer = SynchronizationWriter::forProject($projectRoot);
+            foreach ($documents as $document) {
+                $replacement = $rewritten[$document->path->value] ?? null;
+                if ($replacement === null) {
+                    continue;
+                }
+
+                $writer->write($document, $replacement);
+                $output(sprintf("Updated %s.\n", $document->path->value));
+            }
+
+            return ExitCode::Success;
+        }
+
         $mismatchCount = 0;
 
         foreach ($documents as $document) {

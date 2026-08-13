@@ -38,7 +38,7 @@ its parser-facing token representation independent of PHP-Parser's version-speci
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and
 named regions. Synthetic generated lines remain unmapped, and a future general multi-origin mapping model is deferred
-until filesystem synchronization diagnostics, hidden support code, or another transformation requires it.
+until hidden support code or another transformation requires it.
 
 The synchronization library parses strictly delimited `akashi-sync` regions in Markdown and conventional multiline
 PHPDoc, allows formatter-compatible blank separators, resolves through the existing canonical external-source rules, and
@@ -46,7 +46,11 @@ produces typed mismatches. It can also apply those mismatches to exact code span
 containers and line endings, and validate the rewritten immutable document without touching the filesystem.
 `sync --check` checks explicit files, reports both maintained presentation and canonical locations, and uses stable exit
 statuses. It renders deterministic unified diffs from stale presentations to canonical replacements through a direct PHP
-8.1-compatible `sebastian/diff` dependency. Atomic persistence and every CLI write mode remain deferred.
+8.1-compatible `sebastian/diff` dependency. `sync --write` validates the complete selected set and canonical snapshots
+before mutation, then uses the public atomic writer to reject stale maintained bytes and symbolic-link paths, flush a
+temporary sibling, preserve permission bits, and replace each changed file. It rejects selected whole-file canonical
+dependencies whose selected source would change, while allowing unaffected named-region dependencies. Formatter
+integration remains deferred.
 
 ## Deferred external PHPStan verification
 

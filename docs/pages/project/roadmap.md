@@ -53,7 +53,7 @@ PHPDoc support is being delivered through three progressively more maintainable 
 2. references to ordinary external PHP files or stable named regions, with the external file as source of truth —
    implemented; and
 3. optional synchronized inline copies for renderers that cannot include external content — parsing, comparison,
-   in-memory rewriting, and check-only CLI reporting implemented; filesystem writes deferred.
+   in-memory rewriting, and atomic CLI persistence implemented.
 
 Referenced canonical examples are preferred for substantial code because IDEs, formatters, PHPStan, and PHP can operate
 on them directly. Named regions are preferred over fragile line-number ranges.
@@ -62,13 +62,13 @@ The synchronization library parses strictly delimited presentations in Markdown 
 named-region validation with external references, returns typed mismatches, and can render a corrected immutable
 document without changing the filesystem. Rewriting preserves surrounding authored bytes and validates the completed
 document before returning it. The `sync --check` CLI applies check-only behavior to explicit files with stable
-diagnostics, source-labelled unified diffs, and process statuses. The remaining suggested sequence is:
+diagnostics, source-labelled unified diffs, and process statuses; `sync --write` validates the full input set and
+atomically replaces each changed document with stale-byte protection. The remaining suggested sequence is:
 
-1. Atomic filesystem write mode built on the in-memory renderer.
-2. Check-only formatter integration.
-3. Optional write-mode formatting.
-4. Hidden support-code semantics.
-5. Documentation-renderer integrations.
+1. Check-only formatter integration.
+2. Optional write-mode formatting.
+3. Hidden support-code semantics.
+4. Documentation-renderer integrations.
 
 Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
 named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the

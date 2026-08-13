@@ -42,7 +42,7 @@ use Composer\InstalledVersions;
 use jbboehr\Akashi\Cli\Exception\UsageException;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
-use jbboehr\Akashi\Cli\SyncCheckCommand;
+use jbboehr\Akashi\Cli\SyncCommand;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
@@ -86,13 +86,13 @@ Akashi — executable documentation testing for PHP.
 
 Usage:
   akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
-  akashi sync --check [--project-root=PATH] FILE [FILE ...]
+  akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
   akashi --help
   akashi --version
 
 Commands:
   extract  Write one explicitly marked PHP example to stdout.
-  sync     Check synchronized presentations against canonical PHP sources.
+  sync     Check or update synchronized presentations from canonical PHP sources.
 HELP;
 
         $commandName = null;
@@ -125,7 +125,7 @@ HELP;
             $commandName = array_shift($arguments);
             return match ($commandName) {
                 'extract' => (new ExtractCommand())->execute($arguments, $stdout)->value,
-                'sync' => (new SyncCheckCommand())->execute($arguments, $stderr)->value,
+                'sync' => (new SyncCommand())->execute($arguments, $stderr)->value,
                 default => throw new UsageException(sprintf('Unknown command: %s.', $commandName)),
             };
         } catch (UsageException $exception) {
@@ -133,7 +133,7 @@ HELP;
 
             return ExitCode::UsageError->value;
         } catch (SourceException | \InvalidArgumentException $exception) {
-            $label = $commandName === 'sync' ? 'Synchronization check' : 'Extraction';
+            $label = $commandName === 'sync' ? 'Synchronization' : 'Extraction';
             $stderr(sprintf("%s failed: %s\n", $label, $exception->getMessage()));
 
             return ExitCode::CommandFailure->value;

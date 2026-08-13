@@ -218,8 +218,16 @@ vendor/bin/akashi sync --check --project-root=. README.md docs/examples.md src/E
 
 The command is silent when every presentation is current. Stale presentations receive a source-labelled unified diff
 from their embedded code to the canonical replacement. Stale or invalid presentations are reported on stderr and exit
-with status `1`. See the [CLI reference](../reference/cli.md#check-synchronized-presentations) for the exact path,
-stream, diff, and exit-status contract. Akashi does not yet expose a filesystem-writing synchronization command.
+with status `1`. To apply the same validated replacements, select write mode explicitly:
+
+```console
+vendor/bin/akashi sync --write --project-root=. README.md docs/examples.md src/Example.php
+```
+
+Akashi validates every selected document before the first write, rejects documents changed since loading, and atomically
+replaces each changed file through a temporary sibling. See the
+[CLI reference](../reference/cli.md#synchronize-presentations) for the exact path, stream, write-safety, diff, and
+exit-status contract.
 
 `SynchronizationRegion::$embeddedCode` contains the logical, undecorated PHP seen by CommonMark. Its `location` and
 `regionSpan` point into the original maintained document, so slicing those spans returns raw Markdown indentation or
@@ -237,7 +245,7 @@ Comparison is intentionally narrow and deterministic:
 
 Malformed, orphaned, nested, overlapping, or incomplete synchronization structures fail rather than being guessed at.
 Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
-regions. Filesystem writing, formatter, hidden-support-code, and renderer-inclusion features remain deferred.
+regions. Formatter, hidden-support-code, and renderer-inclusion features remain deferred.
 
 ## Labels and PHPUnit Data Sets
 
