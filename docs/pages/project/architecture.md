@@ -214,9 +214,16 @@ formatter-modified temporary file, verifies the boundary, discards project-level
 returns typed `FormattingMismatch` values without writing maintained documentation. Process evidence replaces the
 temporary filename with the original document location; cleanup executes on every outcome.
 
+`FormattingRewriter` is the separate pure update boundary. It accepts the exact loaded `Document` plus checked
+mismatches for that document, rejects stale, cross-document, duplicate, referenced, or structurally unsafe inputs, and
+applies only their nonoverlapping code spans. It restores the existing Markdown or PHPDoc container prefix around each
+formatter-produced logical line, preserves the formatter's body line endings, then re-extracts the complete candidate
+document to ensure every fence and runtime directive retains its meaning. The result is a new immutable `Document`; no
+filesystem access occurs.
+
 `format --check` supplies explicit safe document discovery and source-labelled unified diffs over that library seam.
 External whole files and named regions remain directly formatter-compatible PHP and are intentionally left to normal
-project formatter commands. There is no generic formatter registry and no formatting write path.
+project formatter commands. There is no generic formatter registry or filesystem formatting write path.
 
 ## Dependency Boundaries
 
@@ -236,10 +243,10 @@ compose source, runtime, and verifier configuration through typed immutable valu
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
-optional PHP-CS-Fixer checks for inline examples, markers, token-aware runtime directives, both execution backends,
-typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. Formatter write mode,
-hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not
-exist yet.
+optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
+runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
+and marked extraction. Formatter CLI/filesystem write mode, hidden support code, documentation-renderer inclusion,
+generalized verifier plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -268,11 +268,16 @@ after a protected boundary. File-level additions such as a configured license he
 opening `<?php` tag and its separator are preserved outside the comparison; body line endings and final-newline changes
 remain significant.
 
-The maintained documentation is never changed. A clean check is silent. A mismatch produces a source-labelled unified
-diff on stderr and status `1`. Formatter launch, timeout, invalid output, and cleanup failures identify the maintained
-example rather than only the temporary file. Closing tags, inline HTML, and `__halt_compiler()` are rejected by this
-initial adapter because they cannot be safely enclosed. Formatter write mode, hidden support code, and renderer
-inclusion remain deferred.
+The check command never changes maintained documentation. A clean check is silent. A mismatch produces a source-labelled
+unified diff on stderr and status `1`. Formatter launch, timeout, invalid output, and cleanup failures identify the
+maintained example rather than only the temporary file. Closing tags, inline HTML, and `__halt_compiler()` are rejected
+by this initial adapter because they cannot be safely enclosed.
+
+For applications that need to inspect a proposed update without writing it, `FormattingRewriter::rewrite()` can apply
+the checked mismatches for one loaded document and return a new immutable `Document`. It changes only the inline code
+spans and re-extracts the result before returning it; stale inputs, mismatches from another document, and output that
+would damage a fence or PHPDoc comment are rejected. The `format` CLI remains check-only. CLI/filesystem write mode,
+hidden support code, and renderer inclusion remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

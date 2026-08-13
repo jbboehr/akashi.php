@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Check inline Markdown and PHPDoc examples with an optional project-installed PHP-CS-Fixer through
   `akashi format --check`, using private temporary inputs and source-labelled unified diffs without modifying
   documentation.
+- Apply checked inline formatting mismatches to exact code spans in a validated immutable document while preserving
+  surrounding Markdown or PHPDoc bytes and performing no filesystem writes.
 
 ### Changed
 

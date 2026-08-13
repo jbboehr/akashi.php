@@ -796,8 +796,11 @@ vendor/bin/akashi format --check
 External examples remain formatted directly with existing PHP tooling. Inline examples are extracted into private valid
 PHP, checked through an argument-vector process under a finite timeout, and mapped back to maintained source-labelled
 diffs. A protected body boundary prevents project-level formatter additions from entering the example; authored opening
-tags remain outside the comparison. Automatic docblock rewriting remains deferred because indentation, leading `*`
-characters, Markdown fences, opening tags, and prose boundaries must be preserved.
+tags remain outside the comparison. A public pure rewriter can apply checked mismatches to exact inline code spans in
+one current immutable document, restore Markdown/PHPDoc prefixes, and re-extract the result before returning it. It
+performs no filesystem writes. CLI/filesystem formatting writes remain deferred because stale bytes, symbolic links,
+batch validation, indentation, leading `*` characters, Markdown fences, opening tags, and prose boundaries must all be
+preserved.
 
 Akashi should integrate with a configured formatter rather than become a PHP formatter. Formatter output and diffs must
 map back to the source developers actually maintain.
@@ -812,9 +815,10 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 4. Check-only synchronization — library parsing, mismatch model, in-memory rewriting, and CLI reporting implemented.
 5. Atomic filesystem synchronization writing — implemented post-MVP.
 6. Check-only PHP-CS-Fixer integration — implemented post-MVP.
-7. Optional write-mode formatting.
-8. Hidden support-code semantics.
-9. Documentation-renderer integrations.
+7. Validated in-memory formatting rewriting — implemented post-MVP.
+8. Optional CLI/filesystem write-mode formatting.
+9. Hidden support-code semantics.
+10. Documentation-renderer integrations.
 
 This ordering is guidance, not a commitment to release numbers. Rustdoc's public documentation may provide behavioral
 precedent for hidden setup lines, executable examples in documentation comments, inclusion of documentation from
@@ -825,8 +829,8 @@ unchanged.
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
 references, named-region parsing, check-only synchronization, in-memory synchronized-presentation rewriting, and atomic
 filesystem synchronization writes and check-only PHP-CS-Fixer integration are now implemented as post-MVP work.
-Formatter write commands, hidden support code, documentation-renderer plugins, and formatter-driven docblock rewriting
-remain deferred. Do not add dependencies,
+Validated in-memory formatting rewriting is also implemented. Formatter filesystem write commands, hidden support code,
+documentation-renderer plugins, and automatic formatter-driven docblock persistence remain deferred. Do not add dependencies,
 placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
 future behavior.
 

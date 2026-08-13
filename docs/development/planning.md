@@ -59,6 +59,10 @@ ordinary formatter commands. It uses a private temporary PHP file and protected 
 rules cannot enter a fence, preserves authored opening tags, reports formatter-proposed body changes through typed
 mismatches, and removes temporary artifacts after every outcome. `format --check` supplies explicit document selection,
 source-labelled unified diffs, and stable statuses without a maintained-file write path or generic formatter registry.
+The public pure rewriter can apply the checked mismatches for one current document to exact code spans, restore authored
+Markdown/PHPDoc prefixes, and re-extract the complete candidate before returning a new immutable document. It rejects
+stale, cross-document, duplicate, referenced, and structurally unsafe inputs. CLI/filesystem formatting writes remain
+deferred.
 
 ## Deferred external PHPStan verification
 
