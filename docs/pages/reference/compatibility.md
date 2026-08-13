@@ -58,10 +58,10 @@ require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Pa
   Strict synchronized presentations can be compared or corrected in memory through the library API and checked or
   atomically updated through the CLI. The filesystem writer rejects stale maintained bytes and symbolic-link paths.
 - Optional PHP-CS-Fixer checks cover inline Markdown and PHPDoc examples without modifying maintained documents. The
-  library can apply checked mismatches to a validated immutable `Document`, but the format CLI and filesystem remain
-  check-only. Referenced external PHP remains the responsibility of ordinary project formatter commands. CLI/filesystem
-  formatting write mode is deferred. The formatter process and any selected PHP-CS-Fixer configuration execute as
-  trusted project tooling; this boundary is not a sandbox for untrusted configuration.
+  library can apply checked mismatches to a validated immutable `Document`; `format --write` repeats the complete
+  formatter pass before atomically updating current, nonsymlink documents. Referenced external PHP remains the
+  responsibility of ordinary project formatter commands. The formatter process and any selected PHP-CS-Fixer
+  configuration execute as trusted project tooling; this boundary is not a sandbox for untrusted configuration.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;

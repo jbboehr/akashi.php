@@ -97,6 +97,10 @@ changes only the original code spans, restores their authored Markdown or PHPDoc
 line endings, and returns a new immutable `Document`; it performs no filesystem writes. Group mismatches by maintained
 document before calling the rewriter when a corpus spans several files.
 
+The library operation remains separate from persistence. The CLI's `format --write` mode groups mismatches by document,
+repeats the complete formatter pass to reject changed inputs or results, and then persists through the same
+stale-byte-protected atomic writer used by synchronization.
+
 This is a concrete PHP-CS-Fixer integration, not a generic formatter extension point. External canonical examples remain
 ordinary PHP files and should use normal project formatter commands directly.
 
@@ -137,8 +141,10 @@ failures share `Execution\Exception\ExecutionException`; and PHPStan integration
 `Integration\PHPStan\Exception\PhpStanException`. Formatting configuration, execution, output, rewrite,
 unsupported-input, and cleanup failures share `Formatting\Exception\FormattingException`. Synchronization structure,
 resolution, and persistence failures share `Synchronization\Exception\SynchronizationException`, which is also a
-source-exception subtype. Specific subclasses preserve distinctions such as missing paths, unsupported examples, runtime
-configuration, empty PHPStan selection, and verification infrastructure.
+source-exception subtype. The `format --write` CLI reuses `SynchronizationWriter`, so failures from its persistence
+boundary retain the synchronization exception family even though the application reports them as formatting command
+failures. Specific subclasses preserve distinctions such as missing paths, unsupported examples, runtime configuration,
+empty PHPStan selection, and verification infrastructure.
 
 These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.

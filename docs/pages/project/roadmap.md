@@ -63,25 +63,24 @@ named-region validation with external references, returns typed mismatches, and 
 document without changing the filesystem. Rewriting preserves surrounding authored bytes and validates the completed
 document before returning it. The `sync --check` CLI applies check-only behavior to explicit files with stable
 diagnostics, source-labelled unified diffs, and process statuses; `sync --write` validates the full input set and
-atomically replaces each changed document with stale-byte protection. Optional check-only PHP-CS-Fixer integration now
-extracts inline examples into private valid PHP files, preserves their authored opening tags, ignores file-level
-formatter additions outside a protected body boundary, and reports source-labelled diffs without changing maintained
-documents. Checked mismatches can now be applied to their exact inline code spans through a validated in-memory rewrite
-that preserves surrounding Markdown/PHPDoc bytes and performs no filesystem access. External canonical PHP remains the
-normal formatter-friendly mode. The remaining suggested sequence is:
+atomically replaces each changed document with stale-byte protection. Optional PHP-CS-Fixer integration now extracts
+inline examples into private valid PHP files, preserves their authored opening tags, ignores file-level formatter
+additions outside a protected body boundary, and reports source-labelled diffs in check mode. Checked mismatches can be
+applied to their exact inline code spans through a validated in-memory rewrite that preserves surrounding
+Markdown/PHPDoc bytes and performs no filesystem access. Write mode validates a second complete formatter pass before
+using stale-byte-protected atomic replacement. External canonical PHP remains the normal formatter-friendly mode. The
+remaining suggested sequence is:
 
-1. Optional CLI/filesystem write-mode formatting.
-2. Hidden support-code semantics.
-3. Documentation-renderer integrations.
+1. Hidden support-code semantics.
+2. Documentation-renderer integrations.
 
 Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
 named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the
 current pipeline no longer requires each transform to reconstruct the original map itself.
 
 No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
-IDEs, renderers, and static analyzers. Akashi should integrate with configured formatters rather than become a PHP
-formatter. The checker and pure rewriter establish the inspection and validated in-memory update boundaries before any
-future filesystem rewriting.
+IDEs, renderers, and static analyzers. Akashi integrates with configured formatters rather than becoming a PHP
+formatter. The checker and pure rewriter remain independent of the CLI persistence boundary.
 
 ## Runtime and Verification
 

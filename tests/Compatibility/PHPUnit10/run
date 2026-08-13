@@ -66,6 +66,29 @@ fi
     vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format.md
 )
 
+cp -- "$CONSUMER_DIR/docs/format-stale.md" "$CONSUMER_DIR/docs/format-write.md"
+format_write_stderr="$WORK_ROOT/format-write-stderr"
+readonly format_write_stderr
+(
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi \
+        format \
+        --write \
+        --project-root=. \
+        --php-cs-fixer=tools/php-cs-fixer \
+        docs/format-write.md \
+        2>"$format_write_stderr"
+)
+if [[ $(<"$format_write_stderr") != 'Updated docs/format-write.md.' ]]; then
+    printf 'Unexpected formatting write report:\n%s\n' "$(<"$format_write_stderr")" >&2
+    exit 1
+fi
+grep -Fq -- "\$value = 1;" "$CONSUMER_DIR/docs/format-write.md"
+(
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format-write.md
+)
+
 (
     cd -- "$CONSUMER_DIR"
     vendor/bin/akashi sync --check --project-root=. docs/sync.md

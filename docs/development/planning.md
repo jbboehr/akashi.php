@@ -49,20 +49,20 @@ statuses. It renders deterministic unified diffs from stale presentations to can
 8.1-compatible `sebastian/diff` dependency. `sync --write` validates the complete selected set and canonical snapshots
 before mutation, then uses the public atomic writer to reject stale maintained bytes and symbolic-link paths, flush a
 temporary sibling, preserve permission bits, and replace each changed file. It rejects selected whole-file canonical
-dependencies whose selected source would change, while allowing unaffected named-region dependencies. Formatter write
-integration remains deferred.
+dependencies whose selected source would change, while allowing unaffected named-region dependencies.
 
-Optional check-only formatting is implemented for inline Markdown and PHPDoc fences through a concrete PHP-CS-Fixer
-adapter. A typed immutable configuration resolves the project-installed executable and optional config inside one
-canonical project root. The checker skips external whole files and named regions, which remain directly compatible with
-ordinary formatter commands. It uses a private temporary PHP file and protected body boundary so project-level header
-rules cannot enter a fence, preserves authored opening tags, reports formatter-proposed body changes through typed
-mismatches, and removes temporary artifacts after every outcome. `format --check` supplies explicit document selection,
-source-labelled unified diffs, and stable statuses without a maintained-file write path or generic formatter registry.
-The public pure rewriter can apply the checked mismatches for one current document to exact code spans, restore authored
-Markdown/PHPDoc prefixes, and re-extract the complete candidate before returning a new immutable document. It rejects
-stale, cross-document, duplicate, referenced, and structurally unsafe inputs. CLI/filesystem formatting writes remain
-deferred.
+Optional formatting is implemented for inline Markdown and PHPDoc fences through a concrete PHP-CS-Fixer adapter. A
+typed immutable configuration resolves the project-installed executable and optional config inside one canonical project
+root. The checker skips external whole files and named regions, which remain directly compatible with ordinary formatter
+commands. It uses a private temporary PHP file and protected body boundary so project-level header rules cannot enter a
+fence, preserves authored opening tags, reports formatter-proposed body changes through typed mismatches, and removes
+temporary artifacts after every outcome. `format --check` supplies explicit document selection, source-labelled unified
+diffs, and stable statuses without changing maintained source. The public pure rewriter applies checked mismatches for
+one current document to exact code spans, restores authored Markdown/PHPDoc prefixes, and re-extracts the complete
+candidate before returning a new immutable document. It rejects stale, cross-document, duplicate, referenced, and
+structurally unsafe inputs. `format --write` repeats the complete formatter pass and requires identical source and
+formatter results before using the existing stale-byte-protected, symbolic-link-rejecting atomic writer. No generic
+formatter registry is planned.
 
 ## Deferred external PHPStan verification
 

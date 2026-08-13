@@ -104,7 +104,7 @@ final class ApplicationTest extends TestCase
             $result['stdout'],
         );
         self::assertStringContainsString(
-            'akashi format --check [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]',
+            'akashi format (--check|--write) [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]',
             $result['stdout'],
         );
         self::assertStringContainsString(
@@ -304,9 +304,9 @@ PHP));
             ['sync', '--check', '--project-root=first', '--project-root=second', 'README.md'],
             'The --project-root option may be specified only once.',
         ];
-        yield 'missing format check mode' => [
+        yield 'missing format mode' => [
             ['format', 'README.md'],
-            'The format command requires --check.',
+            'The format command requires exactly one of --check or --write.',
         ];
         yield 'duplicate format check mode' => [
             ['format', '--check', '--check', 'README.md'],
@@ -316,9 +316,17 @@ PHP));
             ['format', '--check'],
             'The format command requires at least one Markdown or PHP file.',
         ];
-        yield 'unknown format option' => [
+        yield 'duplicate format write mode' => [
+            ['format', '--write', '--write', 'README.md'],
+            'The --write option may be specified only once.',
+        ];
+        yield 'mutually exclusive format modes' => [
             ['format', '--check', '--write', 'README.md'],
-            'Unknown format option: --write.',
+            'The --check and --write options are mutually exclusive.',
+        ];
+        yield 'unknown format option' => [
+            ['format', '--check', '--unknown', 'README.md'],
+            'Unknown format option: --unknown.',
         ];
         yield 'duplicate formatter executable' => [
             [
@@ -1047,6 +1055,296 @@ PHP,
             $result['stderr'],
         );
         self::assertStringEndsWith("1 inline example requires formatting.\n", $result['stderr']);
+    }
+
+    public function testFormattingWriteUpdatesSeveralDocumentsInDeterministicPathOrder(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+file_put_contents($path, str_replace(['$first=1;', '$second=2;'], ['$first = 1;', '$second = 2;'], $source));
+PHP,
+        ));
+        $first = $this->workspace . '/z-first.md';
+        self::assertNotFalse(file_put_contents($first, "```php\n\$first=1;\n```\n"));
+        $second = $this->workspace . '/A-second.php';
+        self::assertNotFalse(file_put_contents($second, <<<'PHP'
+<?php
+/**
+ * ```php
+ * $second=2;
+ * ```
+ */
+PHP));
+
+        $result = $this->runApplication([
+            'format',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $first,
+            '--write',
+            $second,
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame("Updated A-second.php.\nUpdated z-first.md.\n", $result['stderr']);
+        self::assertSame("```php\n\$first = 1;\n```\n", file_get_contents($first));
+        self::assertSame(<<<'PHP'
+<?php
+/**
+ * ```php
+ * $second = 2;
+ * ```
+ */
+PHP, file_get_contents($second));
+    }
+
+    public function testFormattingWriteIsSilentWhenEveryInlineExampleIsCurrent(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/vendor/bin', 0o700, true));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/vendor/bin/php-cs-fixer',
+            "<?php\nexit(is_file(\$argv[count(\$argv) - 1]) ? 0 : 1);\n",
+        ));
+        $file = $this->workspace . '/examples.md';
+        $contents = "```php\n\$value = 1;\n```\n";
+        self::assertNotFalse(file_put_contents($file, $contents));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            $file,
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+        self::assertSame($contents, file_get_contents($file));
+    }
+
+    public function testFormattingWriteValidatesEveryFormatterBeforeChangingTheFirstDocument(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$counter = dirname(__DIR__) . '/formatter-count';
+$count = is_file($counter) ? (int) file_get_contents($counter) : 0;
+file_put_contents($counter, (string) ++$count);
+if ($count === 4) {
+    fwrite(STDERR, 'second validation formatter failed');
+    exit(8);
+}
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+file_put_contents($path, str_replace('=1;', ' = 1;', $source));
+PHP,
+        ));
+        $first = $this->workspace . '/first.md';
+        $second = $this->workspace . '/second.md';
+        $stale = "```php\n\$value=1;\n```\n";
+        self::assertNotFalse(file_put_contents($first, $stale));
+        self::assertNotFalse(file_put_contents($second, $stale));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $first,
+            $second,
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('second validation formatter failed', $result['stderr']);
+        self::assertSame($stale, file_get_contents($first));
+        self::assertSame($stale, file_get_contents($second));
+    }
+
+    public function testFormattingWriteRejectsAChangedCleanSelectedDocumentBeforeWriting(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$counter = dirname(__DIR__) . '/formatter-count';
+$count = is_file($counter) ? (int) file_get_contents($counter) : 0;
+file_put_contents($counter, (string) ++$count);
+if ($count === 1) {
+    $clean = dirname(__DIR__) . '/clean.md';
+    $source = file_get_contents($clean);
+    file_put_contents($clean, str_replace('Original prose.', 'Changed prose.', $source));
+}
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+file_put_contents($path, str_replace('$stale=1;', '$stale = 1;', $source));
+PHP,
+        ));
+        $clean = $this->workspace . '/clean.md';
+        $originalClean = "Original prose.\n\n```php\n\$clean = 1;\n```\n";
+        self::assertNotFalse(file_put_contents($clean, $originalClean));
+        $stale = $this->workspace . '/stale.md';
+        $originalStale = "```php\n\$stale=1;\n```\n";
+        self::assertNotFalse(file_put_contents($stale, $originalStale));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $stale,
+            $clean,
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString(
+            'Formatting input changed during validation; refusing to write any files: clean.md.',
+            $result['stderr'],
+        );
+        self::assertSame(
+            str_replace('Original prose.', 'Changed prose.', $originalClean),
+            file_get_contents($clean),
+        );
+        self::assertSame($originalStale, file_get_contents($stale));
+    }
+
+    public function testFormattingWriteRejectsAChangingFormatterResultBeforeWriting(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$counter = dirname(__DIR__) . '/formatter-count';
+$count = is_file($counter) ? (int) file_get_contents($counter) : 0;
+file_put_contents($counter, (string) ++$count);
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+$replacement = $count === 1 ? '$value = 1;' : '$value  = 1;';
+file_put_contents($path, str_replace('$value=1;', $replacement, $source));
+PHP,
+        ));
+        $file = $this->workspace . '/example.md';
+        $stale = "```php\n\$value=1;\n```\n";
+        self::assertNotFalse(file_put_contents($file, $stale));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $file,
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('formatter result changed during validation', $result['stderr']);
+        self::assertSame($stale, file_get_contents($file));
+    }
+
+    public function testFormattingWriteRejectsASelectedSymbolicLinkBeforeCanonicalization(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('Symbolic-link creation is not generally available to Windows test users.');
+        }
+
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+file_put_contents($path, str_replace('$value=1;', '$value = 1;', $source));
+PHP,
+        ));
+        $target = $this->workspace . '/target.md';
+        $stale = "```php\n\$value=1;\n```\n";
+        self::assertNotFalse(file_put_contents($target, $stale));
+        self::assertTrue(symlink($target, $this->workspace . '/alias.md'));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $this->workspace . '/alias.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('Formatting write paths must not use symbolic links', $result['stderr']);
+        self::assertSame($stale, file_get_contents($target));
+        self::assertTrue(is_link($this->workspace . '/alias.md'));
+    }
+
+    public function testFormattingWriteRejectsASelectedPathThroughASymbolicLinkDirectory(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('Symbolic-link creation is not generally available to Windows test users.');
+        }
+
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            "<?php\nexit(0);\n",
+        ));
+        self::assertTrue(mkdir($this->workspace . '/real'));
+        $target = $this->workspace . '/real/example.md';
+        $contents = "```php\n\$value=1;\n```\n";
+        self::assertNotFalse(file_put_contents($target, $contents));
+        self::assertTrue(symlink($this->workspace . '/real', $this->workspace . '/alias'));
+
+        $result = $this->runApplication([
+            'format',
+            '--write',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $this->workspace . '/alias/example.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('Formatting write paths must not use symbolic links', $result['stderr']);
+        self::assertSame($contents, file_get_contents($target));
+    }
+
+    public function testFormattingWriteRejectsASelectedFileOutsideTheProjectBeforeRunningTheFormatter(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            "<?php\nfile_put_contents(dirname(__DIR__) . '/formatter-ran', 'yes');\n",
+        ));
+        $outside = dirname($this->workspace) . '/outside-' . basename($this->workspace) . '.md';
+        self::assertNotFalse(file_put_contents($outside, "```php\n\$value=1;\n```\n"));
+
+        try {
+            $result = $this->runApplication([
+                'format',
+                '--write',
+                '--project-root=' . $this->workspace,
+                '--php-cs-fixer=tools/fixer',
+                $outside,
+            ]);
+
+            self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+            self::assertSame('', $result['stdout']);
+            self::assertStringContainsString('is outside the project root', $result['stderr']);
+            self::assertFileDoesNotExist($this->workspace . '/formatter-ran');
+        } finally {
+            @unlink($outside);
+        }
     }
 
     public function testFormattingConfigurationFailuresUseTheCommandFailureStatus(): void

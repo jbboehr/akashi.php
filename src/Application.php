@@ -88,14 +88,14 @@ Akashi — executable documentation testing for PHP.
 
 Usage:
   akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
-  akashi format --check [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
+  akashi format (--check|--write) [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
   akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
   akashi --help
   akashi --version
 
 Commands:
   extract  Write one explicitly marked PHP example to stdout.
-  format   Check inline examples with an optional project-installed PHP-CS-Fixer.
+  format   Check or update inline examples with a project-installed PHP-CS-Fixer.
   sync     Check or update synchronized presentations from canonical PHP sources.
 HELP;
 

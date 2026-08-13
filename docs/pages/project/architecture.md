@@ -222,8 +222,12 @@ document to ensure every fence and runtime directive retains its meaning. The re
 filesystem access occurs.
 
 `format --check` supplies explicit safe document discovery and source-labelled unified diffs over that library seam.
-External whole files and named regions remain directly formatter-compatible PHP and are intentionally left to normal
-project formatter commands. There is no generic formatter registry or filesystem formatting write path.
+`format --write` first renders every proposed document in memory, then reloads the complete source and repeats every
+formatter invocation. Source bytes and formatter results must match the first pass before any maintained file changes.
+Persistence reuses the stale-byte-protected, symbolic-link-rejecting atomic writer, so each file is replaced from a
+flushed sibling while retaining its permission bits. External whole files and named regions remain directly
+formatter-compatible PHP and are intentionally left to normal project formatter commands. There is no generic formatter
+registry.
 
 ## Dependency Boundaries
 
@@ -245,8 +249,8 @@ Current architecture supports Markdown and inline PHPDoc fences, PHPDoc referenc
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-and marked extraction. Formatter CLI/filesystem write mode, hidden support code, documentation-renderer inclusion,
-generalized verifier plugins, and a standalone runner do not exist yet.
+and marked extraction. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a
+standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -786,11 +786,12 @@ select a syntax during the MVP.
 
 ### Formatter integration
 
-Check-only formatter support is implemented for inline Markdown and PHPDoc examples through an optional
+Formatter support is implemented for inline Markdown and PHPDoc examples through an optional
 project-installed PHP-CS-Fixer. The implemented command is:
 
 ```console
 vendor/bin/akashi format --check
+vendor/bin/akashi format --write
 ```
 
 External examples remain formatted directly with existing PHP tooling. Inline examples are extracted into private valid
@@ -798,9 +799,9 @@ PHP, checked through an argument-vector process under a finite timeout, and mapp
 diffs. A protected body boundary prevents project-level formatter additions from entering the example; authored opening
 tags remain outside the comparison. A public pure rewriter can apply checked mismatches to exact inline code spans in
 one current immutable document, restore Markdown/PHPDoc prefixes, and re-extract the result before returning it. It
-performs no filesystem writes. CLI/filesystem formatting writes remain deferred because stale bytes, symbolic links,
-batch validation, indentation, leading `*` characters, Markdown fences, opening tags, and prose boundaries must all be
-preserved.
+performs no filesystem writes. CLI write mode renders the complete proposal, reloads the selected source, repeats every
+formatter invocation, and requires identical source and formatter results before using stale-byte-protected,
+symbolic-link-rejecting atomic replacement.
 
 Akashi should integrate with a configured formatter rather than become a PHP formatter. Formatter output and diffs must
 map back to the source developers actually maintain.
@@ -816,7 +817,7 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 5. Atomic filesystem synchronization writing — implemented post-MVP.
 6. Check-only PHP-CS-Fixer integration — implemented post-MVP.
 7. Validated in-memory formatting rewriting — implemented post-MVP.
-8. Optional CLI/filesystem write-mode formatting.
+8. Optional CLI/filesystem write-mode formatting — implemented post-MVP.
 9. Hidden support-code semantics.
 10. Documentation-renderer integrations.
 
@@ -829,10 +830,9 @@ unchanged.
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
 references, named-region parsing, check-only synchronization, in-memory synchronized-presentation rewriting, and atomic
 filesystem synchronization writes and check-only PHP-CS-Fixer integration are now implemented as post-MVP work.
-Validated in-memory formatting rewriting is also implemented. Formatter filesystem write commands, hidden support code,
-documentation-renderer plugins, and automatic formatter-driven docblock persistence remain deferred. Do not add dependencies,
-placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
-future behavior.
+Validated in-memory formatting rewriting and formatter filesystem write commands are also implemented. Hidden support
+code and documentation-renderer plugins remain deferred. Do not add dependencies, placeholder classes, or speculative
+interfaces for them unless an already-required abstraction naturally supports the future behavior.
 
 ### Additional example semantics
 

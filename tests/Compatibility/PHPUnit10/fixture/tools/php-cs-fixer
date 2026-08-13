@@ -1,5 +1,13 @@
 <?php
 
 $path = $argv[count($argv) - 1] ?? null;
+if (!is_string($path) || !is_file($path)) {
+    exit(1);
+}
 
-exit(is_string($path) && is_file($path) ? 0 : 1);
+$source = file_get_contents($path);
+if (!is_string($source)) {
+    exit(1);
+}
+
+file_put_contents($path, str_replace('$value=1;', '$value = 1;', $source));

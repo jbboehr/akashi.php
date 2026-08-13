@@ -247,7 +247,7 @@ Malformed, orphaned, nested, overlapping, or incomplete synchronization structur
 Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
 regions. Synchronization is independent of the optional formatter check described below.
 
-## Check Inline Formatting
+## Check or Write Inline Formatting
 
 Ordinary external PHP files and named regions should be formatted directly by the project's normal PHP tooling. PHP
 embedded in Markdown or PHPDoc is harder for those tools to reach, so Akashi can optionally present each inline example
@@ -268,7 +268,7 @@ after a protected boundary. File-level additions such as a configured license he
 opening `<?php` tag and its separator are preserved outside the comparison; body line endings and final-newline changes
 remain significant.
 
-The check command never changes maintained documentation. A clean check is silent. A mismatch produces a source-labelled
+Check mode never changes maintained documentation. A clean check is silent. A mismatch produces a source-labelled
 unified diff on stderr and status `1`. Formatter launch, timeout, invalid output, and cleanup failures identify the
 maintained example rather than only the temporary file. Closing tags, inline HTML, and `__halt_compiler()` are rejected
 by this initial adapter because they cannot be safely enclosed.
@@ -276,8 +276,19 @@ by this initial adapter because they cannot be safely enclosed.
 For applications that need to inspect a proposed update without writing it, `FormattingRewriter::rewrite()` can apply
 the checked mismatches for one loaded document and return a new immutable `Document`. It changes only the inline code
 spans and re-extracts the result before returning it; stale inputs, mismatches from another document, and output that
-would damage a fence or PHPDoc comment are rejected. The `format` CLI remains check-only. CLI/filesystem write mode,
-hidden support code, and renderer inclusion remain deferred.
+would damage a fence or PHPDoc comment are rejected.
+
+To apply the same validated changes to the selected inline examples, use write mode:
+
+```console
+vendor/bin/akashi format --write --project-root=. README.md docs/examples.md src/Example.php
+```
+
+Before writing, Akashi reloads the complete source and requires a second formatter pass to produce the same set of
+changes. It then rejects stale bytes and symbolic-link paths and atomically replaces each changed document from a
+same-directory temporary file. Write mode reports each updated project path on stderr; a current set is silent. External
+canonical PHP remains the responsibility of ordinary formatter commands. Hidden support code and renderer inclusion
+remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

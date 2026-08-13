@@ -39,15 +39,23 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Cli;
 
 use jbboehr\Akashi\Cli\Exception\UsageException;
+use jbboehr\Akashi\Document;
+use jbboehr\Akashi\Formatting\Exception\FormattingRewriteException;
 use jbboehr\Akashi\Formatting\FormattingChecker;
 use jbboehr\Akashi\Formatting\FormattingMismatch;
+use jbboehr\Akashi\Formatting\FormattingRewriter;
 use jbboehr\Akashi\Formatting\PhpCsFixerConfiguration;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\DocumentationSource;
+use jbboehr\Akashi\Source\IncludeKind;
+use jbboehr\Akashi\Source\IncludeRule;
+use jbboehr\Akashi\Source\ProjectDocumentLoader;
+use jbboehr\Akashi\Synchronization\Exception\SynchronizationWriteException;
+use jbboehr\Akashi\Synchronization\SynchronizationWriter;
 
 /**
- * Checks inline examples in explicitly selected documentation files with PHP-CS-Fixer.
+ * Checks or updates inline examples in explicitly selected documentation files with PHP-CS-Fixer.
  *
  * @internal
  *
@@ -70,7 +78,7 @@ final class FormatCommand implements Command
      */
     public function execute(array $arguments, \Closure $output): ExitCode
     {
-        $check = false;
+        $mode = null;
         $projectRoot = null;
         $executable = null;
         $config = null;
@@ -79,10 +87,25 @@ final class FormatCommand implements Command
 
         foreach ($arguments as $argument) {
             if ($argument === '--check') {
-                if ($check) {
+                if ($mode === 'check') {
                     throw new UsageException('The --check option may be specified only once.');
                 }
-                $check = true;
+                if ($mode !== null) {
+                    throw new UsageException('The --check and --write options are mutually exclusive.');
+                }
+
+                $mode = 'check';
+                continue;
+            }
+            if ($argument === '--write') {
+                if ($mode === 'write') {
+                    throw new UsageException('The --write option may be specified only once.');
+                }
+                if ($mode !== null) {
+                    throw new UsageException('The --check and --write options are mutually exclusive.');
+                }
+
+                $mode = 'write';
                 continue;
             }
             if (str_starts_with($argument, '--project-root=')) {
@@ -114,8 +137,8 @@ final class FormatCommand implements Command
             $files[] = $argument;
         }
 
-        if (!$check) {
-            throw new UsageException('The format command requires --check.');
+        if ($mode === null) {
+            throw new UsageException('The format command requires exactly one of --check or --write.');
         }
         if ($files === []) {
             throw new UsageException('The format command requires at least one Markdown or PHP file.');
@@ -127,6 +150,8 @@ final class FormatCommand implements Command
             $config === null ? null : new ProjectPath($config),
         );
         $source = DocumentationSource::forProject($configuration->projectRoot);
+        $canonicalProjectRoot = $configuration->projectRoot->value;
+        $selectedIncludes = [];
 
         foreach ($files as $file) {
             if (!str_ends_with($file, '.md') && !str_ends_with($file, '.php')) {
@@ -136,12 +161,133 @@ final class FormatCommand implements Command
                 ));
             }
 
-            $source = $source->includeFiles([
-                new \SplFileInfo($this->absolutePath($file, 'Formatting file')),
-            ]);
+            $absoluteFile = $this->absolutePath($file, 'Formatting file');
+            if ($mode === 'write') {
+                $cursor = str_replace('\\', '/', $absoluteFile);
+                while (true) {
+                    if (is_link($cursor)) {
+                        throw new SynchronizationWriteException(sprintf(
+                            'Formatting write paths must not use symbolic links: %s.',
+                            $file,
+                        ));
+                    }
+
+                    $canonicalCursor = realpath($cursor);
+                    if (
+                        $canonicalCursor !== false
+                        && (DIRECTORY_SEPARATOR === '\\'
+                            ? strcasecmp(str_replace('\\', '/', $canonicalCursor), $canonicalProjectRoot) === 0
+                            : str_replace('\\', '/', $canonicalCursor) === $canonicalProjectRoot)
+                    ) {
+                        break;
+                    }
+
+                    $parent = str_replace('\\', '/', dirname($cursor));
+                    if ($parent === $cursor) {
+                        break;
+                    }
+                    $cursor = $parent;
+                }
+            }
+
+            $projectPath = ProjectDocumentLoader::projectPath(
+                $configuration->projectRoot,
+                new \SplFileInfo($absoluteFile),
+                'documentation',
+            );
+            $source = $source->includeFile($projectPath);
+            $selectedIncludes[] = new IncludeRule(IncludeKind::File, $projectPath);
         }
 
-        $mismatches = (new FormattingChecker($configuration))->check($source->load());
+        $checker = new FormattingChecker($configuration);
+        $documentLoader = new ProjectDocumentLoader('documentation', ['.md', '.php']);
+        /** @var array<string, Document> $selectedDocuments */
+        $selectedDocuments = [];
+        if ($mode === 'write') {
+            foreach ($documentLoader->load($configuration->projectRoot, $selectedIncludes, []) as $document) {
+                $selectedDocuments[$document->path->value] = $document;
+            }
+        }
+
+        $mismatches = $checker->check($source->load());
+        if ($mode === 'write') {
+            if ($mismatches === []) {
+                return ExitCode::Success;
+            }
+
+            /** @var array<string, array{document: Document, mismatches: list<FormattingMismatch>}> $grouped */
+            $grouped = [];
+            foreach ($mismatches as $mismatch) {
+                $document = $mismatch->example->codeOrigin()->document;
+                $grouped[$document->path->value] ??= ['document' => $document, 'mismatches' => []];
+                $grouped[$document->path->value]['mismatches'][] = $mismatch;
+            }
+
+            $rewriter = new FormattingRewriter();
+            $rewritten = [];
+            foreach ($grouped as $path => $group) {
+                $rewritten[$path] = $rewriter->rewrite($group['document'], ...$group['mismatches']);
+            }
+
+            // Re-run every formatter before the first maintained file changes, then require an identical proposal.
+            $validatedMismatches = $checker->check($source->load());
+            $validatedDocuments = [];
+            foreach ($documentLoader->load($configuration->projectRoot, $selectedIncludes, []) as $document) {
+                $validatedDocuments[$document->path->value] = $document;
+            }
+            if (array_keys($validatedDocuments) !== array_keys($selectedDocuments)) {
+                throw new FormattingRewriteException(
+                    'Formatting inputs changed during validation; refusing to write any files.',
+                );
+            }
+            foreach ($validatedDocuments as $path => $document) {
+                if ($document->contents !== $selectedDocuments[$path]->contents) {
+                    throw new FormattingRewriteException(sprintf(
+                        'Formatting input changed during validation; refusing to write any files: %s.',
+                        $path,
+                    ));
+                }
+            }
+
+            /** @var array<string, array{document: Document, mismatches: list<FormattingMismatch>}> $validatedGrouped */
+            $validatedGrouped = [];
+            foreach ($validatedMismatches as $mismatch) {
+                $document = $mismatch->example->codeOrigin()->document;
+                $validatedGrouped[$document->path->value] ??= ['document' => $document, 'mismatches' => []];
+                $validatedGrouped[$document->path->value]['mismatches'][] = $mismatch;
+            }
+
+            if (array_keys($validatedGrouped) !== array_keys($grouped)) {
+                throw new FormattingRewriteException(
+                    'Formatting inputs or formatter results changed during validation; refusing to write any files.',
+                );
+            }
+            foreach ($validatedGrouped as $path => $group) {
+                $replacement = $rewriter->rewrite($group['document'], ...$group['mismatches']);
+                if (
+                    $group['document']->contents !== $grouped[$path]['document']->contents
+                    || $replacement->contents !== $rewritten[$path]->contents
+                ) {
+                    throw new FormattingRewriteException(sprintf(
+                        'Formatting input or formatter result changed during validation; refusing to write any files: %s.',
+                        $path,
+                    ));
+                }
+            }
+
+            $writer = SynchronizationWriter::forProject($configuration->projectRoot);
+            foreach ($grouped as $path => $group) {
+                if ($group['document']->contents === $rewritten[$path]->contents) {
+                    continue;
+                }
+
+                $writer->write($group['document'], $rewritten[$path]);
+                $output(sprintf("Updated %s.\n", $path));
+            }
+
+            return ExitCode::Success;
+        }
+
         foreach ($mismatches as $mismatch) {
             $output($this->mismatchMessage($mismatch));
         }

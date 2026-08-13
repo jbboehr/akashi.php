@@ -24,9 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   unified diffs on stderr, stable process statuses, and no writes.
 - Update synchronized presentations with `akashi sync --write` after validating the complete input set, using stale-byte
   protection and same-directory atomic replacement for each changed document.
-- Check inline Markdown and PHPDoc examples with an optional project-installed PHP-CS-Fixer through
-  `akashi format --check`, using private temporary inputs and source-labelled unified diffs without modifying
-  documentation.
+- Check or atomically update inline Markdown and PHPDoc examples with an optional project-installed PHP-CS-Fixer through
+  `akashi format --check` or `akashi format --write`, using private temporary inputs, validated rewrites, stale byte
+  protection, and source-labelled check-mode diffs.
 - Apply checked inline formatting mismatches to exact code spans in a validated immutable document while preserving
   surrounding Markdown or PHPDoc bytes and performing no filesystem writes.
 
