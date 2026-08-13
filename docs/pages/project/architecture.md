@@ -33,13 +33,13 @@ DocumentationSource
                                             ▼
                                       ExampleCorpus
                                             │
-                 ┌──────────────────────────┼──────────────────────────┐
-                 ▼                          ▼                          ▼
-          PHPUnit runtime           PHPStan verification       marked selection
-          transform → execute       select → analyze           extract CLI
-                 │                          │                          │
-                 ▼                          ▼                          ▼
-          PHPUnit assertions        PHPUnit assertions             stdout
+                 ┌────────────────────┬─────┼────────────────────┬───────────────┐
+                 ▼                    ▼                          ▼               ▼
+          PHPUnit runtime     PHPStan verification       inline formatting  marked selection
+          transform → execute select → analyze           PHP-CS-Fixer check extract CLI
+                 │                    │                          │               │
+                 ▼                    ▼                          ▼               ▼
+          PHPUnit assertions  PHPUnit assertions           typed diffs        stdout
 ```
 
 The `Example` is the shared boundary. Consumers do not need to understand parser nodes, generated namespaces, temporary
@@ -205,14 +205,29 @@ symbolic-link paths, writes and flushes a temporary sibling, preserves permissio
 document. Batch validation belongs to the CLI; individual replacements remain atomic even if a later filesystem failure
 interrupts a multi-file write.
 
+The formatting layer addresses only code physically embedded in Markdown or PHPDoc. `FormattingChecker` receives the
+same corpus, skips referenced external sources, and invokes one project-installed PHP-CS-Fixer process per inline
+example. It separates an authored opening tag from the checked body, prefixes a harmless `declare` plus an
+entropy-backed boundary, and writes the resulting valid PHP to a private temporary directory. PHP-CS-Fixer runs through
+an argument vector without a shell, cache, or parallel workers and under a fixed timeout. The checker reads the
+formatter-modified temporary file, verifies the boundary, discards project-level material inserted before it, and
+returns typed `FormattingMismatch` values without writing maintained documentation. Process evidence replaces the
+temporary filename with the original document location; cleanup executes on every outcome.
+
+`format --check` supplies explicit safe document discovery and source-labelled unified diffs over that library seam.
+External whole files and named regions remain directly formatter-compatible PHP and are intentionally left to normal
+project formatter commands. There is no generic formatter registry and no formatting write path.
+
 ## Dependency Boundaries
 
 `league/commonmark`, `nikic/php-parser`, `sebastian/diff`, `symfony/process`, and the PHP 8.2 Random extension polyfill
 support core implemented behavior. Parser output is normalized with PHP's native `PhpToken`, keeping source edits
 independent of the token class that differs between PHP-Parser 4 and 5. `sebastian/diff` supplies unified-diff
 formatting without making PHPUnit a CLI dependency. The polyfill preserves the typed `Randomizer` seam on PHP 8.1 and
-defers to PHP's native extension on later runtimes. PHPUnit and PHPStan are optional Composer suggestions. Their runtime
-types are confined to integration namespaces so core source discovery and the CLI can autoload without them.
+defers to PHP's native extension on later runtimes. PHPUnit, PHPStan, and PHP-CS-Fixer are optional Composer
+suggestions. PHP-CS-Fixer is invoked as a project executable and its classes are never loaded by Akashi. PHPUnit and
+PHPStan runtime types are confined to integration namespaces so core source discovery and the CLI can autoload without
+them.
 
 There is no service container, mutable global registry, plugin registry, or implicit project configuration. Projects
 compose source, runtime, and verifier configuration through typed immutable values and ordinary PHPUnit test classes.
@@ -220,10 +235,11 @@ compose source, runtime, and verifier configuration through typed immutable valu
 ## Current and Deferred Architecture
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
-named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write CLI,
-markers, token-aware runtime directives, both execution backends, typed in-process exception expectations, PHPUnit,
-PHPStan `RuleTestCase`, and marked extraction. Formatting, hidden support code, documentation-renderer inclusion,
-generalized verifier plugins, and a standalone runner do not exist yet.
+named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
+optional PHP-CS-Fixer checks for inline examples, markers, token-aware runtime directives, both execution backends,
+typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`, and marked extraction. Formatter write mode,
+hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not
+exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -63,12 +63,14 @@ named-region validation with external references, returns typed mismatches, and 
 document without changing the filesystem. Rewriting preserves surrounding authored bytes and validates the completed
 document before returning it. The `sync --check` CLI applies check-only behavior to explicit files with stable
 diagnostics, source-labelled unified diffs, and process statuses; `sync --write` validates the full input set and
-atomically replaces each changed document with stale-byte protection. The remaining suggested sequence is:
+atomically replaces each changed document with stale-byte protection. Optional check-only PHP-CS-Fixer integration now
+extracts inline examples into private valid PHP files, preserves their authored opening tags, ignores file-level
+formatter additions outside a protected body boundary, and reports source-labelled diffs without changing maintained
+documents. External canonical PHP remains the normal formatter-friendly mode. The remaining suggested sequence is:
 
-1. Check-only formatter integration.
-2. Optional write-mode formatting.
-3. Hidden support-code semantics.
-4. Documentation-renderer integrations.
+1. Optional write-mode formatting.
+2. Hidden support-code semantics.
+3. Documentation-renderer integrations.
 
 Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
 named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the
@@ -76,7 +78,7 @@ current pipeline no longer requires each transform to reconstruct the original m
 
 No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
 IDEs, renderers, and static analyzers. Akashi should integrate with configured formatters rather than become a PHP
-formatter; check-only behavior should precede rewriting docblocks.
+formatter. The implemented checker establishes the safe read-only boundary before any future docblock rewriting.
 
 ## Runtime and Verification
 

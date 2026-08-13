@@ -626,9 +626,9 @@ always have to be maintained literally inside documentation comments.
 
 Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples and references to external
 canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; parsing, comparison,
-in-memory rewriting of synchronized presentations, and check-only CLI reporting are also implemented. Filesystem
-writing, formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and
-remaining sequence.
+in-memory rewriting and atomic persistence of synchronized presentations, check/write synchronization CLI reporting,
+and optional check-only PHP-CS-Fixer integration for inline examples are also implemented. Formatter-driven writing and
+hidden support code remain deferred. The requirements below preserve the design boundary and remaining sequence.
 
 > Use inline examples for short, local demonstrations. Use ordinary external PHP files as the canonical source for
 > substantial examples.
@@ -786,17 +786,18 @@ select a syntax during the MVP.
 
 ### Formatter integration
 
-Formatter support also remains deferred. Possible commands may resemble:
+Check-only formatter support is implemented for inline Markdown and PHPDoc examples through an optional
+project-installed PHP-CS-Fixer. The implemented command is:
 
 ```console
 vendor/bin/akashi format --check
-vendor/bin/akashi format --write
 ```
 
-The final names are not mandated. Check-only support should precede automatic rewriting. External examples should
-normally be formatted directly with existing PHP tooling. Inline examples may need extraction into temporary valid PHP
-before checking. Automatic docblock rewriting is riskier because indentation, leading `*` characters, Markdown fences,
-opening tags, and prose boundaries must be preserved.
+External examples remain formatted directly with existing PHP tooling. Inline examples are extracted into private valid
+PHP, checked through an argument-vector process under a finite timeout, and mapped back to maintained source-labelled
+diffs. A protected body boundary prevents project-level formatter additions from entering the example; authored opening
+tags remain outside the comparison. Automatic docblock rewriting remains deferred because indentation, leading `*`
+characters, Markdown fences, opening tags, and prose boundaries must be preserved.
 
 Akashi should integrate with a configured formatter rather than become a PHP formatter. Formatter output and diffs must
 map back to the source developers actually maintain.
@@ -810,7 +811,7 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 3. Source-location mapping improvements.
 4. Check-only synchronization — library parsing, mismatch model, in-memory rewriting, and CLI reporting implemented.
 5. Atomic filesystem synchronization writing — implemented post-MVP.
-6. Check-only formatter integration.
+6. Check-only PHP-CS-Fixer integration — implemented post-MVP.
 7. Optional write-mode formatting.
 8. Hidden support-code semantics.
 9. Documentation-renderer integrations.
@@ -823,8 +824,9 @@ unchanged.
 
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
 references, named-region parsing, check-only synchronization, in-memory synchronized-presentation rewriting, and atomic
-filesystem synchronization writes are now implemented as post-MVP work. Formatter commands, hidden support code,
-documentation-renderer plugins, and formatter-driven docblock rewriting remain deferred. Do not add dependencies,
+filesystem synchronization writes and check-only PHP-CS-Fixer integration are now implemented as post-MVP work.
+Formatter write commands, hidden support code, documentation-renderer plugins, and formatter-driven docblock rewriting
+remain deferred. Do not add dependencies,
 placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
 future behavior.
 

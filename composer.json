@@ -79,6 +79,7 @@
         "symfony/process": "^6.4 || ^7.4"
     },
     "suggest": {
+        "friendsofphp/php-cs-fixer": "Enables optional formatting checks for inline Markdown and PHPDoc examples.",
         "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 1.12 or 2.x).",
         "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5)."
     },

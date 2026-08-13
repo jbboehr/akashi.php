@@ -24,11 +24,13 @@ public API may change between minor releases before 1.0.
 | Documentation     | CommonMark PHP fences in Markdown/PHPDoc; PHPDoc references to canonical PHP files or regions |
 | PHPUnit           | Optional consumer integration supporting the PHPUnit 10.5 and 11.5 release lines              |
 | PHPStan           | Optional integration supporting 1.12 with a PHP-Parser 4 pin, and 2.x by default              |
+| PHP-CS-Fixer      | Optional executable adapter, tested with the repository's installed 3.x development release   |
 | ParaTest          | Development-only verified runner; not required by consumers                                   |
 | Operating systems | Linux is primary and gating; macOS and Windows have advisory PHP 8.2 CI                       |
 
-Akashi's core model, Markdown/PHPDoc discovery and extraction, transformation, execution, and CLI do not require PHPUnit
-or PHPStan to autoload. Integration namespaces require the corresponding optional packages when used.
+Akashi's core model, Markdown/PHPDoc discovery and extraction, transformation, execution, and CLI do not require
+PHPUnit, PHPStan, or PHP-CS-Fixer to autoload. Integration namespaces require the corresponding optional packages when
+used; the formatter adapter invokes the configured Composer binary proxy without loading PHP-CS-Fixer classes.
 
 PHP 8.1 no longer receives upstream security fixes. Akashi verifies compatibility for maintained downstream runtimes and
 legacy development environments; this compatibility statement does not make an unpatched PHP 8.1 runtime suitable for a
@@ -41,7 +43,8 @@ Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its PHP 8.1 CI resolv
 `composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated consumer
 project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan `RuleTestCase`
 adapter on PHP 8.1. The packaged library rewrites a synchronized consumer document in memory, and the packaged CLI
-checks that document against a canonical named region.
+checks that document against a canonical named region and exercises the optional formatter process boundary through a
+consumer-provided executable.
 
 Akashi develops and performs its normal static analysis with PHPStan 2.x. `composer test:phpstan1` builds the current
 Composer archive and verifies the same consumer integration independently with PHPStan 1.12, PHPUnit 10.5, and
@@ -54,6 +57,10 @@ require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Pa
 - Markdown and PHPDoc fences plus PHPDoc references to external canonical PHP files and named regions are implemented.
   Strict synchronized presentations can be compared or corrected in memory through the library API and checked or
   atomically updated through the CLI. The filesystem writer rejects stale maintained bytes and symbolic-link paths.
+- Optional PHP-CS-Fixer checks cover inline Markdown and PHPDoc examples without modifying maintained documents.
+  Referenced external PHP remains the responsibility of ordinary project formatter commands. Formatter write mode is
+  deferred. The formatter process and any selected PHP-CS-Fixer configuration execute as trusted project tooling; this
+  boundary is not a sandbox for untrusted configuration.
 - Every fence whose first info-string word is `php` enters the corpus. General language inference and “all code blocks”
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;

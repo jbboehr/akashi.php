@@ -43,6 +43,7 @@ use jbboehr\Akashi\Application;
 use jbboehr\Akashi\Cli\Command;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
+use jbboehr\Akashi\Cli\FormatCommand;
 use jbboehr\Akashi\Cli\SyncCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -103,6 +104,10 @@ final class ApplicationTest extends TestCase
             $result['stdout'],
         );
         self::assertStringContainsString(
+            'akashi format --check [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]',
+            $result['stdout'],
+        );
+        self::assertStringContainsString(
             'akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]',
             $result['stdout'],
         );
@@ -122,6 +127,8 @@ final class ApplicationTest extends TestCase
         yield 'short command option' => [['extract', '-h']];
         yield 'long sync option' => [['sync', '--help']];
         yield 'short sync option' => [['sync', '-h']];
+        yield 'long format option' => [['format', '--help']];
+        yield 'short format option' => [['format', '-h']];
     }
 
     /**
@@ -295,6 +302,40 @@ PHP));
         ];
         yield 'duplicate sync project root' => [
             ['sync', '--check', '--project-root=first', '--project-root=second', 'README.md'],
+            'The --project-root option may be specified only once.',
+        ];
+        yield 'missing format check mode' => [
+            ['format', 'README.md'],
+            'The format command requires --check.',
+        ];
+        yield 'duplicate format check mode' => [
+            ['format', '--check', '--check', 'README.md'],
+            'The --check option may be specified only once.',
+        ];
+        yield 'missing format file' => [
+            ['format', '--check'],
+            'The format command requires at least one Markdown or PHP file.',
+        ];
+        yield 'unknown format option' => [
+            ['format', '--check', '--write', 'README.md'],
+            'Unknown format option: --write.',
+        ];
+        yield 'duplicate formatter executable' => [
+            [
+                'format',
+                '--check',
+                '--php-cs-fixer=first',
+                '--php-cs-fixer=second',
+                'README.md',
+            ],
+            'The --php-cs-fixer option may be specified only once.',
+        ];
+        yield 'duplicate formatter configuration' => [
+            ['format', '--check', '--config=first', '--config=second', 'README.md'],
+            'The --config option may be specified only once.',
+        ];
+        yield 'duplicate format project root' => [
+            ['format', '--check', '--project-root=first', '--project-root=second', 'README.md'],
             'The --project-root option may be specified only once.',
         ];
     }
@@ -946,6 +987,86 @@ PHP,
         self::assertSame('', $result['stderr']);
     }
 
+    public function testFormattingCheckIsSilentForCurrentInlineExamples(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/vendor/bin', 0o700, true));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/vendor/bin/php-cs-fixer',
+            "<?php\nexit(is_file(\$argv[count(\$argv) - 1]) ? 0 : 1);\n",
+        ));
+        $file = $this->workspace . '/examples.md';
+        self::assertNotFalse(file_put_contents($file, "```php\n\$value = 1;\n```\n"));
+
+        $result = $this->runApplication([
+            'format',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $file,
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testFormattingCheckReportsDeterministicSourceAwareDiffs(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/tools'));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/tools/fixer',
+            <<<'PHP'
+<?php
+$path = $argv[count($argv) - 1];
+$source = file_get_contents($path);
+file_put_contents($path, str_replace('$value=1;', '$value = 1;', $source));
+PHP,
+        ));
+        $file = $this->workspace . '/examples.md';
+        self::assertNotFalse(file_put_contents($file, "```php\n\$value=1;\n```\n"));
+
+        $result = $this->runApplication([
+            'format',
+            '--check',
+            '--project-root=' . $this->workspace,
+            '--php-cs-fixer=tools/fixer',
+            $file,
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringStartsWith(
+            'examples.md:2: inline example differs from PHP-CS-Fixer output.',
+            $result['stderr'],
+        );
+        self::assertStringContainsString(
+            "--- examples.md:2 (authored)\n"
+                . "+++ examples.md:2 (formatted)\n"
+                . "@@ -1 +1 @@\n"
+                . "-\$value=1;\n"
+                . "+\$value = 1;\n",
+            $result['stderr'],
+        );
+        self::assertStringEndsWith("1 inline example requires formatting.\n", $result['stderr']);
+    }
+
+    public function testFormattingConfigurationFailuresUseTheCommandFailureStatus(): void
+    {
+        $file = $this->workspace . '/examples.md';
+        self::assertNotFalse(file_put_contents($file, "```php\necho 1;\n```\n"));
+
+        $result = $this->runApplication([
+            'format',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $file,
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringStartsWith('Formatting failed:', $result['stderr']);
+        self::assertStringContainsString('vendor/bin/php-cs-fixer', $result['stderr']);
+    }
+
     public function testCommandsHonorTheInterfaceNamedOutputArgument(): void
     {
         $extractFile = $this->workspace . '/extract.md';
@@ -962,6 +1083,13 @@ PHP,
                 . "```php\necho 'stale';\n```\n"
                 . "<!-- akashi-sync-end -->\n",
         ));
+        self::assertTrue(mkdir($this->workspace . '/vendor/bin', 0o700, true));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/vendor/bin/php-cs-fixer',
+            "<?php\nexit(0);\n",
+        ));
+        $formatFile = $this->workspace . '/format.md';
+        self::assertNotFalse(file_put_contents($formatFile, "```php\necho 1;\n```\n"));
 
         $extraction = $this->executeCommandWithNamedArguments(
             new ExtractCommand(),
@@ -971,11 +1099,17 @@ PHP,
             new SyncCommand(),
             ['--check', '--project-root=' . $this->workspace, $syncFile],
         );
+        $formatting = $this->executeCommandWithNamedArguments(
+            new FormatCommand(),
+            ['--check', '--project-root=' . $this->workspace, $formatFile],
+        );
 
         self::assertSame(ExitCode::Success, $extraction['status']);
         self::assertSame("echo 'selected';\n", $extraction['output']);
         self::assertSame(ExitCode::CommandFailure, $synchronization['status']);
         self::assertStringStartsWith('sync.md:1: synchronized code differs', $synchronization['output']);
+        self::assertSame(ExitCode::Success, $formatting['status']);
+        self::assertSame('', $formatting['output']);
     }
 
     public function testReportsUnexpectedFailuresWithTheSoftwareExitCode(): void

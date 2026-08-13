@@ -245,7 +245,34 @@ Comparison is intentionally narrow and deterministic:
 
 Malformed, orphaned, nested, overlapping, or incomplete synchronization structures fail rather than being guessed at.
 Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
-regions. Formatter, hidden-support-code, and renderer-inclusion features remain deferred.
+regions. Synchronization is independent of the optional formatter check described below.
+
+## Check Inline Formatting
+
+Ordinary external PHP files and named regions should be formatted directly by the project's normal PHP tooling. PHP
+embedded in Markdown or PHPDoc is harder for those tools to reach, so Akashi can optionally present each inline example
+to a project-installed PHP-CS-Fixer:
+
+```console
+vendor/bin/akashi format --check --project-root=. README.md docs/examples.md src/Example.php
+```
+
+The command defaults to `vendor/bin/php-cs-fixer` and PHP-CS-Fixer's normal project-root configuration discovery. Pass
+`--php-cs-fixer=PATH` or `--config=PATH` to select other project-relative files. PHP-CS-Fixer is optional and never runs
+during discovery, PHPUnit, PHPStan, extraction, synchronization, or the normal Akashi library workflow.
+
+Akashi checks only physically embedded Markdown and PHPDoc fences from the selected documentation files. It deliberately
+skips referenced whole files and named regions because ordinary formatter commands already cover them. Each inline body
+is placed in a private temporary PHP file, PHP-CS-Fixer runs without a shell or cache, and Akashi compares only the body
+after a protected boundary. File-level additions such as a configured license header do not enter the fence. An authored
+opening `<?php` tag and its separator are preserved outside the comparison; body line endings and final-newline changes
+remain significant.
+
+The maintained documentation is never changed. A clean check is silent. A mismatch produces a source-labelled unified
+diff on stderr and status `1`. Formatter launch, timeout, invalid output, and cleanup failures identify the maintained
+example rather than only the temporary file. Closing tags, inline HTML, and `__halt_compiler()` are rejected by this
+initial adapter because they cannot be safely enclosed. Formatter write mode, hidden support code, and renderer
+inclusion remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

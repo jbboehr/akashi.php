@@ -36,52 +36,14 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests;
+namespace jbboehr\Akashi\Formatting\Exception;
 
-use PHPUnit\Framework\TestCase;
-
-final class PackageMetadataTest extends TestCase
+/**
+ * The project root, PHP-CS-Fixer executable, or optional formatter configuration is invalid.
+ *
+ * @logion [RAS 100:3] Thunder entered the split fig and slept therein all summer. The children alone heard it
+ *     breathing; therefore the old men ceased calling the wounded tree barren.
+ */
+final class FormattingConfigurationException extends FormattingException
 {
-    public function testComposerMetadataIdentifiesThePackage(): void
-    {
-        $contents = file_get_contents(__DIR__ . '/../composer.json');
-        self::assertNotFalse($contents);
-
-        /**
-         * @var array{
-         *     name: string,
-         *     type: string,
-         *     license: string,
-         *     require: array<string, string>,
-         *     suggest: array<string, string>,
-         *     autoload: array{'psr-4': array<string, string>},
-         *     bin: list<string>
-         * } $metadata
-         */
-        $metadata = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
-
-        self::assertSame('jbboehr/akashi', $metadata['name']);
-        self::assertSame('library', $metadata['type']);
-        self::assertSame('AGPL-3.0-only WITH romic-exception', $metadata['license']);
-        self::assertSame('>=1.0.6 <1.99', $metadata['require']['arokettu/random-polyfill']);
-        self::assertSame('^2.2', $metadata['require']['composer-runtime-api']);
-        self::assertSame('^2.8.3', $metadata['require']['league/commonmark']);
-        self::assertSame('^4.19.5 || ^5.8', $metadata['require']['nikic/php-parser']);
-        self::assertSame('^8.1', $metadata['require']['php']);
-        self::assertSame('^6.4 || ^7.4', $metadata['require']['symfony/process']);
-        self::assertSame(
-            'Enables optional formatting checks for inline Markdown and PHPDoc examples.',
-            $metadata['suggest']['friendsofphp/php-cs-fixer'],
-        );
-        self::assertSame(
-            'Enables PHPStan documentation-example verification (PHPStan 1.12 or 2.x).',
-            $metadata['suggest']['phpstan/phpstan'],
-        );
-        self::assertSame(
-            'Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5).',
-            $metadata['suggest']['phpunit/phpunit'],
-        );
-        self::assertSame(['jbboehr\\Akashi\\' => 'src'], $metadata['autoload']['psr-4']);
-        self::assertSame(['bin/akashi'], $metadata['bin']);
-    }
 }

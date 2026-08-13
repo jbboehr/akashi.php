@@ -47,8 +47,6 @@ use jbboehr\Akashi\Synchronization\Exception\SynchronizationWriteException;
 use jbboehr\Akashi\Synchronization\SynchronizationChecker;
 use jbboehr\Akashi\Synchronization\SynchronizationMismatch;
 use jbboehr\Akashi\Synchronization\SynchronizationWriter;
-use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 
 /**
  * Checks or updates explicitly selected synchronized presentations against their canonical PHP sources.
@@ -324,7 +322,8 @@ final class SyncCommand implements Command
             $mismatch->canonicalOrigin->document->path->value,
             $mismatch->canonicalOrigin->firstCodeLine,
         );
-        $diff = (new Differ(new UnifiedDiffOutputBuilder($header, true)))->diff(
+        $diff = UnifiedDiffRenderer::render(
+            $header,
             $mismatch->region->embeddedCode->source,
             $mismatch->expectedCode->source,
         );

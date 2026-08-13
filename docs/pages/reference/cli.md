@@ -11,13 +11,15 @@ fulfillment is not diminished because the face beneath it hath returned to ordin
 <img src="../images/logia/SFA-52_45.webp" alt="A silver sorrow-mask resting beneath a fading stage light as its actor departs into dawn" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-The Composer executable is `vendor/bin/akashi`. It provides marked-example extraction and explicit synchronization
-checks or writes; it is not a standalone documentation-test runner. Runtime examples are normally run through PHPUnit.
+The Composer executable is `vendor/bin/akashi`. It provides marked-example extraction, optional inline formatting
+checks, and explicit synchronization checks or writes; it is not a standalone documentation-test runner. Runtime
+examples are normally run through PHPUnit.
 
 ## Usage
 
 ```console
 vendor/bin/akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
+vendor/bin/akashi format --check [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
 vendor/bin/akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
 vendor/bin/akashi --help
 vendor/bin/akashi --version
@@ -41,6 +43,36 @@ metadata, source comments, or transformation output, and it preserves an authore
 version output also use stdout.
 
 Usage, extraction, and unexpected-failure diagnostics use stderr.
+
+## Check Inline Formatting
+
+Check the inline PHP fences in explicitly selected Markdown or PHP documentation files:
+
+```console
+vendor/bin/akashi format --check --project-root=. README.md docs/examples.md src/Example.php
+```
+
+`--check` is required and may be specified once. `FILE` and `--project-root` follow the same current-working-directory,
+project containment, case-sensitive extension, duplicate-document, and symbolic-link discovery rules as the other
+explicit-file commands. At least one `.md` or `.php` file is required.
+
+The PHP-CS-Fixer executable defaults to the project-relative `vendor/bin/php-cs-fixer`. Override it with
+`--php-cs-fixer=PATH`; select a project-relative configuration explicitly with `--config=PATH`. Both files must resolve
+to readable regular files inside the canonical project root. Without `--config`, PHP-CS-Fixer performs its ordinary
+configuration discovery from that root.
+
+Akashi checks only inline Markdown and PHPDoc fences. PHPDoc references to whole external files or named regions are
+loaded and validated but not sent through this adapter; run the project's ordinary formatter directly on those PHP
+files. Each checked body is written to a private temporary PHP file, PHP-CS-Fixer runs through an argument vector
+without a shell, caching, or parallel execution, and a 60-second infrastructure timeout applies. The maintained source
+is never written.
+
+A current set exits successfully without output. Each stale inline example produces a source-labelled unified diff on
+stderr from the authored fence to the formatter result, followed by a deterministic count, and exits with status `1`. An
+authored opening tag is preserved, while formatter changes to body line endings and the final newline remain visible.
+Project-level material outside Akashi's protected body boundary, such as an inserted license header, is ignored.
+Malformed formatter output, unsupported closing tags or inline HTML, configuration errors, process failures, timeouts,
+and cleanup failures are command failures.
 
 ## Synchronize Presentations
 
@@ -91,13 +123,14 @@ outside the project root use status `1`. Options may appear before or after file
 
 ## Exit Statuses
 
-| Status | Meaning                                                                            |
-| -----: | ---------------------------------------------------------------------------------- |
-|    `0` | Successful extraction, synchronization check/write, help, or version output.       |
-|    `1` | An extraction or synchronization failed, or a check found stale synchronized code. |
-|    `2` | Invalid command or command arguments.                                              |
-|   `70` | Unexpected internal software failure.                                              |
+| Status | Meaning                                                                                                  |
+| -----: | -------------------------------------------------------------------------------------------------------- |
+|    `0` | Successful extraction, formatting/synchronization check, synchronization write, help, or version output. |
+|    `1` | A command failed, or a check found stale formatting or synchronized code.                                |
+|    `2` | Invalid command or command arguments.                                                                    |
+|   `70` | Unexpected internal software failure.                                                                    |
 
 Invalid, missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and
 missing required arguments are usage failures. The extraction command still selects explicit fence markers; PHPDoc
-external references are corpus sources, not extraction marker IDs.
+external references are corpus sources, not extraction marker IDs. PHP-CS-Fixer is optional and is required only when
+the formatting command is invoked.

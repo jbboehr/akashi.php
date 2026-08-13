@@ -76,6 +76,22 @@ maintained bytes, rejects symbolic-link paths, and uses a flushed same-directory
 writer preserves permission bits; callers that need validation across several documents should render the complete set
 before invoking it, as the CLI does.
 
+## Formatting
+
+| Type                                 | Purpose                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `Formatting\PhpCsFixerConfiguration` | Canonical project, PHP-CS-Fixer executable, and optional config paths. |
+| `Formatting\FormattingChecker`       | Check inline examples without modifying maintained documents.          |
+| `Formatting\FormattingMismatch`      | Pair an inline example with the formatter-proposed replacement code.   |
+
+`FormattingChecker::check()` accepts an `ExampleCorpus`, skips every `ReferencedExampleSource`, and returns ordered
+mismatches for inline Markdown and PHPDoc fences. The checker runs a project-installed PHP-CS-Fixer against private
+temporary files through an argument vector. It ignores formatter-added file-level material outside the protected body,
+preserves authored opening tags, and does not write maintained source.
+
+This is a concrete PHP-CS-Fixer integration, not a generic formatter extension point. External canonical examples remain
+ordinary PHP files and should use normal project formatter commands directly.
+
 ## PHPUnit Runtime
 
 | Type                                          | Purpose                                                                  |
@@ -110,10 +126,11 @@ matching model. Direct consumers may use that typed model with `ExpectationParse
 Source-loading failures, including malformed marker, directive, reference, and named-region metadata, share
 `Source\Exception\SourceException`; transformation failures share `Transform\Exception\TransformException`; execution
 failures share `Execution\Exception\ExecutionException`; and PHPStan integration failures share
-`Integration\PHPStan\Exception\PhpStanException`. Synchronization structure, resolution, and persistence failures share
-`Synchronization\Exception\SynchronizationException`, which is also a source-exception subtype. Specific subclasses
-preserve distinctions such as missing paths, unsupported examples, runtime configuration, empty PHPStan selection, and
-verification infrastructure.
+`Integration\PHPStan\Exception\PhpStanException`. Formatting configuration, execution, output, unsupported-input, and
+cleanup failures share `Formatting\Exception\FormattingException`. Synchronization structure, resolution, and
+persistence failures share `Synchronization\Exception\SynchronizationException`, which is also a source-exception
+subtype. Specific subclasses preserve distinctions such as missing paths, unsupported examples, runtime configuration,
+empty PHPStan selection, and verification infrastructure.
 
 These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.
@@ -122,8 +139,10 @@ should catch the narrowest meaningful type or its family base instead of parsing
 
 ## Optional Dependencies
 
-Core discovery, the domain model, transformation, execution, and the CLI do not require PHPUnit or PHPStan to autoload.
-The `Integration\PhpUnit` namespace requires a compatible PHPUnit installation when used. PHPStan verification requires
-both PHPUnit and PHPStan because it integrates with `RuleTestCase` and reports through PHPUnit.
+Core discovery, the domain model, transformation, execution, extraction, and synchronization do not require PHPUnit,
+PHPStan, or PHP-CS-Fixer to autoload. The `Integration\PhpUnit` namespace requires a compatible PHPUnit installation
+when used. PHPStan verification requires both PHPUnit and PHPStan because it integrates with `RuleTestCase` and reports
+through PHPUnit. Formatting checks require a compatible project-installed PHP-CS-Fixer executable only when invoked;
+Akashi does not load its PHP classes.
 
 See [Compatibility and Safety](compatibility.md) for the targeted versions.

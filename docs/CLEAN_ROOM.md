@@ -222,6 +222,7 @@ workflows only. They did not supply Akashi runtime, doctest, extraction, or veri
 | 2026-08-11 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                                                                                        | User-facing behavioral reference | Resolving ParaTest 7.3 on PHP 8.1 without weakening the current PHP 8.2 toolchain                        |
 | 2026-08-11 | [Infection package metadata](https://packagist.org/packages/infection/infection)                                                                                     | User-facing behavioral reference | Resolving Infection 0.28 on PHP 8.1 while retaining Infection 0.32 on PHP 8.2                            |
 | 2026-08-11 | [`sebastian/diff` package metadata](https://packagist.org/packages/sebastian/diff)                                                                                   | User-facing behavioral reference | Selecting compatible unified-diff releases for PHP 8.1 and later                                         |
+| 2026-08-12 | [PHP-CS-Fixer `fix` command help](https://cs.symfony.com/doc/usage.html)                                                                                             | Integration guide                | Public CLI options, configuration discovery, process status, dry-run, cache, and sequential behavior     |
 
 ### Cargo and rustdoc
 
@@ -384,6 +385,12 @@ general-purpose dependency. Akashi invokes that library directly and does not co
 builder implementation, internal tests, or architecture. Package metadata for 5.1.1 established the PHP 8.1-compatible
 constraint; the isolated PHP 8.1 consumer gate verifies the shared public API in practice.
 
+On 2026-08-12, the header of Composer's generated `vendor/bin/php-cs-fixer` proxy was inspected to confirm that the
+project-installed proxy is PHP source and receives Composer's documented binary-directory and autoloader globals. No
+PHP-CS-Fixer implementation, internal test, or architecture material was opened. The inspection confirmed only the
+already-selected `PHP_BINARY` process boundary; formatter behavior and options remain based on the public command help
+recorded above.
+
 ## Current dependency status
 
 Akashi requires PHP 8.1 or later and the following runtime dependencies:
@@ -403,6 +410,7 @@ These are general-purpose integration libraries rather than documentation-test f
 documentation and package metadata are recorded above. Apart from the narrow PHP-Parser, League CommonMark, Symfony
 Process, `sebastian/diff`, PHP 8.2 polyfill, PHPStan `RuleTestCase`, Infection include-interceptor, and Composer
 archiver inspections recorded above, no dependency source code or internal tests were consulted. PHPUnit, PHPStan and
-its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies; PHPUnit and PHPStan are suggested
-optional integrations for consumers. The normal development stack uses PHPStan 2.x and PHP-Parser 5; the isolated
-compatibility gate uses PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin.
+its extensions, PHP-CS-Fixer, and Infection remain development-only dependencies of Akashi itself. PHPUnit and PHPStan
+are suggested optional integration dependencies for consumers; PHP-CS-Fixer is suggested as an optional executable for
+the formatting check. The normal development stack uses PHPStan 2.x and PHP-Parser 5; the isolated compatibility gate
+uses PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin.

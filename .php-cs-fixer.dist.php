@@ -47,15 +47,15 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__ . '/bin/akashi',
     ]);
 
-return (new PhpCsFixer\Config())
+$config = (new PhpCsFixer\Config())
     ->setCacheFile(__DIR__ . '/.php-cs-fixer.cache')
     ->setFinder($finder)
     ->setIndent('    ')
     ->setLineEnding("\n")
-    ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRiskyAllowed(false)
     ->setRules([
         '@PSR12' => true,
+        'binary_operator_spaces' => true,
         'header_comment' => [
             'header' => $header,
             'comment_type' => 'PHPDoc',
@@ -63,3 +63,9 @@ return (new PhpCsFixer\Config())
             'separate' => 'both',
         ],
     ]);
+
+if (method_exists($config, 'setParallelConfig')) {
+    $config->setParallelConfig(ParallelConfigFactory::detect());
+}
+
+return $config;

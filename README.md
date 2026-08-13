@@ -76,6 +76,7 @@ compatible release on later PHP versions.
 - configurable markers for stable consumer-fixture extraction
 - check or atomically update rendered copies from canonical PHP sources, with in-memory corrections and source-labelled
   unified diffs
+- optional PHP-CS-Fixer checks for PHP embedded in Markdown and PHPDoc
 
 Akashi executes trusted project code; neither runtime backend is a security sandbox. See
 [Compatibility and Safety](https://jbboehr.github.io/akashi.php/reference/compatibility.html) for the exact boundary.
@@ -85,10 +86,10 @@ Akashi executes trusted project code; neither runtime backend is a security sand
 Start with the [Quick Start](https://jbboehr.github.io/akashi.php/quick-start.html), or read the
 [complete documentation](https://jbboehr.github.io/akashi.php/).
 
-The Markdown, inline PHPDoc, canonical external-example, and synchronization workflows, both runtime backends, PHPUnit
-integration, PHPStan verification, and marked extraction are implemented. Both recorded consumer migrations are
-complete. Akashi is still pre-1.0; its categorized public API is usable but may change between minor releases before
-1.0.
+The Markdown, inline PHPDoc, canonical external-example, synchronization, and optional inline-formatting workflows, both
+runtime backends, PHPUnit integration, PHPStan verification, and marked extraction are implemented. Both recorded
+consumer migrations are complete. Akashi is still pre-1.0; its categorized public API is usable but may change between
+minor releases before 1.0.
 
 ## License
 

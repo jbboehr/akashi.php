@@ -47,6 +47,8 @@ final class PublicApiBoundaryTest extends TestCase
         'entry points' => [
             \jbboehr\Akashi\Execution\ExecutionMode::class,
             \jbboehr\Akashi\Execution\RuntimeConfiguration::class,
+            \jbboehr\Akashi\Formatting\FormattingChecker::class,
+            \jbboehr\Akashi\Formatting\PhpCsFixerConfiguration::class,
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatcher::class,
             \jbboehr\Akashi\Integration\PHPStan\ExpectationParser::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::class,
@@ -102,10 +104,19 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Synchronization\SynchronizationMismatch::class,
             \jbboehr\Akashi\Synchronization\SynchronizationRegion::class,
         ],
+        'formatting model' => [
+            \jbboehr\Akashi\Formatting\FormattingMismatch::class,
+        ],
         'exceptions' => [
             \jbboehr\Akashi\Execution\Exception\ExecutionException::class,
             \jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException::class,
             \jbboehr\Akashi\Execution\Exception\RuntimeConfigurationException::class,
+            \jbboehr\Akashi\Formatting\Exception\FormattingCleanupException::class,
+            \jbboehr\Akashi\Formatting\Exception\FormattingConfigurationException::class,
+            \jbboehr\Akashi\Formatting\Exception\FormattingException::class,
+            \jbboehr\Akashi\Formatting\Exception\FormattingExecutionException::class,
+            \jbboehr\Akashi\Formatting\Exception\FormattingOutputException::class,
+            \jbboehr\Akashi\Formatting\Exception\UnsupportedFormattingExampleException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException::class,

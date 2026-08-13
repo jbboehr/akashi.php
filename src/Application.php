@@ -42,7 +42,9 @@ use Composer\InstalledVersions;
 use jbboehr\Akashi\Cli\Exception\UsageException;
 use jbboehr\Akashi\Cli\ExitCode;
 use jbboehr\Akashi\Cli\ExtractCommand;
+use jbboehr\Akashi\Cli\FormatCommand;
 use jbboehr\Akashi\Cli\SyncCommand;
+use jbboehr\Akashi\Formatting\Exception\FormattingException;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
@@ -86,12 +88,14 @@ Akashi — executable documentation testing for PHP.
 
 Usage:
   akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
+  akashi format --check [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
   akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
   akashi --help
   akashi --version
 
 Commands:
   extract  Write one explicitly marked PHP example to stdout.
+  format   Check inline examples with an optional project-installed PHP-CS-Fixer.
   sync     Check or update synchronized presentations from canonical PHP sources.
 HELP;
 
@@ -114,6 +118,8 @@ HELP;
             if (
                 $arguments === ['extract', '--help']
                 || $arguments === ['extract', '-h']
+                || $arguments === ['format', '--help']
+                || $arguments === ['format', '-h']
                 || $arguments === ['sync', '--help']
                 || $arguments === ['sync', '-h']
             ) {
@@ -125,6 +131,7 @@ HELP;
             $commandName = array_shift($arguments);
             return match ($commandName) {
                 'extract' => (new ExtractCommand())->execute($arguments, $stdout)->value,
+                'format' => (new FormatCommand())->execute($arguments, $stderr)->value,
                 'sync' => (new SyncCommand())->execute($arguments, $stderr)->value,
                 default => throw new UsageException(sprintf('Unknown command: %s.', $commandName)),
             };
@@ -132,8 +139,12 @@ HELP;
             $stderr(sprintf("Usage error: %s\n\n%s\n", $exception->getMessage(), $help));
 
             return ExitCode::UsageError->value;
-        } catch (SourceException | \InvalidArgumentException $exception) {
-            $label = $commandName === 'sync' ? 'Synchronization' : 'Extraction';
+        } catch (FormattingException | SourceException | \InvalidArgumentException $exception) {
+            $label = match ($commandName) {
+                'format' => 'Formatting',
+                'sync' => 'Synchronization',
+                default => 'Extraction',
+            };
             $stderr(sprintf("%s failed: %s\n", $label, $exception->getMessage()));
 
             return ExitCode::CommandFailure->value;

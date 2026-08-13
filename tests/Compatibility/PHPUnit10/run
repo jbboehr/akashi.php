@@ -63,6 +63,11 @@ fi
 
 (
     cd -- "$CONSUMER_DIR"
+    vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format.md
+)
+
+(
+    cd -- "$CONSUMER_DIR"
     vendor/bin/akashi sync --check --project-root=. docs/sync.md
 )
 

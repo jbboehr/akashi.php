@@ -11,7 +11,8 @@ road; each revision produced a new chart while the former hearing retained its o
 <img src="../images/logia/RAS-61_9.webp" alt="A steward holding one geometric glass chart before preserved earlier charts, a court, and an open road" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Akashi uses immutable configuration objects. There is no global registry or configuration file in the current API.
+Akashi uses immutable configuration objects. There is no global Akashi registry or configuration file in the current
+API. Optional PHP-CS-Fixer checks may point to that tool's existing project configuration.
 
 ## Documentation Sources
 
@@ -55,6 +56,29 @@ file or named region produce one example with every PHPDoc presentation location
 An empty include set, an include/exclusion that does not exist, a selected set with no supported documents, and a corpus
 with no PHP fences or external references are distinct failures. See [Authoring Examples](../using/authoring.md) for the
 common setup.
+
+## PHP-CS-Fixer Configuration
+
+`Formatting\PhpCsFixerConfiguration::forProject()` validates one canonical project root, one project-relative
+PHP-CS-Fixer executable, and an optional project-relative PHP-CS-Fixer configuration:
+
+```php
+use jbboehr\Akashi\Formatting\PhpCsFixerConfiguration;
+
+$formatting = PhpCsFixerConfiguration::forProject(
+    projectRoot: dirname(__DIR__),
+    executable: 'vendor/bin/php-cs-fixer',
+    config: '.php-cs-fixer.dist.php',
+);
+```
+
+The executable defaults to `vendor/bin/php-cs-fixer`; the config defaults to `null`, allowing PHP-CS-Fixer to discover
+its usual project configuration from the project root. Configured files must exist, be readable regular files, and
+resolve inside the canonical root. The executable is invoked through the current `PHP_BINARY`, so it is expected to be
+the PHP Composer binary proxy rather than an arbitrary native executable.
+
+Pass this immutable configuration to `Formatting\FormattingChecker`. Constructing it does not run the formatter, and no
+other Akashi workflow reads it implicitly.
 
 ## Runtime Configuration
 

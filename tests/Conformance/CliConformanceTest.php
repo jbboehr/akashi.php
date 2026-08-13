@@ -128,6 +128,46 @@ final class CliConformanceTest extends TestCase
         self::assertStringEndsWith("1 synchronized presentation is stale.\n", $stale->getErrorOutput());
     }
 
+    public function testFormattingChecksUseStableOutputAndStatuses(): void
+    {
+        $projectRoot = self::projectRoot();
+        $options = [
+            'format',
+            '--check',
+            '--project-root=' . $projectRoot,
+            '--config=.php-cs-fixer.dist.php',
+        ];
+        $current = self::executeCli(...[
+            ...$options,
+            $projectRoot . '/tests/Fixtures/Conformance/format.md',
+        ]);
+
+        self::assertSame(0, $current->getExitCode(), $current->getErrorOutput());
+        self::assertSame('', $current->getOutput());
+        self::assertSame('', $current->getErrorOutput());
+
+        $stale = self::executeCli(...[
+            ...$options,
+            $projectRoot . '/tests/Fixtures/Conformance/format-stale.md',
+        ]);
+
+        self::assertSame(1, $stale->getExitCode());
+        self::assertSame('', $stale->getOutput());
+        self::assertStringStartsWith(
+            'tests/Fixtures/Conformance/format-stale.md:4: inline example differs',
+            $stale->getErrorOutput(),
+        );
+        self::assertStringContainsString(
+            "--- tests/Fixtures/Conformance/format-stale.md:4 (authored)\n"
+                . "+++ tests/Fixtures/Conformance/format-stale.md:4 (formatted)\n"
+                . "@@ -1 +1 @@\n"
+                . "-\$value=1;\n"
+                . "+\$value = 1;\n",
+            $stale->getErrorOutput(),
+        );
+        self::assertStringEndsWith("1 inline example requires formatting.\n", $stale->getErrorOutput());
+    }
+
     private static function executeCli(string ...$arguments): Process
     {
         $projectRoot = self::projectRoot();
