@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Author `skip`, `separate-process`, and `expect-exception` directives as token-aware PHP line comments in fenced or
   external canonical example code.
 - Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named
-  regions through a read-only typed library API.
+  regions, and render corrected documents in memory without changing their surrounding prose or formatting.
 - Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-labelled
   unified diffs on stderr, stable process statuses, and no writes.
 

@@ -60,11 +60,15 @@ model to raw arrays or ambiguous strings.
 
 ## Synchronization
 
-| Type                                      | Purpose                                                                                  |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `Synchronization\SynchronizationChecker`  | Parse synchronized Markdown/PHPDoc presentations and return stale copies without writes. |
-| `Synchronization\SynchronizationRegion`   | Preserve one presentation, its canonical target, fence metadata, and exact source spans. |
-| `Synchronization\SynchronizationMismatch` | Pair a stale presentation with its canonical origin and expected normalized PHP code.    |
+| Type                                      | Purpose                                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Synchronization\SynchronizationChecker`  | Inspect presentations and render corrected immutable documents without filesystem writes. |
+| `Synchronization\SynchronizationRegion`   | Preserve one presentation, its canonical target, fence metadata, and exact source spans.  |
+| `Synchronization\SynchronizationMismatch` | Pair a stale presentation with its canonical origin and expected normalized PHP code.     |
+
+`SynchronizationChecker::rewrite()` replaces only stale code spans in memory. It preserves directives, fences, prose,
+Markdown or PHPDoc container prefixes, and the presentation's line-ending convention, then re-parses and verifies the
+result against the already resolved canonical snapshot. The method performs no filesystem writes.
 
 ## PHPUnit Runtime
 

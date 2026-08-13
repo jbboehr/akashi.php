@@ -26,8 +26,9 @@ development ranges to PHPUnit 10.5, ParaTest 7.3, Infection 0.28, and Symfony 6.
 The committed `composer.lock` records the normal PHP 8.2 toolchain. A contributor working under PHP 8.1 must run
 `composer update` rather than `composer install`, as the PHP 8.1 CI job does, and should not commit the resulting
 lockfile changes. An isolated consumer fixture also installs the current Composer archive with PHPUnit 10.5 and verifies
-the runtime data-provider trait, authored skips, both execution backends, and the PHPStan `RuleTestCase` adapter.
-`composer test:phpunit10` runs that compatibility gate, and `composer check:full` includes it.
+the runtime data-provider trait, authored skips, both execution backends, in-memory synchronization rewriting, and the
+PHPStan `RuleTestCase` adapter. `composer test:phpunit10` runs that compatibility gate, and `composer check:full`
+includes it.
 
 The normal static-analysis stack remains on PHPStan 2.x and PHP-Parser 5. An additional packaged-consumer gate installs
 PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin and exercises the same PHPUnit `RuleTestCase` adapter. Akashi keeps
@@ -37,14 +38,15 @@ its parser-facing token representation independent of PHP-Parser's version-speci
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and
 named regions. Synthetic generated lines remain unmapped, and a future general multi-origin mapping model is deferred
-until synchronization rewriting, hidden support code, or another transformation requires it.
+until filesystem synchronization diagnostics, hidden support code, or another transformation requires it.
 
-The check-only synchronization path is implemented across the read-only library seam and CLI. Strictly delimited
-`akashi-sync` regions in Markdown and conventional multiline PHPDoc allow formatter-compatible blank separators, resolve
-through the existing canonical external-source rules, and produce typed mismatches without rewriting files.
+The synchronization library parses strictly delimited `akashi-sync` regions in Markdown and conventional multiline
+PHPDoc, allows formatter-compatible blank separators, resolves through the existing canonical external-source rules, and
+produces typed mismatches. It can also apply those mismatches to exact code spans in memory, preserve presentation
+containers and line endings, and validate the rewritten immutable document without touching the filesystem.
 `sync --check` checks explicit files, reports both maintained presentation and canonical locations, and uses stable exit
 statuses. It renders deterministic unified diffs from stale presentations to canonical replacements through a direct PHP
-8.1-compatible `sebastian/diff` dependency. Every write mode remains deferred.
+8.1-compatible `sebastian/diff` dependency. Atomic persistence and every CLI write mode remain deferred.
 
 ## Deferred external PHPStan verification
 

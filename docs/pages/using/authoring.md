@@ -196,8 +196,21 @@ locations. Directive names are case-sensitive; a case variant that resembles an 
 malformed rather than silently ignored.
 
 `SynchronizationChecker` parses this form in Markdown and conventional multiline PHPDoc comments and returns typed
-`SynchronizationMismatch` values without modifying the document. To check explicit files in CI without writing them,
-run:
+`SynchronizationMismatch` values without modifying the document. Its library-only rewrite seam returns a new `Document`
+containing the canonical code without writing it to disk:
+
+```php
+$checker = SynchronizationChecker::forProject($projectRoot);
+$updated = $checker->rewrite($document);
+
+$updated->contents; // Corrected document bytes.
+```
+
+The rewrite changes only recorded code spans. It retains directives, fences, prose, Markdown or PHPDoc container
+prefixes, and the local line-ending convention, and it rejects canonical code that would break the surrounding fence or
+PHPDoc structure. Rewriting the returned document again is a no-op.
+
+To check explicit files in CI without writing them, run:
 
 ```console
 vendor/bin/akashi sync --check --project-root=. README.md docs/examples.md src/Example.php
@@ -206,7 +219,7 @@ vendor/bin/akashi sync --check --project-root=. README.md docs/examples.md src/E
 The command is silent when every presentation is current. Stale presentations receive a source-labelled unified diff
 from their embedded code to the canonical replacement. Stale or invalid presentations are reported on stderr and exit
 with status `1`. See the [CLI reference](../reference/cli.md#check-synchronized-presentations) for the exact path,
-stream, diff, and exit-status contract. Synchronization write mode remains deferred.
+stream, diff, and exit-status contract. Akashi does not yet expose a filesystem-writing synchronization command.
 
 `SynchronizationRegion::$embeddedCode` contains the logical, undecorated PHP seen by CommonMark. Its `location` and
 `regionSpan` point into the original maintained document, so slicing those spans returns raw Markdown indentation or
@@ -224,7 +237,7 @@ Comparison is intentionally narrow and deterministic:
 
 Malformed, orphaned, nested, overlapping, or incomplete synchronization structures fail rather than being guessed at.
 Canonical named-region validation continues to reject missing, malformed, nested, mismatched, empty, or duplicate
-regions. Formatter, hidden-support-code, renderer-inclusion, and rewriting features remain deferred.
+regions. Filesystem writing, formatter, hidden-support-code, and renderer-inclusion features remain deferred.
 
 ## Labels and PHPUnit Data Sets
 

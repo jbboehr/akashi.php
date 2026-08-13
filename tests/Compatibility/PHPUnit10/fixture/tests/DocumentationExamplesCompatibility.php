@@ -51,6 +51,21 @@ final class DocumentationExamplesCompatibility extends TestCase
 {
     use VerifiesPhpUnitExamples;
 
+    public function testRewritesASynchronizedPresentationInMemory(): void
+    {
+        $projectRoot = dirname(__DIR__);
+        $path = $projectRoot . '/docs/sync-stale.md';
+        $contents = file_get_contents($path);
+        self::assertNotFalse($contents);
+        $checker = \jbboehr\Akashi\Synchronization\SynchronizationChecker::forProject($projectRoot);
+
+        $rewritten = $checker->rewrite(new \jbboehr\Akashi\Document('docs/sync-stale.md', $contents));
+
+        self::assertStringContainsString('use PHPUnit\\Framework\\TestCase;', $rewritten->contents);
+        self::assertSame([], $checker->check($rewritten));
+        self::assertSame($contents, file_get_contents($path));
+    }
+
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
         return MarkdownSource::forProject(dirname(__DIR__))

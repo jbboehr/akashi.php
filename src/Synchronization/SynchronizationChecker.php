@@ -50,6 +50,8 @@ use jbboehr\Akashi\PhpDoc\ExternalExampleResolver;
 use jbboehr\Akashi\PhpDoc\PhpDocMarkdownProjector;
 use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
 use jbboehr\Akashi\Synchronization\Exception\InvalidSynchronizationRegionException;
+use jbboehr\Akashi\Transform\SourceEditApplier;
+use League\CommonMark\Exception\UnexpectedEncodingException;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
@@ -181,6 +183,137 @@ final class SynchronizationChecker
         }
 
         return $mismatches;
+    }
+
+    /**
+     * Return an in-memory document whose synchronized code spans match their canonical sources.
+     *
+     * The authored directives, fences, prose, container prefixes, and line-ending convention remain outside each
+     * replacement. The returned document is parsed and verified again before it is exposed to the caller.
+     *
+     * @logion [AWC 99:1] Three winters after the ivory fleet departed, its sails returned without hulls and circled the
+     *     harbor like pale wings. The waiting families cut their hair, but the sails climbed eastward bearing every
+     *     strand.
+     */
+    public function rewrite(Document $document): Document
+    {
+        $regions = $this->regions($document);
+        $mismatches = $this->check($document);
+        if ($mismatches === []) {
+            return $document;
+        }
+
+        $regionIndices = [];
+        foreach ($regions as $index => $region) {
+            $regionIndices[$region->directiveLine] = $index;
+        }
+
+        $edits = [];
+        $expectedByDirectiveLine = [];
+        foreach ($mismatches as $mismatch) {
+            $region = $mismatch->region;
+            $openingLine = $region->location->openingFenceLine;
+            $lineEnding = $document->lines->lineEnding($openingLine);
+
+            $openingSource = $document->lines->slice(new SourceSpan(
+                $document->lines->lineStartOffset($openingLine),
+                $document->lines->lineStartOffset($region->location->firstCodeLine),
+            ));
+            $containerPrefix = explode($region->fence->character->value, $openingSource, 2)[0];
+
+            $replacement = '';
+            if ($mismatch->expectedCode->source !== '') {
+                $lines = explode("\n", $mismatch->expectedCode->source);
+                array_pop($lines);
+                foreach ($lines as $line) {
+                    $replacement .= ($line === '' ? rtrim($containerPrefix, " \t") : $containerPrefix)
+                        . $line
+                        . $lineEnding;
+                }
+            }
+
+            $edit = [
+                'start' => $region->location->codeSpan->startOffset,
+                'end' => $region->location->codeSpan->endOffsetExclusive,
+                'replacement' => $replacement,
+            ];
+            $target = $region->targetPath->value;
+            if ($region->targetRegion !== null) {
+                $target .= '#' . $region->targetRegion->value;
+            }
+            $unsafeMessage = sprintf(
+                'Canonical code from %s cannot be rendered safely in the presentation at %s:%d.',
+                $target,
+                $document->path->value,
+                $region->directiveLine,
+            );
+
+            try {
+                $candidateRegions = $this->regions(new Document(
+                    $document->path,
+                    SourceEditApplier::apply($document->contents, [$edit]),
+                ));
+            } catch (InvalidSynchronizationRegionException|UnexpectedEncodingException $exception) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage, previous: $exception);
+            }
+            $regionIndex = $regionIndices[$region->directiveLine];
+            $candidateRegion = $candidateRegions[$regionIndex] ?? null;
+            if (count($candidateRegions) !== count($regions)) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage);
+            }
+            if ($candidateRegion === null) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage);
+            }
+            if ($candidateRegion->targetPath->value !== $region->targetPath->value) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage);
+            }
+            if ($candidateRegion->targetRegion?->value !== $region->targetRegion?->value) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage);
+            }
+            if ($candidateRegion->embeddedCode->source !== $mismatch->expectedCode->source) {
+                throw new InvalidSynchronizationRegionException($unsafeMessage);
+            }
+
+            $edits[] = $edit;
+            $expectedByDirectiveLine[$region->directiveLine] = $mismatch->expectedCode->source;
+        }
+
+        $rewritten = new Document(
+            $document->path,
+            SourceEditApplier::apply($document->contents, $edits),
+        );
+        try {
+            $rewrittenRegions = $this->regions($rewritten);
+        } catch (InvalidSynchronizationRegionException $exception) {
+            throw new \LogicException(
+                'Individually valid synchronization edits must remain valid when combined.',
+                previous: $exception,
+            );
+        }
+        if (count($rewrittenRegions) !== count($regions)) {
+            throw new \LogicException('A rewritten synchronization document must retain every presentation region.');
+        }
+        foreach ($regions as $index => $region) {
+            $rewrittenRegion = $rewrittenRegions[$index];
+            $expected = $expectedByDirectiveLine[$region->directiveLine] ?? $region->embeddedCode->source;
+            if ($rewrittenRegion->targetPath->value !== $region->targetPath->value) {
+                throw new \LogicException(
+                    'A rewritten synchronization document must retain every target and canonical presentation.',
+                );
+            }
+            if ($rewrittenRegion->targetRegion?->value !== $region->targetRegion?->value) {
+                throw new \LogicException(
+                    'A rewritten synchronization document must retain every target and canonical presentation.',
+                );
+            }
+            if ($rewrittenRegion->embeddedCode->source !== $expected) {
+                throw new \LogicException(
+                    'A rewritten synchronization document must retain every target and canonical presentation.',
+                );
+            }
+        }
+
+        return $rewritten;
     }
 
     /**

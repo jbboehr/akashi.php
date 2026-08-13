@@ -115,7 +115,8 @@ source location. Failures fall back to the example start when PHP cannot provide
 
 The model deliberately retains original locations rather than exposing only temporary files. Canonical external code
 origins and separate PHPDoc presentation locations are implemented. Mapping one generated artifact to several source
-origins, as future synchronization rewriting, hidden-code, formatter, or renderer work may require, remains deferred.
+origins, as future synchronization write diagnostics, hidden-code, formatter, or renderer work may require, remains
+deferred.
 
 ## In-Process Transformation
 
@@ -188,8 +189,14 @@ undecorated code, fence metadata, and canonical target. `SynchronizationChecker`
 project-containment and named-region rules as PHPDoc references, normalizes only line endings and a missing final
 newline, and returns typed mismatches with both presentation and canonical origins. The `sync --check` CLI loads
 explicit Markdown or PHP files through the shared project-containment loader and reports those mismatches on stderr with
-stable process statuses and source-labelled unified diffs from presentation to canonical code. Both layers perform no
-file writes; deterministic rewriting remains a separate future layer.
+stable process statuses and source-labelled unified diffs from presentation to canonical code.
+
+The same checker can apply all nonoverlapping mismatch edits to the original byte spans and return a new immutable
+`Document`. It derives the presentation container prefix and line ending from the authored fence, changes only code
+content, and re-parses and verifies the result before returning it. Unsafe canonical content that would terminate a
+fence or PHPDoc comment is rejected against its original presentation line and canonical target. Verification uses the
+already resolved canonical snapshot rather than rereading source files. This pure library operation performs no
+filesystem writes; atomic persistence and a write-mode CLI remain deferred.
 
 ## Dependency Boundaries
 
@@ -206,9 +213,9 @@ compose source, runtime, and verifier configuration through typed immutable valu
 ## Current and Deferred Architecture
 
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
-named regions, read-only synchronized-presentation inspection through the library and check-only CLI, markers,
-token-aware runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan
-`RuleTestCase`, and marked extraction. Synchronization write mode, formatting, hidden support code,
+named regions, synchronized-presentation inspection and in-memory rewriting through the library, check-only CLI,
+markers, token-aware runtime directives, both execution backends, typed in-process exception expectations, PHPUnit,
+PHPStan `RuleTestCase`, and marked extraction. Filesystem synchronization write mode, formatting, hidden support code,
 documentation-renderer inclusion, generalized verifier plugins, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely

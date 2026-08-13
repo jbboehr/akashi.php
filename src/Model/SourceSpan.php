@@ -49,12 +49,16 @@ namespace jbboehr\Akashi\Model;
 final class SourceSpan
 {
     /**
+     * @var non-negative-int
+     *
      * @logion [RAS 36:19] The shepherdess found a crown beneath the roots of the storm-felled oak, yet carried home
      *     only the acorns that had fallen into her apron.
      */
     public readonly int $startOffset;
 
     /**
+     * @var non-negative-int
+     *
      * @logion [AWC 36:31] Seven swans crossed the copper sky in silence, and their reflections remained upon the lake
      *     until the first winter stars appeared.
      */

@@ -612,8 +612,8 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 * inline PHPDoc-comment examples — implemented post-MVP;
 * external canonical PHP example files, including stable named regions — implemented post-MVP;
 * documentation references to canonical examples — implemented post-MVP;
-* optional synchronized inline presentations of external canonical examples — read-only parsing and comparison
-  plus check-only CLI reporting implemented post-MVP; rewriting deferred;
+* optional synchronized inline presentations of external canonical examples — parsing, comparison, in-memory rewriting,
+  and check-only CLI reporting implemented post-MVP; filesystem writing deferred;
 * declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;
@@ -625,10 +625,10 @@ always have to be maintained literally inside documentation comments.
 ### PHPDoc example maintainability
 
 Implementation status after the initial Yumemi-driven MVP: inline PHPDoc fenced examples and references to external
-canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; read-only parsing and
-comparison of synchronized presentations and check-only CLI reporting are also implemented. Synchronization rewriting,
-formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and remaining
-sequence.
+canonical PHP files or named regions are implemented through the mixed `DocumentationSource`; parsing, comparison,
+in-memory rewriting of synchronized presentations, and check-only CLI reporting are also implemented. Filesystem
+writing, formatting, and hidden support code remain deferred. The requirements below preserve the design boundary and
+remaining sequence.
 
 > Use inline examples for short, local demonstrations. Use ordinary external PHP files as the canonical source for
 > substantial examples.
@@ -725,11 +725,13 @@ Markdown indentation and conventional PHPDoc leading `*` decoration are containe
 remain canonical code and are neither inserted nor removed. The typed region keeps logical embedded code separate from
 raw source spans into the maintained presentation.
 
-The read-only parser, typed mismatch model, and check-only CLI are implemented. The command checks explicit Markdown or
-PHP files, reports presentation and canonical locations plus a unified diff from stale to canonical code on stderr,
-returns stable process statuses, and makes no file changes. The external file or named region remains canonical. A
-future write mode may update only the embedded copy; it must not silently alter unrelated prose or comment formatting.
-Malformed synchronization regions fail instead of being guessed at.
+The parser, typed mismatch model, in-memory document rewriter, and check-only CLI are implemented. The rewriter applies
+only nonoverlapping code-span edits, preserves presentation containers and line endings, and rejects a result that no
+longer parses and verifies as the same synchronization structure and canonical snapshot. The command checks explicit
+Markdown or PHP files, reports presentation and canonical locations plus a unified diff from stale to canonical code on
+stderr, returns stable process statuses, and makes no file changes. The external file or named region remains canonical.
+A future filesystem write mode may persist only the embedded-copy changes; it must not silently alter unrelated prose or
+comment formatting. Malformed synchronization regions fail instead of being guessed at.
 
 Referenced examples are generally preferable. Synchronization is a compatibility mechanism for renderers that cannot
 include external content directly, not the primary authoring model.
@@ -803,11 +805,12 @@ Place this work after the current Markdown/Yumemi MVP and before broad plugin or
 1. PHPDoc fenced examples — implemented post-MVP.
 2. External canonical PHP examples and named regions — implemented post-MVP.
 3. Source-location mapping improvements.
-4. Check-only synchronization — read-only library parsing, mismatch model, and CLI reporting implemented.
-5. Check-only formatter integration.
-6. Optional write-mode synchronization and formatting.
-7. Hidden support-code semantics.
-8. Documentation-renderer integrations.
+4. Check-only synchronization — library parsing, mismatch model, in-memory rewriting, and CLI reporting implemented.
+5. Atomic filesystem synchronization writing.
+6. Check-only formatter integration.
+7. Optional write-mode formatting.
+8. Hidden support-code semantics.
+9. Documentation-renderer integrations.
 
 This ordering is guidance, not a commitment to release numbers. Rustdoc's public documentation may provide behavioral
 precedent for hidden setup lines, executable examples in documentation comments, inclusion of documentation from
@@ -816,10 +819,11 @@ and the clean-room prohibition on rustdoc implementation material and competing 
 unchanged.
 
 All of these capabilities were outside the initial Yumemi-driven MVP. Inline PHPDoc extraction, external-example
-references, named-region parsing, and check-only synchronization are now implemented as post-MVP work. Synchronization
-write commands, formatter commands, hidden support code, documentation-renderer plugins, and automatic docblock
-rewriting remain deferred. Do not add dependencies, placeholder classes, or speculative interfaces for them unless an
-already-required abstraction naturally supports the future behavior.
+references, named-region parsing, check-only synchronization, and in-memory synchronized-presentation rewriting are now
+implemented as post-MVP work. Filesystem synchronization write commands, formatter commands, hidden support code,
+documentation-renderer plugins, and automatic on-disk docblock rewriting remain deferred. Do not add dependencies,
+placeholder classes, or speculative interfaces for them unless an already-required abstraction naturally supports the
+future behavior.
 
 ### Additional example semantics
 
