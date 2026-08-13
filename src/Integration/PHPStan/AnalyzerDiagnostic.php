@@ -87,6 +87,16 @@ final class AnalyzerDiagnostic
     public readonly ?int $sourceLine;
 
     /**
+     * Whether the analyzer reports that this diagnostic may be ignored, when that evidence is available.
+     *
+     * @logion [OSD 102:1] Leave one aperture of the high observatory without lens or ornament, and turn no instrument
+     *     toward the darkness therein. The visible heavens have ministers enough; that opening is appointed for what
+     *     approacheth without light. Let the youngest watcher sit before it each seventh night, bearing neither
+     *     question nor weapon, until the unseen constellation casteth its first shadow.
+     */
+    public readonly ?bool $ignorable;
+
+    /**
      * @logion [AWC 64:11] Join only a spoken judgment with lawful optional seals and stairs; blank speech and numbers
      *     beneath one belong to no trustworthy diagnostic record.
      */
@@ -96,6 +106,7 @@ final class AnalyzerDiagnostic
         ?string $tip = null,
         ?int $analyzerLine = null,
         ?int $sourceLine = null,
+        ?bool $ignorable = null,
     ) {
         if ($identifier !== null && trim($identifier) === '') {
             throw new \InvalidArgumentException('Analyzer diagnostic identifier must not be empty when present.');
@@ -122,6 +133,7 @@ final class AnalyzerDiagnostic
         $this->tip = $tip;
         $this->analyzerLine = $analyzerLine;
         $this->sourceLine = $sourceLine;
+        $this->ignorable = $ignorable;
     }
 
     /**

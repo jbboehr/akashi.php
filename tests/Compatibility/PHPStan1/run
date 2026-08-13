@@ -34,6 +34,8 @@ fi
 tar -xf "${archives[0]}" -C "$PACKAGE_DIR"
 cp -R -- "$SHARED_FIXTURE_DIR/." "$CONSUMER_DIR/"
 cp -- "$FIXTURE_DIR/composer.json" "$CONSUMER_DIR/composer.json"
+mkdir -p -- "$CONSUMER_DIR/fixtures"
+cp -- "$FIXTURE_DIR/fixtures/phpstan-json.php.fixture" "$CONSUMER_DIR/fixtures/phpstan-json.php"
 
 # PHP expands $argv; the shell must preserve it literally.
 # shellcheck disable=SC2016
@@ -77,6 +79,55 @@ if [[ $parser_version != v4.19.* ]]; then
     printf 'Expected nikic/php-parser 4.19, got %s.\n' "$parser_version" >&2
     exit 1
 fi
+
+readonly phpstan_json="$WORK_ROOT/phpstan-json"
+readonly phpstan_stderr="$WORK_ROOT/phpstan-stderr"
+set +e
+(
+    cd -- "$CONSUMER_DIR"
+    vendor/bin/phpstan \
+        analyse \
+        --no-progress \
+        --error-format=json \
+        --level=max \
+        fixtures/phpstan-json.php \
+        >"$phpstan_json" \
+        2>"$phpstan_stderr"
+)
+phpstan_status=$?
+set -e
+if [[ $phpstan_status -ne 1 ]]; then
+    printf 'Expected PHPStan JSON fixture analysis to exit 1, got %d.\n' "$phpstan_status" >&2
+    cat -- "$phpstan_stderr" >&2
+    exit 1
+fi
+
+# The embedded PHP code must receive its dollar-prefixed variables literally.
+# shellcheck disable=SC2016
+php -r '
+require $argv[1] . "/vendor/autoload.php";
+
+$json = file_get_contents($argv[2]);
+if (!is_string($json)) {
+    throw new RuntimeException("Unable to read PHPStan JSON fixture output.");
+}
+
+$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder())->decode($json);
+if ($result->globalErrorCount !== 0 || $result->fileErrorCount < 1 || count($result->diagnosticsByFile) !== 1) {
+    throw new RuntimeException("Unexpected decoded PHPStan 1.12 result shape.");
+}
+
+$path = array_key_first($result->diagnosticsByFile);
+if (!is_string($path) || !str_ends_with(str_replace("\\", "/", $path), "/fixtures/phpstan-json.php")) {
+    throw new RuntimeException("PHPStan 1.12 file association was not preserved.");
+}
+
+foreach ($result->diagnosticsByFile[$path] as $diagnostic) {
+    if ($diagnostic->analyzerLine === null || $diagnostic->ignorable === null) {
+        throw new RuntimeException("PHPStan 1.12 diagnostic evidence was not preserved.");
+    }
+}
+' "$CONSUMER_DIR" "$phpstan_json"
 
 (
     cd -- "$CONSUMER_DIR"

@@ -62,6 +62,7 @@ final class DiagnosticMatcherTest extends TestCase
         self::assertSame('helpful tip', $diagnostic->tip);
         self::assertSame(3, $diagnostic->analyzerLine);
         self::assertSame(17, $diagnostic->sourceLine);
+        self::assertNull($diagnostic->ignorable);
         self::assertSame("primary message\nhelpful tip", $diagnostic->searchableText());
     }
 

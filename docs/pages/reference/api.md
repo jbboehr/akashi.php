@@ -127,11 +127,14 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 | `Integration\PHPStan\VerifiesPhpStanExamples`     | `RuleTestCase` trait that verifies a selected corpus. |
 | `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                    |
 | `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.  |
+| `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan. |
 
 `AnalyzerDiagnostic`, `DiagnosticExpectation`, `DiagnosticAssignment`, `DiagnosticMatchResult`,
-`DiagnosticMismatchKind`, `DiagnosticsMatched`, and `DiagnosticsMismatched` form the public analyzer-independent
-matching model. Direct consumers may use that typed model with `ExpectationParser` and `DiagnosticMatcher`; the
-`VerifiesPhpStanExamples` trait remains the supported integration path for PHPStan's runtime objects.
+`DiagnosticMismatchKind`, `DiagnosticsMatched`, `DiagnosticsMismatched`, and `PhpStanJsonResult` form the public
+analyzer-independent result and matching model. `AnalyzerDiagnostic::$ignorable` is nullable because diagnostics built
+outside the JSON decoder may not carry that PHPStan-specific evidence. Direct consumers may use these typed models with
+`ExpectationParser`, `DiagnosticMatcher`, and `PhpStanJsonDecoder`; the `VerifiesPhpStanExamples` trait remains the
+supported integration path for PHPStan's runtime objects.
 
 ## Exceptions
 
@@ -155,8 +158,8 @@ should catch the narrowest meaningful type or its family base instead of parsing
 
 Core discovery, the domain model, transformation, execution, extraction, and synchronization do not require PHPUnit,
 PHPStan, or PHP-CS-Fixer to autoload. The `Integration\PhpUnit` namespace requires a compatible PHPUnit installation
-when used. PHPStan verification requires both PHPUnit and PHPStan because it integrates with `RuleTestCase` and reports
-through PHPUnit. Formatting checks require a compatible project-installed PHP-CS-Fixer executable only when invoked;
-Akashi does not load its PHP classes.
+when used. JSON decoding needs neither optional dependency. PHPStan `RuleTestCase` verification requires both PHPUnit
+and PHPStan because it reports through PHPUnit. Formatting checks require a compatible project-installed PHP-CS-Fixer
+executable only when invoked; Akashi does not load its PHP classes.
 
 See [Compatibility and Safety](compatibility.md) for the targeted versions.

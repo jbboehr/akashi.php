@@ -29,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   protection, and source-labelled check-mode diffs.
 - Apply checked inline formatting mismatches to exact code spans in a validated immutable document while preserving
   surrounding Markdown or PHPDoc bytes and performing no filesystem writes.
+- Decode PHPStan 1.12 and 2.x JSON into typed results that preserve analyzer-wide errors, per-file association, counts,
+  available lines, identifiers, tips, and ignorable evidence without loading PHPStan or PHPUnit.
 
 ### Changed
 

@@ -48,7 +48,8 @@ consumer-provided executable.
 
 Akashi develops and performs its normal static analysis with PHPStan 2.x. `composer test:phpstan1` builds the current
 Composer archive and verifies the same consumer integration independently with PHPStan 1.12, PHPUnit 10.5, and
-PHP-Parser 4.19.5. PHPStan 1 consumers must explicitly require `nikic/php-parser:^4.19.5`; PHPStan 2 consumers use the
+PHP-Parser 4.19.5. That gate also decodes real PHPStan 1.12 JSON output; the normal unit suite covers the documented
+PHPStan 2.x shape. PHPStan 1 consumers must explicitly require `nikic/php-parser:^4.19.5`; PHPStan 2 consumers use the
 normal PHP-Parser 5 dependency resolution. PHPStan 2 projects using `composer update --prefer-lowest` must explicitly
 require `nikic/php-parser:^5.8` so the dual Akashi constraint does not select Parser 4 for PHPStan 2's process.
 

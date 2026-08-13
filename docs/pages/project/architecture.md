@@ -177,6 +177,12 @@ private analysis files, preloads declarations, asks `RuleTestCase` for diagnosti
 framework-neutral diagnostics to `DiagnosticMatcher`. Matching requires exact counts and deterministic one-to-one
 assignments before PHPUnit receives the result.
 
+External analysis has a narrower implemented seam. `PhpStanJsonDecoder` converts PHPStan 1.12 or 2.x JSON output into a
+typed `PhpStanJsonResult` without loading PHPStan or PHPUnit. The result keeps analyzer-wide errors, per-file
+association, counts, and available diagnostic evidence distinct instead of flattening them into the matcher model. The
+decoder validates the documented structure and internal counts while ignoring unknown fields. Command execution, exit
+status interpretation, and standalone expectation verification remain separate deferred boundaries.
+
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
 execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is below the
@@ -249,8 +255,8 @@ Current architecture supports Markdown and inline PHPDoc fences, PHPDoc referenc
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-and marked extraction. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a
-standalone runner do not exist yet.
+typed PHPStan JSON decoding, and marked extraction. Hidden support code, documentation-renderer inclusion, generalized
+verifier plugins, a PHPStan command adapter, and a standalone runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

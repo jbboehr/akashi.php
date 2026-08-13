@@ -53,6 +53,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticMatcher::class,
             \jbboehr\Akashi\Integration\PHPStan\ExpectationParser::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder::class,
             \jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples::class,
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
@@ -100,6 +101,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticMismatchKind::class,
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMatched::class,
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMismatched::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanJsonResult::class,
         ],
         'synchronization model' => [
             \jbboehr\Akashi\Synchronization\SynchronizationMismatch::class,
@@ -123,6 +125,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanJsonDecodeException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanVerificationException::class,
             \jbboehr\Akashi\Markdown\Exception\DirectiveException::class,
             \jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException::class,

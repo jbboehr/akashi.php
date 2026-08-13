@@ -102,6 +102,31 @@ Akashi preserves `RuleTestCase` semantics: the diagnostics under test come from 
 inference, but it does not turn the test into a complete `phpstan analyse` run or automatically execute every configured
 PHPStan rule. If an example expects a diagnostic, the consumer-provided rule must report it.
 
+## Decode External Analysis Results
+
+Projects that already run `phpstan analyse --error-format=json` can decode its output without loading PHPStan or PHPUnit
+classes:
+
+```php
+<?php
+
+use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder;
+
+$result = (new PhpStanJsonDecoder())->decode($json);
+
+foreach ($result->diagnosticsByFile as $path => $diagnostics) {
+    // Associate each typed diagnostic with $path.
+}
+```
+
+`PhpStanJsonResult` keeps analyzer-wide errors separate from diagnostics associated with files. Each
+`AnalyzerDiagnostic` retains its message, optional line, optional identifier and tip, and PHPStan's `ignorable` flag.
+The decoder accepts the documented PHPStan 1.12 and 2.x JSON shape, including PHPStan 1.12's empty `files` list, ignores
+unknown fields for forward compatibility, and rejects malformed or internally inconsistent results.
+
+This is a decoding boundary, not a command runner: the caller remains responsible for launching PHPStan and preserving
+its exit status and standard streams. A typed command adapter and standalone verification result remain deferred.
+
 ## Analysis Lifecycle and Trust
 
 Akashi parses all selected examples and validates their declarations before loading any of them. It rejects direct
