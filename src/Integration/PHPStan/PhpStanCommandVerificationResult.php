@@ -39,52 +39,13 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
- * Compare decoded PHPStan diagnostics with authored expectations without PHPUnit or PHPStan runtime classes.
+ * One typed outcome from command execution, JSON decoding, and diagnostic verification.
  *
- * @logion [AWC 103:7] Amid the year of white lightning, the hill villages bore a red-lacquer palanquin filled only
- *     with snow toward the capital. Though summer burned the cedars, no flake melted; and as it passed, the towers
- *     darkened their balconies, and the ruler abandoned the feast.
+ * @logion [AWC 105:1] The astronomers of the western court stretched a loom between two marble towers, that the torn
+ *     aurora might be divided according to the ancient provinces. Through nine nights the shuttle moved without a
+ *     hand, weaving every color save the imperial purple; and the regent understood that heaven would adorn the realm,
+ *     yet would not ratify his seizure. He departed before dawn, and purple returned to the sky.
  */
-final class PhpStanResultVerifier
+interface PhpStanCommandVerificationResult
 {
-    /**
-     * @param array<non-empty-string, list<DiagnosticExpectation>> $expectationsByFile
-     *
-     * @throws \InvalidArgumentException When the expectation map is malformed.
-     *
-     * @logion [SFA 103:8] Though the rose moon possess every painted sky, still water refuseth its face; and at dawn
-     *     the pond remaineth, but all the painted heavens are smoke.
-     */
-    public function verify(
-        PhpStanJsonResult $analyzerResult,
-        array $expectationsByFile,
-    ): PhpStanVerificationResult {
-        $validatedExpectationsByFile = DiagnosticListValidator::expectationsByFile($expectationsByFile);
-
-        $paths = array_fill_keys([
-            ...array_keys($validatedExpectationsByFile),
-            ...array_keys($analyzerResult->diagnosticsByFile),
-        ], null);
-
-        $matcher = new DiagnosticMatcher();
-        $matchesByFile = [];
-        $mismatchesByFile = [];
-        foreach (array_keys($paths) as $path) {
-            $result = $matcher->match(
-                $validatedExpectationsByFile[$path] ?? [],
-                $analyzerResult->diagnosticsByFile[$path] ?? [],
-            );
-            if ($result instanceof DiagnosticsMatched) {
-                $matchesByFile[$path] = $result;
-            } else {
-                $mismatchesByFile[$path] = $result;
-            }
-        }
-
-        return new PhpStanVerificationResult(
-            $analyzerResult->globalErrors,
-            $matchesByFile,
-            $mismatchesByFile,
-        );
-    }
 }

@@ -38,53 +38,60 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Integration\PHPStan;
 
+use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanJsonDecodeException;
+use jbboehr\Akashi\Model\AbsoluteFilePath;
+use jbboehr\Akashi\Model\ProjectRoot;
+
 /**
- * Compare decoded PHPStan diagnostics with authored expectations without PHPUnit or PHPStan runtime classes.
+ * Execute PHPStan, decode its JSON evidence, and verify expected diagnostics.
  *
- * @logion [AWC 103:7] Amid the year of white lightning, the hill villages bore a red-lacquer palanquin filled only
- *     with snow toward the capital. Though summer burned the cedars, no flake melted; and as it passed, the towers
- *     darkened their balconies, and the ruler abandoned the feast.
+ * @logion [AWC 105:14] Children of the river quarter sent paper boats beneath the palace at the hour of enthronement,
+ *     each carrying the name of a house removed for the royal gardens. The courtiers laughed until the boats emerged
+ *     from the fountains aflame but unconsumed. Thereafter the palace water tasted of ink, and every royal feast
+ *     darkened the guests’ tongues.
  */
-final class PhpStanResultVerifier
+final class PhpStanCommandVerifier
 {
     /**
+     * @param list<string> $arguments
      * @param array<non-empty-string, list<DiagnosticExpectation>> $expectationsByFile
      *
-     * @throws \InvalidArgumentException When the expectation map is malformed.
+     * @throws \InvalidArgumentException When command input or the expectation map is malformed.
      *
-     * @logion [SFA 103:8] Though the rose moon possess every painted sky, still water refuseth its face; and at dawn
-     *     the pond remaineth, but all the painted heavens are smoke.
+     * @logion [AWC 105:15] Emperor Cassian commanded every clock of the capital to proclaim one hour, that discord might
+     *     vanish from the realm. At noon the sundials cracked into the shapes of different seasons, and snow fell only
+     *     upon the palace. The provinces thereafter kept their unequal hours, while the throne remained forever early
+     *     to its own coronation.
      */
     public function verify(
-        PhpStanJsonResult $analyzerResult,
+        ProjectRoot|string $projectRoot,
+        AbsoluteFilePath|string $executable,
+        array $arguments,
         array $expectationsByFile,
-    ): PhpStanVerificationResult {
-        $validatedExpectationsByFile = DiagnosticListValidator::expectationsByFile($expectationsByFile);
+        float $timeoutSeconds = 60.0,
+    ): PhpStanCommandVerificationResult {
+        $expectationsByFile = DiagnosticListValidator::expectationsByFile($expectationsByFile);
+        $commandResult = (new PhpStanCommandRunner())->run(
+            $projectRoot,
+            $executable,
+            $arguments,
+            $timeoutSeconds,
+        );
 
-        $paths = array_fill_keys([
-            ...array_keys($validatedExpectationsByFile),
-            ...array_keys($analyzerResult->diagnosticsByFile),
-        ], null);
-
-        $matcher = new DiagnosticMatcher();
-        $matchesByFile = [];
-        $mismatchesByFile = [];
-        foreach (array_keys($paths) as $path) {
-            $result = $matcher->match(
-                $validatedExpectationsByFile[$path] ?? [],
-                $analyzerResult->diagnosticsByFile[$path] ?? [],
-            );
-            if ($result instanceof DiagnosticsMatched) {
-                $matchesByFile[$path] = $result;
-            } else {
-                $mismatchesByFile[$path] = $result;
-            }
+        if ($commandResult->termination !== PhpStanCommandTermination::Completed) {
+            return new PhpStanCommandNotCompleted($commandResult);
         }
 
-        return new PhpStanVerificationResult(
-            $analyzerResult->globalErrors,
-            $matchesByFile,
-            $mismatchesByFile,
+        try {
+            $analyzerResult = (new PhpStanJsonDecoder())->decode($commandResult->stdout);
+        } catch (PhpStanJsonDecodeException $exception) {
+            return new PhpStanCommandOutputRejected($commandResult, $exception);
+        }
+
+        return new PhpStanCommandVerified(
+            $commandResult,
+            $analyzerResult,
+            (new PhpStanResultVerifier())->verify($analyzerResult, $expectationsByFile),
         );
     }
 }

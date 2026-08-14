@@ -98,18 +98,21 @@ Akashi work is:
    an explicit project root without constructing a command string. `PhpStanCommandResult` retains exit status, standard
    streams, elapsed time, timeout, signal, and infrastructure-failure evidence without interpreting nonzero analysis
    exits as launch failures.
-4. Compose command completion, JSON decoding, and expectation verification so malformed analyzer output, infrastructure
-   failures, and diagnostic mismatches remain distinct typed outcomes.
-5. A compatibility migration of one consumer fixture, comparing Akashi's result with the existing harness before any
-   duplicate parser is removed.
+4. **Implemented:** `PhpStanCommandVerifier` composes command completion, JSON decoding, and expectation verification.
+   Its result variants keep non-completion, malformed analyzer output, and completed diagnostic verification distinct.
+5. **Implemented:** the isolated PHPStan 1.12 consumer fixture runs its real analyzer command through the composed
+   verifier and checks the structured result before completing the package-boundary compatibility suite.
 6. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
    diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and PHPStan; this is still not a
    prerequisite for decoding or command execution.
 
-The low-level command, decoder, and framework-neutral verification types are now settled pre-1.0 public contracts; a
-higher-level orchestration API remains undecided. Akashi must not become responsible for constructing temporary Composer
-projects, adding Composer repositories, resolving or installing dependencies, creating or inspecting archives, defining
-another package's compatibility matrix, or running package-specific runtime assertions.
+The low-level command, decoder, framework-neutral verification, and command-verification outcome types are settled
+pre-1.0 public contracts. Akashi must not become responsible for constructing temporary Composer projects, adding
+Composer repositories, resolving or installing dependencies, creating or inspecting archives, defining another package's
+compatibility matrix, or running package-specific runtime assertions.
+
+The previously passing standalone-decoder consumer gate supplied the migration baseline for step 5. The composed
+verifier replaced that path directly; the fixture did not retain two duplicate parsers in the same invocation.
 
 This work begins after 0.1 and must not expand the existing Markdown MVP.
 

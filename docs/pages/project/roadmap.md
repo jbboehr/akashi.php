@@ -108,20 +108,19 @@ The sequence is:
 3. **Implemented:** execute an explicit, boundary-preserving executable and argument vector from an explicit project
    root without constructing a command string, preserving exit status, standard streams, elapsed time, timeout, signal,
    and infrastructure failures as typed evidence.
-4. Compose command completion, JSON decoding, and expectation verification while keeping nonzero analysis exits,
-   malformed analyzer output, infrastructure failures, and diagnostic mismatches distinct.
-5. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
-   removed.
+4. **Implemented:** compose command completion, JSON decoding, and expectation verification while keeping
+   non-completion, malformed analyzer output, raw analysis exit status, and completed diagnostic verification distinct.
+5. **Implemented:** run the isolated PHPStan 1.12 consumer fixture's real analyzer command through the composed verifier
+   and check its structured result at the package boundary.
 6. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
    keeping disposable-project orchestration in the consumer.
 
 The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract.
 `PhpStanJsonDecoder` and `PhpStanJsonResult` establish the decoder boundary; `PhpStanResultVerifier` and
-`PhpStanVerificationResult` establish the framework-neutral verification boundary. Names for any higher-level
-command/decode/verify orchestrator remain undecided; the low-level runner and process-result names are settled. Akashi
-will not construct temporary Composer projects, add repositories, install dependencies, inspect packages, define another
-project's compatibility matrix, or run package-specific runtime assertions. Those responsibilities remain with the
-consumer repository.
+`PhpStanVerificationResult` establish the framework-neutral verification boundary. `PhpStanCommandVerifier` and its
+three result variants establish the composed external-command boundary. Akashi will not construct temporary Composer
+projects, add repositories, install dependencies, inspect packages, define another project's compatibility matrix, or
+run package-specific runtime assertions. Those responsibilities remain with the consumer repository.
 
 A standalone Akashi test runner, report formats, and broader plugin seams should follow concrete consumer demand. Akashi
 will not add registries or speculative interfaces merely to anticipate them.

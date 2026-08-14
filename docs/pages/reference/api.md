@@ -128,6 +128,7 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 | `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                              |
 | `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.            |
 | `Integration\PHPStan\PhpStanCommandRunner`        | Execute an explicit, boundary-preserving argument vector.       |
+| `Integration\PHPStan\PhpStanCommandVerifier`      | Run, decode, and verify an external PHPStan command.            |
 | `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan.           |
 | `Integration\PHPStan\PhpStanResultVerifier`       | Verify decoded per-file diagnostics without PHPUnit or PHPStan. |
 
@@ -149,12 +150,20 @@ the evidence valid for that termination. A signaled result requires a positive s
 or a nonzero platform-specific status; a successful zero status is rejected as contradictory. Standard output, standard
 error, and nonnegative elapsed nanoseconds are preserved for every result.
 
-`PhpStanCommandRunner` accepts an explicit project root, executable, argument list, and finite positive timeout. It
-canonicalizes the root and executable with `realpath()`, inherits the caller's environment, and never constructs or
-interpolates a caller-controlled command string. Symfony Process may retry a failed direct POSIX launch through an
-escaped shell command line without exposing that fact. A resulting `126` or `127` therefore remains a raw completed
-status; unavailable paths, local instrumentation failures, and process failures surfaced as exceptions become typed
-infrastructure evidence.
+`PhpStanCommandRunner` accepts an explicit project root, executable, argument list, and finite positive timeout, which
+defaults to 60 seconds. It canonicalizes the root and executable with `realpath()`, inherits the caller's environment,
+and never constructs or interpolates a caller-controlled command string. Symfony Process may retry a failed direct POSIX
+launch through an escaped shell command line without exposing that fact. A resulting `126` or `127` therefore remains a
+raw completed status; unavailable paths, local instrumentation failures, and process failures surfaced as exceptions
+become typed infrastructure evidence.
+
+`PhpStanCommandVerificationResult` has three public variants. `PhpStanCommandNotCompleted` carries timeout, signal, or
+infrastructure evidence. `PhpStanCommandOutputRejected` carries completed command evidence and the JSON decode failure.
+`PhpStanCommandVerified` carries the completed command, decoded analyzer result, and diagnostic verification result; its
+name means verification completed, not that expectations matched. `PhpStanCommandVerifier` validates expectations before
+launching the command and returns one of these variants. It applies the same 60-second default timeout as the runner;
+callers may provide another finite positive duration. Nonzero completed statuses remain evidence rather than an
+automatic failure.
 
 ## Exceptions
 
@@ -172,10 +181,11 @@ empty PHPStan selection, and verification infrastructure.
 These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.
 
-Malformed inputs passed directly to the analyzer-independent PHPStan model or `PhpStanResultVerifier` are programmer
-errors reported as `\InvalidArgumentException`, not `PhpStanException` instances. The same applies to malformed command
-paths, argument vectors, and timeout values; supported operational command failures are returned as
-`PhpStanCommandResult` evidence instead of exceptions.
+Malformed inputs passed directly to the analyzer-independent PHPStan model, `PhpStanResultVerifier`, or
+`PhpStanCommandVerifier` are programmer errors reported as `\InvalidArgumentException`, not `PhpStanException`
+instances. The same applies to malformed command paths, argument vectors, and timeout values; supported operational
+command failures are returned as `PhpStanCommandResult` or `PhpStanCommandVerificationResult` evidence instead of
+exceptions.
 
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 

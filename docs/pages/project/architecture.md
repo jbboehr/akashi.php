@@ -188,8 +188,9 @@ status interpretation remain separate from matching. `PhpStanCommandRunner` now 
 boundary-preserving executable and argument vector from an explicit project root without constructing a command string.
 Its typed result preserves normal exit status and streams without treating a nonzero status as an infrastructure
 failure, while timeout, signal, path/setup failure, local instrumentation failure, and process failures surfaced as
-exceptions remain distinguishable. Decoding, exit interpretation, and verification orchestration are still explicit
-caller-owned stages.
+exceptions remain distinguishable. `PhpStanCommandVerifier` validates expectations before launch and composes those
+three stages into typed non-completion, output-rejection, or completed-verification outcomes. It does not treat a
+nonzero analysis status as an automatic verification failure.
 
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
@@ -263,9 +264,9 @@ Current architecture supports Markdown and inline PHPDoc fences, PHPDoc referenc
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-typed PHPStan command execution, JSON decoding and standalone result verification, and marked extraction. Hidden support
-code, documentation-renderer inclusion, generalized verifier plugins, a decode-and-verify command orchestrator, and a
-standalone Akashi test runner do not exist yet.
+typed PHPStan command execution and composed verification, JSON decoding and standalone result verification, and marked
+extraction. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone Akashi
+test runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

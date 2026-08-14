@@ -113,54 +113,88 @@ if [[ $parser_version != v4.19.* ]]; then
     exit 1
 fi
 
-readonly phpstan_json="$WORK_ROOT/phpstan-json"
-readonly phpstan_stderr="$WORK_ROOT/phpstan-stderr"
-set +e
-(
-    cd -- "$CONSUMER_DIR"
-    php vendor/bin/phpstan \
-        analyse \
-        --no-progress \
-        --error-format=json \
-        --level=max \
-        fixtures/phpstan-json.php \
-        >"$phpstan_json" \
-        2>"$phpstan_stderr"
-)
-phpstan_status=$?
-set -e
-if [[ $phpstan_status -ne 1 ]]; then
-    printf 'Expected PHPStan JSON fixture analysis to exit 1, got %d.\n' "$phpstan_status" >&2
-    cat -- "$phpstan_stderr" >&2
-    exit 1
-fi
-
 # The embedded PHP code must receive its dollar-prefixed variables literally.
 # shellcheck disable=SC2016
 php -r '
 require $argv[1] . "/vendor/autoload.php";
 
-$json = file_get_contents($argv[2]);
-if (!is_string($json)) {
-    throw new RuntimeException("Unable to read PHPStan JSON fixture output.");
+$fixture = realpath($argv[1] . "/fixtures/phpstan-json.php");
+$phpStanScript = realpath($argv[1] . "/vendor/bin/phpstan");
+if (!is_string($fixture) || !is_string($phpStanScript)) {
+    throw new RuntimeException("Unable to resolve the PHPStan compatibility fixture.");
 }
 
-$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder())->decode($json);
-if ($result->globalErrorCount !== 0 || $result->fileErrorCount < 1 || count($result->diagnosticsByFile) !== 1) {
+$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verify(
+    $argv[1],
+    PHP_BINARY,
+    [
+        $phpStanScript,
+        "analyse",
+        "--no-progress",
+        "--error-format=json",
+        "--level=max",
+        "fixtures/phpstan-json.php",
+    ],
+    [
+        // The matcher requires equal counts: keep this list aligned with the exact PHPStan 1.12 fixture output.
+        $fixture => [
+            new jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation(
+                "MissingPhpStanJsonFixtureClass",
+                3,
+            ),
+            new jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation(
+                "undefinedPhpStanJsonFixtureVariable",
+                5,
+            ),
+        ],
+    ],
+);
+if (!$result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified) {
+    throw new RuntimeException(sprintf(
+        "PHPStan 1.12 command verification did not complete: %s. Cause: %s; stdout: %s; stderr: %s",
+        $result::class,
+        $result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected
+            ? $result->cause->getMessage()
+            : ($result->commandResult->failureMessage ?? "none"),
+        var_export($result->commandResult->stdout, true),
+        var_export($result->commandResult->stderr, true),
+    ));
+}
+if ($result->commandResult->exitCode !== 1) {
+    throw new RuntimeException(sprintf(
+        "Expected PHPStan JSON fixture analysis to exit 1, got %s; stdout: %s; stderr: %s.",
+        var_export($result->commandResult->exitCode, true),
+        var_export($result->commandResult->stdout, true),
+        var_export($result->commandResult->stderr, true),
+    ));
+}
+if (
+    $result->analyzerResult->globalErrorCount !== 0
+    || $result->analyzerResult->fileErrorCount < 1
+    || count($result->analyzerResult->diagnosticsByFile) !== 1
+) {
     throw new RuntimeException("Unexpected decoded PHPStan 1.12 result shape.");
 }
+if (!$result->verificationResult->isSuccessful()) {
+    throw new RuntimeException(sprintf(
+        "PHPStan 1.12 diagnostics did not match their expectations; global errors: %s; mismatches: %s; stderr: %s.",
+        var_export($result->verificationResult->globalErrors, true),
+        var_export($result->verificationResult->mismatchesByFile, true),
+        var_export($result->commandResult->stderr, true),
+    ));
+}
 
-$path = array_key_first($result->diagnosticsByFile);
+$path = array_key_first($result->analyzerResult->diagnosticsByFile);
 if (!is_string($path) || !str_ends_with(str_replace("\\", "/", $path), "/fixtures/phpstan-json.php")) {
     throw new RuntimeException("PHPStan 1.12 file association was not preserved.");
 }
 
-foreach ($result->diagnosticsByFile[$path] as $diagnostic) {
+foreach ($result->analyzerResult->diagnosticsByFile[$path] as $diagnostic) {
     if ($diagnostic->analyzerLine === null || $diagnostic->ignorable === null) {
         throw new RuntimeException("PHPStan 1.12 diagnostic evidence was not preserved.");
     }
 }
-' "$CONSUMER_DIR" "$phpstan_json"
+' "$CONSUMER_DIR"
 
 (
     cd -- "$CONSUMER_DIR"

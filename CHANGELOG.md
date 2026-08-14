@@ -37,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Execute explicit, boundary-preserving PHPStan command argument vectors without constructing command strings,
   preserving normal exit statuses, standard streams, elapsed time, timeouts, signals, and infrastructure failures as
   typed framework-neutral result evidence.
+- Run, decode, and verify external PHPStan commands through typed outcomes that distinguish non-completion, unsupported
+  analyzer output, and completed diagnostic verification.
 
 ### Changed
 

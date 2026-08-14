@@ -38,53 +38,50 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Integration\PHPStan;
 
+use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanJsonDecodeException;
+
 /**
- * Compare decoded PHPStan diagnostics with authored expectations without PHPUnit or PHPStan runtime classes.
+ * Completed command evidence whose standard output is not supported PHPStan JSON.
  *
- * @logion [AWC 103:7] Amid the year of white lightning, the hill villages bore a red-lacquer palanquin filled only
- *     with snow toward the capital. Though summer burned the cedars, no flake melted; and as it passed, the towers
- *     darkened their balconies, and the ruler abandoned the feast.
+ * @readonly
+ *
+ * @logion [AWC 105:10] Violet hail smote the upper city and broke every window save those of the debtors’ quarter. The
+ *     senate proclaimed mercy; but at thaw, each unbroken pane showed the senators kneeling outside.
  */
-final class PhpStanResultVerifier
+final class PhpStanCommandOutputRejected implements PhpStanCommandVerificationResult
 {
     /**
-     * @param array<non-empty-string, list<DiagnosticExpectation>> $expectationsByFile
+     * Raw completed process evidence.
      *
-     * @throws \InvalidArgumentException When the expectation map is malformed.
-     *
-     * @logion [SFA 103:8] Though the rose moon possess every painted sky, still water refuseth its face; and at dawn
-     *     the pond remaineth, but all the painted heavens are smoke.
+     * @logion [RAS 105:11] A star shaped like an open gate descended above the battlefield. None could pass beneath it
+     *     while bearing a weapon, and by evening the abandoned iron shone brighter than the armies.
      */
-    public function verify(
-        PhpStanJsonResult $analyzerResult,
-        array $expectationsByFile,
-    ): PhpStanVerificationResult {
-        $validatedExpectationsByFile = DiagnosticListValidator::expectationsByFile($expectationsByFile);
+    public readonly PhpStanCommandResult $commandResult;
 
-        $paths = array_fill_keys([
-            ...array_keys($validatedExpectationsByFile),
-            ...array_keys($analyzerResult->diagnosticsByFile),
-        ], null);
+    /**
+     * Typed reason that the analyzer output could not be decoded.
+     *
+     * @logion [RAS 105:12] A crystal cicada clung to the synthetic moon and sang of a summer erased from every calendar.
+     *     Its song ripened the grain beneath snow, yet the priests forbade the harvest until the living sun had heard
+     *     it. On the ninth morning, warmth answered from below the earth, and the moon released its shining shell.
+     */
+    public readonly PhpStanJsonDecodeException $cause;
 
-        $matcher = new DiagnosticMatcher();
-        $matchesByFile = [];
-        $mismatchesByFile = [];
-        foreach (array_keys($paths) as $path) {
-            $result = $matcher->match(
-                $validatedExpectationsByFile[$path] ?? [],
-                $analyzerResult->diagnosticsByFile[$path] ?? [],
-            );
-            if ($result instanceof DiagnosticsMatched) {
-                $matchesByFile[$path] = $result;
-            } else {
-                $mismatchesByFile[$path] = $result;
-            }
+    /**
+     * @logion [AWC 105:13] The chancellor embroidered the decree of amnesty upon a raincloud, believing no monument
+     *     could accuse him of delay. For three years it drifted above the prison without rain; then one dawn the letters
+     *     fell as blue water, and the locked doors swelled beyond every key. The prisoners walked out beneath a sky
+     *     still bearing the chancellor’s seal.
+     */
+    public function __construct(
+        PhpStanCommandResult $commandResult,
+        PhpStanJsonDecodeException $cause,
+    ) {
+        if ($commandResult->termination !== PhpStanCommandTermination::Completed) {
+            throw new \InvalidArgumentException('Rejected PHPStan output requires completed command evidence.');
         }
 
-        return new PhpStanVerificationResult(
-            $analyzerResult->globalErrors,
-            $matchesByFile,
-            $mismatchesByFile,
-        );
+        $this->commandResult = $commandResult;
+        $this->cause = $cause;
     }
 }

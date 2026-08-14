@@ -39,52 +39,35 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PHPStan;
 
 /**
- * Compare decoded PHPStan diagnostics with authored expectations without PHPUnit or PHPStan runtime classes.
+ * Timeout, signal, or infrastructure evidence that prevented analyzer verification.
  *
- * @logion [AWC 103:7] Amid the year of white lightning, the hill villages bore a red-lacquer palanquin filled only
- *     with snow toward the capital. Though summer burned the cedars, no flake melted; and as it passed, the towers
- *     darkened their balconies, and the ruler abandoned the feast.
+ * @readonly
+ *
+ * @logion [AWC 105:7] Queen Aurelia loosed twelve white horses through the deserted palace of merchants, where golden
+ *     signs still promised abundance to a vanished people. None returned to the court, yet their hoofbeats were heard
+ *     whenever a governor sold a sacred spring. By the third reign, even sealed chambers trembled at the sound.
  */
-final class PhpStanResultVerifier
+final class PhpStanCommandNotCompleted implements PhpStanCommandVerificationResult
 {
     /**
-     * @param array<non-empty-string, list<DiagnosticExpectation>> $expectationsByFile
+     * Raw process evidence for the non-completed command.
      *
-     * @throws \InvalidArgumentException When the expectation map is malformed.
-     *
-     * @logion [SFA 103:8] Though the rose moon possess every painted sky, still water refuseth its face; and at dawn
-     *     the pond remaineth, but all the painted heavens are smoke.
+     * @logion [SFA 105:8] The tiled ocean beneath the council hall rose one wave whenever the fathers concealed a public
+     *     grief. By the century’s end, the mosaic stood higher than the benches, and judgment was delivered on the
+     *     shore.
      */
-    public function verify(
-        PhpStanJsonResult $analyzerResult,
-        array $expectationsByFile,
-    ): PhpStanVerificationResult {
-        $validatedExpectationsByFile = DiagnosticListValidator::expectationsByFile($expectationsByFile);
+    public readonly PhpStanCommandResult $commandResult;
 
-        $paths = array_fill_keys([
-            ...array_keys($validatedExpectationsByFile),
-            ...array_keys($analyzerResult->diagnosticsByFile),
-        ], null);
-
-        $matcher = new DiagnosticMatcher();
-        $matchesByFile = [];
-        $mismatchesByFile = [];
-        foreach (array_keys($paths) as $path) {
-            $result = $matcher->match(
-                $validatedExpectationsByFile[$path] ?? [],
-                $analyzerResult->diagnosticsByFile[$path] ?? [],
-            );
-            if ($result instanceof DiagnosticsMatched) {
-                $matchesByFile[$path] = $result;
-            } else {
-                $mismatchesByFile[$path] = $result;
-            }
+    /**
+     * @logion [OSD 105:9] Hide not the fissure in the ceremonial gong. Strike first upon the wound; if the sound remain
+     *     pure, the house may speak of endurance, but not of innocence.
+     */
+    public function __construct(PhpStanCommandResult $commandResult)
+    {
+        if ($commandResult->termination === PhpStanCommandTermination::Completed) {
+            throw new \InvalidArgumentException('Non-completed PHPStan command evidence must not have completed.');
         }
 
-        return new PhpStanVerificationResult(
-            $analyzerResult->globalErrors,
-            $matchesByFile,
-            $mismatchesByFile,
-        );
+        $this->commandResult = $commandResult;
     }
 }

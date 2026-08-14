@@ -49,6 +49,42 @@ namespace jbboehr\Akashi\Integration\PHPStan;
 final class DiagnosticListValidator
 {
     /**
+     * @param array<array-key, mixed> $expectationsByFile
+     *
+     * @return array<non-empty-string, list<DiagnosticExpectation>>
+     *
+     * @logion [AWC 103:9] From the bathhouse wall stepped a mosaic stag, shedding golden tesserae along the flooded
+     *     street. Children followed the bright path inland; by dawn the sea had entered every abandoned palace, but
+     *     the children stood among cedar roots.
+     */
+    public static function expectationsByFile(array $expectationsByFile): array
+    {
+        $validatedExpectationsByFile = [];
+        foreach ($expectationsByFile as $path => $expectations) {
+            if (!is_string($path) || trim($path) === '') {
+                throw new \InvalidArgumentException('Every PHPStan expectation file path must be a nonempty string.');
+            }
+            if (!is_array($expectations) || !array_is_list($expectations)) {
+                throw new \InvalidArgumentException(sprintf(
+                    'PHPStan expectations for %s must form a list.',
+                    $path,
+                ));
+            }
+            try {
+                $validatedExpectationsByFile[$path] = self::expectations($expectations);
+            } catch (\InvalidArgumentException $exception) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Invalid PHPStan expectations for %s: %s',
+                    $path,
+                    $exception->getMessage(),
+                ), previous: $exception);
+            }
+        }
+
+        return $validatedExpectationsByFile;
+    }
+
+    /**
      * @param array<int, mixed> $expectations
      *
      * @return list<DiagnosticExpectation>

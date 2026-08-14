@@ -102,26 +102,27 @@ Akashi preserves `RuleTestCase` semantics: the diagnostics under test come from 
 inference, but it does not turn the test into a complete `phpstan analyse` run or automatically execute every configured
 PHPStan rule. If an example expects a diagnostic, the consumer-provided rule must report it.
 
-## Decode External Analysis Results
+## Verify an External PHPStan Run
 
-Projects that already run `phpstan analyse --error-format=json` can decode its output without loading PHPStan or PHPUnit
-classes:
+For end-to-end consumer fixtures, a project can run the installed `phpstan analyse --error-format=json` command and
+verify its output without loading PHPStan or PHPUnit classes. The consumer remains responsible for preparing the
+disposable Composer project and installing the packages under test:
 
 ```php
 <?php
 
 use jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandRunner;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanResultVerifier;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandNotCompleted;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier;
 
 $canonicalProjectRoot = realpath($projectRoot);
 if ($canonicalProjectRoot === false) {
     throw new RuntimeException('The PHPStan project root is unavailable.');
 }
 
-$commandResult = (new PhpStanCommandRunner())->run(
+$outcome = (new PhpStanCommandVerifier())->verify(
     projectRoot: $canonicalProjectRoot,
     executable: PHP_BINARY,
     arguments: [
@@ -131,28 +132,47 @@ $commandResult = (new PhpStanCommandRunner())->run(
         '--no-progress',
         'example.php',
     ],
+    expectationsByFile: [
+        $canonicalProjectRoot . '/example.php' => [
+            new DiagnosticExpectation(
+                'Call to an undefined method',
+                sourceLine: 12, // Authored expectation location for mismatch reporting.
+            ),
+        ],
+    ],
+    timeoutSeconds: 60.0,
 );
 
-if ($commandResult->termination !== PhpStanCommandTermination::Completed) {
-    throw new RuntimeException($commandResult->failureMessage ?? 'PHPStan did not complete normally.');
+if ($outcome instanceof PhpStanCommandNotCompleted) {
+    throw new RuntimeException($outcome->commandResult->failureMessage ?? 'PHPStan did not complete normally.');
 }
 
-$result = (new PhpStanJsonDecoder())->decode($commandResult->stdout);
+if ($outcome instanceof PhpStanCommandOutputRejected) {
+    throw new RuntimeException('PHPStan returned unsupported output.', 0, $outcome->cause);
+}
 
-$verification = (new PhpStanResultVerifier())->verify($result, [
-    $canonicalProjectRoot . '/example.php' => [
-        new DiagnosticExpectation(
-            'Call to an undefined method',
-            sourceLine: 12, // Authored expectation location for mismatch reporting.
-        ),
-    ],
-]);
+if (!$outcome instanceof PhpStanCommandVerified) {
+    throw new LogicException('Unknown PHPStan command verification outcome.');
+}
+
+$verification = $outcome->verificationResult;
 ```
+
+The three result variants distinguish a command that did not complete, completed command output that could not be
+decoded, and a completed verification. `PhpStanCommandVerified` means that verification ran; inspect
+`verificationResult->isSuccessful()` to determine whether diagnostics matched. A nonzero PHPStan exit status remains raw
+command evidence and does not by itself fail a verification, because expected diagnostics commonly produce a nonzero
+status.
 
 `PhpStanJsonResult` keeps analyzer-wide errors separate from diagnostics associated with files. Each
 `AnalyzerDiagnostic` retains its message, optional line, optional identifier and tip, and PHPStan's `ignorable` flag.
 The decoder accepts the documented PHPStan 1.12 and 2.x JSON shape, including PHPStan 1.12's empty `files` list, ignores
 unknown fields for forward compatibility, and rejects malformed or internally inconsistent results.
+
+`PhpStanCommandVerifier` validates the complete expectation map before launching the process, then composes
+`PhpStanCommandRunner`, `PhpStanJsonDecoder`, and `PhpStanResultVerifier`. The lower-level classes remain available when
+a consumer needs to apply its own command-status or decoding policy. The command timeout defaults to 60 seconds and may
+be replaced with another finite positive duration, as shown explicitly above.
 
 `PhpStanCommandRunner` executes an explicit executable and argument list from an explicit project root. Akashi never
 constructs a command string or interpolates caller values into one, so arguments do not undergo shell word splitting,
@@ -191,8 +211,9 @@ Analyzer-wide errors make the result unsuccessful without discarding otherwise s
 Paths are compared exactly. A caller that analyzes generated or relocated files remains responsible for associating the
 analyzer paths with the maintained expectation paths before verification.
 
-Command execution, JSON decoding, and expectation verification remain explicit composable stages. A convenience
-orchestrator that interprets command completion and malformed analyzer output remains deferred.
+Command execution, JSON decoding, and expectation verification remain separate public stages beneath the convenience
+orchestrator. Akashi does not create Composer projects, install packages, generate PHPStan configuration, or choose a
+consumer's compatibility matrix.
 
 ## Analysis Lifecycle and Trust
 
