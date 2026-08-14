@@ -110,13 +110,20 @@ classes:
 ```php
 <?php
 
+use jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanResultVerifier;
 
 $result = (new PhpStanJsonDecoder())->decode($json);
 
-foreach ($result->diagnosticsByFile as $path => $diagnostics) {
-    // Associate each typed diagnostic with $path.
-}
+$verification = (new PhpStanResultVerifier())->verify($result, [
+    '/project/example.php' => [
+        new DiagnosticExpectation(
+            'Call to an undefined method',
+            sourceLine: 12, // Authored expectation location for mismatch reporting.
+        ),
+    ],
+]);
 ```
 
 `PhpStanJsonResult` keeps analyzer-wide errors separate from diagnostics associated with files. Each
@@ -124,8 +131,25 @@ foreach ($result->diagnosticsByFile as $path => $diagnostics) {
 The decoder accepts the documented PHPStan 1.12 and 2.x JSON shape, including PHPStan 1.12's empty `files` list, ignores
 unknown fields for forward compatibility, and rejects malformed or internally inconsistent results.
 
-This is a decoding boundary, not a command runner: the caller remains responsible for launching PHPStan and preserving
-its exit status and standard streams. A typed command adapter and standalone verification result remain deferred.
+`PhpStanResultVerifier` compares each expected file with the corresponding decoded diagnostics through the same
+deterministic one-to-one matcher used by the `RuleTestCase` integration. The returned `PhpStanVerificationResult` keeps
+successful file matches, file mismatches, and analyzer-wide errors separate. Matching uses a case-sensitive substring of
+the diagnostic message and optional tip, requires equal counts, and assigns every expectation to a distinct diagnostic.
+`DiagnosticExpectation::$sourceLine` identifies the authored expectation for reporting; it is not compared with
+`AnalyzerDiagnostic::$analyzerLine`.
+
+A missing expected file with at least one expectation and an unexpected diagnostic file become ordinary count mismatches
+with their complete evidence. An expected path with an empty expectation list matches an absent analyzer entry, because
+the decoded result is not a complete manifest of every analyzed file. Verification therefore cannot by itself prove that
+a clean file was analyzed; callers that need that guarantee must cross-check their configured or invoked analysis paths.
+Analyzer-wide errors make the result unsuccessful without discarding otherwise successful file matches. Use
+`isSuccessful()` for disposition and inspect `matchesByFile`, `mismatchesByFile`, and `globalErrors` for reporting.
+
+Paths are compared exactly. A caller that analyzes generated or relocated files remains responsible for associating the
+analyzer paths with the maintained expectation paths before verification.
+
+This remains a decoding and verification boundary, not a command runner: the caller is responsible for launching PHPStan
+and preserving its exit status and standard streams. A typed command adapter remains deferred.
 
 ## Analysis Lifecycle and Trust
 

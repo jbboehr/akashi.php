@@ -180,8 +180,11 @@ assignments before PHPUnit receives the result.
 External analysis has a narrower implemented seam. `PhpStanJsonDecoder` converts PHPStan 1.12 or 2.x JSON output into a
 typed `PhpStanJsonResult` without loading PHPStan or PHPUnit. The result keeps analyzer-wide errors, per-file
 association, counts, and available diagnostic evidence distinct instead of flattening them into the matcher model. The
-decoder validates the documented structure and internal counts while ignoring unknown fields. Command execution, exit
-status interpretation, and standalone expectation verification remain separate deferred boundaries.
+decoder validates the documented structure and internal counts while ignoring unknown fields. `PhpStanResultVerifier`
+then compares an explicit expectation map across the union of expected and reported paths through `DiagnosticMatcher`.
+Its framework-neutral `PhpStanVerificationResult` separates successful file assignments, complete file mismatches, and
+analyzer-wide errors, so expected verification failures remain data rather than exceptions. Command execution and exit
+status interpretation remain separate deferred boundaries.
 
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
@@ -255,8 +258,9 @@ Current architecture supports Markdown and inline PHPDoc fences, PHPDoc referenc
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-typed PHPStan JSON decoding, and marked extraction. Hidden support code, documentation-renderer inclusion, generalized
-verifier plugins, a PHPStan command adapter, and a standalone runner do not exist yet.
+typed PHPStan JSON decoding and standalone result verification, and marked extraction. Hidden support code,
+documentation-renderer inclusion, generalized verifier plugins, a PHPStan command adapter, and a standalone runner do
+not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -54,6 +54,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\ExpectationParser::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanResultVerifier::class,
             \jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples::class,
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets::class,
             \jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime::class,
@@ -102,6 +103,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMatched::class,
             \jbboehr\Akashi\Integration\PHPStan\DiagnosticsMismatched::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanJsonResult::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanVerificationResult::class,
         ],
         'synchronization model' => [
             \jbboehr\Akashi\Synchronization\SynchronizationMismatch::class,

@@ -103,17 +103,19 @@ The sequence is:
 
 1. **Implemented:** decode PHPStan 1.12 and 2.x JSON into a typed result without discarding top-level analyzer errors,
    file association, or available diagnostic evidence.
-2. Represent command execution and diagnostic verification independently of PHPUnit and `RuleTestCase`.
-3. Add a thin PHPStan command adapter with an explicit project root and a typed argument vector rather than a shell
-   command string. Preserve exit status, standard streams, timeouts, signals, launch failures, and malformed analyzer
-   output as distinct outcomes.
+2. **Implemented:** compare decoded per-file diagnostics with an explicit expectation map and return typed successful
+   matches, complete mismatches, and analyzer-wide errors independently of PHPUnit and `RuleTestCase`.
+3. Represent command execution independently, then add a thin PHPStan command adapter with an explicit project root and
+   a typed argument vector rather than a shell command string. Preserve exit status, standard streams, timeouts,
+   signals, launch failures, and malformed analyzer output as distinct outcomes.
 4. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
    removed.
 5. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
    keeping disposable-project orchestration in the consumer.
 
 The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract.
-`PhpStanJsonDecoder` and `PhpStanJsonResult` establish the decoder boundary; exact command-adapter names remain
+`PhpStanJsonDecoder` and `PhpStanJsonResult` establish the decoder boundary; `PhpStanResultVerifier` and
+`PhpStanVerificationResult` establish the framework-neutral verification boundary. Exact command-adapter names remain
 undecided. Akashi will not construct temporary Composer projects, add repositories, install dependencies, inspect
 packages, define another project's compatibility matrix, or run package-specific runtime assertions. Those
 responsibilities remain with the consumer repository.

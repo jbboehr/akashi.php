@@ -121,20 +121,26 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 
 ## PHPStan
 
-| Type                                              | Purpose                                               |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| `Integration\PHPStan\PhpStanExampleConfiguration` | Canonical project root and relevance predicate.       |
-| `Integration\PHPStan\VerifiesPhpStanExamples`     | `RuleTestCase` trait that verifies a selected corpus. |
-| `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                    |
-| `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.  |
-| `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan. |
+| Type                                              | Purpose                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| `Integration\PHPStan\PhpStanExampleConfiguration` | Canonical project root and relevance predicate.                 |
+| `Integration\PHPStan\VerifiesPhpStanExamples`     | `RuleTestCase` trait that verifies a selected corpus.           |
+| `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                              |
+| `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.            |
+| `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan.           |
+| `Integration\PHPStan\PhpStanResultVerifier`       | Verify decoded per-file diagnostics without PHPUnit or PHPStan. |
 
 `AnalyzerDiagnostic`, `DiagnosticExpectation`, `DiagnosticAssignment`, `DiagnosticMatchResult`,
-`DiagnosticMismatchKind`, `DiagnosticsMatched`, `DiagnosticsMismatched`, and `PhpStanJsonResult` form the public
-analyzer-independent result and matching model. `AnalyzerDiagnostic::$ignorable` is nullable because diagnostics built
-outside the JSON decoder may not carry that PHPStan-specific evidence. Direct consumers may use these typed models with
-`ExpectationParser`, `DiagnosticMatcher`, and `PhpStanJsonDecoder`; the `VerifiesPhpStanExamples` trait remains the
-supported integration path for PHPStan's runtime objects.
+`DiagnosticMismatchKind`, `DiagnosticsMatched`, `DiagnosticsMismatched`, `PhpStanJsonResult`, and
+`PhpStanVerificationResult` form the public analyzer-independent result and matching model.
+`AnalyzerDiagnostic::$ignorable` is nullable because diagnostics built outside the JSON decoder may not carry that
+PHPStan-specific evidence. `PhpStanVerificationResult` partitions deterministic file results into typed matched and
+mismatched maps while preserving analyzer-wide errors; `isSuccessful()` requires no global errors and no file
+mismatches. Matching compares authored text with diagnostic messages and tips; expectation source lines remain reporting
+metadata rather than analyzer-line constraints. An absent analyzer entry satisfies an explicit empty expectation list,
+so this result alone does not prove that a clean file was analyzed. Direct consumers may use these typed models with
+`ExpectationParser`, `DiagnosticMatcher`, `PhpStanJsonDecoder`, and `PhpStanResultVerifier`; the
+`VerifiesPhpStanExamples` trait remains the supported integration path for PHPStan's runtime objects.
 
 ## Exceptions
 
@@ -152,14 +158,17 @@ empty PHPStan selection, and verification infrastructure.
 These exception families and their documented leaf classes are public machine-readable failure categories. Consumers
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.
 
+Malformed inputs passed directly to the analyzer-independent PHPStan model or `PhpStanResultVerifier` are programmer
+errors reported as `\InvalidArgumentException`, not `PhpStanException` instances.
+
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 
 ## Optional Dependencies
 
 Core discovery, the domain model, transformation, execution, extraction, and synchronization do not require PHPUnit,
 PHPStan, or PHP-CS-Fixer to autoload. The `Integration\PhpUnit` namespace requires a compatible PHPUnit installation
-when used. JSON decoding needs neither optional dependency. PHPStan `RuleTestCase` verification requires both PHPUnit
-and PHPStan because it reports through PHPUnit. Formatting checks require a compatible project-installed PHP-CS-Fixer
-executable only when invoked; Akashi does not load its PHP classes.
+when used. JSON decoding and framework-neutral result verification need neither optional dependency. PHPStan
+`RuleTestCase` verification requires both PHPUnit and PHPStan because it reports through PHPUnit. Formatting checks
+require a compatible project-installed PHP-CS-Fixer executable only when invoked; Akashi does not load its PHP classes.
 
 See [Compatibility and Safety](compatibility.md) for the targeted versions.

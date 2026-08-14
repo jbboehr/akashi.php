@@ -31,6 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   surrounding Markdown or PHPDoc bytes and performing no filesystem writes.
 - Decode PHPStan 1.12 and 2.x JSON into typed results that preserve analyzer-wide errors, per-file association, counts,
   available lines, identifiers, tips, and ignorable evidence without loading PHPStan or PHPUnit.
+- Verify decoded PHPStan diagnostics against per-file expectation maps without PHPUnit or PHPStan runtime classes,
+  preserving successful assignments, complete mismatches, unexpected or missing files, and analyzer-wide errors as typed
+  result evidence.
 
 ### Changed
 

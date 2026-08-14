@@ -91,22 +91,23 @@ Akashi work is:
 1. **Implemented:** `PhpStanJsonDecoder` produces a typed `PhpStanJsonResult` for PHPStan 1.12 and 2.x. It preserves
    top-level errors, file association, counts, and available diagnostic details instead of flattening every outcome
    directly into `AnalyzerDiagnostic`.
-2. Structured command and verification results usable without PHPUnit or `RuleTestCase`. The existing
-   `DiagnosticMatcher`, `DiagnosticsMatched` and `DiagnosticsMismatched` types already provide the lower-level matching
-   result.
-3. A thin PHPStan command adapter that accepts an explicit project root and a typed argument vector or equivalent
-   injection-safe command value. It should retain the exit status, standard output, standard error, timeout, signal and
-   launch-failure evidence, and distinguish a diagnostic mismatch from malformed analyzer output or command failure.
+2. **Implemented:** `PhpStanResultVerifier` compares an explicit per-file expectation map with decoded diagnostics and
+   returns `PhpStanVerificationResult`, preserving typed successful matches, complete mismatches, and analyzer-wide
+   errors without PHPUnit or `RuleTestCase`.
+3. Structured command results and a thin PHPStan command adapter that accepts an explicit project root and a typed
+   argument vector or equivalent injection-safe command value. It should retain the exit status, standard output,
+   standard error, timeout, signal and launch-failure evidence, and distinguish a diagnostic mismatch from malformed
+   analyzer output or command failure.
 4. A compatibility migration of one consumer fixture, comparing Akashi's result with the existing harness before any
    duplicate parser is removed.
 5. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
    diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and PHPStan; this is still not a
    prerequisite for decoding or command execution.
 
-The decoder types are now settled pre-1.0 public contracts; command and verification API names remain undecided. Akashi
-must not become responsible for constructing temporary Composer projects, adding Composer repositories, resolving or
-installing dependencies, creating or inspecting archives, defining another package's compatibility matrix, or running
-package-specific runtime assertions.
+The decoder and framework-neutral verification types are now settled pre-1.0 public contracts; command API names remain
+undecided. Akashi must not become responsible for constructing temporary Composer projects, adding Composer
+repositories, resolving or installing dependencies, creating or inspecting archives, defining another package's
+compatibility matrix, or running package-specific runtime assertions.
 
 This work begins after 0.1 and must not expand the existing Markdown MVP.
 
