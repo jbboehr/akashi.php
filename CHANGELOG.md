@@ -34,6 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Make `nix flake check --keep-going -L` the authoritative reproducible repository gate, with separated checks, shared
+  immutable Composer closures, supported-PHP and consumer coverage, while retaining conventional PHP baseline CI and
+  keeping mutation testing behind an explicit Nix target.
 - Compose generated-line mappings across sequential transforms so runtime failures continue to identify maintained
   Markdown, PHPDoc, whole-file, and named-region source lines.
 - Support PHPStan 1.12 when consumers explicitly select PHP-Parser 4.19.5, while retaining PHPStan 2.x and PHP-Parser 5

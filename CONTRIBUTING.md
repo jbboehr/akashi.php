@@ -15,30 +15,67 @@ A pull request should:
 - avoid unrelated changes; and
 - identify any third-party code, assets, or other material it contains.
 
-Enter the Nix development shell, install the locked Composer dependencies, and run the routine repository gate with:
+Enter the Nix development shell and install the locked Composer dependencies for ordinary interactive work:
 
 ```shell
 nix develop
 composer install
-composer check
 ```
 
-`composer check` validates Composer metadata, formatting, static analysis, PHPUnit, the public documentation, and the
-Composer distribution archive. Before a release or a change to execution, concurrency, or test infrastructure, also run:
+This keeps the checkout's `vendor/` mutable and conventional. Run focused tools through Composer while developing, then
+run the authoritative routine repository gate with:
 
 ```shell
-composer check:full
+nix flake check --keep-going -L
 ```
 
-The full gate additionally runs both ParaTest scheduling modes and mutation testing. It requires a coverage driver and
-is intentionally more expensive than the routine gate.
+The flake exposes PHPUnit separately for PHP 8.1 through 8.5 and also checks PHPStan, PHP-CS-Fixer, Composer metadata,
+the root and auxiliary Composer lock pairs, PHP syntax, package contents, both ParaTest scheduling modes, the public
+documentation, repository formatting and hooks, and the PHPUnit 10 and PHPStan 1 consumer fixtures. These builds use
+Nix-managed Composer dependencies and do not read the checkout's `vendor/`.
+
+Mutation testing is deliberately not part of `nix flake check`. Run its explicit Nix target when a change warrants it:
+
+```shell
+nix build .#mutation -L
+```
+
+`composer check` and `composer check:full` remain useful mutable-Composer interfaces. The latter includes consumer,
+ParaTest, and mutation checks, but the separated Nix derivations are the reproducible validation authority.
+
+### Updating Nix Composer dependencies
+
+Nix builds four immutable Composer repositories: the normal locked development closure, the PHP 8.1 closure, the lowest
+supported dependency closure, and the PHPStan 1 consumer closure. Their locks live in `composer.lock` and
+`nix/composer/`; their corresponding `vendorHash` values live together in `nix/php-checks.nix`.
+
+The PHP 8.1 closure supplies the PHPUnit 10 consumer lock, while the PHPStan 1 closure supplies the PHPStan 1 consumer
+lock. Regenerate each closure lock and its paired consumer lock together so every pinned consumer package remains in its
+offline repository. The consumer checks also reject a lock whose `jbboehr/akashi` entry no longer describes the current
+package metadata.
+
+When Composer requirements or locks change:
+
+1. Update `composer.json` and `composer.lock` normally and refresh any affected lock under `nix/composer/`.
+2. Run `nix flake check --keep-going -L`.
+3. If a `vendorHash` is stale, copy the `got: sha256-...` value from Nix's fixed-output hash mismatch into the matching
+   closure in `nix/php-checks.nix`.
+4. Rerun `nix flake check --keep-going -L`.
+
+The lowest-dependency lock is a reviewed reproducible snapshot rather than a fresh resolution on every CI run. Changes
+to `composer.json` invalidate its manifest/lock validation and therefore require the snapshot to be regenerated with
+`--prefer-lowest --prefer-stable`.
+
+If Nix is unavailable locally, push the lock change to a branch or pull request. The failed generated Nix job preserves
+the original mismatch, repeats the current and replacement hashes near the end of its log, and writes the replacement to
+the GitHub Actions step summary. Updating the hash does not replace review of the lock diff.
 
 Release maintainers must follow [`docs/development/releasing.md`](docs/development/releasing.md).
 
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
-See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
+See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the explicit mutation-testing
 workflow and guidance on interpreting escaped mutants.
 
 ## Doctrine of the Second Sun

@@ -17,6 +17,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     phps.url = "github:fossar/nix-phps";
+    nix-github-actions = {
+      url = "github:nix-community/nix-github-actions";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -28,6 +32,7 @@
       treefmt-nix,
       gitignore,
       phps,
+      nix-github-actions,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -36,6 +41,15 @@
         php-unwrapped = pkgs.php82;
         php81-unwrapped = phps.packages.${system}.php81;
         php81 = php81-unwrapped.buildEnv {
+          extraConfig = "memory_limit = 2G";
+        };
+        php83 = pkgs.php83.buildEnv {
+          extraConfig = "memory_limit = 2G";
+        };
+        php84 = pkgs.php84.buildEnv {
+          extraConfig = "memory_limit = 2G";
+        };
+        php85 = pkgs.php85.buildEnv {
           extraConfig = "memory_limit = 2G";
         };
         php = php-unwrapped.buildEnv {
@@ -60,6 +74,18 @@
             enabled ++ [ all.xdebug ];
         };
         src = gitignore.lib.gitignoreSource ./.;
+        php-checks = import ./nix/php-checks.nix {
+          inherit
+            pkgs
+            src
+            php81
+            php83
+            php84
+            php85
+            ;
+          inherit (pkgs) lib;
+          php82 = php;
+        };
         agent-badge-unwrapped = pkgs.callPackage ./nix/agent-badge-unwrapped.nix { };
         agent-badge =
           if pkgs.stdenv.isLinux then
@@ -120,23 +146,33 @@
               export PATH="$PWD/vendor/bin:$PATH"
             '';
           };
+        github-actions-matrix =
+          let
+            normal = nix-github-actions.lib.mkGithubMatrix {
+              checks = {
+                inherit (self.checks) x86_64-linux;
+              };
+              attrPrefix = "checks";
+              platforms.x86_64-linux = "ubuntu-24.04";
+            };
+            mutation = nix-github-actions.lib.mkGithubMatrix {
+              checks.x86_64-linux = {
+                inherit (self.packages.x86_64-linux) mutation;
+              };
+              attrPrefix = "packages";
+              platforms.x86_64-linux = "ubuntu-24.04";
+            };
+          in
+          pkgs.writeText "akashi-github-actions-matrix.json" (
+            builtins.toJSON {
+              include = normal.matrix.include ++ mutation.matrix.include;
+            }
+          );
       in
       rec {
         checks = {
           inherit pre-commit-check;
           inherit agent-badge-unwrapped;
-          php81-syntax =
-            pkgs.runCommand "akashi-php81-syntax"
-              {
-                nativeBuildInputs = [ php81 ];
-              }
-              ''
-                {
-                  find ${src}/src ${src}/tests ${src}/tools -type f -name '*.php' -print0
-                  printf '%s\0' ${src}/bin/akashi
-                } | xargs -0 --no-run-if-empty -n 1 php -l
-                touch "$out"
-              '';
           documentation =
             pkgs.runCommand "akashi-documentation"
               {
@@ -147,6 +183,7 @@
               '';
           formatting = treefmt.config.build.check self;
         }
+        // php-checks.checks
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         devShells = {
           default = mkDevShell php;
@@ -154,9 +191,12 @@
           xdebug = mkDevShell php-xdebug;
         };
         packages = {
-          inherit agent-badge-unwrapped agent-badge;
+          inherit agent-badge-unwrapped;
+          mutation = php-checks.mutation;
         }
-        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          inherit agent-badge github-actions-matrix;
+        };
         formatter = treefmt.config.build.wrapper;
       }
     );

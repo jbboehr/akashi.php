@@ -36,15 +36,18 @@ PHP 8.1 no longer receives upstream security fixes. Akashi verifies compatibilit
 legacy development environments; this compatibility statement does not make an unpatched PHP 8.1 runtime suitable for a
 public-facing service.
 
-On pushes to `master`, the advisory macOS and Windows jobs run Composer validation, PHPStan, PHPUnit, package
-validation, and a CLI smoke test.
+Linux has two deliberately overlapping CI paths. A small conventional PHP 8.2 matrix uses `setup-php`, Composer, and the
+locked `vendor/` to run PHPUnit, PHPStan, and PHP-CS-Fixer independently of Nix. The exhaustive generated Nix matrix
+repeats those three checks and adds PHP 8.1 through 8.5 runtime coverage, consumer fixtures, package and documentation
+checks, both ParaTest modes, repository checks, and explicit mutation testing. On pushes to `master`, separate advisory
+macOS and Windows jobs run Composer validation, PHPStan, PHPUnit, package validation, and a CLI smoke test.
 
-Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its PHP 8.1 CI resolves PHPUnit 10.5 and runs the full suite.
-`composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated consumer
-project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan `RuleTestCase`
-adapter on PHP 8.1. The packaged library rewrites a synchronized consumer document in memory, and the packaged CLI
-checks that document against a canonical named region and exercises the optional formatter process boundary through a
-consumer-provided executable.
+Akashi develops against PHPUnit 11.5 on PHP 8.2 and later. Its Nix PHP 8.1 closure selects PHPUnit 10.5 and runs the
+full suite. `composer test:phpunit10` additionally builds the current Composer archive, installs it into an isolated
+consumer project, and exercises runtime assertions, authored skips, both execution backends, and the PHPStan
+`RuleTestCase` adapter on PHP 8.1. The packaged library rewrites a synchronized consumer document in memory, and the
+packaged CLI checks that document against a canonical named region and exercises the optional formatter process boundary
+through a consumer-provided executable.
 
 Akashi develops and performs its normal static analysis with PHPStan 2.x. `composer test:phpstan1` builds the current
 Composer archive and verifies the same consumer integration independently with PHPStan 1.12, PHPUnit 10.5, and
@@ -133,10 +136,10 @@ declaration set and provide only trusted, runtime-safe top-level code.
 
 ## ParaTest and Platform Notes
 
-In this repository's PHP 8.2 CI, ParaTest runs the full suite with two workers in both default TestCase-level mode and
-`--functional` test-level mode. The gate covers consumer-shaped data sets, both runtime backends, and the PHPStan
-`RuleTestCase` adapter. Each PHPStan corpus assertion still runs wholly inside one worker; do not split one declaration
-set across test methods or repeat it in the same worker process.
+In this repository's PHP 8.2 Nix checks, ParaTest runs the full suite with two workers in both default TestCase-level
+mode and `--functional` test-level mode. The gate covers consumer-shaped data sets, both runtime backends, and the
+PHPStan `RuleTestCase` adapter. Each PHPStan corpus assertion still runs wholly inside one worker; do not split one
+declaration set across test methods or repeat it in the same worker process.
 
 Discovery rejects symlinked directory traversal and documents resolving outside the project root. Duplicate physical
 files normally use device and inode identity. On platforms reporting inode `0`, Akashi falls back to canonical paths, so

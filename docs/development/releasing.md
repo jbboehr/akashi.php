@@ -34,18 +34,22 @@ Do not add promises for deferred roadmap work. The release notes describe only b
 
 ## Verify source and artifact
 
-Run the routine and extended gates:
+Run the routine Nix gate, the separate mutation target, and Composer's network-backed advisory check:
 
 ```console
-composer check
-composer check:full
+nix flake check --keep-going -L
+nix build .#mutation -L
 composer audit --locked
 ```
 
-The extended gate runs the isolated PHPUnit 10 consumer fixture, both ParaTest modes, and mutation testing, and
-therefore requires Composer network access and a coverage driver. A failure or tool crash blocks the release until it is
-understood; do not lower mutation thresholds or omit a supported compatibility or scheduling mode merely to produce a
-tag.
+The flake check includes the isolated PHPUnit 10 and PHPStan 1 consumer fixtures and both ParaTest modes. The explicit
+mutation derivation uses the same Nix-managed dependency closure but remains outside the routine check set. A failure or
+tool crash blocks the release until it is understood; do not lower mutation thresholds or omit a supported compatibility
+or scheduling mode merely to produce a tag.
+
+`composer audit --locked` covers the shipped root lock. The auxiliary locks under `nix/composer/` describe development
+and CI environments rather than package contents; they are not included in that release audit. Review advisories while
+refreshing those locks, and do not treat a green root audit as evidence about an older auxiliary snapshot.
 
 Review the latest advisory `portability` workflow for the intended release commit. Its macOS and Windows jobs do not
 gate the Linux compatibility contract automatically, but each failure must be understood and recorded before tagging.

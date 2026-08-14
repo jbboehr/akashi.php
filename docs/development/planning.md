@@ -18,22 +18,28 @@ autoloadable declaration and added a public-I/O conformance suite. No committed 
 workspace checkout paths during future consumer verification.
 
 ParaTest compatibility is verified with two workers in both default TestCase-level and `--functional` test-level modes.
-`composer test:parallel` runs both variants; CI exercises the gate on PHP 8.2 while sequential tests cover the remaining
-PHP matrix.
+`composer test:parallel` runs both variants in a mutable checkout; the authoritative Nix gate exposes each mode as an
+independent PHP 8.2 check while sequential tests cover the supported PHP matrix.
 
-The normal development stack remains on PHP 8.2 with PHPUnit 11.5. PHP 8.1 CI resolves the repository's compatible
-development ranges to PHPUnit 10.5, ParaTest 7.3, Infection 0.28, and Symfony 6.4, then runs the full sequential suite.
-The committed `composer.lock` records the normal PHP 8.2 toolchain. A contributor working under PHP 8.1 must run
-`composer update` rather than `composer install`, as the PHP 8.1 CI job does, and should not commit the resulting
-lockfile changes. An isolated consumer fixture also installs the current Composer archive with PHPUnit 10.5 and verifies
-the runtime data-provider trait, authored skips, both execution backends, in-memory synchronization rewriting, and the
-PHPStan `RuleTestCase` adapter. `composer test:phpunit10` runs that compatibility gate, and `composer check:full`
-includes it.
+The normal development stack remains on PHP 8.2 with PHPUnit 11.5. The exhaustive Nix gate runs the full sequential
+suite independently on PHP 8.1 through 8.5. Its committed PHP 8.1 closure selects PHPUnit 10.5, ParaTest 7.3, Infection
+0.28, and Symfony 6.4 without changing the normal `composer.lock`. A contributor doing mutable PHP 8.1 work still needs
+`composer update` instead of installing the PHP 8.2 lock and should not commit that result as the normal lock. An
+isolated consumer fixture installs the current Composer archive with PHPUnit 10.5 and verifies the runtime data-provider
+trait, authored skips, both execution backends, in-memory synchronization rewriting, and the PHPStan `RuleTestCase`
+adapter. The Nix consumer check installs from an immutable local Composer repository; `composer test:phpunit10` retains
+the conventional online path.
 
 The normal static-analysis stack remains on PHPStan 2.x and PHP-Parser 5. An additional packaged-consumer gate installs
 PHPStan 1.12 with an explicit PHP-Parser 4.19.5 pin and exercises the same PHPUnit `RuleTestCase` adapter. Akashi keeps
-its parser-facing token representation independent of PHP-Parser's version-specific token class. Run the gate with
-`composer test:phpstan1`; `composer check:full` includes it.
+its parser-facing token representation independent of PHP-Parser's version-specific token class. The Nix gate exposes
+this as its own immutable consumer check; `composer test:phpstan1` retains the conventional online path.
+
+Routine validation is `nix flake check --keep-going -L`. Checks are independent derivations so failures remain visible
+and successful dependency closures can be reused from the Nix store. Mutation testing is an explicit
+`nix build .#mutation -L` target and a generated Nix CI entry, not a routine flake check. GitHub also retains three
+small conventional PHP 8.2 baseline jobs for PHPUnit, PHPStan, and PHP-CS-Fixer as an independent control over the Nix
+harness.
 
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and

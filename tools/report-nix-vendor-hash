@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    printf 'Usage: %s NIX_LOG [GITHUB_STEP_SUMMARY]\n' "$0" >&2
+    exit 2
+fi
+
+readonly log_file=$1
+readonly summary_file=${2:-}
+
+if [[ ! -f $log_file ]]; then
+    printf 'Nix log does not exist: %s\n' "$log_file" >&2
+    exit 2
+fi
+
+normalized_log=$(mktemp)
+readonly normalized_log
+trap 'rm -f -- "$normalized_log"' EXIT
+
+# Nix normally suppresses color in Actions, but removing it here keeps the
+# parser useful when a captured local log contains ANSI terminal sequences.
+sed $'s/\033\[[0-9;]*[[:alpha:]]//g' "$log_file" >"$normalized_log"
+
+mismatch_block=$(sed -n \
+    '/hash mismatch in fixed-output derivation.*composer-repository/,/error: Cannot build/p' \
+    "$normalized_log")
+readonly mismatch_block
+
+if [[ -z $mismatch_block ]]; then
+    exit 0
+fi
+
+current_hash=$(sed -n 's/.*specified:[[:space:]]*\(sha256-[A-Za-z0-9+/=]*\).*/\1/p' <<<"$mismatch_block" | sed -n '1p')
+replacement_hash=$(sed -n 's/.*got:[[:space:]]*\(sha256-[A-Za-z0-9+/=]*\).*/\1/p' <<<"$mismatch_block" | sed -n '1p')
+derivation=$(sed -n \
+    "s/.*hash mismatch in fixed-output derivation '\([^']*composer-repository[^']*\)'.*/\1/p" \
+    <<<"$mismatch_block" | sed -n '1p')
+readonly current_hash replacement_hash derivation
+
+if [[ -z $current_hash || -z $replacement_hash || -z $derivation ]]; then
+    printf 'A Composer repository hash mismatch was found, but its hashes could not be parsed.\n' >&2
+    printf 'Use the unmodified Nix failure above as the authoritative source.\n' >&2
+    exit 0
+fi
+
+printf '\nNix Composer vendorHash is out of date; reporting the first mismatch.\n' >&2
+printf 'Derivation: %s\n' "$derivation" >&2
+printf 'Current:    %s\n' "$current_hash" >&2
+printf 'Replace it with: %s\n' "$replacement_hash" >&2
+printf 'Update the matching vendorHash in nix/php-checks.nix.\n' >&2
+printf '::error title=Nix vendorHash is out of date::Replace %s with %s in nix/php-checks.nix\n' \
+    "$current_hash" \
+    "$replacement_hash"
+
+if [[ -n $summary_file ]]; then
+    # Literal Markdown code spans must not be interpreted by the shell.
+    # shellcheck disable=SC2016
+    {
+        printf '## Nix `vendorHash` is out of date\n\n'
+        printf 'The immutable Composer repository did not match its declared hash. '
+        printf 'The original Nix failure remains authoritative.\n\n'
+        printf '| | Hash |\n'
+        printf '| --- | --- |\n'
+        printf '| Current | `%s` |\n' "$current_hash"
+        printf '| Replacement | `%s` |\n\n' "$replacement_hash"
+        printf 'Update the matching `vendorHash` in `nix/php-checks.nix`, then rerun '
+        printf '`nix flake check --keep-going -L`.\n'
+    } >>"$summary_file"
+fi

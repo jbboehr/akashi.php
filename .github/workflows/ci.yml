@@ -14,9 +14,80 @@ permissions:
     contents: read
 
 jobs:
-    nix:
-        name: Nix
+    php-baseline:
+        name: Conventional / ${{ matrix.name }}
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: PHPUnit
+                      command: composer test
+                    - name: PHPStan
+                      command: composer analyse
+                    - name: php-cs-fixer
+                      command: composer cs
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: dom
+                  ini-values: memory_limit=2G
+                  php-version: "8.2"
+                  tools: composer:v2
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-8.2-composer-${{ hashFiles('composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-8.2-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Install locked dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Run ${{ matrix.name }}
+              run: ${{ matrix.command }}
+
+    nix-matrix:
+        name: Generate Nix matrix
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.matrix.outputs.matrix }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v31
+              with:
+                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Generate matrix from flake outputs
+              id: matrix
+              shell: bash
+              run: |
+                  matrix_path=$(nix build -L --no-link --print-out-paths .#github-actions-matrix)
+                  matrix=$(<"$matrix_path")
+                  echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+    nix-build:
+        name: Nix / ${{ matrix.name }} (${{ matrix.system }})
+        needs: nix-matrix
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJSON(needs.nix-matrix.outputs.matrix) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -29,139 +100,23 @@ jobs:
             - name: Restore and save Nix store
               uses: nix-community/cache-nix-action@v7
               with:
-                  primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-                  restore-prefixes-first-match: nix-${{ runner.os }}-
+                  primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock', '**/composer.lock') }}
+                  restore-prefixes-first-match: |
+                      nix-${{ runner.os }}-
                   gc-max-store-size-linux: 2G
 
-            - name: Check flake
-              run: nix flake check --print-build-logs
+            - name: Build ${{ matrix.attr }}
+              shell: bash
+              env:
+                  NIX_ATTR: ${{ matrix.attr }}
+              run: |
+                  set +e
+                  nix build -L ".#$NIX_ATTR" 2>&1 | tee nix-build.log
+                  status=${PIPESTATUS[0]}
+                  set -e
 
-    php:
-        name: PHP ${{ matrix.php-version }}
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                php-version:
-                    - "8.1"
-                    - "8.2"
-                    - "8.3"
-                    - "8.4"
-                    - "8.5"
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
+                  if ((status != 0)); then
+                      tools/report-nix-vendor-hash nix-build.log "$GITHUB_STEP_SUMMARY" || true
+                  fi
 
-            - name: Install PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  coverage: pcov
-                  extensions: dom
-                  ini-values: memory_limit=2G
-                  php-version: ${{ matrix.php-version }}
-                  tools: composer:v2
-
-            - name: Validate Composer files
-              run: composer composer:validate
-
-            - name: Get Composer cache directory
-              id: composer-cache
-              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-
-            - name: Cache Composer packages
-              uses: actions/cache@v6
-              with:
-                  path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
-                      ${{ runner.os }}-php-composer-
-
-            - name: Resolve PHP 8.1-compatible dependencies
-              if: matrix.php-version == '8.1'
-              run: composer update --prefer-dist --no-interaction --no-progress
-
-            - name: Install locked dependencies
-              if: matrix.php-version != '8.1'
-              run: composer install --prefer-dist --no-interaction --no-progress
-
-            - name: Check whitespace
-              run: git diff --check
-
-            - name: Run PHP-CS-Fixer
-              if: matrix.php-version == '8.1'
-              run: composer cs
-
-            - name: Run PHPStan
-              run: composer analyse
-
-            - name: Run PHPUnit
-              run: composer test
-
-            - name: Verify PHPUnit 10 compatibility
-              if: matrix.php-version == '8.1'
-              run: composer test:phpunit10
-
-            - name: Verify PHPStan 1 compatibility
-              if: matrix.php-version == '8.1'
-              run: composer test:phpstan1
-
-            - name: Verify Composer package archive
-              if: matrix.php-version == '8.2'
-              run: composer package:check
-
-            - name: Verify ParaTest compatibility
-              if: matrix.php-version == '8.2'
-              run: composer test:parallel
-
-            - name: Smoke-test executable
-              run: bin/akashi
-
-    lowest-dependencies:
-        name: Lowest dependencies / PHP 8.1
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Install PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  coverage: none
-                  extensions: dom
-                  ini-values: memory_limit=2G
-                  php-version: "8.1"
-                  tools: composer:v2
-
-            - name: Validate Composer files
-              run: composer composer:validate
-
-            - name: Install lowest supported dependencies
-              run: composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction --no-progress
-
-            - name: Run PHPStan
-              run: composer analyse
-
-            - name: Run PHPUnit
-              run: composer test
-
-    mutation:
-        name: Mutation testing
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Install PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  coverage: pcov
-                  extensions: dom
-                  php-version: "8.2"
-                  tools: composer:v2
-
-            - name: Install dependencies
-              run: composer install --prefer-dist --no-interaction --no-progress
-
-            - name: Run mutation tests
-              run: composer infection:ci
+                  exit "$status"

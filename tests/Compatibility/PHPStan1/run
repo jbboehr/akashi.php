@@ -15,7 +15,15 @@ trap 'rm -rf -- "$WORK_ROOT"' EXIT
 readonly ARCHIVE_DIR="$WORK_ROOT/archive"
 readonly CONSUMER_DIR="$WORK_ROOT/consumer"
 readonly PACKAGE_DIR="$WORK_ROOT/package"
+readonly PACKAGE_REPOSITORY_PATH="../package"
 mkdir -p -- "$ARCHIVE_DIR" "$CONSUMER_DIR" "$PACKAGE_DIR"
+
+resolved_package_repository=$(cd -- "$CONSUMER_DIR/$PACKAGE_REPOSITORY_PATH" && pwd)
+readonly resolved_package_repository
+if [[ $resolved_package_repository != "$PACKAGE_DIR" ]]; then
+    printf 'Package repository path %s does not resolve to %s.\n' "$PACKAGE_REPOSITORY_PATH" "$PACKAGE_DIR" >&2
+    exit 1
+fi
 
 composer \
     --working-dir="$PROJECT_ROOT" \
@@ -44,11 +52,12 @@ echo json_encode([
     "type" => "path",
     "url" => $argv[1],
     "options" => [
+        "reference" => "none",
         "symlink" => false,
         "versions" => ["jbboehr/akashi" => "dev-compatibility"],
     ],
 ], JSON_THROW_ON_ERROR);
-' "$PACKAGE_DIR")
+' "$PACKAGE_REPOSITORY_PATH")
 readonly repository_json
 
 composer \
@@ -57,11 +66,35 @@ composer \
     repositories.akashi \
     "$repository_json" \
     --no-interaction
-composer --working-dir="$CONSUMER_DIR" update --prefer-dist --no-interaction --no-progress
+
+if [[ -n ${AKASHI_COMPOSER_REPOSITORY:-} ]]; then
+    if [[ $AKASHI_COMPOSER_REPOSITORY != /* || ! -f $AKASHI_COMPOSER_REPOSITORY/composer.lock ]]; then
+        printf 'AKASHI_COMPOSER_REPOSITORY must be an absolute Composer repository path.\n' >&2
+        exit 1
+    fi
+    if [[ ${AKASHI_COMPOSER_LOCK:-} != /* || ! -f ${AKASHI_COMPOSER_LOCK:-} ]]; then
+        printf 'AKASHI_COMPOSER_LOCK must be an absolute Composer lock-file path.\n' >&2
+        exit 1
+    fi
+
+    export COMPOSER_DISABLE_NETWORK=1
+    cp -- "$AKASHI_COMPOSER_LOCK" "$CONSUMER_DIR/composer.lock"
+    chmod u+w "$CONSUMER_DIR/composer.lock"
+    (
+        cd -- "$CONSUMER_DIR"
+        composer build-local-repo-lock -m "$AKASHI_COMPOSER_REPOSITORY" .
+    )
+    php "$PROJECT_ROOT/tests/Compatibility/assert-package-lock-current.php" \
+        "$PACKAGE_DIR/composer.json" \
+        "$CONSUMER_DIR/composer.lock"
+    composer --working-dir="$CONSUMER_DIR" install --no-interaction --no-progress
+else
+    composer --working-dir="$CONSUMER_DIR" update --prefer-dist --no-interaction --no-progress
+fi
 
 phpstan_version=$(
     cd -- "$CONSUMER_DIR"
-    vendor/bin/phpstan --version
+    php vendor/bin/phpstan --version
 )
 readonly phpstan_version
 if [[ $phpstan_version != PHPStan\ -\ PHP\ Static\ Analysis\ Tool\ 1.12.* ]]; then
@@ -85,7 +118,7 @@ readonly phpstan_stderr="$WORK_ROOT/phpstan-stderr"
 set +e
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/phpstan \
+    php vendor/bin/phpstan \
         analyse \
         --no-progress \
         --error-format=json \
@@ -131,7 +164,7 @@ foreach ($result->diagnosticsByFile[$path] as $diagnostic) {
 
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/phpunit \
+    php vendor/bin/phpunit \
         --no-configuration \
         --bootstrap vendor/autoload.php \
         --colors=never \

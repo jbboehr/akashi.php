@@ -13,7 +13,15 @@ trap 'rm -rf -- "$WORK_ROOT"' EXIT
 readonly ARCHIVE_DIR="$WORK_ROOT/archive"
 readonly CONSUMER_DIR="$WORK_ROOT/consumer"
 readonly PACKAGE_DIR="$WORK_ROOT/package"
+readonly PACKAGE_REPOSITORY_PATH="../package"
 mkdir -p -- "$ARCHIVE_DIR" "$CONSUMER_DIR" "$PACKAGE_DIR"
+
+resolved_package_repository=$(cd -- "$CONSUMER_DIR/$PACKAGE_REPOSITORY_PATH" && pwd)
+readonly resolved_package_repository
+if [[ $resolved_package_repository != "$PACKAGE_DIR" ]]; then
+    printf 'Package repository path %s does not resolve to %s.\n' "$PACKAGE_REPOSITORY_PATH" "$PACKAGE_DIR" >&2
+    exit 1
+fi
 
 composer \
     --working-dir="$PROJECT_ROOT" \
@@ -39,11 +47,12 @@ echo json_encode([
     "type" => "path",
     "url" => $argv[1],
     "options" => [
+        "reference" => "none",
         "symlink" => false,
         "versions" => ["jbboehr/akashi" => "dev-compatibility"],
     ],
 ], JSON_THROW_ON_ERROR);
-' "$PACKAGE_DIR")
+' "$PACKAGE_REPOSITORY_PATH")
 readonly repository_json
 
 composer \
@@ -52,9 +61,53 @@ composer \
     repositories.akashi \
     "$repository_json" \
     --no-interaction
-composer --working-dir="$CONSUMER_DIR" update --prefer-dist --no-interaction --no-progress
 
-phpunit_version=$("$CONSUMER_DIR"/vendor/bin/phpunit --version)
+if [[ -n ${AKASHI_COMPOSER_REPOSITORY:-} ]]; then
+    if [[ $AKASHI_COMPOSER_REPOSITORY != /* || ! -f $AKASHI_COMPOSER_REPOSITORY/composer.lock ]]; then
+        printf 'AKASHI_COMPOSER_REPOSITORY must be an absolute Composer repository path.\n' >&2
+        exit 1
+    fi
+    if [[ ${AKASHI_COMPOSER_LOCK:-} != /* || ! -f ${AKASHI_COMPOSER_LOCK:-} ]]; then
+        printf 'AKASHI_COMPOSER_LOCK must be an absolute Composer lock-file path.\n' >&2
+        exit 1
+    fi
+
+    export COMPOSER_DISABLE_NETWORK=1
+    cp -- "$AKASHI_COMPOSER_LOCK" "$CONSUMER_DIR/composer.lock"
+    chmod u+w "$CONSUMER_DIR/composer.lock"
+    (
+        cd -- "$CONSUMER_DIR"
+        composer build-local-repo-lock -m "$AKASHI_COMPOSER_REPOSITORY" .
+    )
+    php "$PROJECT_ROOT/tests/Compatibility/assert-package-lock-current.php" \
+        "$PACKAGE_DIR/composer.json" \
+        "$CONSUMER_DIR/composer.lock"
+    composer --working-dir="$CONSUMER_DIR" install --no-interaction --no-progress
+else
+    composer --working-dir="$CONSUMER_DIR" update --prefer-dist --no-interaction --no-progress
+fi
+
+if [[ -n ${AKASHI_COMPOSER_REPOSITORY:-} ]]; then
+    php_executable=$(command -v php)
+    readonly php_executable
+    # The Nix sandbox has no /usr/bin/env, so preserve the executable test with
+    # the immutable PHP interpreter used by this consumer derivation.
+    # shellcheck disable=SC2016
+    php -r '
+$path = $argv[1];
+$contents = file_get_contents($path);
+if (!is_string($contents) || !str_starts_with($contents, "#!/usr/bin/env php\n")) {
+    throw new RuntimeException("Unexpected Composer proxy shebang.");
+}
+if (file_put_contents($path, "#!" . $argv[2] . "\n" . substr($contents, 19)) === false) {
+    throw new RuntimeException("Unable to patch the Composer proxy shebang.");
+}
+' "$CONSUMER_DIR/vendor/bin/akashi" "$php_executable"
+fi
+
+"$CONSUMER_DIR/vendor/bin/akashi" --version >/dev/null
+
+phpunit_version=$(php "$CONSUMER_DIR/vendor/bin/phpunit" --version)
 readonly phpunit_version
 if [[ $phpunit_version != PHPUnit\ 10.* ]]; then
     printf 'Expected PHPUnit 10, got %s.\n' "$phpunit_version" >&2
@@ -63,7 +116,7 @@ fi
 
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format.md
+    php vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format.md
 )
 
 cp -- "$CONSUMER_DIR/docs/format-stale.md" "$CONSUMER_DIR/docs/format-write.md"
@@ -71,7 +124,7 @@ format_write_stderr="$WORK_ROOT/format-write-stderr"
 readonly format_write_stderr
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi \
+    php vendor/bin/akashi \
         format \
         --write \
         --project-root=. \
@@ -86,19 +139,19 @@ fi
 grep -Fq -- "\$value = 1;" "$CONSUMER_DIR/docs/format-write.md"
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format-write.md
+    php vendor/bin/akashi format --check --project-root=. --php-cs-fixer=tools/php-cs-fixer docs/format-write.md
 )
 
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi sync --check --project-root=. docs/sync.md
+    php vendor/bin/akashi sync --check --project-root=. docs/sync.md
 )
 
 sync_stderr="$WORK_ROOT/sync-stderr"
 readonly sync_stderr
 if (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi sync --check --project-root=. docs/sync-stale.md 2>"$sync_stderr"
+    php vendor/bin/akashi sync --check --project-root=. docs/sync-stale.md 2>"$sync_stderr"
 ); then
     printf 'Expected the stale synchronization check to fail.\n' >&2
     exit 1
@@ -120,7 +173,7 @@ sync_write_stderr="$WORK_ROOT/sync-write-stderr"
 readonly sync_write_stderr
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi sync --write --project-root=. docs/sync-write.md 2>"$sync_write_stderr"
+    php vendor/bin/akashi sync --write --project-root=. docs/sync-write.md 2>"$sync_write_stderr"
 )
 if [[ $(<"$sync_write_stderr") != 'Updated docs/sync-write.md.' ]]; then
     printf 'Unexpected synchronization write report:\n%s\n' "$(<"$sync_write_stderr")" >&2
@@ -129,12 +182,12 @@ fi
 grep -Fq -- 'use PHPUnit\Framework\TestCase;' "$CONSUMER_DIR/docs/sync-write.md"
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/akashi sync --check --project-root=. docs/sync-write.md
+    php vendor/bin/akashi sync --check --project-root=. docs/sync-write.md
 )
 
 (
     cd -- "$CONSUMER_DIR"
-    vendor/bin/phpunit \
+    php vendor/bin/phpunit \
         --no-configuration \
         --bootstrap vendor/autoload.php \
         --colors=never \

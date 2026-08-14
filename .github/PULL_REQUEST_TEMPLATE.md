@@ -6,6 +6,11 @@
 
 <!-- How was this tested? Include relevant commands or manual verification. -->
 
+<!--
+If composer.lock or a lock under nix/composer/ changed, update the matching vendorHash in nix/php-checks.nix.
+A stale-hash Nix job reports the replacement hash in its log and step summary.
+-->
+
 ## Additional context
 
 <!-- Compatibility concerns, screenshots, related issues, or implementation notes. -->

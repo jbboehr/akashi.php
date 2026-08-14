@@ -218,6 +218,8 @@ workflows only. They did not supply Akashi runtime, doctest, extraction, or veri
 | 2026-08-11 | [Random extension polyfill compatibility](https://php-random-polyfill.readthedocs.io/en/latest/compatibility.html)                                                   | User-facing behavioral reference | Preserving `Randomizer`, seeded test engines, secure production engines, and native no-overhead behavior |
 | 2026-08-11 | [Random extension polyfill package metadata](https://packagist.org/packages/arokettu/random-polyfill)                                                                | User-facing behavioral reference | Selecting a PHP 8.1-compatible 1.x release constraint                                                    |
 | 2026-08-11 | [nix-phps README](https://github.com/fossar/nix-phps#readme)                                                                                                         | Integration guide                | Pinning PHP 8.1 for development-only syntax and compatibility validation                                 |
+| 2026-08-13 | [nixpkgs PHP packaging manual](https://github.com/NixOS/nixpkgs/blob/531670d871c0e29724a02f3cbcac170adc65b58c/doc/languages-frameworks/php.section.md)               | Integration guide                | Building one fixed-output Composer repository and reusable offline vendor closure per dependency set     |
+| 2026-08-13 | [nix-github-actions README](https://github.com/nix-community/nix-github-actions/blob/f4158fa080ef4503c8f4c820967d946c2af31ec9/README.md)                             | Integration guide                | Generating independently named GitHub Actions matrix entries from ordinary flake checks and packages     |
 | 2026-08-11 | [PHPUnit package metadata](https://packagist.org/packages/phpunit/phpunit)                                                                                           | User-facing behavioral reference | Resolving PHPUnit 10.5 on PHP 8.1 and PHPUnit 11.5 on later runtimes                                     |
 | 2026-08-11 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                                                                                        | User-facing behavioral reference | Resolving ParaTest 7.3 on PHP 8.1 without weakening the current PHP 8.2 toolchain                        |
 | 2026-08-11 | [Infection package metadata](https://packagist.org/packages/infection/infection)                                                                                     | User-facing behavioral reference | Resolving Infection 0.28 on PHP 8.1 while retaining Infection 0.32 on PHP 8.2                            |
@@ -390,6 +392,15 @@ project-installed proxy is PHP source and receives Composer's documented binary-
 PHP-CS-Fixer implementation, internal test, or architecture material was opened. The inspection confirmed only the
 already-selected `PHP_BINARY` process boundary; formatter behavior and options remain based on the public command help
 recorded above.
+
+On 2026-08-13, the Composer repository/install builders and hooks in the pinned nixpkgs revision were inspected narrowly
+after the public PHP packaging manual identified them as the supported lower-level API. The inspection confirmed the
+`mkComposerRepository` inputs, the local-repository plugin required by `composerInstallHook`, offline lock remapping,
+and the fixed-output mismatch format. The pinned nix-github-actions README, public matrix function, and example workflow
+were inspected to confirm the current `mkGithubMatrix` input and matrix-entry contract. These are general-purpose build
+and CI integrations; Akashi adapted their documented public contracts without copying a documentation-test design. No
+prohibited PHP doctest material, rustdoc implementation, compiler implementation, or another agent's analysis of those
+systems was examined.
 
 ## Current dependency status
 
