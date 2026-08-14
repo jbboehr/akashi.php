@@ -70,7 +70,7 @@ structurally unsafe inputs. `format --write` repeats the complete formatter pass
 formatter results before using the existing stale-byte-protected, symbolic-link-rejecting atomic writer. No generic
 formatter registry is planned.
 
-## Deferred external PHPStan verification
+## External PHPStan verification
 
 Yumemi-style consumer tests may create disposable Composer projects, install a package under test and another package,
 then run runtime and PHPStan checks. Composer path repositories and archives remain the correct tools for preparing
@@ -94,20 +94,22 @@ Akashi work is:
 2. **Implemented:** `PhpStanResultVerifier` compares an explicit per-file expectation map with decoded diagnostics and
    returns `PhpStanVerificationResult`, preserving typed successful matches, complete mismatches, and analyzer-wide
    errors without PHPUnit or `RuleTestCase`.
-3. Structured command results and a thin PHPStan command adapter that accepts an explicit project root and a typed
-   argument vector or equivalent injection-safe command value. It should retain the exit status, standard output,
-   standard error, timeout, signal and launch-failure evidence, and distinguish a diagnostic mismatch from malformed
-   analyzer output or command failure.
-4. A compatibility migration of one consumer fixture, comparing Akashi's result with the existing harness before any
+3. **Implemented:** `PhpStanCommandRunner` executes an explicit, boundary-preserving executable and argument vector from
+   an explicit project root without constructing a command string. `PhpStanCommandResult` retains exit status, standard
+   streams, elapsed time, timeout, signal, and infrastructure-failure evidence without interpreting nonzero analysis
+   exits as launch failures.
+4. Compose command completion, JSON decoding, and expectation verification so malformed analyzer output, infrastructure
+   failures, and diagnostic mismatches remain distinct typed outcomes.
+5. A compatibility migration of one consumer fixture, comparing Akashi's result with the existing harness before any
    duplicate parser is removed.
-5. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
+6. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
    diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and PHPStan; this is still not a
    prerequisite for decoding or command execution.
 
-The decoder and framework-neutral verification types are now settled pre-1.0 public contracts; command API names remain
-undecided. Akashi must not become responsible for constructing temporary Composer projects, adding Composer
-repositories, resolving or installing dependencies, creating or inspecting archives, defining another package's
-compatibility matrix, or running package-specific runtime assertions.
+The low-level command, decoder, and framework-neutral verification types are now settled pre-1.0 public contracts; a
+higher-level orchestration API remains undecided. Akashi must not become responsible for constructing temporary Composer
+projects, adding Composer repositories, resolving or installing dependencies, creating or inspecting archives, defining
+another package's compatibility matrix, or running package-specific runtime assertions.
 
 This work begins after 0.1 and must not expand the existing Markdown MVP.
 

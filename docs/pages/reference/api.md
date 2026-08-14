@@ -127,6 +127,7 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 | `Integration\PHPStan\VerifiesPhpStanExamples`     | `RuleTestCase` trait that verifies a selected corpus.           |
 | `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                              |
 | `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.            |
+| `Integration\PHPStan\PhpStanCommandRunner`        | Execute an explicit, boundary-preserving argument vector.       |
 | `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan.           |
 | `Integration\PHPStan\PhpStanResultVerifier`       | Verify decoded per-file diagnostics without PHPUnit or PHPStan. |
 
@@ -141,6 +142,19 @@ metadata rather than analyzer-line constraints. An absent analyzer entry satisfi
 so this result alone does not prove that a clean file was analyzed. Direct consumers may use these typed models with
 `ExpectationParser`, `DiagnosticMatcher`, `PhpStanJsonDecoder`, and `PhpStanResultVerifier`; the
 `VerifiesPhpStanExamples` trait remains the supported integration path for PHPStan's runtime objects.
+
+`PhpStanCommandResult` and `PhpStanCommandTermination` form the framework-neutral process model. A completed result
+always contains the raw exit status, including nonzero statuses; timeout, signal, and infrastructure failure carry only
+the evidence valid for that termination. A signaled result requires a positive signal and permits either no exit status
+or a nonzero platform-specific status; a successful zero status is rejected as contradictory. Standard output, standard
+error, and nonnegative elapsed nanoseconds are preserved for every result.
+
+`PhpStanCommandRunner` accepts an explicit project root, executable, argument list, and finite positive timeout. It
+canonicalizes the root and executable with `realpath()`, inherits the caller's environment, and never constructs or
+interpolates a caller-controlled command string. Symfony Process may retry a failed direct POSIX launch through an
+escaped shell command line without exposing that fact. A resulting `126` or `127` therefore remains a raw completed
+status; unavailable paths, local instrumentation failures, and process failures surfaced as exceptions become typed
+infrastructure evidence.
 
 ## Exceptions
 
@@ -159,7 +173,9 @@ These exception families and their documented leaf classes are public machine-re
 should catch the narrowest meaningful type or its family base instead of parsing exception messages.
 
 Malformed inputs passed directly to the analyzer-independent PHPStan model or `PhpStanResultVerifier` are programmer
-errors reported as `\InvalidArgumentException`, not `PhpStanException` instances.
+errors reported as `\InvalidArgumentException`, not `PhpStanException` instances. The same applies to malformed command
+paths, argument vectors, and timeout values; supported operational command failures are returned as
+`PhpStanCommandResult` evidence instead of exceptions.
 
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 
@@ -167,8 +183,9 @@ errors reported as `\InvalidArgumentException`, not `PhpStanException` instances
 
 Core discovery, the domain model, transformation, execution, extraction, and synchronization do not require PHPUnit,
 PHPStan, or PHP-CS-Fixer to autoload. The `Integration\PhpUnit` namespace requires a compatible PHPUnit installation
-when used. JSON decoding and framework-neutral result verification need neither optional dependency. PHPStan
-`RuleTestCase` verification requires both PHPUnit and PHPStan because it reports through PHPUnit. Formatting checks
-require a compatible project-installed PHP-CS-Fixer executable only when invoked; Akashi does not load its PHP classes.
+when used. Command execution, JSON decoding, and framework-neutral result verification need neither optional dependency;
+the caller supplies the executable it wants to run. PHPStan `RuleTestCase` verification requires both PHPUnit and
+PHPStan because it reports through PHPUnit. Formatting checks require a compatible project-installed PHP-CS-Fixer
+executable only when invoked; Akashi does not load its PHP classes.
 
 See [Compatibility and Safety](compatibility.md) for the targeted versions.

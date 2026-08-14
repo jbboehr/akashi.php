@@ -111,13 +111,36 @@ classes:
 <?php
 
 use jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandRunner;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonDecoder;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanResultVerifier;
 
-$result = (new PhpStanJsonDecoder())->decode($json);
+$canonicalProjectRoot = realpath($projectRoot);
+if ($canonicalProjectRoot === false) {
+    throw new RuntimeException('The PHPStan project root is unavailable.');
+}
+
+$commandResult = (new PhpStanCommandRunner())->run(
+    projectRoot: $canonicalProjectRoot,
+    executable: PHP_BINARY,
+    arguments: [
+        $canonicalProjectRoot . '/vendor/bin/phpstan',
+        'analyse',
+        '--error-format=json',
+        '--no-progress',
+        'example.php',
+    ],
+);
+
+if ($commandResult->termination !== PhpStanCommandTermination::Completed) {
+    throw new RuntimeException($commandResult->failureMessage ?? 'PHPStan did not complete normally.');
+}
+
+$result = (new PhpStanJsonDecoder())->decode($commandResult->stdout);
 
 $verification = (new PhpStanResultVerifier())->verify($result, [
-    '/project/example.php' => [
+    $canonicalProjectRoot . '/example.php' => [
         new DiagnosticExpectation(
             'Call to an undefined method',
             sourceLine: 12, // Authored expectation location for mismatch reporting.
@@ -130,6 +153,26 @@ $verification = (new PhpStanResultVerifier())->verify($result, [
 `AnalyzerDiagnostic` retains its message, optional line, optional identifier and tip, and PHPStan's `ignorable` flag.
 The decoder accepts the documented PHPStan 1.12 and 2.x JSON shape, including PHPStan 1.12's empty `files` list, ignores
 unknown fields for forward compatibility, and rejects malformed or internally inconsistent results.
+
+`PhpStanCommandRunner` executes an explicit executable and argument list from an explicit project root. Akashi never
+constructs a command string or interpolates caller values into one, so arguments do not undergo shell word splitting,
+globbing, or command substitution. The example uses the current PHP binary to run the project-installed PHPStan proxy,
+which is portable across the supported operating-system runners. The immutable result preserves the termination kind,
+exit status, standard streams, elapsed time, and any applicable timeout, signal, or infrastructure-failure message. A
+nonzero exit status is still a completed invocation because PHPStan may return diagnostics with that status; decoding
+and later verification decide what the output means.
+
+The runner canonicalizes the project root and executable with `realpath()` and inherits the caller's environment. Use
+that same canonical project root when constructing exact expectation paths, as the example does. The runner neither
+installs PHPStan nor chooses analysis paths or arguments, and it does not decode output automatically. Malformed
+arguments and timeout values are programmer errors; unavailable paths, local instrumentation failures, and process
+failures surfaced as exceptions are returned as typed infrastructure evidence.
+
+Symfony Process may retry a failed direct POSIX launch through an escaped shell command line. Because it does not expose
+whether that fallback occurred, a resulting status such as `126` or `127` remains raw `Completed` evidence rather than
+being guessed to be an infrastructure failure. This boundary preserves caller-supplied argument boundaries, but it is
+not a security sandbox: the configured executable runs with the caller's operating-system permissions and should be
+treated as trusted project tooling.
 
 `PhpStanResultVerifier` compares each expected file with the corresponding decoded diagnostics through the same
 deterministic one-to-one matcher used by the `RuleTestCase` integration. The returned `PhpStanVerificationResult` keeps
@@ -148,8 +191,8 @@ Analyzer-wide errors make the result unsuccessful without discarding otherwise s
 Paths are compared exactly. A caller that analyzes generated or relocated files remains responsible for associating the
 analyzer paths with the maintained expectation paths before verification.
 
-This remains a decoding and verification boundary, not a command runner: the caller is responsible for launching PHPStan
-and preserving its exit status and standard streams. A typed command adapter remains deferred.
+Command execution, JSON decoding, and expectation verification remain explicit composable stages. A convenience
+orchestrator that interprets command completion and malformed analyzer output remains deferred.
 
 ## Analysis Lifecycle and Trust
 

@@ -34,6 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Verify decoded PHPStan diagnostics against per-file expectation maps without PHPUnit or PHPStan runtime classes,
   preserving successful assignments, complete mismatches, unexpected or missing files, and analyzer-wide errors as typed
   result evidence.
+- Execute explicit, boundary-preserving PHPStan command argument vectors without constructing command strings,
+  preserving normal exit statuses, standard streams, elapsed time, timeouts, signals, and infrastructure failures as
+  typed framework-neutral result evidence.
 
 ### Changed
 

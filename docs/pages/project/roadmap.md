@@ -96,8 +96,8 @@ results outside PHPUnit, and source mappings that can associate diagnostics with
 ## External PHPStan Verification
 
 Consumer repositories sometimes construct disposable Composer projects and run PHPStan against installed packages.
-Akashi may eventually replace their shell-level diagnostic parsing without taking ownership of package installation or
-compatibility-matrix orchestration.
+Akashi is incrementally replacing their shell-level diagnostic parsing without taking ownership of package installation
+or compatibility-matrix orchestration.
 
 The sequence is:
 
@@ -105,23 +105,26 @@ The sequence is:
    file association, or available diagnostic evidence.
 2. **Implemented:** compare decoded per-file diagnostics with an explicit expectation map and return typed successful
    matches, complete mismatches, and analyzer-wide errors independently of PHPUnit and `RuleTestCase`.
-3. Represent command execution independently, then add a thin PHPStan command adapter with an explicit project root and
-   a typed argument vector rather than a shell command string. Preserve exit status, standard streams, timeouts,
-   signals, launch failures, and malformed analyzer output as distinct outcomes.
-4. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
+3. **Implemented:** execute an explicit, boundary-preserving executable and argument vector from an explicit project
+   root without constructing a command string, preserving exit status, standard streams, elapsed time, timeout, signal,
+   and infrastructure failures as typed evidence.
+4. Compose command completion, JSON decoding, and expectation verification while keeping nonzero analysis exits,
+   malformed analyzer output, infrastructure failures, and diagnostic mismatches distinct.
+5. Migrate one consumer fixture and compare the structured result with its existing harness before duplicate parsing is
    removed.
-5. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
+6. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
    keeping disposable-project orchestration in the consumer.
 
 The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract.
 `PhpStanJsonDecoder` and `PhpStanJsonResult` establish the decoder boundary; `PhpStanResultVerifier` and
-`PhpStanVerificationResult` establish the framework-neutral verification boundary. Exact command-adapter names remain
-undecided. Akashi will not construct temporary Composer projects, add repositories, install dependencies, inspect
-packages, define another project's compatibility matrix, or run package-specific runtime assertions. Those
-responsibilities remain with the consumer repository.
+`PhpStanVerificationResult` establish the framework-neutral verification boundary. Names for any higher-level
+command/decode/verify orchestrator remain undecided; the low-level runner and process-result names are settled. Akashi
+will not construct temporary Composer projects, add repositories, install dependencies, inspect packages, define another
+project's compatibility matrix, or run package-specific runtime assertions. Those responsibilities remain with the
+consumer repository.
 
-A standalone runner, report formats, and broader plugin seams should follow concrete consumer demand. Akashi will not
-add registries or speculative interfaces merely to anticipate them.
+A standalone Akashi test runner, report formats, and broader plugin seams should follow concrete consumer demand. Akashi
+will not add registries or speculative interfaces merely to anticipate them.
 
 ## Comparative Review
 

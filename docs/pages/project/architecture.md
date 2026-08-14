@@ -154,9 +154,9 @@ every fatal condition or external side effect.
 ### Separate process
 
 `SeparateProcessTransformer` preserves normal-file PHP semantics and its line map. `SubprocessExecutor` creates a
-private temporary file, invokes the current PHP binary with Symfony Process without a shell, applies the configured
-project root and optional bootstrap, captures both streams, enforces the fixed emergency timeout, classifies child
-outcomes, and removes the file in `finally`.
+private temporary file, invokes the current PHP binary with Symfony Process through an explicit argument vector without
+constructing a shell command, applies the configured project root and optional bootstrap, captures both streams,
+enforces the fixed emergency timeout, classifies child outcomes, and removes the file in `finally`.
 
 The child protects PHPUnit from ordinary fatal process behavior. It is not an operating-system sandbox.
 
@@ -184,7 +184,12 @@ decoder validates the documented structure and internal counts while ignoring un
 then compares an explicit expectation map across the union of expected and reported paths through `DiagnosticMatcher`.
 Its framework-neutral `PhpStanVerificationResult` separates successful file assignments, complete file mismatches, and
 analyzer-wide errors, so expected verification failures remain data rather than exceptions. Command execution and exit
-status interpretation remain separate deferred boundaries.
+status interpretation remain separate from matching. `PhpStanCommandRunner` now executes an explicit,
+boundary-preserving executable and argument vector from an explicit project root without constructing a command string.
+Its typed result preserves normal exit status and streams without treating a nonzero status as an infrastructure
+failure, while timeout, signal, path/setup failure, local instrumentation failure, and process failures surfaced as
+exceptions remain distinguishable. Decoding, exit interpretation, and verification orchestration are still explicit
+caller-owned stages.
 
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
@@ -218,10 +223,10 @@ The formatting layer addresses only code physically embedded in Markdown or PHPD
 same corpus, skips referenced external sources, and invokes one project-installed PHP-CS-Fixer process per inline
 example. It separates an authored opening tag from the checked body, prefixes a harmless `declare` plus an
 entropy-backed boundary, and writes the resulting valid PHP to a private temporary directory. PHP-CS-Fixer runs through
-an argument vector without a shell, cache, or parallel workers and under a fixed timeout. The checker reads the
-formatter-modified temporary file, verifies the boundary, discards project-level material inserted before it, and
-returns typed `FormattingMismatch` values without writing maintained documentation. Process evidence replaces the
-temporary filename with the original document location; cleanup executes on every outcome.
+an explicit argument vector without constructing a shell command, cache, or parallel workers and under a fixed timeout.
+The checker reads the formatter-modified temporary file, verifies the boundary, discards project-level material inserted
+before it, and returns typed `FormattingMismatch` values without writing maintained documentation. Process evidence
+replaces the temporary filename with the original document location; cleanup executes on every outcome.
 
 `FormattingRewriter` is the separate pure update boundary. It accepts the exact loaded `Document` plus checked
 mismatches for that document, rejects stale, cross-document, duplicate, referenced, or structurally unsafe inputs, and
@@ -258,9 +263,9 @@ Current architecture supports Markdown and inline PHPDoc fences, PHPDoc referenc
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-typed PHPStan JSON decoding and standalone result verification, and marked extraction. Hidden support code,
-documentation-renderer inclusion, generalized verifier plugins, a PHPStan command adapter, and a standalone runner do
-not exist yet.
+typed PHPStan command execution, JSON decoding and standalone result verification, and marked extraction. Hidden support
+code, documentation-renderer inclusion, generalized verifier plugins, a decode-and-verify command orchestrator, and a
+standalone Akashi test runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

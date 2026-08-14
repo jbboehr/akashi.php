@@ -63,8 +63,9 @@ configuration discovery from that root.
 
 Akashi checks only inline Markdown and PHPDoc fences. PHPDoc references to whole external files or named regions are
 loaded and validated but not sent through this adapter; run the project's ordinary formatter directly on those PHP
-files. Each checked body is written to a private temporary PHP file, PHP-CS-Fixer runs through an argument vector
-without a shell, caching, or parallel execution, and a 60-second infrastructure timeout applies.
+files. Each checked body is written to a private temporary PHP file, PHP-CS-Fixer runs through an explicit argument
+vector without constructing a shell command, caching, or parallel execution, and a 60-second infrastructure timeout
+applies.
 
 A current set exits successfully without output. Each stale inline example produces a source-labelled unified diff on
 stderr from the authored fence to the formatter result, followed by a deterministic count, and exits with status `1`. An

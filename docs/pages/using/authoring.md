@@ -263,10 +263,10 @@ during discovery, PHPUnit, PHPStan, extraction, synchronization, or the normal A
 
 Akashi checks only physically embedded Markdown and PHPDoc fences from the selected documentation files. It deliberately
 skips referenced whole files and named regions because ordinary formatter commands already cover them. Each inline body
-is placed in a private temporary PHP file, PHP-CS-Fixer runs without a shell or cache, and Akashi compares only the body
-after a protected boundary. File-level additions such as a configured license header do not enter the fence. An authored
-opening `<?php` tag and its separator are preserved outside the comparison; body line endings and final-newline changes
-remain significant.
+is placed in a private temporary PHP file, PHP-CS-Fixer runs through an explicit argument vector without constructing a
+shell command or using a cache, and Akashi compares only the body after a protected boundary. File-level additions such
+as a configured license header do not enter the fence. An authored opening `<?php` tag and its separator are preserved
+outside the comparison; body line endings and final-newline changes remain significant.
 
 Check mode never changes maintained documentation. A clean check is silent. A mismatch produces a source-labelled
 unified diff on stderr and status `1`. Formatter launch, timeout, invalid output, and cleanup failures identify the
