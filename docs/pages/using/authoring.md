@@ -44,9 +44,10 @@ Exclusions match an exact file or a complete directory subtree. See [Configurati
 ordering, symlink, duplicate-document, and failure behavior. `MarkdownSource` remains available when a project wants an
 explicitly Markdown-only manifest.
 
-Choose documents whose PHP fences are meant to participate in at least one configured workflow. Akashi currently has a
-runtime `skip` directive, but no global ignore or compile-only directive. Use another fence language for fragments that
-should not enter the corpus, or exclude their containing document.
+Choose documents whose PHP fences are meant to participate in at least one configured workflow. Use `compile-only` for
+valid PHP that PHPUnit should parse without executing, and runtime `skip` when PHPUnit should report a skipped data set.
+Akashi has no global ignore directive; use another fence language for fragments that should not enter the corpus, or
+exclude their containing document.
 
 ## Write PHP Fences
 
@@ -330,8 +331,9 @@ marked example.
 
 ## Add a Runtime Directive
 
-Akashi currently recognizes `skip` and `separate-process`. Place directives immediately before the PHP fence; a marker,
-multiple directives, and blank lines may be stacked together. Prose or an unrelated block breaks the association.
+Akashi currently recognizes `skip`, `compile-only`, and `separate-process`. Place directives immediately before the PHP
+fence; a marker, multiple directives, and blank lines may be stacked together. Prose or an unrelated block breaks the
+association.
 
 ````markdown
 <!-- akashi: separate-process -->

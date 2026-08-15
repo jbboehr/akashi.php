@@ -296,6 +296,29 @@ PHP);
         );
     }
 
+    public function testPreservesCompileOnlyMetadataFromCanonicalPhp(): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/compile.php */\n",
+        );
+        $this->write('examples/compile.php', <<<'PHP'
+<?php
+// akashi: compile-only
+exit('not executed');
+PHP);
+
+        $examples = iterator_to_array(
+            DocumentationSource::forProject($this->projectRoot)
+                ->includeFile('src/Examples.php')
+                ->load(),
+        );
+
+        self::assertCount(1, $examples);
+        self::assertTrue($examples[0]->directives->contains(Directive::CompileOnly));
+        self::assertSame(2, $examples[0]->codeOrigin()->metadata->compileOnlyDirectiveLine);
+    }
+
     public function testRejectsAnExpectedExceptionMessageWithoutATypeInACanonicalExample(): void
     {
         $this->write(

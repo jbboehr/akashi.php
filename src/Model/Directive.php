@@ -46,6 +46,12 @@ namespace jbboehr\Akashi\Model;
 enum Directive: string
 {
     /**
+     * @logion [RAS 110:1] An alabaster moon divided into two unequal crescents above the silent desert. Only the smaller
+     *     cast light, and the dunes inclined eastward beneath it.
+     */
+    case CompileOnly = 'compile-only';
+
+    /**
      * @logion [OSD 67:1] The court left one witness upon the roll though winter closed the mountain road; his empty
      *     chair was named before judgment, so absence could not masquerade as forgotten testimony.
      */

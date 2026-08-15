@@ -186,6 +186,13 @@ failure, or malformed exception report remains a process or infrastructure failu
 An authored `<!-- akashi: skip -->` directive remains a named data set, but PHPUnit reports it as skipped before Akashi
 configures, transforms, bootstraps, or executes the example. It does not remove the example from PHPStan or extraction.
 
+An authored `compile-only` directive also remains a named data set. Akashi validates its PHP syntax against the running
+host version and records one assertion without applying runtime transforms, loading a bootstrap, or executing the code.
+This is useful for valid illustrative fragments that should remain available to PHPStan and extraction. It cannot be
+combined with `separate-process` or an expected exception; `skip` takes precedence when both dispositions are present.
+Compile-only governs this PHPUnit path only. PHPStan verification requires selected files and executes their top-level
+code, so exclude unsafe compile-only fragments from the PHPStan subcorpus.
+
 Successful examples record one completion assertion even when they contain no native assertion. Failures report the
 example ID, label, maintained documentation location when available, failure phase, cause, captured stdout and stderr,
 and cleanup problems. The original exception remains in the exception chain.

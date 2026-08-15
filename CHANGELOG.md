@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Author `skip`, `separate-process`, `expect-exception`, and optional PHPUnit-compatible `expect-exception-message`
   substring and `expect-exception-code` integer constraints as token-aware PHP line comments in fenced or external
   canonical example code.
+- Validate `compile-only` examples through PHPUnit with source-aware host-version parsing and one assertion, without
+  selecting an execution backend, applying runtime transforms, loading a bootstrap, or executing authored code.
 - Verify expected exception types, message substrings, and integer codes in both execution backends without treating
   child exits, signals, timeouts, or infrastructure failures as authored exceptions.
 - Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named

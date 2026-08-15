@@ -52,16 +52,26 @@ final class MetadataLocationTest extends TestCase
         self::assertNull($location->separateProcessDirectiveLine);
         self::assertNull($location->skipDirectiveLine);
         self::assertNull($location->expectedExceptionDirectiveLine);
+        self::assertNull($location->compileOnlyDirectiveLine);
     }
 
     public function testPreservesAssociatedMetadataLines(): void
     {
-        $location = new MetadataLocation(3, 5, 4, 2);
+        $location = new MetadataLocation(3, 5, 4, 2, 6);
 
         self::assertSame(3, $location->markerLine);
         self::assertSame(5, $location->separateProcessDirectiveLine);
         self::assertSame(4, $location->skipDirectiveLine);
         self::assertSame(2, $location->expectedExceptionDirectiveLine);
+        self::assertSame(6, $location->compileOnlyDirectiveLine);
+    }
+
+    public function testRejectsANonpositiveCompileOnlyDirectiveLine(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Compile-only directive line must be positive.');
+
+        (new \ReflectionClass(MetadataLocation::class))->newInstanceArgs([null, null, null, null, 0]);
     }
 
     #[DataProvider('invalidLineProvider')]

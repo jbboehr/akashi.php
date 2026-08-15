@@ -84,10 +84,21 @@ final class MetadataLocation
     public readonly ?int $expectedExceptionDirectiveLine;
 
     /**
+     * @var positive-int|null
+     *
+     * @logion [RAS 110:2] A porcelain stag walked upon the artificial horizon, bearing no rider and casting antlers
+     *     across the stars. Wherever the antlers passed, extinct constellations appeared for one breath and bowed toward
+     *     the earth. The stag stopped above a nameless village, and the night gathered there in perfect order, as though
+     *     heaven had remembered its smallest court.
+     */
+    public readonly ?int $compileOnlyDirectiveLine;
+
+    /**
      * @param positive-int|null $markerLine
      * @param positive-int|null $separateProcessDirectiveLine
      * @param positive-int|null $skipDirectiveLine
      * @param positive-int|null $expectedExceptionDirectiveLine
+     * @param positive-int|null $compileOnlyDirectiveLine
      *
      * @logion [RAS 47:8] Above the winter harbor, a constellation descended until each star rested upon a different
      *     mast. No rope burned, and the sleeping crews dreamed of the same green country. At sunrise the lights rose,
@@ -98,18 +109,21 @@ final class MetadataLocation
         ?int $separateProcessDirectiveLine = null,
         ?int $skipDirectiveLine = null,
         ?int $expectedExceptionDirectiveLine = null,
+        ?int $compileOnlyDirectiveLine = null,
     ) {
         self::validateLines(
             $markerLine,
             $separateProcessDirectiveLine,
             $skipDirectiveLine,
             $expectedExceptionDirectiveLine,
+            $compileOnlyDirectiveLine,
         );
 
         $this->markerLine = $markerLine;
         $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
         $this->skipDirectiveLine = $skipDirectiveLine;
         $this->expectedExceptionDirectiveLine = $expectedExceptionDirectiveLine;
+        $this->compileOnlyDirectiveLine = $compileOnlyDirectiveLine;
     }
 
     /**
@@ -122,6 +136,7 @@ final class MetadataLocation
         ?int $separateProcessDirectiveLine,
         ?int $skipDirectiveLine,
         ?int $expectedExceptionDirectiveLine,
+        ?int $compileOnlyDirectiveLine,
     ): void {
         if ($markerLine !== null && $markerLine < 1) {
             throw new \InvalidArgumentException('Marker line must be positive.');
@@ -137,6 +152,10 @@ final class MetadataLocation
 
         if ($expectedExceptionDirectiveLine !== null && $expectedExceptionDirectiveLine < 1) {
             throw new \InvalidArgumentException('Expected-exception directive line must be positive.');
+        }
+
+        if ($compileOnlyDirectiveLine !== null && $compileOnlyDirectiveLine < 1) {
+            throw new \InvalidArgumentException('Compile-only directive line must be positive.');
         }
     }
 }

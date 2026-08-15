@@ -107,6 +107,7 @@ final class ExampleTest extends TestCase
         self::assertNull($example->explicitMarkerId);
         self::assertFalse($example->directives->contains(Directive::Skip));
         self::assertFalse($example->directives->contains(Directive::SeparateProcess));
+        self::assertFalse($example->directives->contains(Directive::CompileOnly));
         self::assertNull($example->expectedException);
     }
 

@@ -89,6 +89,7 @@ final class ReferencedExampleSource
             $origin->metadata->separateProcessDirectiveLine,
             $origin->metadata->skipDirectiveLine,
             $origin->metadata->expectedExceptionDirectiveLine,
+            $origin->metadata->compileOnlyDirectiveLine,
         ] as $directiveLine) {
             if (
                 $directiveLine !== null

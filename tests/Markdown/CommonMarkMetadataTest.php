@@ -248,6 +248,27 @@ MARKDOWN);
         self::assertSame(4, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
     }
 
+    public function testAssociatesCompileOnlyInHtmlAndInlineForms(): void
+    {
+        $examples = $this->extract(<<<'MARKDOWN'
+<!-- akashi: compile-only -->
+```php
+exit('not executed');
+```
+
+```php
+// akashi: compile-only
+exit('also not executed');
+```
+MARKDOWN);
+
+        self::assertCount(2, $examples);
+        self::assertTrue($examples[0]->directives->contains(Directive::CompileOnly));
+        self::assertTrue($examples[1]->directives->contains(Directive::CompileOnly));
+        self::assertSame(1, $examples[0]->codeOrigin()->metadata->compileOnlyDirectiveLine);
+        self::assertSame(7, $examples[1]->codeOrigin()->metadata->compileOnlyDirectiveLine);
+    }
+
     public function testRejectsAnInvalidMarkerIdWithItsSourceLocation(): void
     {
         try {
@@ -368,6 +389,10 @@ MARKDOWN);
         yield 'duplicate skip' => [
             "<!-- akashi: skip -->\n<!-- akashi: skip -->\n```php\necho 1;\n```\n",
             'Duplicate Akashi directive skip at docs/directives.md:2; first declared at docs/directives.md:1.',
+        ];
+        yield 'duplicate compile-only across forms' => [
+            "<!-- akashi: compile-only -->\n```php\n// akashi: compile-only\necho 1;\n```\n",
+            'Duplicate Akashi directive compile-only at docs/directives.md:3; first declared at docs/directives.md:1.',
         ];
         yield 'missing expected exception class' => [
             "<!-- akashi: expect-exception -->\n```php\necho 1;\n```\n",

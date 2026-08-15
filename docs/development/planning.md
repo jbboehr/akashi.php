@@ -46,6 +46,12 @@ guards maintained runtime failure locations for Markdown fences, inline PHPDoc f
 named regions. Synthetic generated lines remain unmapped, and a future general multi-origin mapping model is deferred
 until hidden support code or another transformation requires it.
 
+Compile-only is implemented as a runtime disposition independent of backend selection. PHPUnit parses the maintained
+example against the host PHP version, retains source-aware parse failures, records one successful assertion, and does
+not apply runtime transforms, load a configured bootstrap, or execute code. Runtime skip remains higher precedence;
+compile-only rejects authored separate-process selection and expected-exception contracts. The example remains available
+to PHPStan and extraction.
+
 The synchronization library parses strictly delimited `akashi-sync` regions in Markdown and conventional multiline
 PHPDoc, allows formatter-compatible blank separators, resolves through the existing canonical external-source rules, and
 produces typed mismatches. It can also apply those mismatches to exact code spans in memory, preserve presentation

@@ -57,7 +57,7 @@ final class ExampleSourceTest extends TestCase
     public function testBuildsAnInlineSourceFromOneFenceLocation(): void
     {
         $document = new Document('docs/example.md', "```php\necho 1;\n```\n");
-        $metadata = new MetadataLocation(skipDirectiveLine: 2);
+        $metadata = new MetadataLocation(skipDirectiveLine: 2, compileOnlyDirectiveLine: 2);
         $location = new SourceLocation(
             1,
             2,
@@ -100,7 +100,7 @@ final class ExampleSourceTest extends TestCase
             3,
             new SourceSpan(0, 19),
             new SourceSpan(7, 15),
-            new MetadataLocation(skipDirectiveLine: 2),
+            new MetadataLocation(skipDirectiveLine: 2, compileOnlyDirectiveLine: 2),
         );
 
         $source = new InlineExampleSource(
@@ -109,7 +109,7 @@ final class ExampleSourceTest extends TestCase
                 2,
                 2,
                 new SourceSpan(7, 15),
-                new MetadataLocation(skipDirectiveLine: 2),
+                new MetadataLocation(skipDirectiveLine: 2, compileOnlyDirectiveLine: 2),
             ),
             $location,
             new FenceMetadata('php', '`', 3, 0),
@@ -117,6 +117,7 @@ final class ExampleSourceTest extends TestCase
 
         self::assertNotSame($source->origin->metadata, $source->location->metadata);
         self::assertSame(2, $source->origin->metadata->skipDirectiveLine);
+        self::assertSame(2, $source->origin->metadata->compileOnlyDirectiveLine);
     }
 
     #[DataProvider('invalidOriginProvider')]

@@ -175,11 +175,34 @@ final class SourceLocationTest extends TestCase
             8,
             new SourceSpan(10, 50),
             new SourceSpan(20, 40),
-            new MetadataLocation(separateProcessDirectiveLine: 5, skipDirectiveLine: 7),
+            new MetadataLocation(
+                separateProcessDirectiveLine: 5,
+                skipDirectiveLine: 7,
+                compileOnlyDirectiveLine: 6,
+            ),
         );
 
         self::assertSame(5, $location->metadata->separateProcessDirectiveLine);
         self::assertSame(7, $location->metadata->skipDirectiveLine);
+        self::assertSame(6, $location->metadata->compileOnlyDirectiveLine);
+    }
+
+    public function testRejectsACompileOnlyDirectiveOutsideTheFenceAndCode(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Compile-only directive line must precede the opening fence or lie within its code content.',
+        );
+
+        new SourceLocation(
+            4,
+            5,
+            5,
+            6,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation(compileOnlyDirectiveLine: 8),
+        );
     }
 
     /**

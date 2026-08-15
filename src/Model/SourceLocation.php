@@ -161,6 +161,7 @@ final class SourceLocation
             'Separate-process' => $metadata->separateProcessDirectiveLine,
             'Skip' => $metadata->skipDirectiveLine,
             'Expected-exception' => $metadata->expectedExceptionDirectiveLine,
+            'Compile-only' => $metadata->compileOnlyDirectiveLine,
         ] as $name => $directiveLine) {
             if ($directiveLine === null) {
                 continue;

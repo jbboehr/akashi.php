@@ -99,12 +99,16 @@ $runtime = RuntimeConfiguration::forProject($projectRoot)
 readable file that resolves within that root. `withDefaultExecutionMode()` accepts `ExecutionMode::InProcess` or
 `ExecutionMode::SeparateProcess`.
 
-Runtime mode precedence is:
+Runtime processing precedence is:
 
 1. authored `skip` disposition;
-2. authored `separate-process` selection;
-3. configured default execution mode;
-4. in-process fallback.
+2. authored `compile-only` disposition;
+3. authored `separate-process` selection;
+4. configured default execution mode;
+5. in-process fallback.
+
+Compile-only validation selects no execution mode. Combining its directive with an authored `separate-process` directive
+or expected exception is invalid.
 
 An in-process example with configuration runs from the configured project root. Without configuration, it runs from the
 caller's current working directory. A separate-process example without configuration is rejected.

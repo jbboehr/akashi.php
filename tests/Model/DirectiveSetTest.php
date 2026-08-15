@@ -50,13 +50,15 @@ final class DirectiveSetTest extends TestCase
 
         self::assertFalse($set->contains(Directive::Skip));
         self::assertFalse($set->contains(Directive::SeparateProcess));
+        self::assertFalse($set->contains(Directive::CompileOnly));
     }
 
     public function testContainsAConfiguredDirective(): void
     {
-        $set = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
+        $set = new DirectiveSet(Directive::Skip, Directive::SeparateProcess, Directive::CompileOnly);
 
         self::assertTrue($set->contains(Directive::Skip));
+        self::assertTrue($set->contains(Directive::CompileOnly));
         self::assertTrue($set->contains(Directive::SeparateProcess));
     }
 

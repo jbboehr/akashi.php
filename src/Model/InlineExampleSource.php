@@ -91,6 +91,7 @@ final class InlineExampleSource
             || $origin->metadata->skipDirectiveLine !== $location->metadata->skipDirectiveLine
             || $origin->metadata->expectedExceptionDirectiveLine
                 !== $location->metadata->expectedExceptionDirectiveLine
+            || $origin->metadata->compileOnlyDirectiveLine !== $location->metadata->compileOnlyDirectiveLine
         ) {
             throw new \InvalidArgumentException('Inline source origin must match its fenced source location.');
         }

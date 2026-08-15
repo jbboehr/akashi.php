@@ -144,6 +144,25 @@ PHP);
         self::assertSame("echo 'second';\n", $examples[1]->code->source);
     }
 
+    public function testPreservesCompileOnlyMetadataFromAPhpDocFence(): void
+    {
+        $document = new Document('src/compile.php', <<<'PHP'
+<?php
+/**
+ * <!-- akashi: compile-only -->
+ * ```php
+ * exit('not executed');
+ * ```
+ */
+PHP);
+
+        $examples = (new PhpDocExampleExtractor())->extract($document);
+
+        self::assertCount(1, $examples);
+        self::assertTrue($examples[0]->directives->contains(Directive::CompileOnly));
+        self::assertSame(3, $examples[0]->codeOrigin()->metadata->compileOnlyDirectiveLine);
+    }
+
     public function testDoesNotAssociateMetadataAcrossDocblockBoundaries(): void
     {
         $document = new Document('src/examples.php', <<<'PHP'

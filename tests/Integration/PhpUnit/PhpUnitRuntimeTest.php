@@ -55,6 +55,8 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
+use jbboehr\Akashi\Transform\Exception\PhpParseException;
+use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -267,13 +269,70 @@ PHP,
         self::assertNotSame((string) $parentPid, $childPid);
     }
 
+    public function testCompileOnlyParsesWithoutExecutionBootstrapOrBackendSelection(): void
+    {
+        $unexpectedExampleFile = $this->workspace . '/example-ran';
+        $unexpectedBootstrapFile = $this->workspace . '/bootstrap-ran';
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/bootstrap.php',
+            sprintf("<?php\nfile_put_contents(%s, 'loaded');\n", var_export($unexpectedBootstrapFile, true)),
+        ));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)
+            ->withBootstrap('bootstrap.php')
+            ->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
+        $before = Assert::getCount();
+
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                sprintf("file_put_contents(%s, 'executed');\nexit(19);", var_export($unexpectedExampleFile, true)),
+                directives: new DirectiveSet(Directive::CompileOnly),
+                compileOnlyDirectiveLine: 8,
+            ),
+            $configuration,
+        );
+
+        self::assertSame($before + 1, Assert::getCount());
+        self::assertFileDoesNotExist($unexpectedExampleFile);
+        self::assertFileDoesNotExist($unexpectedBootstrapFile);
+    }
+
+    public function testCompileOnlyReportsParseFailuresAtTheMaintainedLine(): void
+    {
+        $this->expectException(PhpParseException::class);
+        $this->expectExceptionMessage('example-runtime-01 at docs/runtime.md:11');
+
+        PhpUnitRuntime::assertExample($this->example(
+            "echo 'valid';\nif (",
+            directives: new DirectiveSet(Directive::CompileOnly),
+            compileOnlyDirectiveLine: 8,
+        ));
+    }
+
+    #[DataProvider('invalidCompileOnlyCombinationProvider')]
+    public function testCompileOnlyRejectsContradictoryRuntimeMetadata(
+        DirectiveSet $directives,
+        ?ExpectedException $expectedException,
+        string $message,
+    ): void {
+        $this->expectException(UnsupportedExampleException::class);
+        $this->expectExceptionMessage($message);
+
+        PhpUnitRuntime::assertExample($this->example(
+            "throw new RuntimeException('not executed');",
+            directives: $directives,
+            expectedException: $expectedException,
+            expectedExceptionLine: $expectedException === null ? null : 10,
+            compileOnlyDirectiveLine: 8,
+        ));
+    }
+
     public function testASkipDirectiveStopsBeforeConfigurationTransformationAndExecution(): void
     {
         $projectRoot = dirname(__DIR__, 3);
         $unexpectedFile = $this->workspace . '/unexpected.txt';
         $markdown = sprintf(
             "<!-- akashi: skip -->\n<!-- akashi: expect-exception LogicException -->\n"
-                . "<!-- akashi: separate-process -->\n```php\n"
+                . "<!-- akashi: separate-process -->\n<!-- akashi: compile-only -->\n```php\n"
                 . "file_put_contents(%s, 'executed');\nthrow new LogicException('executed');\n```\n",
             var_export($unexpectedFile, true),
         );
@@ -433,10 +492,26 @@ PHP,
         yield 'configured default' => [false];
     }
 
+    /** @return iterable<string, array{DirectiveSet, ?ExpectedException, string}> */
+    public static function invalidCompileOnlyCombinationProvider(): iterable
+    {
+        yield 'separate process' => [
+            new DirectiveSet(Directive::CompileOnly, Directive::SeparateProcess),
+            null,
+            'Example example-runtime-01 at docs/runtime.md:8 cannot combine compile-only and separate-process directives.',
+        ];
+        yield 'expected exception' => [
+            new DirectiveSet(Directive::CompileOnly),
+            new ExpectedException(\RuntimeException::class),
+            'Example example-runtime-01 at docs/runtime.md:8 cannot combine compile-only with an expected exception.',
+        ];
+    }
+
     /**
      * @param non-empty-string $source
      * @param positive-int|null $directiveLine
      * @param positive-int|null $expectedExceptionLine
+     * @param positive-int|null $compileOnlyDirectiveLine
      */
     private function example(
         string $source,
@@ -445,6 +520,7 @@ PHP,
         ?int $directiveLine = null,
         ?ExpectedException $expectedException = null,
         ?int $expectedExceptionLine = null,
+        ?int $compileOnlyDirectiveLine = null,
     ): Example {
         $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
         if ($lineBreaks === false) {
@@ -474,6 +550,7 @@ PHP,
                 new MetadataLocation(
                     separateProcessDirectiveLine: $directiveLine,
                     expectedExceptionDirectiveLine: $expectedExceptionLine,
+                    compileOnlyDirectiveLine: $compileOnlyDirectiveLine,
                 ),
             ),
             language: new Language('php'),

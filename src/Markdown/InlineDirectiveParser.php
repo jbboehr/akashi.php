@@ -225,6 +225,7 @@ final class InlineDirectiveParser
                 separateProcessDirectiveLine: $directiveLines[Directive::SeparateProcess->value] ?? null,
                 skipDirectiveLine: $directiveLines[Directive::Skip->value] ?? null,
                 expectedExceptionDirectiveLine: $expectedExceptionLine,
+                compileOnlyDirectiveLine: $directiveLines[Directive::CompileOnly->value] ?? null,
             ),
         ];
     }

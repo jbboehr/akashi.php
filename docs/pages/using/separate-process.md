@@ -107,8 +107,9 @@ protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
 }
 ```
 
-An authored `skip` directive still takes precedence, followed by an authored `separate-process` directive, the
-configured default, and finally the in-process fallback.
+An authored `skip` directive still takes precedence, followed by `compile-only`, an authored `separate-process`
+directive, the configured default, and finally the in-process fallback. Compile-only selects no backend and cannot be
+combined with the separate-process directive.
 
 ## Child-Process Boundary
 

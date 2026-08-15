@@ -56,4 +56,16 @@ final class ExpectedExceptionDocumentationTest extends TestCase
 
         PhpUnitRuntime::assertExample($example);
     }
+
+    public function testThePublishedCompileOnlyExampleRunsThroughAkashi(): void
+    {
+        $projectRoot = dirname(__DIR__, 3);
+        $corpus = MarkdownSource::forProject($projectRoot)
+            ->includeFile('docs/pages/reference/directives.md')
+            ->withMarkerName('akashi-example')
+            ->load();
+        $example = (new MarkedExampleSelector())->select($corpus, 'compile-only-runtime');
+
+        PhpUnitRuntime::assertExample($example);
+    }
 }

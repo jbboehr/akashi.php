@@ -187,10 +187,11 @@ final class CommonMarkExampleExtractor
                 $markerId,
                 $associated['directives'],
                 new MetadataLocation(
-                    $markerLine,
-                    $associated['separateProcessDirectiveLine'],
-                    $associated['skipDirectiveLine'],
-                    $associated['expectedExceptionDirectiveLine'],
+                    markerLine: $markerLine,
+                    separateProcessDirectiveLine: $associated['separateProcessDirectiveLine'],
+                    skipDirectiveLine: $associated['skipDirectiveLine'],
+                    expectedExceptionDirectiveLine: $associated['expectedExceptionDirectiveLine'],
+                    compileOnlyDirectiveLine: $associated['compileOnlyDirectiveLine'],
                 ),
                 $associated['expectedException'],
                 $associated['expectedExceptionMessage'],
@@ -427,6 +428,7 @@ final class CommonMarkExampleExtractor
      *     markerLine: ?positive-int,
      *     separateProcessDirectiveLine: ?positive-int,
      *     skipDirectiveLine: ?positive-int,
+     *     compileOnlyDirectiveLine: ?positive-int,
      *     expectedException: ?ExpectedException,
      *     expectedExceptionDirectiveLine: ?positive-int,
      *     expectedExceptionMessage: ?string,
@@ -583,6 +585,7 @@ final class CommonMarkExampleExtractor
             'markerLine' => $markerLine,
             'separateProcessDirectiveLine' => $directiveLines[Directive::SeparateProcess->value] ?? null,
             'skipDirectiveLine' => $directiveLines[Directive::Skip->value] ?? null,
+            'compileOnlyDirectiveLine' => $directiveLines[Directive::CompileOnly->value] ?? null,
             'expectedException' => $expectedException,
             'expectedExceptionDirectiveLine' => $expectedExceptionDirectiveLine,
             'expectedExceptionMessage' => $expectedExceptionMessage,
@@ -661,10 +664,12 @@ final class CommonMarkExampleExtractor
         $mergedDirectives = [];
         foreach (Directive::cases() as $directive) {
             $associatedLine = match ($directive) {
+                Directive::CompileOnly => $metadataLocation->compileOnlyDirectiveLine,
                 Directive::SeparateProcess => $metadataLocation->separateProcessDirectiveLine,
                 Directive::Skip => $metadataLocation->skipDirectiveLine,
             };
             $inlineLine = match ($directive) {
+                Directive::CompileOnly => $inline['metadata']->compileOnlyDirectiveLine,
                 Directive::SeparateProcess => $inline['metadata']->separateProcessDirectiveLine,
                 Directive::Skip => $inline['metadata']->skipDirectiveLine,
             };
@@ -803,11 +808,14 @@ final class CommonMarkExampleExtractor
         $expectedException ??= $inlineExpectedException;
         $directives = new DirectiveSet(...$mergedDirectives);
         $metadataLocation = new MetadataLocation(
-            $metadataLocation->markerLine,
-            $metadataLocation->separateProcessDirectiveLine ?? $inline['metadata']->separateProcessDirectiveLine,
-            $metadataLocation->skipDirectiveLine ?? $inline['metadata']->skipDirectiveLine,
-            $metadataLocation->expectedExceptionDirectiveLine
+            markerLine: $metadataLocation->markerLine,
+            separateProcessDirectiveLine: $metadataLocation->separateProcessDirectiveLine
+                ?? $inline['metadata']->separateProcessDirectiveLine,
+            skipDirectiveLine: $metadataLocation->skipDirectiveLine ?? $inline['metadata']->skipDirectiveLine,
+            expectedExceptionDirectiveLine: $metadataLocation->expectedExceptionDirectiveLine
                 ?? $inline['metadata']->expectedExceptionDirectiveLine,
+            compileOnlyDirectiveLine: $metadataLocation->compileOnlyDirectiveLine
+                ?? $inline['metadata']->compileOnlyDirectiveLine,
         );
 
         $lineDistance = $endLine - $openingLine;

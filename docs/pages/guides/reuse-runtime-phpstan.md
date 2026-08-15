@@ -115,9 +115,12 @@ tokens such as `@analyze-example` are chosen by the consuming project.
 ## Decide Which Workflow Sees an Example
 
 - Every selected PHP fence enters the shared corpus.
-- PHPUnit sees each example as a data set; `<!-- akashi: skip -->` asks PHPUnit not to execute one.
-- PHPStan sees only examples accepted by `PhpStanExampleConfiguration`; runtime skip does not affect that selection.
+- PHPUnit sees each example as a data set; `<!-- akashi: skip -->` reports one as skipped, while `compile-only` parses
+  one without runtime execution.
+- PHPStan sees only examples accepted by `PhpStanExampleConfiguration`; runtime skip and compile-only do not affect that
+  selection.
 - Marked extraction can select one example independently of both verifiers.
 
-PHPStan loads selected files to make declarations available, so its corpus must contain trusted, runtime-safe top-level
-code even when the runtime test skips a fence.
+PHPStan requires selected files to make declarations available, which executes their top-level code. Its subcorpus must
+therefore contain trusted, runtime-safe top-level code even when PHPUnit skips a fence or validates it as compile-only.
+Compile-only changes PHPUnit behavior only; exclude an unsafe non-running fragment from PHPStan selection.

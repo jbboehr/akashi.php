@@ -47,7 +47,9 @@ use jbboehr\Akashi\Execution\Process\SubprocessExecutor;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Transform\Exception\TransformException;
+use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use jbboehr\Akashi\Transform\InProcessTransformer;
+use jbboehr\Akashi\Transform\PhpExampleParser;
 use jbboehr\Akashi\Transform\SeparateProcessTransformer;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -83,6 +85,35 @@ final class PhpUnitRuntime
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->metadata->skipDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
             ));
+        }
+
+        if ($example->directives->contains(Directive::CompileOnly)) {
+            $directiveLine = $example->codeOrigin()->metadata->compileOnlyDirectiveLine
+                ?? $example->codeOrigin()->firstCodeLine;
+            if ($example->directives->contains(Directive::SeparateProcess)) {
+                throw new UnsupportedExampleException(sprintf(
+                    'Example %s at %s:%d cannot combine compile-only and separate-process directives.',
+                    $example->id->value,
+                    $example->codeOrigin()->document->path->value,
+                    $directiveLine,
+                ));
+            }
+            if ($example->expectedException !== null) {
+                throw new UnsupportedExampleException(sprintf(
+                    'Example %s at %s:%d cannot combine compile-only with an expected exception.',
+                    $example->id->value,
+                    $example->codeOrigin()->document->path->value,
+                    $directiveLine,
+                ));
+            }
+
+            $parsed = (new PhpExampleParser())->parse($example);
+            Assert::assertNotEmpty($parsed->tokens, sprintf(
+                'Documentation example %s passed compile-only validation.',
+                $example->id->value,
+            ));
+
+            return;
         }
 
         $executionMode = $configuration === null

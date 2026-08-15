@@ -23,11 +23,16 @@ the example code itself. The current runtime directives are:
 <!-- akashi: separate-process -->
 ```
 
+```html
+<!-- akashi: compile-only -->
+```
+
 Canonical external PHP examples use the equivalent line-comment forms:
 
 ```php
 // akashi: skip
 // akashi: separate-process
+// akashi: compile-only
 ```
 
 An example may also declare the throwable type that successful runtime verification requires. The recommended form is
@@ -102,6 +107,24 @@ reference.
 before configuration, transformation, bootstrap loading, or execution. Skip affects runtime only. PHPStan may still
 select the example, and marked extraction still returns its authored source.
 
+`compile-only` keeps the example in the same corpus and named PHPUnit data set. PHPUnit asks Akashi's host-version PHP
+parser to validate it and records one successful assertion without selecting an execution backend, applying runtime
+transforms, loading the configured bootstrap, or executing authored code:
+
+<!-- akashi-example: compile-only-runtime -->
+
+```php
+// akashi: compile-only
+
+throw new RuntimeException('PHPUnit compile-only validation does not execute this.');
+```
+
+Parse failures retain the maintained documentation path and line. PHPStan and marked extraction may still select the
+same example independently. PHPStan verification requires selected files and therefore executes their top-level code; do
+not select a compile-only fragment whose top-level code is unsafe to run. `compile-only` cannot be combined with
+`separate-process` or an expected-exception contract, because neither backend selection nor a runtime throwable has
+meaning when PHPUnit execution is disabled.
+
 `separate-process` selects child-process execution. It overrides an in-process configured default and requires
 `RuntimeConfiguration` with an explicit project root. Akashi rejects missing configuration rather than silently running
 the example in-process.
@@ -128,10 +151,11 @@ if it completes normally, throws an incompatible type, has a mismatched message 
 cleanup. In-process mismatches preserve the actual throwable as the previous exception. Separate-process mismatches
 preserve a typed parent-side representation of the child evidence; the expected type may be defined only inside the
 child. Process exits, signals, timeouts, and infrastructure failures never satisfy an exception expectation. When `skip`
-is also present, skip takes precedence over configuration, transformation, and expectation handling.
+is also present, skip takes precedence over compile-only validation, configuration, transformation, and expectation
+handling.
 
 ## Not Implemented
 
-Akashi does not currently implement a global ignore directive, compile-only mode, general expected runtime or
-compilation failure, conditional or platform-specific skip, custom skip reasons, or hidden support-code syntax. These
-remain roadmap items and must not be inferred from Rust or PHPUnit terminology.
+Akashi does not currently implement a global ignore directive, expected compilation failure, general expected runtime
+failure, conditional or platform-specific skip, custom skip reasons, or hidden support-code syntax. These remain roadmap
+items and must not be inferred from Rust or PHPUnit terminology.
