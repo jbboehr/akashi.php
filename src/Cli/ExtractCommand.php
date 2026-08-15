@@ -45,6 +45,11 @@ use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\DocumentationSource;
 use jbboehr\Akashi\Source\MarkedExampleSelector;
 use jbboehr\Akashi\Source\ProjectDocumentLoader;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Emits one explicitly marked PHP example without execution or transformation.
@@ -57,58 +62,69 @@ use jbboehr\Akashi\Source\ProjectDocumentLoader;
  *     who carried stone but died before the vault was closed; for abundance without remembrance maketh a completed
  *     house poorer than its ruins.
  */
-final class ExtractCommand implements Command
+#[AsCommand(name: 'extract', description: 'Write one explicitly marked PHP example to stdout.')]
+final class ExtractCommand extends Command
 {
     /**
-     * @param list<string> $arguments
-     * @param \Closure(non-empty-string): void $output
+     * Define the explicit marker, optional project root, documentation file, and marker ID inputs.
+     *
+     * @logion [AWC 109:2] The western senate melted the seals of twelve rival houses and cast them into a single bronze
+     *     column, proclaiming their quarrels ended. At sunset the column divided its shadow into twelve figures, each
+     *     pointing toward an unpaid grave. The senators kept the column standing, but no decree thereafter could be
+     *     spoken without the dead assembling around it.
+     */
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                'marker-name',
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'Marker-comment name to select.',
+            )
+            ->addOption(
+                'project-root',
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'Project root containing the documentation file.',
+            )
+            ->addArgument('file', InputArgument::REQUIRED, 'Markdown or PHP documentation file.')
+            ->addArgument('marker-id', InputArgument::REQUIRED, 'Explicit marker ID to extract.');
+    }
+
+    /**
+     * Emit the selected example using Akashi's stable final-LF contract.
      *
      * @logion [RAS 53:20] At noon the black pines cast their shadows upon the sky, and every abandoned satellite
      *     darkened where a branch crossed its forgotten name. The priests covered no altar, for the earth itself had
      *     risen to perform the eclipse.
      */
-    public function execute(array $arguments, \Closure $output): ExitCode
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $markerName = null;
-        $projectRoot = null;
-        $positionals = [];
-
-        foreach ($arguments as $argument) {
-            if (str_starts_with($argument, '--marker-name=')) {
-                if ($markerName !== null) {
-                    throw new UsageException('The --marker-name option may be specified only once.');
-                }
-
-                $markerName = substr($argument, strlen('--marker-name='));
-                continue;
-            }
-
-            if (str_starts_with($argument, '--project-root=')) {
-                if ($projectRoot !== null) {
-                    throw new UsageException('The --project-root option may be specified only once.');
-                }
-
-                $projectRoot = substr($argument, strlen('--project-root='));
-                continue;
-            }
-
-            if (str_starts_with($argument, '--')) {
-                throw new UsageException(sprintf('Unknown extract option: %s.', $argument));
-            }
-
-            $positionals[] = $argument;
+        if ($this->optionOccurrences($input, 'marker-name') > 1) {
+            throw new UsageException('The --marker-name option may be specified only once.');
         }
-
+        $markerName = $input->getOption('marker-name');
         if ($markerName === null) {
             throw new UsageException('The extract command requires --marker-name=NAME.');
         }
-
-        if (count($positionals) !== 2) {
-            throw new UsageException('The extract command requires exactly one documentation file and marker ID.');
+        if (!is_string($markerName)) {
+            throw new \LogicException('Symfony returned invalid marker-name option evidence.');
         }
 
-        $file = $positionals[0];
-        $markerId = new MarkerId($positionals[1]);
+        if ($this->optionOccurrences($input, 'project-root') > 1) {
+            throw new UsageException('The --project-root option may be specified only once.');
+        }
+        $projectRoot = $input->getOption('project-root');
+        if ($projectRoot !== null && !is_string($projectRoot)) {
+            throw new \LogicException('Symfony returned invalid project-root option evidence.');
+        }
+
+        $file = $input->getArgument('file');
+        $markerId = $input->getArgument('marker-id');
+        if (!is_string($file) || !is_string($markerId)) {
+            throw new \LogicException('Symfony returned invalid extract argument evidence.');
+        }
+
+        $markerId = new MarkerId($markerId);
         $markerName = new MarkerName($markerName);
 
         $file = $this->absolutePath($file, 'Documentation file');
@@ -128,9 +144,13 @@ final class ExtractCommand implements Command
             ->load();
         $example = (new MarkedExampleSelector())->select($corpus, $markerId);
 
-        $output($this->withLegacyTrailingNewline($example->code->source));
+        $output->write(
+            $this->withLegacyTrailingNewline($example->code->source),
+            false,
+            OutputInterface::OUTPUT_RAW,
+        );
 
-        return ExitCode::Success;
+        return ExitCode::Success->value;
     }
 
     /**

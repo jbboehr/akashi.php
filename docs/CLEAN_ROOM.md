@@ -206,6 +206,11 @@ workflows only. They did not supply Akashi runtime, doctest, extraction, or veri
 | 2026-08-04 | [Symfony Process 7.4](https://symfony.com/doc/7.4/components/process.html)                                                                                           | Integration guide                | Array commands, output streams, exit status, and timeouts                                                |
 | 2026-08-04 | [Symfony 7.4 release](https://symfony.com/releases/7.4)                                                                                                              | User-facing behavioral reference | PHP compatibility and LTS status                                                                         |
 | 2026-08-04 | [Symfony Process package metadata](https://packagist.org/packages/symfony/process)                                                                                   | User-facing behavioral reference | Current release and dependency constraints                                                               |
+| 2026-08-14 | [Symfony Console component](https://symfony.com/doc/6.4/components/console.html)                                                                                     | Integration guide                | Application and command composition, help, output, and exit behavior                                     |
+| 2026-08-14 | [Symfony Console input](https://symfony.com/doc/6.4/console/input.html)                                                                                              | Integration guide                | Arguments, valued options, raw tokens, option terminators, and duplicate-evidence review                 |
+| 2026-08-14 | [Symfony Console command testing](https://symfony.com/doc/6.4/console.html#testing-commands)                                                                         | Integration guide                | Evaluation of framework-provided test helpers and separated output                                       |
+| 2026-08-14 | [Symfony Finder component](https://symfony.com/doc/6.4/components/finder.html)                                                                                       | Integration guide                | Evaluation of discovery reuse through Akashi's existing iterable file boundary; no dependency selected   |
+| 2026-08-14 | [Symfony Filesystem component](https://symfony.com/doc/6.4/components/filesystem.html)                                                                               | Integration guide                | Evaluation of filesystem convenience APIs against Akashi's stronger write boundary; no dependency added  |
 | 2026-08-07 | [ParaTest README](https://github.com/paratestphp/paratest#readme)                                                                                                    | Integration guide                | TestCase- and test-level parallel modes and worker-process behavior                                      |
 | 2026-08-07 | [ParaTest package metadata](https://packagist.org/packages/brianium/paratest)                                                                                        | User-facing behavioral reference | Selecting the PHP 8.2 and PHPUnit 11.5 compatible development release                                    |
 | 2026-08-08 | [PHPStan `staticMethod.alreadyNarrowedType`](https://phpstan.org/error-identifiers/staticMethod.alreadyNarrowedType)                                                 | Integration guide                | Replacing a deliberately constant PHPUnit assertion with a measured completion assertion                 |
@@ -278,6 +283,8 @@ competing doctest implementation:
   strengthening approved by the owner and remains gated by the Yumemi corpus;
 - CommonMark AST extraction follows the CommonMark specification and League CommonMark's public integration API;
 - PHP parsing and name resolution follow PHP language rules and PHP-Parser's public integration API;
+- CLI routing, generated help, and completion follow Symfony Console's public integration API while Akashi independently
+  preserves its exact-command, option-cardinality, output-stream, diagnostic-visibility, and process-status contracts;
 - subprocess isolation follows PHP's process model and Symfony Process's public integration API;
 - PHPUnit, PHPStan, Composer binary, and autoloader adapters follow their respective official integration contracts; and
 - PHPStan's diagnostic identifiers and identifier-oriented inline ignore comments are observed public behavior; the
@@ -348,6 +355,14 @@ their API comments, small accessor and forwarding method bodies, the beginning o
 constructors. No process-management algorithm, internal test, or source architecture was copied. Akashi's
 temporary-file, result, failure, cleanup, and source-mapping designs remain independently derived from its recorded
 requirements and use only the public behavior already represented by Symfony's official integration guide.
+
+On 2026-08-14, while evaluating selected general-purpose dependencies, the installed Symfony Console 7.4 `Application`,
+`Command`, `ArgvInput`, input-definition, output, and text-descriptor source was inspected to confirm public extension
+seams and the exact behavior of repeated options, raw tokens, help generation, verbosity, command abbreviations, and
+exception routing. The installed Symfony Filesystem `dumpFile()` implementation was also inspected to compare its
+symlink and replacement behavior with Akashi's documented stale-byte, flush, permission, and atomic-write guarantees.
+These are explicitly allowed general-purpose dependencies. Akashi uses Console's public component contract, retains its
+independently designed CLI invariants, and rejected Filesystem as a replacement for its stronger writer.
 
 On 2026-08-06, while implementing Akashi's analyzer-independent diagnostic matcher, the official PHPStan
 error-identifier pages for `property.nonObject`, `method.nonObject`, `argument.type`, `parameterByRef.type`,

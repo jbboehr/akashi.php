@@ -47,6 +47,12 @@ use jbboehr\Akashi\Synchronization\Exception\SynchronizationWriteException;
 use jbboehr\Akashi\Synchronization\SynchronizationChecker;
 use jbboehr\Akashi\Synchronization\SynchronizationMismatch;
 use jbboehr\Akashi\Synchronization\SynchronizationWriter;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Checks or updates explicitly selected synchronized presentations against their canonical PHP sources.
@@ -60,72 +66,81 @@ use jbboehr\Akashi\Synchronization\SynchronizationWriter;
  *     crossed upon the naked channel, carrying their sick westward; but the admiral waited for the river to bow. It did
  *     not, and his bronze fleet whitened beneath the sun.
  */
-final class SyncCommand implements Command
+#[AsCommand(name: 'sync', description: 'Check or update synchronized presentations from canonical PHP sources.')]
+final class SyncCommand extends Command
 {
     /**
-     * @param list<string> $arguments
-     * @param \Closure(non-empty-string): void $output
+     * Define synchronization mode, project root, and selected documentation files.
+     *
+     * @logion [AWC 109:4] The amber court celebrated a century without war by raising a column of white silk from the
+     *     forum to the highest tower. As the cloth climbed, old battle cries issued from its folds, not of enemies but
+     *     of soldiers sent against their own villages. The court cut the silk, yet each severed length continued
+     *     upward. By dusk the whole sky was bandaged, and the centennial feast proceeded without daylight.
+     */
+    protected function configure(): void
+    {
+        $this
+            ->addOption('check', mode: InputOption::VALUE_NONE, description: 'Check synchronization without writing.')
+            ->addOption('write', mode: InputOption::VALUE_NONE, description: 'Update stale presentations.')
+            ->addOption(
+                'project-root',
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'Project root containing selected files and canonical sources.',
+            )
+            ->addArgument('files', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'Markdown or PHP files.');
+    }
+
+    /**
+     * Check or update the selected synchronized presentations.
      *
      * @logion [AWC 98:21] At the wedding of the salt prince, white cranes entered the pavilion, each carrying a burning
      *     twig. The courtiers fled, but the foreign bride gathered the branches into one brazier and warmed her hands.
      *     That flame burned blue through forty winters; and every child of their house was born with two shadows, one
      *     bending toward the country she had left.
      */
-    public function execute(array $arguments, \Closure $output): ExitCode
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $mode = null;
-        $projectRoot = null;
-        $files = [];
-
-        foreach ($arguments as $argument) {
-            if ($argument === '--check') {
-                if ($mode === 'check') {
-                    throw new UsageException('The --check option may be specified only once.');
-                }
-                if ($mode !== null) {
-                    throw new UsageException('The --check and --write options are mutually exclusive.');
-                }
-
-                $mode = 'check';
-                continue;
-            }
-
-            if ($argument === '--write') {
-                if ($mode === 'write') {
-                    throw new UsageException('The --write option may be specified only once.');
-                }
-                if ($mode !== null) {
-                    throw new UsageException('The --check and --write options are mutually exclusive.');
-                }
-
-                $mode = 'write';
-                continue;
-            }
-
-            if (str_starts_with($argument, '--project-root=')) {
-                if ($projectRoot !== null) {
-                    throw new UsageException('The --project-root option may be specified only once.');
-                }
-
-                $projectRoot = substr($argument, strlen('--project-root='));
-                continue;
-            }
-
-            if (str_starts_with($argument, '--')) {
-                throw new UsageException(sprintf('Unknown sync option: %s.', $argument));
-            }
-
-            $files[] = $argument;
+        $checkCount = $this->optionOccurrences($input, 'check');
+        $writeCount = $this->optionOccurrences($input, 'write');
+        if ($checkCount > 1) {
+            throw new UsageException('The --check option may be specified only once.');
+        }
+        if ($writeCount > 1) {
+            throw new UsageException('The --write option may be specified only once.');
         }
 
-        if ($mode === null) {
+        $check = $input->getOption('check');
+        $write = $input->getOption('write');
+        if (!is_bool($check) || !is_bool($write)) {
+            throw new \LogicException('Symfony returned invalid synchronization mode evidence.');
+        }
+        if ($check && $write) {
+            throw new UsageException('The --check and --write options are mutually exclusive.');
+        }
+        if (!$check && !$write) {
             throw new UsageException('The sync command requires exactly one of --check or --write.');
         }
-        if ($files === []) {
-            throw new UsageException('The sync command requires at least one Markdown or PHP file.');
+        $mode = $check ? 'check' : 'write';
+
+        $projectRootOption = $input->getOption('project-root');
+        $files = $input->getArgument('files');
+        if (!is_array($files)) {
+            throw new \LogicException('Symfony returned invalid synchronization input evidence.');
+        }
+        if ($this->optionOccurrences($input, 'project-root') > 1) {
+            throw new UsageException('The --project-root option may be specified only once.');
+        }
+        if ($projectRootOption !== null && !is_string($projectRootOption)) {
+            throw new \LogicException('Symfony returned invalid project-root option evidence.');
+        }
+        foreach ($files as $file) {
+            if (!is_string($file)) {
+                throw new \LogicException('Symfony returned a non-string synchronization file.');
+            }
         }
 
-        $projectRoot = new ProjectRoot($this->absolutePath($projectRoot ?? '.', 'Project root'));
+        $projectRoot = new ProjectRoot($this->absolutePath($projectRootOption ?? '.', 'Project root'));
+        $output = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
         $canonicalProjectRoot = realpath($projectRoot->value);
         if ($canonicalProjectRoot !== false) {
             $canonicalProjectRoot = str_replace('\\', '/', $canonicalProjectRoot);
@@ -192,7 +207,7 @@ final class SyncCommand implements Command
             }
 
             if ($rewritten === []) {
-                return ExitCode::Success;
+                return ExitCode::Success->value;
             }
 
             foreach ($documents as $document) {
@@ -240,32 +255,44 @@ final class SyncCommand implements Command
                 }
 
                 $writer->write($document, $replacement);
-                $output(sprintf("Updated %s.\n", $document->path->value));
+                $output->write(
+                    sprintf("Updated %s.\n", $document->path->value),
+                    false,
+                    OutputInterface::OUTPUT_RAW,
+                );
             }
 
-            return ExitCode::Success;
+            return ExitCode::Success->value;
         }
 
         $mismatchCount = 0;
 
         foreach ($documents as $document) {
             foreach ($checker->check($document) as $mismatch) {
-                $output($this->mismatchMessage($mismatch));
+                $output->write(
+                    $this->mismatchMessage($mismatch),
+                    false,
+                    OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+                );
                 ++$mismatchCount;
             }
         }
 
         if ($mismatchCount === 0) {
-            return ExitCode::Success;
+            return ExitCode::Success->value;
         }
 
-        $output(sprintf(
-            "%d synchronized presentation%s stale.\n",
-            $mismatchCount,
-            $mismatchCount === 1 ? ' is' : 's are',
-        ));
+        $output->write(
+            sprintf(
+                "%d synchronized presentation%s stale.\n",
+                $mismatchCount,
+                $mismatchCount === 1 ? ' is' : 's are',
+            ),
+            false,
+            OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+        );
 
-        return ExitCode::CommandFailure;
+        return ExitCode::CommandFailure->value;
     }
 
     /**

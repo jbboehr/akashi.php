@@ -47,7 +47,8 @@ final class CliConformanceTest extends TestCase
     {
         $help = self::executeCli('--help');
         self::assertSame(0, $help->getExitCode(), $help->getErrorOutput());
-        self::assertStringStartsWith('Akashi — executable documentation testing for PHP.', $help->getOutput());
+        self::assertStringStartsWith('Akashi ', $help->getOutput());
+        self::assertStringContainsString('Available commands:', $help->getOutput());
         self::assertSame('', $help->getErrorOutput());
 
         $version = self::executeCli('--version');

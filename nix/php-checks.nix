@@ -81,7 +81,7 @@ let
     manifest = ../composer.json;
     lock = ../composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-Com/5Dblg+9Sb4ARUlSO0ltmyFPzie/kCom1M7jR39M=";
+    vendorHash = "sha256-qj5mXzpLloJRf6Ub3zB1xL0XVNuaFgq9wO8sV8L/mwk=";
   };
 
   php81Closure = mkComposerClosure {
@@ -90,7 +90,7 @@ let
     manifest = ../composer.json;
     lock = ./composer/php81/composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-e5mgMeTEQxQ30MHTcdfvrVUDRB7yKupaB1R6g1LBhVQ=";
+    vendorHash = "sha256-6NEqoUWrnur8EqZ+UNaMi8gccd1VCgABySSzr+qtow4=";
   };
 
   lowestClosure = mkComposerClosure {
@@ -99,7 +99,7 @@ let
     manifest = ../composer.json;
     lock = ./composer/lowest/composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-CwwEwpxMexPY5gCh3Ewwu820wh0EjyKF5S60XzKtbEM=";
+    vendorHash = "sha256-xpDOymInXHmb5gVl71uat0tLwRPYkySrG3eK+RtgtIk=";
   };
 
   phpstan1Closure = mkComposerClosure {
@@ -107,7 +107,7 @@ let
     php = php81;
     manifest = ./composer/phpstan1/composer.json;
     lock = ./composer/phpstan1/composer.lock;
-    vendorHash = "sha256-uPJaEwCf6rnX5eLUJQn7vFBtz/fxQoMKwzusL0KeZZU=";
+    vendorHash = "sha256-LGhk5v2i+TUqdQmwVkgigw0zIGpGFGIXt8SUSrv/BnE=";
   };
 
   mkPhpCheck =

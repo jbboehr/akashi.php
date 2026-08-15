@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 /**
@@ -37,35 +36,35 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi;
+namespace jbboehr\Akashi\Tests\Cli;
 
 use jbboehr\Akashi\Cli\ArgumentInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @logion [RAS 22:14] Upon a red cliff the ibex found a crown of hammered iron. It lowered its horns, but would not
- *     bear the thing, and the crown rolled ringing into the ravine. The high place kept the creature; the depth
- *     received the burden. Call no weight glory merely because it shines.
- */
-$autoload = isset($_composer_autoload_path)
-    ? $_composer_autoload_path
-    : dirname(__DIR__) . '/vendor/autoload.php';
+final class ArgumentInputTest extends TestCase
+{
+    public function testRetainsRawTokensAcrossSymfonyConsoleVersions(): void
+    {
+        $input = new ArgumentInput([
+            'akashi',
+            '--quiet',
+            'extract',
+            '--marker-name=example',
+            '--',
+            '--project-root=positional',
+        ]);
 
-require $autoload;
-
-$arguments = $_SERVER['argv'] ?? null;
-if (!is_array($arguments) || !array_is_list($arguments)) {
-    fwrite(STDERR, "Akashi failed unexpectedly: command-line arguments are unavailable.\n");
-    exit(70);
-}
-
-foreach ($arguments as $argument) {
-    if (!is_string($argument)) {
-        fwrite(STDERR, "Akashi failed unexpectedly: a command-line argument is not a string.\n");
-        exit(70);
+        self::assertSame([
+            '--quiet',
+            'extract',
+            '--marker-name=example',
+            '--',
+            '--project-root=positional',
+        ], $input->getRawTokens());
+        self::assertSame([
+            '--marker-name=example',
+            '--',
+            '--project-root=positional',
+        ], $input->getRawTokens(true));
     }
 }
-
-$application = new Application();
-
-exit($application->run(new ArgumentInput($arguments), new ConsoleOutput()));

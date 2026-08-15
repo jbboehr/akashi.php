@@ -49,6 +49,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Route the packaged CLI through Symfony Console for generated command help, command listing, Bash/Fish/Zsh completion,
+  standard terminal options, and future command growth while preserving exact command names, single-occurrence options,
+  required failure diagnostics, and Akashi's stable stream and exit-status contracts.
 - `DiagnosticExpectation::$text` is nullable so expectations can constrain text, an identifier, or both; identifier
   expectations may also carry a maintained `sourceLineRange` for their associated statement.
 - Make `nix flake check --keep-going -L` the authoritative reproducible repository gate, with separated checks, shared

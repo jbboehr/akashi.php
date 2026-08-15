@@ -203,10 +203,13 @@ canonical PHP examples, groups whole-file and named-region expectations by physi
 reports one, validates that their loaded bytes are still current, and returns direct project-relative analysis paths
 with platform-native canonical absolute expectation keys.
 
-The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
-author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
-execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is below the
-project root; reference targets themselves are not marker IDs.
+Symfony Console supplies declarative command definitions, generated help, command listing, shell completion, input and
+output routing, and cross-platform terminal handling. Akashi wraps that replaceable router with exact command names,
+single-occurrence options, stable statuses, and explicit stdout/stderr contracts. The extraction command loads one
+Markdown or PHP file with an explicit marker name, selects one author-assigned ID, and writes the original code with its
+documented final-newline contract. It does not enter either execution pipeline. `--project-root` supplies the
+reference-resolution boundary when the selected document is below the project root; reference targets themselves are not
+marker IDs.
 
 The synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end` comment as
 consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid structure.
@@ -257,14 +260,15 @@ registry.
 
 ## Dependency Boundaries
 
-`league/commonmark`, `nikic/php-parser`, `sebastian/diff`, `symfony/process`, and the PHP 8.2 Random extension polyfill
-support core implemented behavior. Parser output is normalized with PHP's native `PhpToken`, keeping source edits
-independent of the token class that differs between PHP-Parser 4 and 5. `sebastian/diff` supplies unified-diff
-formatting without making PHPUnit a CLI dependency. The polyfill preserves the typed `Randomizer` seam on PHP 8.1 and
-defers to PHP's native extension on later runtimes. PHPUnit, PHPStan, and PHP-CS-Fixer are optional Composer
-suggestions. PHP-CS-Fixer is invoked as a project executable and its classes are never loaded by Akashi. PHPUnit and
-PHPStan runtime types are confined to integration namespaces so core source discovery and the CLI can autoload without
-them.
+`league/commonmark`, `nikic/php-parser`, `sebastian/diff`, `symfony/console`, `symfony/process`, and the PHP 8.2 Random
+extension polyfill support core implemented behavior. Parser output is normalized with PHP's native `PhpToken`, keeping
+source edits independent of the token class that differs between PHP-Parser 4 and 5. `sebastian/diff` supplies
+unified-diff formatting without making PHPUnit a CLI dependency. Symfony Console supplies the replaceable CLI router and
+presentation layer; Symfony Process supplies explicit child-process execution. The Random polyfill preserves the typed
+`Randomizer` seam on PHP 8.1 and defers to PHP's native extension on later runtimes. PHPUnit, PHPStan, and PHP-CS-Fixer
+are optional Composer suggestions. PHP-CS-Fixer is invoked as a project executable and its classes are never loaded by
+Akashi. PHPUnit and PHPStan runtime types are confined to integration namespaces so core source discovery and the CLI
+can autoload without them.
 
 There is no service container, mutable global registry, plugin registry, or implicit project configuration. Projects
 compose source, runtime, and verifier configuration through typed immutable values and ordinary PHPUnit test classes.

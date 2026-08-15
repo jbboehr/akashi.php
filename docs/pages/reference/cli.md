@@ -25,13 +25,27 @@ vendor/bin/akashi --help
 vendor/bin/akashi --version
 ```
 
+Akashi uses Symfony Console for command discovery, argument parsing, generated help, and shell completion. Run the
+executable without arguments to list commands, or inspect one command with `vendor/bin/akashi COMMAND --help`. Command
+names are exact: abbreviations such as `ext` are rejected rather than guessed.
+
+Generate a completion script for Bash, Fish, or Zsh with the built-in command, for example:
+
+```console
+vendor/bin/akashi completion bash
+```
+
+Symfony's standard `--quiet`, verbosity, ANSI, and non-interaction options are available. Quiet mode suppresses
+successful command output but retains failure diagnostics. Akashi deliberately rejects `--silent` because its stable CLI
+contract requires failures to remain visible.
+
 ## Extract a Named Example
 
 `FILE` must use the case-sensitive `.md` or `.php` extension and may be absolute or relative to the current working
 directory. Markdown markers precede their fence in the document; PHPDoc markers precede their fence within the same
 docblock. `NAME` and `MARKER-ID` use lowercase kebab-case. The marker option may appear before or after the positional
-arguments, but it is required exactly once. Its explicit value lets the generic command support a project's existing
-comment convention.
+arguments, accepts either `--marker-name=NAME` or `--marker-name NAME`, and is required exactly once. Its explicit value
+lets the generic command support a project's existing comment convention.
 
 By default, Akashi treats `FILE`'s containing directory as the project root. Pass `--project-root=PATH` when `FILE`
 lives deeper in the project or its PHPDoc contains project-relative external-example references. The path may be
@@ -42,7 +56,7 @@ ending, if present, and appends exactly one LF for compatibility with its record
 metadata, source comments, or transformation output, and it preserves an authored opening PHP tag. Successful help and
 version output also use stdout.
 
-Usage, extraction, and unexpected-failure diagnostics use stderr.
+Usage, extraction, and unexpected-failure diagnostics use stderr, including under `--quiet`.
 
 ## Check or Write Inline Formatting
 
@@ -138,7 +152,7 @@ replaced when its containing directory is writable; its read-only permission bit
 
 Malformed regions, unresolved targets, duplicate input files, unreadable files, stale document snapshots, and paths
 outside the project root use status `1`. Options may appear before or after file arguments, but the selected mode and
-`--project-root` may each be specified at most once.
+`--project-root` may each be specified at most once. Valued options accept either `--name=value` or `--name value`.
 
 ## Exit Statuses
 
@@ -152,4 +166,5 @@ outside the project root use status `1`. Options may appear before or after file
 Invalid, missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and
 missing required arguments are usage failures. The extraction command still selects explicit fence markers; PHPDoc
 external references are corpus sources, not extraction marker IDs. PHP-CS-Fixer is optional and is required only when
-the formatting command is invoked.
+the formatting command is invoked. Generated help, command listing, and shell completion are supplied by Symfony
+Console; Akashi retains its own exact-command, duplicate-option, stream, and exit-status contracts around that router.

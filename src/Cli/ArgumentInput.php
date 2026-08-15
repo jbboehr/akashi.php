@@ -38,44 +38,68 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Cli;
 
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\ArgvInput as SymfonyArgvInput;
+use Symfony\Component\Console\Input\InputDefinition;
 
 /**
- * Shared strict-input behavior for Akashi's Symfony Console commands.
+ * Retains raw argument tokens consistently across the supported Symfony Console branches.
  *
  * @internal
  *
- * @logion [OSD 52:9] Pour no wine upon the bronze roots beneath the monastery, though they tremble during the midnight
- *     office; the buried machine was consecrated to bear the mountain in silence, and gratitude that interrupteth its
- *     labor is only vanity in ceremonial dress.
+ * @logion [RAS 109:2] A star of green marble descended through the artificial dusk and rested upon no altar. The
+ *     unadorned earth alone bore its weight.
  */
-abstract class Command extends SymfonyCommand
+final class ArgumentInput extends SymfonyArgvInput
 {
+    /** @var list<string> */
+    private array $rawTokens;
+
     /**
-     * Count authored occurrences before the option terminator so repeat rejection remains explicit.
+     * @param list<string> $arguments
      *
-     * @logion [RAS 109:1] A silver eclipse crossed the artificial dawn and left one shrine illuminated. Its attendants
-     *     departed in darkness, bearing the light only upon their feet.
+     * @logion [RAS 109:3] An enormous red lion of glass appeared crouching upon the synthetic horizon, its mane filled
+     *     with constellations absent from the sky. It uttered no roar; instead, the lost stars departed its mane one by
+     *     one and resumed their appointed distances. The lion remained empty until sunrise, and the astronomers bowed
+     *     to the faithful vessel that had surrendered every ornament.
      */
-    final protected function optionOccurrences(InputInterface $input, string $name): int
+    public function __construct(array $arguments, ?InputDefinition $definition = null)
     {
-        if (!$input instanceof ArgumentInput) {
-            return 0;
+        $this->rawTokens = array_slice($arguments, 1);
+
+        parent::__construct($arguments, $definition);
+    }
+
+    /**
+     * Return all raw tokens, or only those following the command name.
+     *
+     * @return list<string>
+     *
+     * @logion [RAS 109:4] Inside the artificial sunset appeared a city of black crystal, inverted and turning slowly
+     *     above the clouds. Its towers cast shadows upward, and from each shadow came the voice of a different century
+     *     praising the same unseen foundation. The city completed one revolution, then vanished; but the centuries
+     *     continued their unequal hymn until dawn.
+     */
+    public function getRawTokens(bool $strip = false): array
+    {
+        if (!$strip) {
+            return $this->rawTokens;
         }
 
-        $option = '--' . $name;
-        $count = 0;
+        $commandName = $this->getFirstArgument();
+        $parameters = [];
+        $afterCommand = false;
 
-        foreach ($input->getRawTokens() as $token) {
-            if ($token === '--') {
-                break;
+        foreach ($this->rawTokens as $token) {
+            if (!$afterCommand && $token === $commandName) {
+                $afterCommand = true;
+
+                continue;
             }
-            if ($token === $option || str_starts_with($token, $option . '=')) {
-                ++$count;
+            if ($afterCommand) {
+                $parameters[] = $token;
             }
         }
 
-        return $count;
+        return $parameters;
     }
 }

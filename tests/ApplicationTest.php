@@ -40,13 +40,14 @@ namespace jbboehr\Akashi\Tests;
 
 use Composer\InstalledVersions;
 use jbboehr\Akashi\Application;
-use jbboehr\Akashi\Cli\Command;
+use jbboehr\Akashi\Cli\ArgumentInput;
 use jbboehr\Akashi\Cli\ExitCode;
-use jbboehr\Akashi\Cli\ExtractCommand;
-use jbboehr\Akashi\Cli\FormatCommand;
-use jbboehr\Akashi\Cli\SyncCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\ConsoleSectionOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ApplicationTest extends TestCase
 {
@@ -98,19 +99,7 @@ final class ApplicationTest extends TestCase
         $result = $this->runApplication($arguments);
 
         self::assertSame(ExitCode::Success->value, $result['status']);
-        self::assertStringStartsWith("Akashi — executable documentation testing for PHP.\n", $result['stdout']);
-        self::assertStringContainsString(
-            'akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID',
-            $result['stdout'],
-        );
-        self::assertStringContainsString(
-            'akashi format (--check|--write) [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]',
-            $result['stdout'],
-        );
-        self::assertStringContainsString(
-            'akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]',
-            $result['stdout'],
-        );
+        self::assertStringContainsString('Usage:', $result['stdout']);
         self::assertStringEndsWith("\n", $result['stdout']);
         self::assertSame('', $result['stderr']);
     }
@@ -154,6 +143,153 @@ final class ApplicationTest extends TestCase
         yield 'short option' => [['-V']];
     }
 
+    public function testGeneratedCommandHelpDescribesSingleValuedOptionsAccurately(): void
+    {
+        $result = $this->runApplication(['extract', '--help']);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertStringContainsString('--marker-name=MARKER-NAME', $result['stdout']);
+        self::assertStringNotContainsString('multiple values allowed', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testRejectsSilentModeWithAVisibleUsageDiagnostic(): void
+    {
+        $result = $this->runApplication(['--silent']);
+
+        self::assertSame(ExitCode::UsageError->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('"--silent" option is not supported', $result['stderr']);
+    }
+
+    public function testRestoresShellVerbosityAfterEachInvocation(): void
+    {
+        $environmentHadVerbosity = array_key_exists('SHELL_VERBOSITY', $_ENV);
+        $environmentVerbosity = $_ENV['SHELL_VERBOSITY'] ?? null;
+        $serverHadVerbosity = array_key_exists('SHELL_VERBOSITY', $_SERVER);
+        $serverVerbosity = $_SERVER['SHELL_VERBOSITY'] ?? null;
+        $processVerbosity = getenv('SHELL_VERBOSITY');
+        $restore = static function (array &$variables, bool $hadVerbosity, mixed $verbosity): void {
+            if ($hadVerbosity) {
+                $variables['SHELL_VERBOSITY'] = $verbosity;
+
+                return;
+            }
+
+            unset($variables['SHELL_VERBOSITY']);
+        };
+
+        unset($_ENV['SHELL_VERBOSITY'], $_SERVER['SHELL_VERBOSITY']);
+        if (function_exists('putenv')) {
+            self::assertTrue(putenv('SHELL_VERBOSITY'));
+        }
+
+        try {
+            self::assertSame(ExitCode::UsageError->value, $this->runApplication(['--silent'])['status']);
+            self::assertArrayNotHasKey('SHELL_VERBOSITY', $_ENV);
+            self::assertArrayNotHasKey('SHELL_VERBOSITY', $_SERVER);
+            self::assertFalse(getenv('SHELL_VERBOSITY'));
+
+            $nextRun = $this->runApplication(['list', '--raw']);
+            self::assertSame(ExitCode::Success->value, $nextRun['status']);
+            self::assertMatchesRegularExpression('/^extract\h/m', $nextRun['stdout']);
+        } finally {
+            $restore($_ENV, $environmentHadVerbosity, $environmentVerbosity);
+            $restore($_SERVER, $serverHadVerbosity, $serverVerbosity);
+            if (function_exists('putenv')) {
+                self::assertTrue(putenv(
+                    'SHELL_VERBOSITY' . ($processVerbosity === false ? '' : '=' . $processVerbosity),
+                ));
+            }
+        }
+    }
+
+    public function testQuietModeSuppressesSuccessButPreservesFailures(): void
+    {
+        $file = $this->workspace . '/examples.md';
+        self::assertNotFalse(file_put_contents(
+            $file,
+            "<!-- selected-example: chosen -->\n```php\necho 'selected';\n```\n",
+        ));
+
+        $success = $this->runApplication([
+            'extract',
+            '--quiet',
+            '--marker-name',
+            'selected-example',
+            $file,
+            'chosen',
+        ]);
+        $failure = $this->runApplication([
+            'extract',
+            '--quiet',
+            '--marker-name=selected-example',
+            $file,
+            'missing',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $success['status']);
+        self::assertSame('', $success['stdout']);
+        self::assertSame('', $success['stderr']);
+        self::assertSame(ExitCode::CommandFailure->value, $failure['status']);
+        self::assertSame('', $failure['stdout']);
+        self::assertStringStartsWith('Extraction failed:', $failure['stderr']);
+    }
+
+    /**
+     * @param list<string> $arguments
+     */
+    #[DataProvider('commandAbbreviationProvider')]
+    public function testRejectsCommandAbbreviations(array $arguments, string $abbreviation): void
+    {
+        $result = $this->runApplication($arguments);
+
+        self::assertSame(ExitCode::UsageError->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString(sprintf('Command "%s" is not defined.', $abbreviation), $result['stderr']);
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, string}>
+     */
+    public static function commandAbbreviationProvider(): iterable
+    {
+        yield 'direct command' => [['ext', '--help'], 'ext'];
+        yield 'help command' => [['help', 'ext'], 'ext'];
+        yield 'one-letter help command' => [['help', 'f'], 'f'];
+    }
+
+    public function testPreservesMarkupInUsageDiagnostics(): void
+    {
+        $result = $this->runApplication(['--ansi', '<info>unknown</info>']);
+
+        self::assertSame(ExitCode::UsageError->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('Command "<info>unknown</info>" is not defined.', $result['stderr']);
+        self::assertStringNotContainsString("\033", $result['stderr']);
+    }
+
+    public function testListsAkashiAndCompletionCommands(): void
+    {
+        $result = $this->runApplication(['list', '--raw']);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertMatchesRegularExpression('/^completion\h/m', $result['stdout']);
+        self::assertMatchesRegularExpression('/^extract\h/m', $result['stdout']);
+        self::assertMatchesRegularExpression('/^format\h/m', $result['stdout']);
+        self::assertMatchesRegularExpression('/^sync\h/m', $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testQuietCompletionFailureRetainsItsDiagnostic(): void
+    {
+        $result = $this->runApplication(['completion', 'invalid', '--quiet']);
+
+        self::assertSame(ExitCode::UsageError->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString('Detected shell "invalid"', $result['stderr']);
+    }
+
     public function testExtractsOnlyTheSelectedCodeWithTheLegacyFinalLf(): void
     {
         $file = $this->workspace . '/examples.md';
@@ -178,6 +314,28 @@ final class ApplicationTest extends TestCase
 
         self::assertSame(ExitCode::Success->value, $result['status']);
         self::assertSame("<?php\r\n\r\necho 'selected';\n", $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
+    public function testExtractedSourceBypassesConsoleMarkupAndAnsiFormatting(): void
+    {
+        $file = $this->workspace . '/markup.md';
+        self::assertNotFalse(file_put_contents(
+            $file,
+            "<!-- selected-example: markup -->\n```php\necho '<info>literal</info>';\n```\n",
+        ));
+
+        $result = $this->runApplication([
+            '--ansi',
+            'extract',
+            '--marker-name=selected-example',
+            $file,
+            'markup',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame("echo '<info>literal</info>';\n", $result['stdout']);
+        self::assertStringNotContainsString("\033", $result['stdout']);
         self::assertSame('', $result['stderr']);
     }
 
@@ -240,7 +398,6 @@ PHP));
         self::assertSame(ExitCode::UsageError->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString($message, $result['stderr']);
-        self::assertStringContainsString('Usage:', $result['stderr']);
     }
 
     /**
@@ -248,13 +405,17 @@ PHP));
      */
     public static function usageFailureProvider(): iterable
     {
-        yield 'unknown command' => [['unknown'], 'Unknown command: unknown.'];
+        yield 'unknown command' => [['unknown'], 'Command "unknown" is not defined.'];
         yield 'missing marker name' => [
             ['extract', 'examples.md', 'chosen'],
             'The extract command requires --marker-name=NAME.',
         ];
         yield 'duplicate marker name' => [
             ['extract', '--marker-name=first', '--marker-name=second', 'examples.md', 'chosen'],
+            'The --marker-name option may be specified only once.',
+        ];
+        yield 'duplicate marker name surrounding command' => [
+            ['--marker-name=first', 'extract', '--marker-name=second', 'examples.md', 'chosen'],
             'The --marker-name option may be specified only once.',
         ];
         yield 'duplicate project root' => [
@@ -270,11 +431,11 @@ PHP));
         ];
         yield 'unknown extract option' => [
             ['extract', '--marker-name=selected-example', '--unknown', 'examples.md', 'chosen'],
-            'Unknown extract option: --unknown.',
+            'The "--unknown" option does not exist.',
         ];
         yield 'missing positional argument' => [
             ['extract', '--marker-name=selected-example', 'examples.md'],
-            'The extract command requires exactly one documentation file and marker ID.',
+            'Not enough arguments (missing: "marker-id").',
         ];
         yield 'missing sync mode' => [
             ['sync', 'README.md'],
@@ -290,7 +451,7 @@ PHP));
         ];
         yield 'missing sync file' => [
             ['sync', '--check'],
-            'The sync command requires at least one Markdown or PHP file.',
+            'Not enough arguments (missing: "files").',
         ];
         yield 'mutually exclusive sync modes' => [
             ['sync', '--check', '--write', 'README.md'],
@@ -298,7 +459,7 @@ PHP));
         ];
         yield 'unknown sync option' => [
             ['sync', '--check', '--unknown', 'README.md'],
-            'Unknown sync option: --unknown.',
+            'The "--unknown" option does not exist.',
         ];
         yield 'duplicate sync project root' => [
             ['sync', '--check', '--project-root=first', '--project-root=second', 'README.md'],
@@ -314,7 +475,7 @@ PHP));
         ];
         yield 'missing format file' => [
             ['format', '--check'],
-            'The format command requires at least one Markdown or PHP file.',
+            'Not enough arguments (missing: "files").',
         ];
         yield 'duplicate format write mode' => [
             ['format', '--write', '--write', 'README.md'],
@@ -326,7 +487,7 @@ PHP));
         ];
         yield 'unknown format option' => [
             ['format', '--check', '--unknown', 'README.md'],
-            'Unknown format option: --unknown.',
+            'The "--unknown" option does not exist.',
         ];
         yield 'duplicate formatter executable' => [
             [
@@ -842,6 +1003,34 @@ PHP,
                 . "2 synchronized presentations are stale.\n",
             $result['stderr'],
         );
+    }
+
+    public function testSynchronizationDiffBypassesConsoleMarkupAndAnsiFormatting(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/canonical.php',
+            "<?php\n\necho '<info>current</info>';\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/markup.md',
+            "<!-- akashi-sync: canonical.php -->\n"
+                . "```php\n<?php\n\necho '<error>stale</error>';\n```\n"
+                . "<!-- akashi-sync-end -->\n",
+        ));
+
+        $result = $this->runApplication([
+            '--ansi',
+            'sync',
+            '--check',
+            '--project-root=' . $this->workspace,
+            $this->workspace . '/markup.md',
+        ]);
+
+        self::assertSame(ExitCode::CommandFailure->value, $result['status']);
+        self::assertSame('', $result['stdout']);
+        self::assertStringContainsString("-echo '<error>stale</error>';", $result['stderr']);
+        self::assertStringContainsString("+echo '<info>current</info>';", $result['stderr']);
+        self::assertStringNotContainsString("\033", $result['stderr']);
     }
 
     public function testReportsMalformedSynchronizationAsACommandFailure(): void
@@ -1365,67 +1554,16 @@ PHP,
         self::assertStringContainsString('vendor/bin/php-cs-fixer', $result['stderr']);
     }
 
-    public function testCommandsHonorTheInterfaceNamedOutputArgument(): void
-    {
-        $extractFile = $this->workspace . '/extract.md';
-        self::assertNotFalse(file_put_contents(
-            $extractFile,
-            "<!-- selected-example: chosen -->\n```php\necho 'selected';\n```\n",
-        ));
-        $canonicalFile = $this->workspace . '/canonical.php';
-        self::assertNotFalse(file_put_contents($canonicalFile, "echo 'current';\n"));
-        $syncFile = $this->workspace . '/sync.md';
-        self::assertNotFalse(file_put_contents(
-            $syncFile,
-            "<!-- akashi-sync: canonical.php -->\n"
-                . "```php\necho 'stale';\n```\n"
-                . "<!-- akashi-sync-end -->\n",
-        ));
-        self::assertTrue(mkdir($this->workspace . '/vendor/bin', 0o700, true));
-        self::assertNotFalse(file_put_contents(
-            $this->workspace . '/vendor/bin/php-cs-fixer',
-            "<?php\nexit(0);\n",
-        ));
-        $formatFile = $this->workspace . '/format.md';
-        self::assertNotFalse(file_put_contents($formatFile, "```php\necho 1;\n```\n"));
-
-        $extraction = $this->executeCommandWithNamedArguments(
-            new ExtractCommand(),
-            ['--marker-name=selected-example', $extractFile, 'chosen'],
-        );
-        $synchronization = $this->executeCommandWithNamedArguments(
-            new SyncCommand(),
-            ['--check', '--project-root=' . $this->workspace, $syncFile],
-        );
-        $formatting = $this->executeCommandWithNamedArguments(
-            new FormatCommand(),
-            ['--check', '--project-root=' . $this->workspace, $formatFile],
-        );
-
-        self::assertSame(ExitCode::Success, $extraction['status']);
-        self::assertSame("echo 'selected';\n", $extraction['output']);
-        self::assertSame(ExitCode::CommandFailure, $synchronization['status']);
-        self::assertStringStartsWith('sync.md:1: synchronized code differs', $synchronization['output']);
-        self::assertSame(ExitCode::Success, $formatting['status']);
-        self::assertSame('', $formatting['output']);
-    }
-
     public function testReportsUnexpectedFailuresWithTheSoftwareExitCode(): void
     {
-        $stderr = '';
-
-        $status = Application::run(
-            [],
-            static function (string $message): never {
-                throw new \RuntimeException('Unable to write output.');
-            },
-            static function (string $message) use (&$stderr): void {
-                $stderr .= $message;
-            },
-        );
+        $output = new FailingConsoleOutput();
+        $status = (new Application())->run(new ArgumentInput(['akashi']), $output);
 
         self::assertSame(ExitCode::SoftwareError->value, $status);
-        self::assertStringContainsString('RuntimeException: Unable to write output.', $stderr);
+        self::assertStringContainsString(
+            'RuntimeException: Unable to write output.',
+            $output->fetchErrorOutput(),
+        );
     }
 
     /**
@@ -1435,36 +1573,63 @@ PHP,
      */
     private function runApplication(array $arguments): array
     {
-        $stdout = '';
-        $stderr = '';
-        $status = Application::run(
-            $arguments,
-            static function (string $message) use (&$stdout): void {
-                $stdout .= $message;
-            },
-            static function (string $message) use (&$stderr): void {
-                $stderr .= $message;
-            },
-        );
+        $output = new BufferedConsoleOutput();
+        $status = (new Application())->run(new ArgumentInput(['akashi', ...$arguments]), $output);
 
-        return ['status' => $status, 'stdout' => $stdout, 'stderr' => $stderr];
+        return [
+            'status' => $status,
+            'stdout' => $output->fetch(),
+            'stderr' => $output->fetchErrorOutput(),
+        ];
+    }
+}
+
+class BufferedConsoleOutput extends BufferedOutput implements ConsoleOutputInterface
+{
+    private OutputInterface $errorOutput;
+
+    public function __construct()
+    {
+        parent::__construct(decorated: false);
+
+        $this->errorOutput = new BufferedOutput(decorated: false);
     }
 
-    /**
-     * @param list<string> $arguments
-     *
-     * @return array{status: ExitCode, output: string}
-     */
-    private function executeCommandWithNamedArguments(Command $command, array $arguments): array
+    public function getErrorOutput(): OutputInterface
     {
-        $output = '';
-        $status = $command->execute(
-            arguments: $arguments,
-            output: static function (string $message) use (&$output): void {
-                $output .= $message;
-            },
-        );
+        return $this->errorOutput;
+    }
 
-        return ['status' => $status, 'output' => $output];
+    public function setErrorOutput(OutputInterface $error): void
+    {
+        $this->errorOutput = $error;
+    }
+
+    public function setVerbosity(int $level): void
+    {
+        parent::setVerbosity($level);
+        $this->errorOutput->setVerbosity($level);
+    }
+
+    public function section(): ConsoleSectionOutput
+    {
+        throw new \LogicException('Console sections are not used by the CLI tests.');
+    }
+
+    public function fetchErrorOutput(): string
+    {
+        if (!$this->errorOutput instanceof BufferedOutput) {
+            throw new \LogicException('The configured error output is not buffered.');
+        }
+
+        return $this->errorOutput->fetch();
+    }
+}
+
+final class FailingConsoleOutput extends BufferedConsoleOutput
+{
+    protected function doWrite(string $message, bool $newline): void
+    {
+        throw new \RuntimeException('Unable to write output.');
     }
 }

@@ -46,6 +46,16 @@ use jbboehr\Akashi\Cli\FormatCommand;
 use jbboehr\Akashi\Cli\SyncCommand;
 use jbboehr\Akashi\Formatting\Exception\FormattingException;
 use jbboehr\Akashi\Source\Exception\SourceException;
+use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Exception\CommandNotFoundException;
+use Symfony\Component\Console\Exception\ExceptionInterface as ConsoleException;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\ConsoleSectionOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @internal
@@ -54,7 +64,7 @@ use jbboehr\Akashi\Source\Exception\SourceException;
  *     child drank from her hands and scattered their prize into ripples. Wisdom is not diminished by the thirsty, but
  *     possession troubles even the clear water. Receive wonder with an open palm.
  */
-final class Application
+final class Application extends SymfonyApplication
 {
     /**
      * @logion [OSD 31:7] Before the hills learned mist, a black shell sounded alone upon the empty strand. Its cry
@@ -64,79 +74,189 @@ final class Application
     public const NAME = 'Akashi';
 
     /**
-     * @param list<string> $arguments Arguments after the executable name.
-     * @param (\Closure(string): void)|null $stdout
-     * @param (\Closure(string): void)|null $stderr
+     * Register Akashi's commands while leaving process termination to the executable entry point.
+     *
+     * @logion [AWC 109:1] Empress Ilyra ordered a bridge of black marble laid across the ruined forum so that
+     *     coronation guests need not descend among the broken columns. For twenty years the court crossed above the
+     *     stones without looking down. Then the bridge began to bear footsteps from below, and each celebration shook
+     *     with the tread of the forgotten. In the twenty-first year it rose like a drawn bow and cast the procession
+     *     gently into the ruins.
+     */
+    public function __construct()
+    {
+        parent::__construct(
+            self::NAME,
+            InstalledVersions::getPrettyVersion('jbboehr/akashi') ?? 'unknown',
+        );
+
+        $definition = $this->getDefinition();
+        $options = $definition->getOptions();
+        unset($options['silent']);
+        $definition->setOptions($options);
+
+        $this->setAutoExit(false);
+        $this->setCatchExceptions(false);
+        $this->addCommands([
+            new ExtractCommand(),
+            new FormatCommand(),
+            new SyncCommand(),
+        ]);
+    }
+
+    /**
+     * Keep one invocation's console verbosity from affecting later invocations in the same PHP process.
+     *
+     * @logion [RAS 109:5] From the equatorial night arose a vast sheet of hammered silver, curved like the horizon and
+     *     moving though no wind touched it. Upon the silver appeared the shadows of cities whose lights had never been
+     *     kindled. The made moon lowered itself behind them, and each shadow received a dawn older than its city.
+     */
+    public function run(?InputInterface $input = null, ?OutputInterface $output = null): int
+    {
+        $environmentHadVerbosity = array_key_exists('SHELL_VERBOSITY', $_ENV);
+        $environmentVerbosity = $_ENV['SHELL_VERBOSITY'] ?? null;
+        $serverHadVerbosity = array_key_exists('SHELL_VERBOSITY', $_SERVER);
+        $serverVerbosity = $_SERVER['SHELL_VERBOSITY'] ?? null;
+        $processVerbosity = getenv('SHELL_VERBOSITY');
+
+        try {
+            return parent::run($input, $output);
+        } finally {
+            if ($environmentHadVerbosity) {
+                $_ENV['SHELL_VERBOSITY'] = $environmentVerbosity;
+            } else {
+                unset($_ENV['SHELL_VERBOSITY']);
+            }
+            if ($serverHadVerbosity) {
+                $_SERVER['SHELL_VERBOSITY'] = $serverVerbosity;
+            } else {
+                unset($_SERVER['SHELL_VERBOSITY']);
+            }
+            if (function_exists('putenv')) {
+                @putenv('SHELL_VERBOSITY' . ($processVerbosity === false ? '' : '=' . $processVerbosity));
+            }
+        }
+    }
+
+    /**
+     * Resolve only complete command names and aliases.
+     *
+     * @logion [RAS 109:6] Above the polar night, a vast lotus of chrome opened in the firmament, each petal bearing a
+     *     season absent from the earth. Spring burned blue, summer lay silent beneath crystal leaves, autumn moved
+     *     backward through its falling gold, and winter held a warm star. The lotus closed around none of them; instead
+     *     it turned toward the natural dawn, and every impossible season bowed without surrendering its form.
+     */
+    public function find(string $name): SymfonyCommand
+    {
+        if (!$this->has($name)) {
+            throw new CommandNotFoundException(sprintf('Command "%s" is not defined.', $name));
+        }
+
+        return $this->get($name);
+    }
+
+    /**
+     * Preserve Akashi's stable status categories and diagnostic streams around Symfony's command dispatch.
      *
      * @logion [SFA 9:26] A snail climbed the great drum while the town slept. By dawn, its silver path crossed the hide
      *     from rim to rim. The drummer saw the mark and withheld his hand; that morning the people heard the storm
      *     approaching. The smallest traveler may write a warning where thunder is expected.
      */
-    public static function run(
-        array $arguments = [],
-        ?\Closure $stdout = null,
-        ?\Closure $stderr = null,
-    ): int {
-        $stdout ??= static function (string $message): void {
-            fwrite(STDOUT, $message);
-        };
-        $stderr ??= static function (string $message): void {
-            fwrite(STDERR, $message);
-        };
-        $help = <<<'HELP'
-Akashi — executable documentation testing for PHP.
+    public function doRun(InputInterface $input, OutputInterface $output): int
+    {
+        $errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+        if ($input->hasParameterOption('--silent', true)) {
+            $errorOutput->setVerbosity(OutputInterface::VERBOSITY_QUIET);
+            $errorOutput->writeln(
+                'Usage error: The "--silent" option is not supported because Akashi failures must remain visible.',
+                OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+            );
 
-Usage:
-  akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
-  akashi format (--check|--write) [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
-  akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
-  akashi --help
-  akashi --version
+            return ExitCode::UsageError->value;
+        }
 
-Commands:
-  extract  Write one explicitly marked PHP example to stdout.
-  format   Check or update inline examples with a project-installed PHP-CS-Fixer.
-  sync     Check or update synchronized presentations from canonical PHP sources.
-HELP;
+        if (
+            $input->getFirstArgument() === null
+            && $input->hasParameterOption(['--help', '-h'], true)
+        ) {
+            $input = new ArrayInput([]);
+        }
 
-        $commandName = null;
+        $commandName = $input->getFirstArgument();
+        $capturedOutput = null;
+        $commandOutput = $output;
+
+        if (
+            $output->isQuiet()
+            && ($commandName === null || !in_array($commandName, ['extract', 'format', 'sync'], true))
+        ) {
+            $capturedOutput = new class ($output->isDecorated()) extends BufferedOutput implements ConsoleOutputInterface {
+                private OutputInterface $errorOutput;
+
+                public function __construct(bool $decorated)
+                {
+                    parent::__construct(OutputInterface::VERBOSITY_NORMAL, $decorated);
+
+                    $this->errorOutput = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, $decorated);
+                }
+
+                public function getErrorOutput(): OutputInterface
+                {
+                    return $this->errorOutput;
+                }
+
+                public function setErrorOutput(OutputInterface $error): void
+                {
+                    $this->errorOutput = $error;
+                }
+
+                public function section(): ConsoleSectionOutput
+                {
+                    throw new \LogicException('Console sections are unavailable while capturing quiet command output.');
+                }
+
+                public function fetchErrorOutput(): string
+                {
+                    if (!$this->errorOutput instanceof BufferedOutput) {
+                        throw new \LogicException('The captured error output is not buffered.');
+                    }
+
+                    return $this->errorOutput->fetch();
+                }
+            };
+            $commandOutput = $capturedOutput;
+        }
 
         try {
-            if ($arguments === [] || $arguments === ['--help'] || $arguments === ['-h']) {
-                $stdout($help . "\n");
-
-                return ExitCode::Success->value;
+            $status = parent::doRun($input, $commandOutput);
+            if ($status !== ExitCode::Success->value && $capturedOutput !== null) {
+                $failureOutput = $capturedOutput->fetch() . $capturedOutput->fetchErrorOutput();
+                if ($failureOutput === '') {
+                    $failureOutput = sprintf(
+                        "Command %s failed with status %d.\n",
+                        $commandName === null ? 'dispatch' : sprintf('"%s"', $commandName),
+                        $status,
+                    );
+                }
+                $errorOutput->write(
+                    $failureOutput,
+                    false,
+                    OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+                );
             }
 
-            if ($arguments === ['--version'] || $arguments === ['-V']) {
-                $version = InstalledVersions::getPrettyVersion('jbboehr/akashi') ?? 'unknown';
-                $stdout(sprintf("%s %s\n", self::NAME, $version));
-
-                return ExitCode::Success->value;
-            }
-
-            if (
-                $arguments === ['extract', '--help']
-                || $arguments === ['extract', '-h']
-                || $arguments === ['format', '--help']
-                || $arguments === ['format', '-h']
-                || $arguments === ['sync', '--help']
-                || $arguments === ['sync', '-h']
-            ) {
-                $stdout($help . "\n");
-
-                return ExitCode::Success->value;
-            }
-
-            $commandName = array_shift($arguments);
-            return match ($commandName) {
-                'extract' => (new ExtractCommand())->execute($arguments, $stdout)->value,
-                'format' => (new FormatCommand())->execute($arguments, $stderr)->value,
-                'sync' => (new SyncCommand())->execute($arguments, $stderr)->value,
-                default => throw new UsageException(sprintf('Unknown command: %s.', $commandName)),
-            };
+            return $status;
         } catch (UsageException $exception) {
-            $stderr(sprintf("Usage error: %s\n\n%s\n", $exception->getMessage(), $help));
+            $errorOutput->writeln(
+                sprintf('Usage error: %s', $exception->getMessage()),
+                OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+            );
+
+            return ExitCode::UsageError->value;
+        } catch (ConsoleException $exception) {
+            $errorOutput->writeln(
+                sprintf('Usage error: %s', $exception->getMessage()),
+                OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+            );
 
             return ExitCode::UsageError->value;
         } catch (FormattingException | SourceException | \InvalidArgumentException $exception) {
@@ -145,15 +265,21 @@ HELP;
                 'sync' => 'Synchronization',
                 default => 'Extraction',
             };
-            $stderr(sprintf("%s failed: %s\n", $label, $exception->getMessage()));
+            $errorOutput->writeln(
+                sprintf('%s failed: %s', $label, $exception->getMessage()),
+                OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+            );
 
             return ExitCode::CommandFailure->value;
         } catch (\Throwable $exception) {
-            $stderr(sprintf(
-                "Akashi failed unexpectedly: %s: %s\n",
-                $exception::class,
-                $exception->getMessage(),
-            ));
+            $errorOutput->writeln(
+                sprintf(
+                    'Akashi failed unexpectedly: %s: %s',
+                    $exception::class,
+                    $exception->getMessage(),
+                ),
+                OutputInterface::OUTPUT_RAW | OutputInterface::VERBOSITY_QUIET,
+            );
 
             return ExitCode::SoftwareError->value;
         }
