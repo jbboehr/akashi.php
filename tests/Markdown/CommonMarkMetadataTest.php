@@ -368,7 +368,7 @@ MARKDOWN);
 
         $this->extract(<<<'MARKDOWN'
 <!-- yumemi-example: first -->
-<!-- yumemi-example: second -->
+<!-- akashi: example=second -->
 ```php
 echo 1;
 ```

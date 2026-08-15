@@ -98,6 +98,22 @@ final class ExampleMetadataParserTest extends TestCase
         self::assertTrue($metadata->directives->contains(Directive::Skip));
     }
 
+    public function testKeepsACommaAfterAnEscapedQuoteInsideTheQuotedValue(): void
+    {
+        $document = new Document('docs/example.md', "```php\nthrow new RuntimeException();\n```\n");
+        $parser = new ExampleMetadataParser();
+        $payload = <<<'METADATA'
+expect-exception=RuntimeException, expect-exception-message="before \", after", skip
+METADATA;
+        $metadata = $parser->resolve(
+            $document,
+            $parser->parse($document, $payload, 4),
+        );
+
+        self::assertSame('before ", after', $metadata->expectedException?->message);
+        self::assertTrue($metadata->directives->contains(Directive::Skip));
+    }
+
     public function testRejectsEveryDuplicatePropertyIncludingFlagsAndMarkers(): void
     {
         $document = new Document('docs/example.md', "```php\necho 1;\n```\n");
@@ -136,14 +152,28 @@ final class ExampleMetadataParserTest extends TestCase
         yield 'empty' => ['', 'Metadata clauses must not be empty.'];
         yield 'empty middle clause' => ['skip,,compile-only', 'Metadata clauses must not be empty.'];
         yield 'trailing comma' => ['skip,', 'Metadata clauses must not be empty.'];
+        yield 'leading comma' => [',skip', 'Metadata clauses must not be empty.'];
         yield 'missing keyed value' => ['example', 'Property example requires =VALUE.'];
+        yield 'empty keyed value' => ['example=', 'Metadata values must not be empty.'];
+        yield 'empty quoted value' => ['example=""', 'Metadata values must not be empty.'];
         yield 'value on flag' => ['skip=true', 'Flag skip does not accept a value.'];
+        yield 'uppercase property' => ['Skip', 'Expected a lowercase kebab-case property name.'];
         yield 'unquoted whitespace' => [
             'example=two words',
             'Unquoted metadata values must be single tokens',
         ];
+        yield 'single-quoted value' => [
+            "example='value'",
+            'Unquoted metadata values must be single tokens',
+        ];
+        yield 'unquoted equals sign' => [
+            'example=one=two',
+            'Unquoted metadata values must be single tokens',
+        ];
         yield 'unknown property' => ['elsewhere=value', 'Unknown property "elsewhere".'];
         yield 'unterminated quote' => ['example="value', 'Quoted metadata value is not terminated.'];
+        yield 'invalid JSON escape' => ['example="\\x"', 'Quoted metadata value is invalid.'];
+        yield 'trailing text after quoted value' => ['example="value"suffix', 'Quoted metadata value is invalid.'];
     }
 
 }

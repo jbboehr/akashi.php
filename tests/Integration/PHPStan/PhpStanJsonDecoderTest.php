@@ -140,6 +140,7 @@ JSON);
     public static function invalidJsonProvider(): iterable
     {
         yield 'empty' => ['', 'must not be empty'];
+        yield 'whitespace only' => [" \t\r\n", 'must not be empty'];
         yield 'invalid JSON' => ['{', 'Unable to decode'];
         yield 'nonobject root' => ['[]', 'must be an object'];
         yield 'missing totals' => ['{"files":{},"errors":[]}', '$.totals is required'];
@@ -175,6 +176,10 @@ JSON);
             '{"totals":{"errors":0,"file_errors":0},"files":{"a.php":[]},"errors":[]}',
             '$.files["a.php"] must be an object',
         ];
+        yield 'negative declared file count' => [
+            '{"totals":{"errors":0,"file_errors":0},"files":{"a.php":{"errors":-1,"messages":[]}},"errors":[]}',
+            '$.files["a.php"].errors must be a nonnegative integer',
+        ];
         yield 'messages not a list' => [
             '{"totals":{"errors":0,"file_errors":0},"files":{"a.php":{"errors":0,"messages":{}}},"errors":[]}',
             '$.files["a.php"].messages must be a list',
@@ -185,11 +190,15 @@ JSON);
         ];
         yield 'missing message text' => [
             '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"line":1,"ignorable":true}]}},"errors":[]}',
-            '.message is required',
+            '$.files["a.php"].messages[0].message is required',
+        ];
+        yield 'blank message text' => [
+            '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"message":" ","line":1,"ignorable":true}]}},"errors":[]}',
+            '$.files["a.php"].messages[0].message must be a nonempty string',
         ];
         yield 'nonpositive line' => [
             '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"message":"x","line":0,"ignorable":true}]}},"errors":[]}',
-            '.line must be a positive integer',
+            '$.files["a.php"].messages[0].line must be a positive integer',
         ];
         yield 'missing ignorable' => [
             '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"message":"x","line":1}]}},"errors":[]}',
@@ -201,11 +210,11 @@ JSON);
         ];
         yield 'blank identifier' => [
             '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"message":"x","line":1,"ignorable":true,"identifier":""}]}},"errors":[]}',
-            '.identifier must be a nonempty string',
+            '$.files["a.php"].messages[0].identifier must be a nonempty string',
         ];
         yield 'blank tip' => [
             '{"totals":{"errors":0,"file_errors":1},"files":{"a.php":{"errors":1,"messages":[{"message":"x","line":1,"ignorable":true,"tip":" "}]}},"errors":[]}',
-            '.tip must be a nonempty string',
+            '$.files["a.php"].messages[0].tip must be a nonempty string',
         ];
         yield 'file count mismatch' => [
             '{"totals":{"errors":0,"file_errors":0},"files":{"a.php":{"errors":1,"messages":[]}},"errors":[]}',

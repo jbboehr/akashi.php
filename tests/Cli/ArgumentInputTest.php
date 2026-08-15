@@ -48,23 +48,28 @@ final class ArgumentInputTest extends TestCase
         $input = new ArgumentInput([
             'akashi',
             '--quiet',
+            '--ansi',
             'extract',
             '--marker-name=example',
             '--',
             '--project-root=positional',
+            'extract',
         ]);
 
         self::assertSame([
             '--quiet',
+            '--ansi',
             'extract',
             '--marker-name=example',
             '--',
             '--project-root=positional',
+            'extract',
         ], $input->getRawTokens());
         self::assertSame([
             '--marker-name=example',
             '--',
             '--project-root=positional',
+            'extract',
         ], $input->getRawTokens(true));
     }
 }

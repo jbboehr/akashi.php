@@ -196,7 +196,7 @@ PHP,
     {
         $expectations = (new ExpectationParser())->parse($this->example(
             "// @akashi-phpstan-error argument.type\n"
-            . "// @akashi-phpstan-error argument.templateType\n\n"
+            . "// @akashi-phpstan-error argument.templateType\n \t \n"
             . "accepts(\n"
             . "    invalid(),\n"
             . ");",

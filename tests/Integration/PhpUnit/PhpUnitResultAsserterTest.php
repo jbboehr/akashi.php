@@ -244,6 +244,10 @@ TEXT;
             "Actual message:\n    Invalid Documentation Input",
             $failure->getMessage(),
         );
+        self::assertStringContainsString(
+            "Cause:\n    RuntimeException: Invalid Documentation Input",
+            $failure->getMessage(),
+        );
         self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
         self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
         self::assertSame($result->cause, $failure->getPrevious());
@@ -286,6 +290,10 @@ TEXT;
         );
         self::assertStringContainsString('Expected exception code: 73', $failure->getMessage());
         self::assertStringContainsString('Actual exception code: 74', $failure->getMessage());
+        self::assertStringContainsString(
+            "Cause:\n    RuntimeException: documented",
+            $failure->getMessage(),
+        );
         self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
         self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
         self::assertSame($result->cause, $failure->getPrevious());
@@ -394,7 +402,7 @@ TEXT;
     public function testReportsNormalSeparateProcessCompletionBeforeParentTypeAvailability(): void
     {
         $prepared = (new SeparateProcessTransformer())->transform($this->example('echo 1;'));
-        $result = new ExecutionSucceeded($prepared, '1', 1);
+        $result = new ExecutionSucceeded($prepared, 'completed output', 1, 'warning output');
 
         $failure = $this->assertionFailure(
             $result,
@@ -403,6 +411,8 @@ TEXT;
 
         self::assertStringContainsString('but execution completed without throwing.', $failure->getMessage());
         self::assertStringNotContainsString('does not identify an available Throwable type', $failure->getMessage());
+        self::assertStringContainsString("Captured stdout:\n    completed output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    warning output", $failure->getMessage());
     }
 
     public function testAcceptsAnExpectedExceptionWithAZeroDuration(): void
