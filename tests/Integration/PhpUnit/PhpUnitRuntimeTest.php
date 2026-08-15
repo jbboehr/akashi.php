@@ -161,8 +161,8 @@ final class PhpUnitRuntimeTest extends TestCase
         $before = Assert::getCount();
 
         PhpUnitRuntime::assertExample($this->example(
-            "throw new RuntimeException('documented failure');",
-            expectedException: new ExpectedException(\Exception::class, 'documented'),
+            "throw new RuntimeException('documented failure', 73);",
+            expectedException: new ExpectedException(\Exception::class, 'documented', 73),
             expectedExceptionLine: 8,
         ));
 

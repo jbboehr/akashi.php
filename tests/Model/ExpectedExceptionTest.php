@@ -68,6 +68,13 @@ final class ExpectedExceptionTest extends TestCase
         self::assertNull((new ExpectedException(\RuntimeException::class))->message);
     }
 
+    public function testStoresAnOptionalIntegerCode(): void
+    {
+        self::assertSame(0, (new ExpectedException(\RuntimeException::class, code: 0))->code);
+        self::assertSame(-42, (new ExpectedException(\RuntimeException::class, code: -42))->code);
+        self::assertNull((new ExpectedException(\RuntimeException::class))->code);
+    }
+
     #[DataProvider('invalidMessageProvider')]
     public function testRejectsAnEmptyMessageSubstring(string $message): void
     {

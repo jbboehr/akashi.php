@@ -59,9 +59,9 @@ boundary consumed by PHPUnit, PHPStan, and extraction.
 
 The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and external Akashi
 directives using document structure rather than regular expressions over the whole file. A shared token-aware parser
-also recognizes `skip`, `separate-process`, typed `expect-exception`, and optional `expect-exception-message` PHP line
-comments anywhere in fenced or canonical code. It rejects competing declarations and prevents matching text in strings
-and heredocs. Original source text and exact line and byte spans remain intact.
+also recognizes `skip`, `separate-process`, typed `expect-exception`, and optional `expect-exception-message` and
+`expect-exception-code` PHP line comments anywhere in fenced or canonical code. It rejects competing declarations and
+prevents matching text in strings and heredocs. Original source text and exact line and byte spans remain intact.
 
 The PHPDoc adapter locates every `T_DOC_COMMENT` with PHP's tokenizer, projects each comment's interior lines into
 CommonMark by removing conventional docblock decoration, and extracts each comment independently. It then restores the
@@ -167,10 +167,10 @@ compose a project-owned PHPUnit test class without an extension or mutable regis
 arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
 facade: it applies skip and mode precedence, prepares and executes through the selected backend, then gives the result
 and optional expected throwable contract to `PhpUnitResultAsserter`. A compatible execution exception is success only
-when in-process execution has no cleanup failure and its message contains the optional case-sensitive substring; normal
-completion, incompatible types, and message mismatches fail at the maintained directive or exception location. The
-subprocess backend rejects this contract because its result does not preserve throwable identity. The adapter and facade
-remain public for projects that need a custom PHPUnit method.
+when in-process execution has no cleanup failure, its message contains the optional case-sensitive substring, and its
+integer code equals the optional code constraint. Normal completion and type, message, or code mismatches fail at the
+maintained directive or exception location. The subprocess backend rejects this contract because its result does not
+preserve throwable identity. The adapter and facade remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses identifier-oriented expectations associated with

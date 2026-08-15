@@ -231,15 +231,32 @@ final class ExternalExampleResolver
                 $source['firstLine'],
                 $source['code'],
             );
-            if ($inline['expectedExceptionMessage'] !== null && $inline['expectedException'] === null) {
-                $line = $inline['expectedExceptionMessageLine'];
+            $constraints = [
+                [
+                    'name' => 'expect-exception-message',
+                    'present' => $inline['expectedExceptionMessage'] !== null,
+                    'line' => $inline['expectedExceptionMessageLine'],
+                ],
+                [
+                    'name' => 'expect-exception-code',
+                    'present' => $inline['expectedExceptionCode'] !== null,
+                    'line' => $inline['expectedExceptionCodeLine'],
+                ],
+            ];
+            foreach ($constraints as $constraint) {
+                if (!$constraint['present'] || $inline['expectedException'] !== null) {
+                    continue;
+                }
+
+                $line = $constraint['line'];
                 if ($line === null) {
-                    throw new \LogicException('Expected-exception-message metadata is missing its source line.');
+                    throw new \LogicException(sprintf('%s metadata is missing its source line.', $constraint['name']));
                 }
 
                 throw new DirectiveException(sprintf(
-                    'Inline Akashi expect-exception-message directive at %s:%d requires an inline '
+                    'Inline Akashi %s directive at %s:%d requires an inline '
                         . 'expect-exception directive in the same example.',
+                    $constraint['name'],
                     $source['document']->path->value,
                     $line,
                 ));

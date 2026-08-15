@@ -183,6 +183,26 @@ final class PhpUnitResultAsserter
                 );
             }
 
+            if ($expectedException->code !== null && $result->cause->getCode() !== $expectedException->code) {
+                throw new ExpectationFailedException(
+                    implode("\n", [
+                        sprintf(
+                            'Documentation example %s expected %s at %s, but its exception code did not match.',
+                            $example->id->value,
+                            $expectedException->className,
+                            $expectationLocation,
+                        ),
+                        sprintf('Expected exception code: %d', $expectedException->code),
+                        sprintf('Actual exception code: %d', $result->cause->getCode()),
+                        sprintf('Location: %s', self::sourceLocation($result)),
+                        "Cause:\n" . self::indent(self::throwableSummary($result->cause)),
+                        ...$capturedStreamSections,
+                    ]),
+                    null,
+                    self::previousException($result->cause),
+                );
+            }
+
             Assert::assertGreaterThan(-1, $result->durationNanoseconds, sprintf(
                 'Documentation example %s threw expected %s.',
                 $example->id->value,

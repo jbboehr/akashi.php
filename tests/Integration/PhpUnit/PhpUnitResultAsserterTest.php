@@ -245,6 +245,48 @@ TEXT;
         self::assertSame($result->cause, $failure->getPrevious());
     }
 
+    public function testAcceptsAnExpectedExceptionCode(): void
+    {
+        $result = $this->executeFailure("throw new RuntimeException('documented');");
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult(
+            $result,
+            new ExpectedException(\RuntimeException::class, 'documented', 0),
+        );
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testReportsAnExpectedExceptionCodeMismatchAndPreservesTheThrowable(): void
+    {
+        $result = new ExecutionFailed(
+            $this->transform("throw new RuntimeException('documented', 74);"),
+            FailurePhase::Execution,
+            new \RuntimeException('documented', 74),
+            'captured output',
+            [],
+            1,
+            1,
+            'captured warning',
+        );
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException(\RuntimeException::class, 'documented', 73),
+        );
+
+        self::assertStringContainsString(
+            'expected RuntimeException at docs/phpunit-result.md:10, but its exception code did not match.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString('Expected exception code: 73', $failure->getMessage());
+        self::assertStringContainsString('Actual exception code: 74', $failure->getMessage());
+        self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
+        self::assertSame($result->cause, $failure->getPrevious());
+    }
+
     public function testAcceptsAnExpectedExceptionWithAZeroDuration(): void
     {
         $prepared = $this->transform("throw new RuntimeException('expected');");

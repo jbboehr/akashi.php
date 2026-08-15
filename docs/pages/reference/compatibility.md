@@ -73,15 +73,16 @@ does not select Parser 4 for PHPStan 2's process.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;
   content beside `/**` or `*/` is not interpreted as Markdown, and symbol attachment is not exposed as model metadata.
 - Runtime directives are `skip`, `separate-process`, the typed in-process `expect-exception ThrowableClass`, and its
-  optional `expect-exception-message SUBSTRING` constraint. Documentation fences accept associated HTML forms or
-  token-aware PHP line comments; canonical external examples use PHP line comments. An exception type and message must
-  use the same form, and combining both forms of the same directive is invalid.
+  optional `expect-exception-message SUBSTRING` and `expect-exception-code INTEGER` constraints. Documentation fences
+  accept associated HTML forms or token-aware PHP line comments; canonical external examples use PHP line comments. An
+  exception type and its constraints must use the same form, and combining both forms of the same directive is invalid.
 - Global ignore, compile-only, expected compilation failure, general expected runtime failure, platform conditions,
   custom skip reasons, and hidden support code are deferred.
 - There is no expected-output contract. Stdout and stderr are captured for diagnostics but do not fail an otherwise
   successful execution.
 - Expected exceptions match an available `Throwable` type and its subtypes. An optional message constraint uses a
-  case-sensitive substring. Code constraints and separate-process support are deferred.
+  case-sensitive substring, and an optional signed base-10 integer code uses exact comparison. Separate-process support
+  is deferred.
 
 A runtime-skipped fence remains in the corpus and may still participate in PHPStan or extraction. For a fragment that
 should enter no workflow, select a narrower document set or use another fence language.
@@ -124,9 +125,9 @@ PHPDoc presentation locations. When Akashi cannot establish an exact mapping, it
 explicitly; low-level metadata may still contain a temporary-file path.
 
 An expected exception changes only the interpretation of a clean in-process execution result. A matching execution
-exception passes; normal completion, a mismatched type or optional message substring, an unavailable or non-`Throwable`
-class, and any cleanup failure fail. It does not make infrastructure, transformation, or arbitrary process failure
-successful.
+exception passes; normal completion, a mismatched type, optional message substring, or optional integer code, an
+unavailable or non-`Throwable` class, and any cleanup failure fail. It does not make infrastructure, transformation, or
+arbitrary process failure successful.
 
 ## PHPStan Boundary
 

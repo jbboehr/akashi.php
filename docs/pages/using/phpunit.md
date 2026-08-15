@@ -156,27 +156,29 @@ inside its PHP fence:
 ```php
 // akashi: expect-exception DomainException
 // akashi: expect-exception-message Invalid documentation input
+// akashi: expect-exception-code 73
 
-throw new DomainException('Invalid documentation input.');
+throw new DomainException('Invalid documentation input.', 73);
 ```
 
 The visible comment may appear anywhere and applies to the whole example. Prefer placing it immediately before the
 operation expected to throw; Akashi does not attempt to infer control flow or enforce that order. An equivalent
 `<!-- akashi: expect-exception DomainException -->` comment may instead precede the fence when surrounding prose makes
 the failure clear or extracted PHP should not contain Akashi metadata. Its optional message constraint uses a second
-`<!-- akashi: expect-exception-message Invalid documentation input -->` comment. Keep the type and message in the same
-inline or HTML form; do not combine the forms.
+`<!-- akashi: expect-exception-message Invalid documentation input -->` comment, and its optional code constraint uses
+`<!-- akashi: expect-exception-code 73 -->`. Keep the type and constraints in the same inline or HTML form; do not
+combine the forms.
 
 The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
 the type after runtime setup and execution, so application exception classes may come from the configured bootstrap or
 Composer autoloader. A missing throwable, a different throwable type, or cleanup failure fails the PHPUnit data set with
 the maintained documentation location. When present, `expect-exception-message` requires a nonempty, case-sensitive
-substring in the actual message, matching PHPUnit's `expectExceptionMessage()` semantics. The mismatch keeps the actual
-throwable in its exception chain.
+substring in the actual message, matching PHPUnit's `expectExceptionMessage()` semantics. `expect-exception-code`
+accepts a signed base-10 integer in PHP's integer range and requires exact equality with the actual exception code. A
+mismatch keeps the actual throwable in its exception chain.
 
-The contract does not yet match exception codes and is not a general “any failure is success” mode. Expected exceptions
-are rejected for separate-process examples until that backend can return throwable identity without scraping
-child-process error text.
+The contract is not a general “any failure is success” mode. Expected exceptions are rejected for separate-process
+examples until that backend can return throwable identity without scraping child-process error text.
 
 ## Skips and Failures
 

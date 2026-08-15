@@ -529,6 +529,33 @@ MARKDOWN);
         );
     }
 
+    public function testRejectsFormatterOutputThatChangesAnExpectedExceptionCode(): void
+    {
+        $document = new Document('docs/example.md', <<<'MARKDOWN'
+```php
+// akashi: expect-exception RuntimeException
+// akashi: expect-exception-code 73
+throw new RuntimeException('documented', 73);
+```
+MARKDOWN);
+        $example = (new CommonMarkExampleExtractor())->extract($document)[0];
+
+        $this->expectException(FormattingRewriteException::class);
+        $this->expectExceptionMessage('cannot be rendered safely');
+
+        (new FormattingRewriter())->rewrite(
+            $document,
+            new FormattingMismatch(
+                $example,
+                new ExampleCode(
+                    "// akashi: expect-exception RuntimeException\n"
+                        . "// akashi: expect-exception-code 74\n"
+                        . "throw new RuntimeException('documented', 73);\n",
+                ),
+            ),
+        );
+    }
+
     public function testAttributesNonUtf8FormatterOutputToTheInlineExample(): void
     {
         $document = new Document('docs/example.md', "```php\n\$value=1;\n```\n");

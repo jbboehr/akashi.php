@@ -74,10 +74,21 @@ final class ExpectedException
     public readonly ?string $message;
 
     /**
+     * Optional integer required from the thrown exception's code.
+     *
+     * @logion [AWC 107:2] King Severian clothed the old amphitheater in sheets of polished brass, that no ruin should
+     *     offend the festival of ascent. As the choirs began, the brass reflected not the living crowd but generations
+     *     seated in silence, each holding an extinguished laurel. The king ordered the music louder; and the reflected
+     *     multitude rose, turned their backs, and left him applauding alone. Thereafter the amphitheater returned every
+     *     acclamation as lament.
+     */
+    public readonly ?int $code;
+
+    /**
      * @logion [RAS 68:3] When the mountain convent lost its bell, the sisters kept the hours by watching a cedar bend
      *     beneath the western wind. Years later the bell was returned, but they rang it only after the tree had bowed.
      */
-    public function __construct(string $className, ?string $message = null)
+    public function __construct(string $className, ?string $message = null, ?int $code = null)
     {
         $className = trim($className);
         if (
@@ -105,5 +116,6 @@ final class ExpectedException
 
         $this->className = $normalizedClassName;
         $this->message = $message;
+        $this->code = $code;
     }
 }

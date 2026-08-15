@@ -80,7 +80,12 @@ use League\CommonMark\Parser\MarkdownParser;
  *     line: positive-int,
  *     expectedExceptionMessage: non-empty-string
  * }
- * @phpstan-type ParsedMetadata MarkerMetadata|DirectiveMetadata|ExpectedExceptionMetadata|ExpectedExceptionMessageMetadata
+ * @phpstan-type ExpectedExceptionCodeMetadata array{
+ *     node: HtmlBlock,
+ *     line: positive-int,
+ *     expectedExceptionCode: int
+ * }
+ * @phpstan-type ParsedMetadata MarkerMetadata|DirectiveMetadata|ExpectedExceptionMetadata|ExpectedExceptionMessageMetadata|ExpectedExceptionCodeMetadata
  *
  * @internal
  *
@@ -190,6 +195,8 @@ final class CommonMarkExampleExtractor
                 $associated['expectedException'],
                 $associated['expectedExceptionMessage'],
                 $associated['expectedExceptionMessageDirectiveLine'],
+                $associated['expectedExceptionCode'],
+                $associated['expectedExceptionCodeDirectiveLine'],
             );
         }
 
@@ -294,6 +301,23 @@ final class CommonMarkExampleExtractor
             return ['node' => $node, 'line' => $line, 'expectedExceptionMessage' => $message];
         }
 
+        if (preg_match('/\Aexpect-exception-code(?:[ \t]+(.*))?\z/D', $value, $matches) === 1) {
+            $authoredCode = trim($matches[1] ?? '');
+            $code = preg_match('/\A[+-]?(?:0|[1-9][0-9]*)\z/D', $authoredCode) === 1
+                ? filter_var($authoredCode, FILTER_VALIDATE_INT)
+                : false;
+            if (!is_int($code)) {
+                throw new DirectiveException(sprintf(
+                    'Invalid Akashi expect-exception-code directive at %s:%d: '
+                        . 'Expected exception code must be a signed base-10 integer in the PHP integer range.',
+                    $document->path->value,
+                    $line,
+                ));
+            }
+
+            return ['node' => $node, 'line' => $line, 'expectedExceptionCode' => $code];
+        }
+
         $directive = Directive::tryFrom($value);
         if ($directive === null) {
             throw new DirectiveException(sprintf(
@@ -355,7 +379,9 @@ final class CommonMarkExampleExtractor
                         ? $item['directive']->value
                         : (isset($item['expectedException'])
                             ? 'expect-exception ' . $item['expectedException']->className
-                            : 'expect-exception-message ' . $item['expectedExceptionMessage']),
+                            : (isset($item['expectedExceptionMessage'])
+                                ? 'expect-exception-message ' . $item['expectedExceptionMessage']
+                                : 'expect-exception-code ' . $item['expectedExceptionCode'])),
                     $document->path->value,
                     $item['line'],
                 ));
@@ -382,7 +408,9 @@ final class CommonMarkExampleExtractor
                     ? $item['directive']->value
                     : (isset($item['expectedException'])
                         ? 'expect-exception ' . $item['expectedException']->className
-                        : 'expect-exception-message ' . $item['expectedExceptionMessage']),
+                        : (isset($item['expectedExceptionMessage'])
+                            ? 'expect-exception-message ' . $item['expectedExceptionMessage']
+                            : 'expect-exception-code ' . $item['expectedExceptionCode'])),
                 $document->path->value,
                 $item['line'],
                 $language,
@@ -402,7 +430,9 @@ final class CommonMarkExampleExtractor
      *     expectedException: ?ExpectedException,
      *     expectedExceptionDirectiveLine: ?positive-int,
      *     expectedExceptionMessage: ?string,
-     *     expectedExceptionMessageDirectiveLine: ?positive-int
+     *     expectedExceptionMessageDirectiveLine: ?positive-int,
+     *     expectedExceptionCode: ?int,
+     *     expectedExceptionCodeDirectiveLine: ?positive-int
      * }
      *
      * @logion [OSD 48:10] Set the rescued beam within the council hall even though its charred face offendeth the new
@@ -431,6 +461,8 @@ final class CommonMarkExampleExtractor
         $expectedExceptionDirectiveLine = null;
         $expectedExceptionMessage = null;
         $expectedExceptionMessageDirectiveLine = null;
+        $expectedExceptionCode = null;
+        $expectedExceptionCodeDirectiveLine = null;
 
         foreach ($associated as $item) {
             if (isset($item['marker'])) {
@@ -482,6 +514,22 @@ final class CommonMarkExampleExtractor
                 continue;
             }
 
+            if (isset($item['expectedExceptionCode'])) {
+                if ($expectedExceptionCodeDirectiveLine !== null) {
+                    throw new DirectiveException(sprintf(
+                        'Duplicate Akashi directive expect-exception-code at %s:%d; first declared at %s:%d.',
+                        $document->path->value,
+                        $item['line'],
+                        $document->path->value,
+                        $expectedExceptionCodeDirectiveLine,
+                    ));
+                }
+
+                $expectedExceptionCode = $item['expectedExceptionCode'];
+                $expectedExceptionCodeDirectiveLine = $item['line'];
+                continue;
+            }
+
             if (isset($item['expectedException'])) {
                 if ($expectedException !== null) {
                     if ($expectedExceptionDirectiveLine === null) {
@@ -521,8 +569,12 @@ final class CommonMarkExampleExtractor
             $directiveLines[$name] = $item['line'];
         }
 
-        if ($expectedExceptionMessage !== null && $expectedException !== null) {
-            $expectedException = new ExpectedException($expectedException->className, $expectedExceptionMessage);
+        if ($expectedException !== null && ($expectedExceptionMessage !== null || $expectedExceptionCode !== null)) {
+            $expectedException = new ExpectedException(
+                $expectedException->className,
+                $expectedExceptionMessage,
+                $expectedExceptionCode,
+            );
         }
 
         return [
@@ -535,6 +587,8 @@ final class CommonMarkExampleExtractor
             'expectedExceptionDirectiveLine' => $expectedExceptionDirectiveLine,
             'expectedExceptionMessage' => $expectedExceptionMessage,
             'expectedExceptionMessageDirectiveLine' => $expectedExceptionMessageDirectiveLine,
+            'expectedExceptionCode' => $expectedExceptionCode,
+            'expectedExceptionCodeDirectiveLine' => $expectedExceptionCodeDirectiveLine,
         ];
     }
 
@@ -567,6 +621,7 @@ final class CommonMarkExampleExtractor
     /**
      * @param positive-int $ordinal
      * @param positive-int|null $expectedExceptionMessageDirectiveLine
+     * @param positive-int|null $expectedExceptionCodeDirectiveLine
      *
      * @logion [SFA 42:15] A cloth merchant scolded a silkworm for devouring mulberry leaves without payment. Months
      *     later he sold the silk and praised his own diligence. A child held up the empty cocoon and asked whose
@@ -582,6 +637,8 @@ final class CommonMarkExampleExtractor
         ?ExpectedException $expectedException,
         ?string $expectedExceptionMessage,
         ?int $expectedExceptionMessageDirectiveLine,
+        ?int $expectedExceptionCode,
+        ?int $expectedExceptionCodeDirectiveLine,
     ): Example {
         $openingLine = $node->getStartLine();
         $endLine = $node->getEndLine();
@@ -630,44 +687,70 @@ final class CommonMarkExampleExtractor
         $inlineExpectedException = $inline['expectedException'];
         $inlineExpectedExceptionMessage = $inline['expectedExceptionMessage'];
         $inlineExpectedExceptionMessageLine = $inline['expectedExceptionMessageLine'];
-        if ($expectedExceptionMessage !== null && $expectedException === null) {
-            if ($expectedExceptionMessageDirectiveLine === null) {
-                throw new \LogicException(sprintf(
-                    'Associated expected-exception-message metadata is missing its source line for %s.',
-                    $document->path->value,
-                ));
-            }
-
-            if ($inlineExpectedException !== null) {
-                $inlineExpectedExceptionLine = $inline['metadata']->expectedExceptionDirectiveLine;
-                if ($inlineExpectedExceptionLine === null) {
+        $inlineExpectedExceptionCode = $inline['expectedExceptionCode'];
+        $inlineExpectedExceptionCodeLine = $inline['expectedExceptionCodeLine'];
+        $constraints = [
+            [
+                'name' => 'expect-exception-message',
+                'associated' => $expectedExceptionMessage !== null,
+                'associatedLine' => $expectedExceptionMessageDirectiveLine,
+                'inline' => $inlineExpectedExceptionMessage !== null,
+                'inlineLine' => $inlineExpectedExceptionMessageLine,
+            ],
+            [
+                'name' => 'expect-exception-code',
+                'associated' => $expectedExceptionCode !== null,
+                'associatedLine' => $expectedExceptionCodeDirectiveLine,
+                'inline' => $inlineExpectedExceptionCode !== null,
+                'inlineLine' => $inlineExpectedExceptionCodeLine,
+            ],
+        ];
+        foreach ($constraints as $constraint) {
+            if ($constraint['associated'] && $expectedException === null) {
+                $associatedLine = $constraint['associatedLine'];
+                if ($associatedLine === null) {
                     throw new \LogicException(sprintf(
-                        'Inline expected-exception metadata is missing its source line for %s.',
+                        'Associated %s metadata is missing its source line for %s.',
+                        $constraint['name'],
                         $document->path->value,
                     ));
                 }
 
+                if ($inlineExpectedException !== null) {
+                    $inlineExpectedExceptionLine = $inline['metadata']->expectedExceptionDirectiveLine;
+                    if ($inlineExpectedExceptionLine === null) {
+                        throw new \LogicException(sprintf(
+                            'Inline expected-exception metadata is missing its source line for %s.',
+                            $document->path->value,
+                        ));
+                    }
+
+                    throw new DirectiveException(sprintf(
+                        'Akashi %s directive at %s:%d must use the same HTML or inline form as expect-exception at '
+                            . '%s:%d.',
+                        $constraint['name'],
+                        $document->path->value,
+                        $associatedLine,
+                        $document->path->value,
+                        $inlineExpectedExceptionLine,
+                    ));
+                }
+
                 throw new DirectiveException(sprintf(
-                    'Akashi expect-exception-message directive at %s:%d must use the same HTML or inline form as '
-                        . 'expect-exception at %s:%d.',
+                    'Akashi %s directive at %s:%d requires an expect-exception directive for the same PHP fence.',
+                    $constraint['name'],
                     $document->path->value,
-                    $expectedExceptionMessageDirectiveLine,
-                    $document->path->value,
-                    $inlineExpectedExceptionLine,
+                    $associatedLine,
                 ));
             }
 
-            throw new DirectiveException(sprintf(
-                'Akashi expect-exception-message directive at %s:%d requires an expect-exception directive '
-                    . 'for the same PHP fence.',
-                $document->path->value,
-                $expectedExceptionMessageDirectiveLine,
-            ));
-        }
+            if (!$constraint['inline'] || $inlineExpectedException !== null) {
+                continue;
+            }
 
-        if ($inlineExpectedExceptionMessage !== null && $inlineExpectedException === null) {
-            if ($inlineExpectedExceptionMessageLine === null) {
-                throw new \LogicException('Expected-exception-message metadata is missing its source line.');
+            $inlineLine = $constraint['inlineLine'];
+            if ($inlineLine === null) {
+                throw new \LogicException(sprintf('%s metadata is missing its source line.', $constraint['name']));
             }
 
             if ($expectedException !== null) {
@@ -680,20 +763,22 @@ final class CommonMarkExampleExtractor
                 }
 
                 throw new DirectiveException(sprintf(
-                    'Inline Akashi expect-exception-message directive at %s:%d must use the same HTML or inline form '
-                        . 'as expect-exception at %s:%d.',
+                    'Inline Akashi %s directive at %s:%d must use the same HTML or inline form as expect-exception at '
+                        . '%s:%d.',
+                    $constraint['name'],
                     $document->path->value,
-                    $inlineExpectedExceptionMessageLine,
+                    $inlineLine,
                     $document->path->value,
                     $associatedExpectedExceptionLine,
                 ));
             }
 
             throw new DirectiveException(sprintf(
-                'Inline Akashi expect-exception-message directive at %s:%d requires an inline '
-                    . 'expect-exception directive in the same example.',
+                'Inline Akashi %s directive at %s:%d requires an inline expect-exception directive in the same '
+                    . 'example.',
+                $constraint['name'],
                 $document->path->value,
-                $inlineExpectedExceptionMessageLine,
+                $inlineLine,
             ));
         }
 

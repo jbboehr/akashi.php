@@ -64,6 +64,8 @@ final class InlineDirectiveParser
      *     expectedException: ?ExpectedException,
      *     expectedExceptionMessage: ?string,
      *     expectedExceptionMessageLine: ?positive-int,
+     *     expectedExceptionCode: ?int,
+     *     expectedExceptionCodeLine: ?positive-int,
      *     metadata: MetadataLocation
      * }
      *
@@ -81,6 +83,8 @@ final class InlineDirectiveParser
         $expectedExceptionLine = null;
         $expectedExceptionMessage = null;
         $expectedExceptionMessageLine = null;
+        $expectedExceptionCode = null;
+        $expectedExceptionCodeLine = null;
 
         foreach ($tokens as $token) {
             if (!is_array($token) || $token[0] !== T_COMMENT) {
@@ -149,6 +153,35 @@ final class InlineDirectiveParser
                 continue;
             }
 
+            if (preg_match('/\Aexpect-exception-code(?:[ \t]+(.*))?\z/D', $value, $expectedMatches) === 1) {
+                if ($expectedExceptionCodeLine !== null) {
+                    throw new DirectiveException(sprintf(
+                        'Duplicate inline Akashi directive expect-exception-code at %s:%d; first declared at %s:%d.',
+                        $document->path->value,
+                        $sourceLine,
+                        $document->path->value,
+                        $expectedExceptionCodeLine,
+                    ));
+                }
+
+                $authoredCode = trim($expectedMatches[1] ?? '');
+                $parsedCode = preg_match('/\A[+-]?(?:0|[1-9][0-9]*)\z/D', $authoredCode) === 1
+                    ? filter_var($authoredCode, FILTER_VALIDATE_INT)
+                    : false;
+                if (!is_int($parsedCode)) {
+                    throw new DirectiveException(sprintf(
+                        'Invalid inline Akashi expect-exception-code directive at %s:%d: '
+                            . 'Expected exception code must be a signed base-10 integer in the PHP integer range.',
+                        $document->path->value,
+                        $sourceLine,
+                    ));
+                }
+
+                $expectedExceptionCode = $parsedCode;
+                $expectedExceptionCodeLine = $sourceLine;
+                continue;
+            }
+
             $directive = Directive::tryFrom($value);
             if ($directive === null) {
                 throw new DirectiveException(sprintf(
@@ -173,8 +206,12 @@ final class InlineDirectiveParser
             $directiveLines[$directive->value] = $sourceLine;
         }
 
-        if ($expectedExceptionMessage !== null && $expectedException !== null) {
-            $expectedException = new ExpectedException($expectedException->className, $expectedExceptionMessage);
+        if ($expectedException !== null && ($expectedExceptionMessage !== null || $expectedExceptionCode !== null)) {
+            $expectedException = new ExpectedException(
+                $expectedException->className,
+                $expectedExceptionMessage,
+                $expectedExceptionCode,
+            );
         }
 
         return [
@@ -182,6 +219,8 @@ final class InlineDirectiveParser
             'expectedException' => $expectedException,
             'expectedExceptionMessage' => $expectedExceptionMessage,
             'expectedExceptionMessageLine' => $expectedExceptionMessageLine,
+            'expectedExceptionCode' => $expectedExceptionCode,
+            'expectedExceptionCodeLine' => $expectedExceptionCodeLine,
             'metadata' => new MetadataLocation(
                 separateProcessDirectiveLine: $directiveLines[Directive::SeparateProcess->value] ?? null,
                 skipDirectiveLine: $directiveLines[Directive::Skip->value] ?? null,

@@ -40,9 +40,10 @@ matching `CodeOrigin` from one fenced `SourceLocation`.
 
 Path, identifier, language, fence, directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public
 because the canonical model and configuration objects expose them as typed state. That includes
-`Model\ExpectedException`, which carries a normalized authored throwable class name and optional nonempty case-sensitive
-message substring without requiring the class to exist before runtime setup. Their constructors enforce the same
-invariants used by source discovery; they are data contracts, not subclassing or service-replacement seams.
+`Model\ExpectedException`, which carries a normalized authored throwable class name, optional nonempty case-sensitive
+message substring, and optional integer code without requiring the class to exist before runtime setup. Their
+constructors enforce the same invariants used by source discovery; they are data contracts, not subclassing or
+service-replacement seams.
 
 The supporting value types are grouped by what they preserve:
 

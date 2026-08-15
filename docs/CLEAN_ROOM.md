@@ -83,16 +83,16 @@ Dates record the review date, not the document publication date.
 
 ### PHPUnit
 
-| Date       | Document                                                                                         | Classification                   | Design use                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------ | -------------------------------- | -------------------------------------------------------------------------- |
-| 2026-08-04 | [Writing tests for PHPUnit 11.5](https://docs.phpunit.de/en/11.5/writing-tests-for-phpunit.html) | Integration guide                | Data providers, dependency attributes, and exception/assertion integration |
-| 2026-08-04 | [Risky tests](https://docs.phpunit.de/en/11.5/risky-tests.html)                                  | User-facing behavioral reference | Output, global state, and tests-without-assertions behavior                |
-| 2026-08-04 | [Assertions](https://docs.phpunit.de/en/11.5/assertions.html)                                    | Integration guide                | Failure reporting and assertion adapter design                             |
-| 2026-08-04 | [Attributes](https://docs.phpunit.de/en/11.5/attributes.html)                                    | Integration guide                | Supported provider and test metadata                                       |
-| 2026-08-04 | [Error handling](https://docs.phpunit.de/en/11.5/error-handling.html)                            | User-facing behavioral reference | Interaction with PHP error handling and process state                      |
-| 2026-08-08 | [Annotations in PHPUnit 10.5](https://docs.phpunit.de/en/10.5/annotations.html)                  | Integration guide                | Attribute precedence during the PHPUnit 10 compatibility review            |
-| 2026-08-08 | [Supported PHPUnit versions](https://phpunit.de/supported-versions.html)                         | User-facing behavioral reference | Upstream lifecycle context for Akashi's tested version boundary            |
-| 2026-08-14 | [Writing tests for PHPUnit 12.5](https://docs.phpunit.de/en/12.5/writing-tests-for-phpunit.html) | User-facing behavioral reference | Forward-compatible confirmation of exception-message substring semantics   |
+| Date       | Document                                                                                         | Classification                   | Design use                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------------- |
+| 2026-08-04 | [Writing tests for PHPUnit 11.5](https://docs.phpunit.de/en/11.5/writing-tests-for-phpunit.html) | Integration guide                | Data providers, dependency attributes, and exception type/message/code integration |
+| 2026-08-04 | [Risky tests](https://docs.phpunit.de/en/11.5/risky-tests.html)                                  | User-facing behavioral reference | Output, global state, and tests-without-assertions behavior                        |
+| 2026-08-04 | [Assertions](https://docs.phpunit.de/en/11.5/assertions.html)                                    | Integration guide                | Failure reporting and assertion adapter design                                     |
+| 2026-08-04 | [Attributes](https://docs.phpunit.de/en/11.5/attributes.html)                                    | Integration guide                | Supported provider and test metadata                                               |
+| 2026-08-04 | [Error handling](https://docs.phpunit.de/en/11.5/error-handling.html)                            | User-facing behavioral reference | Interaction with PHP error handling and process state                              |
+| 2026-08-08 | [Annotations in PHPUnit 10.5](https://docs.phpunit.de/en/10.5/annotations.html)                  | Integration guide                | Attribute precedence during the PHPUnit 10 compatibility review                    |
+| 2026-08-08 | [Supported PHPUnit versions](https://phpunit.de/supported-versions.html)                         | User-facing behavioral reference | Upstream lifecycle context for Akashi's tested version boundary                    |
+| 2026-08-14 | [Writing tests for PHPUnit 12.5](https://docs.phpunit.de/en/12.5/writing-tests-for-phpunit.html) | User-facing behavioral reference | Forward-compatible confirmation of exception-message substring semantics           |
 
 ### PHPStan
 
