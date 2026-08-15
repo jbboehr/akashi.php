@@ -76,6 +76,23 @@ Use this backend for authored namespaces, closing tags or inline HTML, relocatio
 `exit()` or `die()`, and examples that intentionally alter process-global state. It also prevents ordinary parse errors,
 runtime exceptions, signals, and nonzero exits from terminating the hosting PHPUnit process.
 
+Expected exceptions work across this boundary, including types declared only inside the child:
+
+```php
+namespace AkashiDocs\SeparateProcess;
+
+// akashi: separate-process
+// akashi: expect-exception AkashiDocs\SeparateProcess\ImportFailure
+// akashi: expect-exception-message Import rejected
+// akashi: expect-exception-code 73
+
+final class ImportFailure extends \RuntimeException
+{
+}
+
+throw new ImportFailure('Import rejected by the isolated example.', 73);
+```
+
 ## Make It the Default
 
 Projects may select child execution for every unmarked example by changing the trait's configuration hook:
@@ -98,7 +115,13 @@ configured default, and finally the in-process fallback.
 Akashi writes a private temporary PHP file and invokes the current `PHP_BINARY` with an argument list rather than a
 shell command. The child runs from the configured project root. A configured bootstrap is loaded independently for each
 child through `auto_prepend_file`. Akashi enables assertion exceptions, captures stdout and stderr separately, applies a
-fixed 60-second emergency timeout, and removes the temporary file in `finally`.
+fixed 60-second emergency timeout, and removes temporary files in `finally`.
+
+When an exception expectation is present, a private launcher catches `Throwable` around the authored file and records
+token-bound, base64-safe typed evidence in a separate private file. Stdout and stderr remain user streams and are never
+parsed as the protocol. The parent verifies the exception type, message, code, and mapped source line from that
+evidence. Nonzero exits take precedence over any report; after a clean child exit, malformed changed evidence is an
+infrastructure failure.
 
 A zero exit status is success, including `exit(0)`. Nonzero exits, signals, timeouts, startup failures, and cleanup
 failures become typed execution failures. Where PHP reports a usable line, Akashi maps it back to the maintained

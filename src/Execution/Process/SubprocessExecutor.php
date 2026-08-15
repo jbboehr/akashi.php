@@ -41,6 +41,7 @@ namespace jbboehr\Akashi\Execution\Process;
 use jbboehr\Akashi\Execution\CleanupFailure;
 use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
 use jbboehr\Akashi\Execution\Exception\SeparateProcessExecutionException;
+use jbboehr\Akashi\Execution\Exception\SeparateProcessThrowableException;
 use jbboehr\Akashi\Execution\ExecutionFailed;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
@@ -121,7 +122,7 @@ final class SubprocessExecutor implements Executor
         }
 
         $startedAt = self::monotonicNanoseconds();
-        $temporaryFile = self::createTemporaryPhpFile($preparedExample->code);
+        $temporaryFiles = [];
         $stdout = '';
         $stderr = '';
         $executionCause = null;
@@ -130,8 +131,38 @@ final class SubprocessExecutor implements Executor
 
         try {
             try {
+                $temporaryFile = self::createTemporaryPhpFile($preparedExample->code);
+                $temporaryFiles[] = $temporaryFile;
+                $entryFile = $temporaryFile;
+                $pendingEvidence = null;
+                $evidenceToken = null;
+                $evidenceFile = null;
+
+                if ($preparedExample->example->expectedException !== null) {
+                    try {
+                        $evidenceToken = bin2hex(random_bytes(32));
+                    } catch (\Throwable $exception) {
+                        throw new ExecutionInfrastructureException(
+                            'Unable to create a private separate-process exception channel.',
+                            0,
+                            $exception,
+                        );
+                    }
+
+                    $pendingEvidence = "<?php\n/* akashi exception evidence pending: " . $evidenceToken . " */\n";
+                    $evidenceFile = self::createTemporaryPhpFile(new PreparedCode($pendingEvidence));
+                    $temporaryFiles[] = $evidenceFile;
+                    $entryFile = self::createTemporaryPhpFile(self::launcherSource(
+                        $temporaryFile,
+                        $evidenceFile,
+                        $evidenceToken,
+                        $preparedExample->example->expectedException->className,
+                    ));
+                    $temporaryFiles[] = $entryFile;
+                }
+
                 $process = new Process(
-                    command: self::command($temporaryFile, $this->configuration),
+                    command: self::command($entryFile, $this->configuration),
                     cwd: $projectRoot,
                     timeout: self::PROCESS_TIMEOUT_SECONDS,
                 );
@@ -144,6 +175,17 @@ final class SubprocessExecutor implements Executor
                         SeparateProcessFailureKind::Exit,
                         $exitCode,
                     );
+                } elseif ($evidenceFile !== null) {
+                    $capturedThrowable = self::capturedThrowable(
+                        $evidenceFile,
+                        $pendingEvidence,
+                        $evidenceToken,
+                        $preparedExample,
+                    );
+                    if ($capturedThrowable !== null) {
+                        $executionCause = $capturedThrowable['cause'];
+                        $generatedLine = $capturedThrowable['generatedLine'];
+                    }
                 }
             } catch (ProcessTimedOutException $exception) {
                 $process = $exception->getProcess();
@@ -169,21 +211,39 @@ final class SubprocessExecutor implements Executor
                     0,
                     $exception,
                 );
+            } catch (ExecutionInfrastructureException $exception) {
+                $infrastructureFailure = $exception;
             }
 
-            if ($executionCause !== null) {
+            if (
+                $executionCause !== null
+                && !$executionCause instanceof SeparateProcessThrowableException
+                && $generatedLine === null
+                && isset($temporaryFile)
+            ) {
                 $generatedLine = self::generatedLine($stderr, $temporaryFile, $preparedExample->code);
             }
         } finally {
-            $cleanupFailure = self::removeTemporaryFile($temporaryFile);
+            $cleanupFailures = [];
+            foreach (array_reverse($temporaryFiles) as $temporaryFileToRemove) {
+                $cleanupFailure = self::removeTemporaryFile($temporaryFileToRemove);
+                if ($cleanupFailure !== null) {
+                    $cleanupFailures[] = $cleanupFailure;
+                }
+            }
         }
 
         if ($infrastructureFailure !== null) {
-            if ($cleanupFailure !== null) {
+            if ($cleanupFailures !== []) {
+                $cleanupMessages = [];
+                foreach ($cleanupFailures as $cleanupFailure) {
+                    $cleanupMessages[] = $cleanupFailure->message;
+                }
+
                 throw new ExecutionInfrastructureException(
                     $infrastructureFailure->getMessage()
                     . ' Temporary-file cleanup also failed: '
-                    . $cleanupFailure->message,
+                    . implode('; ', $cleanupMessages),
                     0,
                     $infrastructureFailure,
                 );
@@ -197,7 +257,6 @@ final class SubprocessExecutor implements Executor
             throw new ExecutionInfrastructureException('The monotonic execution clock moved backwards.');
         }
         $duration = $finishedAt - $startedAt;
-        $cleanupFailures = $cleanupFailure === null ? [] : [$cleanupFailure];
 
         if ($executionCause !== null) {
             return new ExecutionFailed(
@@ -212,7 +271,7 @@ final class SubprocessExecutor implements Executor
             );
         }
 
-        if ($cleanupFailure !== null) {
+        if ($cleanupFailures !== []) {
             return new ExecutionFailed(
                 $preparedExample,
                 FailurePhase::Cleanup,
@@ -316,6 +375,239 @@ final class SubprocessExecutor implements Executor
         $command[] = $temporaryFile->value;
 
         return $command;
+    }
+
+    /**
+     * Build a private launcher that keeps Akashi variables outside the authored file's include scope.
+     *
+     * @logion [RAS 108:5] A green halo descended through the artificial sun and remained unburned. Thereafter every
+     *     false festival cast its brightness inward, blinding only its celebrants.
+     */
+    private static function launcherSource(
+        AbsoluteFilePath $temporaryFile,
+        AbsoluteFilePath $evidenceFile,
+        string $evidenceToken,
+        string $expectedClassName,
+    ): PreparedCode {
+        $source = sprintf(
+            <<<'PHP'
+<?php
+declare(strict_types=1);
+
+try {
+    require %s;
+} catch (\Throwable $akashiThrowable) {
+    (static function (\Throwable $throwable): void {
+        $actualClass = \get_class($throwable);
+        $typeNames = \array_values(\array_unique([
+            $actualClass,
+            ...\array_values(\class_parents($throwable) ?: []),
+            ...\array_values(\class_implements($throwable) ?: []),
+        ]));
+        $encodedTypeNames = [];
+        foreach ($typeNames as $typeName) {
+            $encodedTypeNames[] = \base64_encode($typeName);
+        }
+
+        $generatedLine = null;
+        $sourcePath = \str_replace('\\', '/', %s);
+        foreach ([
+            ['file' => $throwable->getFile(), 'line' => $throwable->getLine()],
+            ...$throwable->getTrace(),
+        ] as $candidate) {
+            $file = $candidate['file'] ?? null;
+            $line = $candidate['line'] ?? null;
+            if (!\is_string($file) || !\is_int($line) || $line < 1) {
+                continue;
+            }
+
+            $candidatePath = \str_replace('\\', '/', $file);
+            $samePath = \DIRECTORY_SEPARATOR === '\\'
+                ? \strcasecmp($candidatePath, $sourcePath) === 0
+                : $candidatePath === $sourcePath;
+            if ($samePath) {
+                $generatedLine = $line;
+                break;
+            }
+        }
+
+        $expectedClass = %s;
+        $expectedTypeAvailable = \is_a($expectedClass, \Throwable::class, true);
+        $exceptionCode = $throwable->getCode();
+        if (!\is_int($exceptionCode) && !\is_string($exceptionCode)) {
+            \file_put_contents('php://stderr', 'Akashi could not encode the separate-process exception code.');
+            exit(70);
+        }
+        $payload = \json_encode([
+            'protocol' => 'akashi-exception-v1',
+            'token' => %s,
+            'class' => \base64_encode($actualClass),
+            'typeNames' => $encodedTypeNames,
+            'message' => \base64_encode($throwable->getMessage()),
+            'codeType' => \is_int($exceptionCode) ? 'integer' : 'string',
+            'code' => \is_int($exceptionCode) ? $exceptionCode : \base64_encode($exceptionCode),
+            'expectedTypeAvailable' => $expectedTypeAvailable,
+            'matchesExpectedType' => $expectedTypeAvailable && \is_a($throwable, $expectedClass),
+            'generatedLine' => $generatedLine,
+        ], \JSON_UNESCAPED_SLASHES);
+        if (!\is_string($payload)) {
+            \file_put_contents('php://stderr', 'Akashi could not encode separate-process exception evidence.');
+            exit(70);
+        }
+
+        $written = @\file_put_contents(%s, $payload, \LOCK_EX);
+        if ($written !== \strlen($payload)) {
+            \file_put_contents('php://stderr', 'Akashi could not write separate-process exception evidence.');
+            exit(70);
+        }
+
+        exit(0);
+    })($akashiThrowable);
+}
+PHP,
+            var_export($temporaryFile->value, true),
+            var_export($temporaryFile->value, true),
+            var_export($expectedClassName, true),
+            var_export($evidenceToken, true),
+            var_export($evidenceFile->value, true),
+        );
+
+        return new PreparedCode($source);
+    }
+
+    /**
+     * @return array{cause: SeparateProcessThrowableException, generatedLine: positive-int|null}|null
+     *
+     * @logion [AWC 108:3] Consul Varro ordered his victories woven upon the imperial cloak. At first frost, the
+     *     defeated names appeared warmer than his own.
+     */
+    private static function capturedThrowable(
+        AbsoluteFilePath $evidenceFile,
+        string $pendingEvidence,
+        string $evidenceToken,
+        SeparateProcessPreparedExample $preparedExample,
+    ): ?array {
+        $contents = @file_get_contents($evidenceFile->value);
+        if (!is_string($contents)) {
+            throw new ExecutionInfrastructureException(
+                'Unable to read the private separate-process exception channel.',
+            );
+        }
+
+        if ($contents === $pendingEvidence) {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new ExecutionInfrastructureException(
+                'Separate-process exception evidence is malformed.',
+                0,
+                $exception,
+            );
+        }
+
+        $keys = [
+            'protocol',
+            'token',
+            'class',
+            'typeNames',
+            'message',
+            'codeType',
+            'code',
+            'expectedTypeAvailable',
+            'matchesExpectedType',
+            'generatedLine',
+        ];
+        if (!is_array($decoded) || array_is_list($decoded) || array_keys($decoded) !== $keys) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has an invalid shape.');
+        }
+
+        if ($decoded['protocol'] !== 'akashi-exception-v1' || $decoded['token'] !== $evidenceToken) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence failed validation.');
+        }
+
+        $actualClassName = is_string($decoded['class'])
+            ? base64_decode($decoded['class'], true)
+            : false;
+        $message = is_string($decoded['message'])
+            ? base64_decode($decoded['message'], true)
+            : false;
+        if ($actualClassName === false || $actualClassName === '' || $message === false) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has invalid text fields.');
+        }
+
+        $encodedTypeNames = $decoded['typeNames'];
+        if (!is_array($encodedTypeNames) || !array_is_list($encodedTypeNames) || $encodedTypeNames === []) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has invalid type ancestry.');
+        }
+
+        $typeNames = [];
+        foreach ($encodedTypeNames as $encodedTypeName) {
+            $typeName = is_string($encodedTypeName) ? base64_decode($encodedTypeName, true) : false;
+            if ($typeName === false || $typeName === '') {
+                throw new ExecutionInfrastructureException(
+                    'Separate-process exception evidence has invalid type ancestry.',
+                );
+            }
+            $typeNames[] = $typeName;
+        }
+
+        if ($typeNames[0] !== $actualClassName) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has inconsistent types.');
+        }
+
+        $codeType = $decoded['codeType'];
+        $encodedExceptionCode = $decoded['code'];
+        if ($codeType === 'integer' && is_int($encodedExceptionCode)) {
+            $exceptionCode = $encodedExceptionCode;
+        } elseif ($codeType === 'string' && is_string($encodedExceptionCode)) {
+            $exceptionCode = base64_decode($encodedExceptionCode, true);
+            if ($exceptionCode === false) {
+                throw new ExecutionInfrastructureException(
+                    'Separate-process exception evidence has an invalid exception code.',
+                );
+            }
+        } else {
+            throw new ExecutionInfrastructureException(
+                'Separate-process exception evidence has an invalid exception code.',
+            );
+        }
+
+        $expectedTypeAvailable = $decoded['expectedTypeAvailable'];
+        $matchesExpectedType = $decoded['matchesExpectedType'];
+        $generatedLine = $decoded['generatedLine'];
+        if (
+            !is_bool($expectedTypeAvailable)
+            || !is_bool($matchesExpectedType)
+            || ($generatedLine !== null && (!is_int($generatedLine) || $generatedLine < 1))
+        ) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has invalid scalar fields.');
+        }
+
+        if ($generatedLine !== null && $generatedLine > $preparedExample->code->generatedLineCount()) {
+            throw new ExecutionInfrastructureException('Separate-process exception evidence has an invalid source line.');
+        }
+
+        try {
+            $cause = new SeparateProcessThrowableException(
+                $actualClassName,
+                $typeNames,
+                $message,
+                $exceptionCode,
+                $expectedTypeAvailable,
+                $matchesExpectedType,
+            );
+        } catch (\InvalidArgumentException $exception) {
+            throw new ExecutionInfrastructureException(
+                'Separate-process exception evidence is inconsistent.',
+                0,
+                $exception,
+            );
+        }
+
+        return ['cause' => $cause, 'generatedLine' => $generatedLine];
     }
 
     /**

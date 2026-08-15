@@ -41,11 +41,14 @@ namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\CleanupFailure;
+use jbboehr\Akashi\Execution\Exception\SeparateProcessExecutionException;
+use jbboehr\Akashi\Execution\Exception\SeparateProcessThrowableException;
 use jbboehr\Akashi\Execution\ExecutionFailed;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\FailurePhase;
 use jbboehr\Akashi\Execution\InProcess\InProcessExecutor;
+use jbboehr\Akashi\Execution\SeparateProcessFailureKind;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitResultAsserter;
 use jbboehr\Akashi\Model\ExampleCode;
@@ -59,6 +62,7 @@ use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Transform\ExecutionScope;
 use jbboehr\Akashi\Transform\InProcessTransformer;
 use jbboehr\Akashi\Transform\PreparedExample;
+use jbboehr\Akashi\Transform\SeparateProcessTransformer;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
@@ -285,6 +289,120 @@ TEXT;
         self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
         self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
         self::assertSame($result->cause, $failure->getPrevious());
+    }
+
+    public function testAcceptsMatchingChildOnlyThrowableEvidence(): void
+    {
+        $prepared = (new SeparateProcessTransformer())->transform($this->example('throw new ChildOnlyException();'));
+        $cause = new SeparateProcessThrowableException(
+            'ChildOnlyException',
+            ['ChildOnlyException', \RuntimeException::class, \Exception::class, \Throwable::class],
+            'documented child failure',
+            73,
+            true,
+            true,
+        );
+        $result = new ExecutionFailed(
+            $prepared,
+            FailurePhase::Execution,
+            $cause,
+            'captured child output',
+            [],
+            1,
+            1,
+            'captured child warning',
+        );
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult(
+            $result,
+            new ExpectedException('ChildOnlyException', 'child failure', 73),
+        );
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testReportsAStringChildExceptionCodeAsACodeMismatch(): void
+    {
+        $prepared = (new SeparateProcessTransformer())->transform($this->example('throw new ChildOnlyException();'));
+        $cause = new SeparateProcessThrowableException(
+            'ChildOnlyException',
+            ['ChildOnlyException', \RuntimeException::class, \Exception::class, \Throwable::class],
+            'documented child failure',
+            'HY000',
+            true,
+            true,
+        );
+        $result = new ExecutionFailed($prepared, FailurePhase::Execution, $cause, '', [], 1, 1);
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException('ChildOnlyException', code: 0),
+        );
+
+        self::assertStringContainsString('its exception code did not match.', $failure->getMessage());
+        self::assertStringContainsString('Expected exception code: 0', $failure->getMessage());
+        self::assertStringContainsString("Actual exception code: 'HY000'", $failure->getMessage());
+        self::assertSame($cause, $failure->getPrevious());
+    }
+
+    public function testReportsCapturedChildThrowableTypeAndMessageWithoutLoadingItsClass(): void
+    {
+        $prepared = (new SeparateProcessTransformer())->transform($this->example('throw new ChildOnlyException();'));
+        $cause = new SeparateProcessThrowableException(
+            'ChildOnlyException',
+            ['ChildOnlyException', \RuntimeException::class, \Exception::class, \Throwable::class],
+            'actual child failure',
+            74,
+            true,
+            false,
+        );
+        $result = new ExecutionFailed(
+            $prepared,
+            FailurePhase::Execution,
+            $cause,
+            'captured child output',
+            [],
+            1,
+            1,
+            'captured child warning',
+        );
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\LogicException::class));
+
+        self::assertStringContainsString('but ChildOnlyException was thrown.', $failure->getMessage());
+        self::assertStringContainsString("Cause:\n    ChildOnlyException: actual child failure", $failure->getMessage());
+        self::assertStringContainsString("Captured stdout:\n    captured child output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    captured child warning", $failure->getMessage());
+        self::assertSame($cause, $failure->getPrevious());
+    }
+
+    public function testDoesNotTreatASeparateProcessExitAsAnAuthoredThrowable(): void
+    {
+        $prepared = (new SeparateProcessTransformer())->transform($this->example('exit(23);'));
+        $cause = new SeparateProcessExecutionException(SeparateProcessFailureKind::Exit, 23);
+        $result = new ExecutionFailed($prepared, FailurePhase::Execution, $cause, '', [], 1);
+
+        $failure = $this->assertionFailure($result, new ExpectedException(\RuntimeException::class));
+
+        self::assertStringContainsString('because execution did not complete cleanly.', $failure->getMessage());
+        self::assertStringContainsString('Separate PHP process exited with status 23.', $failure->getMessage());
+        self::assertStringNotContainsString('but SeparateProcessExecutionException was thrown', $failure->getMessage());
+        self::assertSame($cause, $failure->getPrevious());
+    }
+
+    public function testReportsNormalSeparateProcessCompletionBeforeParentTypeAvailability(): void
+    {
+        $prepared = (new SeparateProcessTransformer())->transform($this->example('echo 1;'));
+        $result = new ExecutionSucceeded($prepared, '1', 1);
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException('Akashi\\Missing\\ChildOnlyException'),
+        );
+
+        self::assertStringContainsString('but execution completed without throwing.', $failure->getMessage());
+        self::assertStringNotContainsString('does not identify an available Throwable type', $failure->getMessage());
     }
 
     public function testAcceptsAnExpectedExceptionWithAZeroDuration(): void

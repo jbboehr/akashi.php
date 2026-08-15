@@ -841,8 +841,8 @@ interfaces for them unless an already-required abstraction naturally supports th
 * expected stdout;
 * expected stderr;
 * inline expected values;
-* richer expected-exception contracts beyond the implemented in-process throwable type, including message, code, and
-  separate-process support;
+* richer expected-exception contracts beyond the implemented throwable type, message substring, and exact integer code
+  constraints available in both execution backends;
 * panic-style or expected-failure runtime tests;
 * expected parse errors;
 * expected static-analysis failures as a generalized feature;

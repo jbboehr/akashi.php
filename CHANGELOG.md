@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Author `skip`, `separate-process`, `expect-exception`, and optional PHPUnit-compatible `expect-exception-message`
   substring and `expect-exception-code` integer constraints as token-aware PHP line comments in fenced or external
   canonical example code.
+- Verify expected exception types, message substrings, and integer codes in both execution backends without treating
+  child exits, signals, timeouts, or infrastructure failures as authored exceptions.
 - Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named
   regions, and render corrected documents in memory without changing their surrounding prose or formatting.
 - Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-labelled

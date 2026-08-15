@@ -106,9 +106,9 @@ select the example, and marked extraction still returns its authored source.
 `RuntimeConfiguration` with an explicit project root. Akashi rejects missing configuration rather than silently running
 the example in-process.
 
-`expect-exception` uses PHPUnit-familiar type semantics for in-process examples. Its argument is a global PHP class
-name; a leading `\` is accepted but normalized away. By the time result reporting runs, that name must identify an
-available class or interface compatible with `Throwable`. A subtype satisfies an expectation for its parent type:
+`expect-exception` uses PHPUnit-familiar type semantics. Its argument is a global PHP class or interface name; a leading
+`\` is accepted but normalized away. In the selected runtime, that name must identify an available class or interface
+compatible with `Throwable`. A subtype satisfies an expectation for its parent type:
 
 ````markdown
 ```php
@@ -123,15 +123,15 @@ throw new DomainException('Invalid documentation input.', 73);
 `expect-exception-message` requires a nonempty, case-sensitive substring in the actual exception message. This follows
 PHPUnit's `expectExceptionMessage()` behavior rather than requiring an exact string. `expect-exception-code` accepts a
 signed base-10 integer within the running PHP build's integer range and compares it exactly with `Throwable::getCode()`.
-The example fails if it completes normally, throws an incompatible type, has a mismatched message or code, or cannot
-restore guarded process state. Akashi preserves the actual throwable as the previous exception on a mismatch.
-
-Expected exceptions currently require in-process execution. Combining `expect-exception` with an authored or configured
-separate-process mode is rejected explicitly because the child-process result does not preserve a trustworthy throwable
-type. When `skip` is also present, skip takes precedence over configuration, transformation, and expectation handling.
+A runtime string code, such as a PDO SQLSTATE, is preserved but cannot match that integer constraint. The example fails
+if it completes normally, throws an incompatible type, has a mismatched message or code, or cannot complete its backend
+cleanup. In-process mismatches preserve the actual throwable as the previous exception. Separate-process mismatches
+preserve a typed parent-side representation of the child evidence; the expected type may be defined only inside the
+child. Process exits, signals, timeouts, and infrastructure failures never satisfy an exception expectation. When `skip`
+is also present, skip takes precedence over configuration, transformation, and expectation handling.
 
 ## Not Implemented
 
 Akashi does not currently implement a global ignore directive, compile-only mode, general expected runtime or
-compilation failure, conditional or platform-specific skip, custom skip reasons, hidden support-code syntax, or expected
-exceptions in a separate process. These remain roadmap items and must not be inferred from Rust or PHPUnit terminology.
+compilation failure, conditional or platform-specific skip, custom skip reasons, or hidden support-code syntax. These
+remain roadmap items and must not be inferred from Rust or PHPUnit terminology.

@@ -26,5 +26,11 @@ throw new RuntimeException('An expected subtype satisfies its parent type.', 73)
 ```php
 namespace Akashi\PHPUnit10Compatibility\SeparateProcess;
 
-assert(PHP_VERSION_ID >= 80100);
+// akashi: expect-exception Akashi\PHPUnit10Compatibility\SeparateProcess\CompatibilityException
+// akashi: expect-exception-message expected child subtype
+// akashi: expect-exception-code 81
+
+final class CompatibilityException extends \RuntimeException {}
+
+throw new CompatibilityException('An expected child subtype preserves its evidence.', 81);
 ```

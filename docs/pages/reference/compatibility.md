@@ -72,17 +72,18 @@ does not select Parser 4 for PHPStan 2's process.
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;
   content beside `/**` or `*/` is not interpreted as Markdown, and symbol attachment is not exposed as model metadata.
-- Runtime directives are `skip`, `separate-process`, the typed in-process `expect-exception ThrowableClass`, and its
-  optional `expect-exception-message SUBSTRING` and `expect-exception-code INTEGER` constraints. Documentation fences
-  accept associated HTML forms or token-aware PHP line comments; canonical external examples use PHP line comments. An
+- Runtime directives are `skip`, `separate-process`, the typed `expect-exception ThrowableClass`, and its optional
+  `expect-exception-message SUBSTRING` and `expect-exception-code INTEGER` constraints. Documentation fences accept
+  associated HTML forms or token-aware PHP line comments; canonical external examples use PHP line comments. An
   exception type and its constraints must use the same form, and combining both forms of the same directive is invalid.
 - Global ignore, compile-only, expected compilation failure, general expected runtime failure, platform conditions,
   custom skip reasons, and hidden support code are deferred.
 - There is no expected-output contract. Stdout and stderr are captured for diagnostics but do not fail an otherwise
   successful execution.
 - Expected exceptions match an available `Throwable` type and its subtypes. An optional message constraint uses a
-  case-sensitive substring, and an optional signed base-10 integer code uses exact comparison. Separate-process support
-  is deferred.
+  case-sensitive substring, and an optional signed base-10 integer code uses exact comparison. Both execution backends
+  support this contract. A runtime string code, such as a PDO SQLSTATE, remains valid for type or message matching but
+  cannot satisfy the integer code constraint.
 
 A runtime-skipped fence remains in the corpus and may still participate in PHPStan or extraction. For a fragment that
 should enter no workflow, select a narrower document set or use another fence language.
@@ -124,10 +125,11 @@ PHP source line when the underlying tool supplies a usable generated line. Refer
 PHPDoc presentation locations. When Akashi cannot establish an exact mapping, it reports the canonical example start
 explicitly; low-level metadata may still contain a temporary-file path.
 
-An expected exception changes only the interpretation of a clean in-process execution result. A matching execution
-exception passes; normal completion, a mismatched type, optional message substring, or optional integer code, an
-unavailable or non-`Throwable` class, and any cleanup failure fail. It does not make infrastructure, transformation, or
-arbitrary process failure successful.
+An expected exception changes only the interpretation of a clean execution result. A matching authored exception passes;
+normal completion, a mismatched type, optional message substring, or optional integer code, an unavailable or
+non-`Throwable` type, and any cleanup failure fail. For child execution, Akashi records typed exception evidence through
+a private file rather than scraping stderr. A nonzero exit, signal, timeout, startup failure, malformed evidence, or
+other infrastructure failure remains a failure and cannot satisfy the expectation.
 
 ## PHPStan Boundary
 

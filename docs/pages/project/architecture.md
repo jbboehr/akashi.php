@@ -154,9 +154,15 @@ every fatal condition or external side effect.
 ### Separate process
 
 `SeparateProcessTransformer` preserves normal-file PHP semantics and its line map. `SubprocessExecutor` creates a
-private temporary file, invokes the current PHP binary with Symfony Process through an explicit argument vector without
+private authored file, invokes the current PHP binary with Symfony Process through an explicit argument vector without
 constructing a shell command, applies the configured project root and optional bootstrap, captures both streams,
-enforces the fixed emergency timeout, classifies child outcomes, and removes the file in `finally`.
+enforces the fixed emergency timeout, classifies child outcomes, and removes temporary files in `finally`.
+
+For an expected exception, a private launcher catches `Throwable` around the unmodified authored file and writes
+token-bound JSON evidence to a private side file. Base64 fields preserve arbitrary PHP strings, while the child records
+type availability, subtype matching, and integer-or-string exception codes in the environment where the throwable
+exists. The parent validates that evidence and maps its generated line without treating stdout or stderr as a protocol.
+Nonzero exits take precedence; after a clean child exit, malformed changed evidence is an infrastructure failure.
 
 The child protects PHPUnit from ordinary fatal process behavior. It is not an operating-system sandbox.
 
@@ -166,11 +172,11 @@ The child protects PHPUnit from ordinary fatal process behavior. It is not an op
 compose a project-owned PHPUnit test class without an extension or mutable registry. It delegates named provider
 arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
 facade: it applies skip and mode precedence, prepares and executes through the selected backend, then gives the result
-and optional expected throwable contract to `PhpUnitResultAsserter`. A compatible execution exception is success only
-when in-process execution has no cleanup failure, its message contains the optional case-sensitive substring, and its
-integer code equals the optional code constraint. Normal completion and type, message, or code mismatches fail at the
-maintained directive or exception location. The subprocess backend rejects this contract because its result does not
-preserve throwable identity. The adapter and facade remain public for projects that need a custom PHPUnit method.
+and optional expected throwable contract to `PhpUnitResultAsserter`. A compatible authored exception is success only
+when execution has no cleanup failure, its message contains the optional case-sensitive substring, and its integer code
+equals the optional code constraint. Normal completion and type, message, or code mismatches fail at the maintained
+directive or exception location. Child exits, signals, timeouts, and infrastructure failures remain failures. The
+adapter and facade remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses identifier-oriented expectations associated with
@@ -268,11 +274,11 @@ compose source, runtime, and verifier configuration through typed immutable valu
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
-runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, identifier- and
-text-oriented PHPStan expectations through `RuleTestCase`, typed PHPStan command execution and composed verification,
-JSON decoding and standalone result verification, and marked extraction. External canonical PHP examples can also be
-projected into direct PHPStan command fixtures without generated source. Hidden support code, documentation-renderer
-inclusion, generalized verifier plugins, and a standalone Akashi test runner do not exist yet.
+runtime directives, both execution backends, typed exception expectations, PHPUnit, identifier- and text-oriented
+PHPStan expectations through `RuleTestCase`, typed PHPStan command execution and composed verification, JSON decoding
+and standalone result verification, and marked extraction. External canonical PHP examples can also be projected into
+direct PHPStan command fixtures without generated source. Hidden support code, documentation-renderer inclusion,
+generalized verifier plugins, and a standalone Akashi test runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

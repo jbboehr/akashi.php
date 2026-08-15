@@ -245,8 +245,9 @@ The Rust review influenced only the roadmap and vocabulary used to discuss defer
   now represented by canonical code origins and PHPDoc presentation locations;
 - ignored examples informed the authored runtime-skip directive while broader ignore policies remain deferred;
 - non-running examples motivate a future parse-or-analyze-only mode;
-- expected runtime failure motivated the roadmap entry now implemented as a narrow in-process throwable-type
-  expectation; its PHP-oriented syntax and PHPUnit-compatible subtype matching were independently designed;
+- expected runtime failure motivated the roadmap entry now implemented as a narrow throwable-type, message-substring,
+  and integer-code expectation in both execution backends; its PHP-oriented syntax and PHPUnit-compatible subtype
+  matching were independently designed;
 - expected compilation failure motivates a future exact PHPStan-diagnostic expectation; and
 - Cargo's documented working-directory behavior reinforces that Akashi must make its execution directory explicit.
 

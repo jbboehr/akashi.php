@@ -55,7 +55,6 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
-use jbboehr\Akashi\Transform\Exception\UnsupportedExampleException;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -170,7 +169,7 @@ final class PhpUnitRuntimeTest extends TestCase
     }
 
     #[DataProvider('separateProcessExpectationProvider')]
-    public function testRejectsExpectedExceptionsForSeparateProcessExecution(bool $authoredDirective): void
+    public function testAcceptsExpectedExceptionsForSeparateProcessExecution(bool $authoredDirective): void
     {
         $directives = $authoredDirective
             ? new DirectiveSet(Directive::SeparateProcess)
@@ -180,22 +179,49 @@ final class PhpUnitRuntimeTest extends TestCase
             $configuration = $configuration->withDefaultExecutionMode(ExecutionMode::SeparateProcess);
         }
 
-        $this->expectException(UnsupportedExampleException::class);
-        $this->expectExceptionMessage(
-            'Example example-runtime-01 expects RuntimeException at docs/runtime.md:8, but expected exceptions '
-                . 'currently require in-process execution.',
-        );
-
         PhpUnitRuntime::assertExample(
             $this->example(
-                "throw new RuntimeException('expected');",
+                <<<'PHP'
+namespace Akashi\RuntimeChild;
+final class ExpectedFailure extends \DomainException {}
+throw new ExpectedFailure('documented child failure', 73);
+PHP,
                 directives: $directives,
                 directiveLine: $authoredDirective ? 7 : null,
-                expectedException: new ExpectedException(\RuntimeException::class),
+                expectedException: new ExpectedException(
+                    'Akashi\RuntimeChild\ExpectedFailure',
+                    'child failure',
+                    73,
+                ),
                 expectedExceptionLine: 8,
             ),
             $configuration,
         );
+    }
+
+    public function testReportsASeparateProcessExpectedExceptionMismatchAtTheMaintainedLine(): void
+    {
+        $example = $this->example(
+            "echo 'before';\nthrow new RuntimeException('actual child failure', 74);",
+            directives: new DirectiveSet(Directive::SeparateProcess),
+            directiveLine: 7,
+            expectedException: new ExpectedException(\RuntimeException::class, 'child failure', 73),
+            expectedExceptionLine: 8,
+        );
+
+        try {
+            PhpUnitRuntime::assertExample($example, RuntimeConfiguration::forProject($this->workspace));
+        } catch (ExpectationFailedException $failure) {
+            self::assertStringContainsString('its exception code did not match.', $failure->getMessage());
+            self::assertStringContainsString('Expected exception code: 73', $failure->getMessage());
+            self::assertStringContainsString('Actual exception code: 74', $failure->getMessage());
+            self::assertStringContainsString('Location: docs/runtime.md:11', $failure->getMessage());
+            self::assertStringContainsString("Captured stdout:\n    before", $failure->getMessage());
+
+            return;
+        }
+
+        self::fail('A separate-process exception-code mismatch must fail the PHPUnit data set.');
     }
 
     /**

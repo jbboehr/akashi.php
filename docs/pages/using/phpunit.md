@@ -148,8 +148,8 @@ Separate-process examples are not rewritten. The child PHP process enables nativ
 
 ## Expected Exceptions
 
-For an in-process example whose intended result is a thrown exception, place an `expect-exception` directive immediately
-inside its PHP fence:
+For an example whose intended result is a thrown exception, place an `expect-exception` directive immediately inside its
+PHP fence:
 
 <!-- akashi-example: expected-domain-exception -->
 
@@ -170,15 +170,16 @@ the failure clear or extracted PHP should not contain Akashi metadata. Its optio
 combine the forms.
 
 The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
-the type after runtime setup and execution, so application exception classes may come from the configured bootstrap or
-Composer autoloader. A missing throwable, a different throwable type, or cleanup failure fails the PHPUnit data set with
-the maintained documentation location. When present, `expect-exception-message` requires a nonempty, case-sensitive
-substring in the actual message, matching PHPUnit's `expectExceptionMessage()` semantics. `expect-exception-code`
-accepts a signed base-10 integer in PHP's integer range and requires exact equality with the actual exception code. A
-mismatch keeps the actual throwable in its exception chain.
+the type in the selected runtime, so application exception classes may come from its configured bootstrap or Composer
+autoloader; a separate-process type may exist only inside the child. A missing throwable, a different throwable type, or
+cleanup failure fails the PHPUnit data set with the maintained documentation location. When present,
+`expect-exception-message` requires a nonempty, case-sensitive substring in the actual message, matching PHPUnit's
+`expectExceptionMessage()` semantics. `expect-exception-code` accepts a signed base-10 integer in PHP's integer range
+and requires exact equality with the actual exception code. A runtime string code, such as a PDO SQLSTATE, remains
+available for type and message matching but is reported as a mismatch when an integer code was expected.
 
-The contract is not a general “any failure is success” mode. Expected exceptions are rejected for separate-process
-examples until that backend can return throwable identity without scraping child-process error text.
+The contract is not a general “any failure is success” mode. In particular, a child exit, signal, timeout, startup
+failure, or malformed exception report remains a process or infrastructure failure rather than an expected exception.
 
 ## Skips and Failures
 

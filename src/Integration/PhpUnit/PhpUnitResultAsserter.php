@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Integration\PhpUnit;
 
 use jbboehr\Akashi\Execution\ExecutionFailed;
+use jbboehr\Akashi\Execution\Exception\SeparateProcessThrowableException;
+use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Execution\ExecutionResult;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\FailurePhase;
@@ -120,7 +122,28 @@ final class PhpUnitResultAsserter
             $capturedStreamSections[] = "Captured stderr:\n" . self::indent($result->stderr);
         }
 
-        if (!is_a($expectedException->className, \Throwable::class, true)) {
+        $separateProcess = $result->preparedExample->executionMode === ExecutionMode::SeparateProcess;
+        $capturedThrowable = $result instanceof ExecutionFailed
+            && $result->cause instanceof SeparateProcessThrowableException
+                ? $result->cause
+                : null;
+
+        if ($result instanceof ExecutionSucceeded && $separateProcess) {
+            throw new ExpectationFailedException(implode("\n", [
+                sprintf(
+                    'Documentation example %s expected %s at %s, but execution completed without throwing.',
+                    $example->id->value,
+                    $expectedException->className,
+                    $expectationLocation,
+                ),
+                ...$capturedStreamSections,
+            ]));
+        }
+
+        $expectedTypeAvailable = $capturedThrowable instanceof SeparateProcessThrowableException
+            ? $capturedThrowable->expectedTypeAvailable
+            : ($separateProcess || is_a($expectedException->className, \Throwable::class, true));
+        if (!$expectedTypeAvailable) {
             $sections = [sprintf(
                 'Documentation example %s expects %s at %s, but that name does not identify an available '
                     . 'Throwable type.',
@@ -154,10 +177,16 @@ final class PhpUnitResultAsserter
             ]));
         }
 
+        $authoredThrowable = !$separateProcess || $capturedThrowable !== null;
+        $matchesExpectedType = $capturedThrowable instanceof SeparateProcessThrowableException
+            ? $capturedThrowable->matchesExpectedType
+            : is_a($result->cause, $expectedException->className);
+
         if (
             $result->phase === FailurePhase::Execution
             && $result->cleanupFailures === []
-            && is_a($result->cause, $expectedException->className)
+            && $authoredThrowable
+            && $matchesExpectedType
         ) {
             if (
                 $expectedException->message !== null
@@ -183,7 +212,10 @@ final class PhpUnitResultAsserter
                 );
             }
 
-            if ($expectedException->code !== null && $result->cause->getCode() !== $expectedException->code) {
+            $actualExceptionCode = $capturedThrowable instanceof SeparateProcessThrowableException
+                ? $capturedThrowable->actualCode
+                : $result->cause->getCode();
+            if ($expectedException->code !== null && $actualExceptionCode !== $expectedException->code) {
                 throw new ExpectationFailedException(
                     implode("\n", [
                         sprintf(
@@ -193,7 +225,7 @@ final class PhpUnitResultAsserter
                             $expectationLocation,
                         ),
                         sprintf('Expected exception code: %d', $expectedException->code),
-                        sprintf('Actual exception code: %d', $result->cause->getCode()),
+                        sprintf('Actual exception code: %s', var_export($actualExceptionCode, true)),
                         sprintf('Location: %s', self::sourceLocation($result)),
                         "Cause:\n" . self::indent(self::throwableSummary($result->cause)),
                         ...$capturedStreamSections,
@@ -212,14 +244,21 @@ final class PhpUnitResultAsserter
             return;
         }
 
-        if ($result->phase === FailurePhase::Execution && $result->cleanupFailures === []) {
+        if (
+            $result->phase === FailurePhase::Execution
+            && $result->cleanupFailures === []
+            && $authoredThrowable
+        ) {
+            $actualClassName = $capturedThrowable instanceof SeparateProcessThrowableException
+                ? $capturedThrowable->actualClassName
+                : $result->cause::class;
             $sections = [
                 sprintf(
                     'Documentation example %s expected %s at %s, but %s was thrown.',
                     $example->id->value,
                     $expectedException->className,
                     $expectationLocation,
-                    $result->cause::class,
+                    $actualClassName,
                 ),
                 sprintf('Location: %s', self::sourceLocation($result)),
                 "Cause:\n" . self::indent(self::throwableSummary($result->cause)),
@@ -342,9 +381,13 @@ final class PhpUnitResultAsserter
      */
     private static function throwableSummary(\Throwable $throwable): string
     {
+        $className = $throwable instanceof SeparateProcessThrowableException
+            ? $throwable->actualClassName
+            : $throwable::class;
+
         return sprintf(
             '%s: %s',
-            $throwable::class,
+            $className,
             $throwable->getMessage() !== '' ? $throwable->getMessage() : '(no message)',
         );
     }

@@ -42,6 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\Exception\ExecutionInfrastructureException;
 use jbboehr\Akashi\Execution\Exception\SeparateProcessExecutionException;
+use jbboehr\Akashi\Execution\Exception\SeparateProcessThrowableException;
 use jbboehr\Akashi\Execution\ExecutionFailed;
 use jbboehr\Akashi\Execution\ExecutionSucceeded;
 use jbboehr\Akashi\Execution\Executor;
@@ -52,6 +53,7 @@ use jbboehr\Akashi\Execution\SeparateProcessFailureKind;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -158,6 +160,169 @@ PHP;
         self::assertSame('', $result->stderr);
         self::assertStringNotContainsString('auto_prepend_file', $prepared->code->source);
         self::assertStringNotContainsString('bootstrap with spaces.php', $prepared->code->source);
+    }
+
+    public function testExpectedExceptionPreservesBootstrapVariablesAndCliGlobals(): void
+    {
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/bootstrap.php',
+            "<?php\n\$akashiBootstrapVariable = 'bootstrapped';",
+        ));
+        $configuration = RuntimeConfiguration::forProject($this->workspace)->withBootstrap('bootstrap.php');
+        $source = <<<'PHP'
+if (($akashiBootstrapVariable ?? null) !== 'bootstrapped') {
+    throw new LogicException('Bootstrap variables were not preserved.');
+}
+if (!isset($argv, $argc, $argv[0]) || !is_array($argv) || $argc !== count($argv)) {
+    throw new LogicException('CLI globals were not preserved.');
+}
+throw new RuntimeException('expected');
+PHP;
+
+        $result = (new SubprocessExecutor($configuration))->execute($this->transform(
+            $source,
+            new ExpectedException(\RuntimeException::class),
+        ));
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $result->cause);
+        self::assertSame(\RuntimeException::class, $result->cause->actualClassName);
+        self::assertTrue($result->cause->matchesExpectedType);
+    }
+
+    public function testCapturesAChildOnlyExpectedThrowableWithoutUsingItsOutputStreamsAsAProtocol(): void
+    {
+        $source = <<<'PHP'
+namespace Akashi\ChildFixture;
+final class ChildException extends \RuntimeException {}
+echo json_encode(get_included_files(), JSON_THROW_ON_ERROR);
+file_put_contents('php://stderr', 'authored warning');
+throw new ChildException("invalid \xFF input", 73);
+PHP;
+        $expectedException = new ExpectedException(
+            'Akashi\ChildFixture\ChildException',
+            "invalid \xFF",
+            73,
+        );
+
+        $result = $this->executor()->execute($this->transform($source, $expectedException));
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $result->cause);
+        self::assertSame('Akashi\ChildFixture\ChildException', $result->cause->actualClassName);
+        self::assertSame([
+            'Akashi\ChildFixture\ChildException',
+            \RuntimeException::class,
+            \Exception::class,
+            \Stringable::class,
+            \Throwable::class,
+        ], $result->cause->typeNames);
+        self::assertTrue($result->cause->expectedTypeAvailable);
+        self::assertTrue($result->cause->matchesExpectedType);
+        self::assertSame("invalid \xFF input", $result->cause->getMessage());
+        self::assertSame(73, $result->cause->getCode());
+        self::assertSame('authored warning', $result->stderr);
+        self::assertSame(6, $result->generatedLine);
+        self::assertSame(14, $result->preparedExample->sourceMap->sourceLineFor($result->generatedLine));
+
+        $includedFiles = json_decode($result->stdout, true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($includedFiles);
+        self::assertGreaterThanOrEqual(2, count($includedFiles));
+        foreach ($includedFiles as $includedFile) {
+            self::assertIsString($includedFile);
+            if (str_starts_with(basename($includedFile), 'akashi-')) {
+                self::assertFileDoesNotExist($includedFile);
+            }
+        }
+    }
+
+    public function testCapturesUnavailableAndMismatchedExpectedTypeEvidence(): void
+    {
+        $unavailable = $this->executor()->execute($this->transform(
+            "throw new RuntimeException('actual');",
+            new ExpectedException('Akashi\\Missing\\ChildException'),
+        ));
+        $mismatched = $this->executor()->execute($this->transform(
+            "throw new RuntimeException('actual');",
+            new ExpectedException(\LogicException::class),
+        ));
+
+        self::assertInstanceOf(ExecutionFailed::class, $unavailable);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $unavailable->cause);
+        self::assertFalse($unavailable->cause->expectedTypeAvailable);
+        self::assertFalse($unavailable->cause->matchesExpectedType);
+
+        self::assertInstanceOf(ExecutionFailed::class, $mismatched);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $mismatched->cause);
+        self::assertTrue($mismatched->cause->expectedTypeAvailable);
+        self::assertFalse($mismatched->cause->matchesExpectedType);
+    }
+
+    public function testCapturesAStringExceptionCodeWithoutRejectingTypeOnlyMatching(): void
+    {
+        if (!class_exists(\PDOException::class)) {
+            self::markTestSkipped('The PDO extension is unavailable.');
+        }
+
+        $source = <<<'PHP'
+$exception = new PDOException('database failure');
+$code = new ReflectionProperty(PDOException::class, 'code');
+$code->setAccessible(true);
+$code->setValue($exception, 'HY000');
+throw $exception;
+PHP;
+
+        $result = $this->executor()->execute($this->transform(
+            $source,
+            new ExpectedException(\PDOException::class),
+        ));
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $result->cause);
+        self::assertSame('HY000', $result->cause->actualCode);
+        self::assertTrue($result->cause->expectedTypeAvailable);
+        self::assertTrue($result->cause->matchesExpectedType);
+    }
+
+    public function testRejectsAnAvailableTypeThatIsNotItselfAThrowableType(): void
+    {
+        $result = $this->executor()->execute($this->transform(
+            <<<'PHP'
+interface ChildMarker {}
+final class ChildException extends RuntimeException implements ChildMarker {}
+throw new ChildException('actual');
+PHP,
+            new ExpectedException('ChildMarker'),
+        ));
+
+        self::assertInstanceOf(ExecutionFailed::class, $result);
+        self::assertInstanceOf(SeparateProcessThrowableException::class, $result->cause);
+        self::assertFalse($result->cause->expectedTypeAvailable);
+        self::assertFalse($result->cause->matchesExpectedType);
+    }
+
+    public function testExpectedExceptionPreservesCleanCompletionAsSuccess(): void
+    {
+        $result = $this->executor()->execute($this->transform(
+            "echo 'completed';",
+            new ExpectedException(\RuntimeException::class),
+        ));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('completed', $result->stdout);
+        self::assertSame('', $result->stderr);
+    }
+
+    public function testExpectedExceptionPreservesExitZeroAsSuccess(): void
+    {
+        $result = $this->executor()->execute($this->transform(
+            "echo 'before'; exit(0);",
+            new ExpectedException(\RuntimeException::class),
+        ));
+
+        self::assertInstanceOf(ExecutionSucceeded::class, $result);
+        self::assertSame('before', $result->stdout);
+        self::assertSame('', $result->stderr);
     }
 
     public function testTreatsAuthoredExitZeroAsSuccess(): void
@@ -462,12 +627,14 @@ PHP;
         return new SubprocessExecutor(RuntimeConfiguration::forProject($this->workspace));
     }
 
-    private function transform(string $source): SeparateProcessPreparedExample
-    {
-        return (new SeparateProcessTransformer())->transform($this->example($source));
+    private function transform(
+        string $source,
+        ?ExpectedException $expectedException = null,
+    ): SeparateProcessPreparedExample {
+        return (new SeparateProcessTransformer())->transform($this->example($source, $expectedException));
     }
 
-    private function example(string $source): Example
+    private function example(string $source, ?ExpectedException $expectedException = null): Example
     {
         $sourceLength = strlen($source);
         $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
@@ -497,6 +664,7 @@ PHP;
             code: new ExampleCode($source),
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: 1,
+            expectedException: $expectedException,
         );
     }
 }
