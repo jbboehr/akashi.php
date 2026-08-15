@@ -317,6 +317,21 @@ final class ApplicationTest extends TestCase
         self::assertSame('', $result['stderr']);
     }
 
+    public function testExtractsCanonicalAkashiMetadataWithoutAMarkerNameOption(): void
+    {
+        $file = $this->workspace . '/canonical.md';
+        self::assertNotFalse(file_put_contents(
+            $file,
+            "<!-- akashi: example=chosen -->\n```php\necho 'canonical';\n```\n",
+        ));
+
+        $result = $this->runApplication(['extract', $file, 'chosen']);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame("echo 'canonical';\n", $result['stdout']);
+        self::assertSame('', $result['stderr']);
+    }
+
     public function testExtractedSourceBypassesConsoleMarkupAndAnsiFormatting(): void
     {
         $file = $this->workspace . '/markup.md';
@@ -365,6 +380,35 @@ PHP));
         self::assertSame('', $result['stderr']);
     }
 
+    public function testExtractsACanonicallyNamedReferencedPhpExample(): void
+    {
+        self::assertTrue(mkdir($this->workspace . '/src', 0o700));
+        self::assertTrue(mkdir($this->workspace . '/examples', 0o700));
+        $document = $this->workspace . '/src/Examples.php';
+        self::assertNotFalse(file_put_contents(
+            $document,
+            "<?php\n/** @akashi-example examples/canonical.php */\n",
+        ));
+        self::assertNotFalse(file_put_contents(
+            $this->workspace . '/examples/canonical.php',
+            "<?php\n// akashi: example=canonical-reference\necho 'referenced';\n",
+        ));
+
+        $result = $this->runApplication([
+            'extract',
+            '--project-root=' . $this->workspace,
+            $document,
+            'canonical-reference',
+        ]);
+
+        self::assertSame(ExitCode::Success->value, $result['status']);
+        self::assertSame(
+            "<?php\n// akashi: example=canonical-reference\necho 'referenced';\n",
+            $result['stdout'],
+        );
+        self::assertSame('', $result['stderr']);
+    }
+
     public function testExtractsAProjectRelativeDocumentWithAnExplicitProjectRoot(): void
     {
         self::assertTrue(mkdir($this->workspace . '/docs', 0o700));
@@ -406,10 +450,6 @@ PHP));
     public static function usageFailureProvider(): iterable
     {
         yield 'unknown command' => [['unknown'], 'Command "unknown" is not defined.'];
-        yield 'missing marker name' => [
-            ['extract', 'examples.md', 'chosen'],
-            'The extract command requires --marker-name=NAME.',
-        ];
         yield 'duplicate marker name' => [
             ['extract', '--marker-name=first', '--marker-name=second', 'examples.md', 'chosen'],
             'The --marker-name option may be specified only once.',
@@ -554,7 +594,7 @@ PHP));
     {
         yield 'directive' => [
             "<!-- akashi: unknown -->\n```php\necho 1;\n```\n",
-            'Unknown Akashi directive "unknown"',
+            'Unknown property "unknown"',
         ];
         yield 'duplicate marker' => [
             "<!-- selected-example: chosen -->\n```php\necho 1;\n```\n\n"

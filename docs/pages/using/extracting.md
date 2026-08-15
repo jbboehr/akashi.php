@@ -17,10 +17,10 @@ example without making a second copy the source of truth. Extraction does not ex
 
 ## Mark the Example
 
-Choose a marker name, configure it when loading the corpus, and place the matching comment before a PHP fence:
+Assign a stable example ID in the Akashi metadata associated with a PHP fence:
 
 ````markdown
-<!-- akashi-example: greeting -->
+<!-- akashi: example=greeting -->
 
 ```php
 <?php
@@ -29,17 +29,15 @@ echo "Hello from Akashi!\n";
 ```
 ````
 
-`akashi-example` is an Akashi-generic convention, not a hard-coded name. A project retaining an existing marker such as
-`yumemi-example` supplies that name explicitly.
+The canonical `example` property is built in. It is distinct from the default PHPDoc `@akashi-example`
+external-reference tag: a reference adds its canonical file or region to the corpus, while `example=greeting` assigns an
+identity that the extraction command can select.
 
-This HTML marker is distinct from the default PHPDoc `@akashi-example` external-reference tag. A reference adds its
-canonical file or region to the corpus; it does not assign a `MARKER-ID` for the extraction command.
-
-The same marker can live inside PHPDoc and applies only to a fence in that comment:
+The same identity metadata can live inside PHPDoc and applies only to a fence in that comment:
 
 ````php
 /**
- * <!-- akashi-example: greeting -->
+ * <!-- akashi: example=greeting -->
  *
  * ```php
  * echo "Hello from Akashi!\n";
@@ -51,7 +49,6 @@ The same marker can live inside PHPDoc and applies only to a fence in that comme
 
 ```console
 vendor/bin/akashi extract \
-    --marker-name=akashi-example \
     docs/examples.md \
     greeting
 ```
@@ -62,9 +59,9 @@ byte-for-byte consumer fixtures predictable. Diagnostics go to stderr.
 When the input is below the project root and its PHPDoc uses external references, add
 `--project-root=/absolute/project/path` so those project-relative targets resolve against the intended boundary.
 
-Markers use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate, orphaned, or
-non-PHP markers fail explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and exit-status
-contract.
+Example IDs use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate, orphaned,
+or non-PHP identity metadata fails explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and
+exit-status contract.
 
 ## Select It in PHP
 
@@ -78,11 +75,15 @@ use jbboehr\Akashi\Source\MarkedExampleSelector;
 
 $corpus = DocumentationSource::forProject(dirname(__DIR__))
     ->includeFile('docs/examples.md')
-    ->withMarkerName('akashi-example')
     ->load();
 
 $example = (new MarkedExampleSelector())->select($corpus, 'greeting');
 ```
 
-Use ordinary corpus loading for PHPUnit and PHPStan. A marker adds a stable author-assigned identity; it does not filter
-unmarked examples from either workflow.
+Use ordinary corpus loading for PHPUnit and PHPStan. An `example` property adds a stable author-assigned identity; it
+does not filter unnamed examples from either workflow.
+
+For compatibility, a project may retain an existing marker such as `<!-- yumemi-example: greeting -->`. Add that dialect
+with `withMarkerName('yumemi-example')` when loading in PHP, and pass `--marker-name=yumemi-example` to `extract`.
+Canonical `akashi:` metadata remains recognized at the same time. Duplicate identities across canonical and legacy forms
+fail rather than one taking precedence.

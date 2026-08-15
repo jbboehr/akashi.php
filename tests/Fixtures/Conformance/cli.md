@@ -1,6 +1,6 @@
 # CLI conformance fixture
 
-<!-- akashi-example: selected -->
+<!-- akashi: example=selected -->
 
 ```php
 <?php

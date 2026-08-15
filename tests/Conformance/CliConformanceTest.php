@@ -67,7 +67,6 @@ final class CliConformanceTest extends TestCase
         $fixture = self::projectRoot() . '/tests/Fixtures/Conformance/cli.md';
         $extraction = self::executeCli(
             'extract',
-            '--marker-name=akashi-example',
             $fixture,
             'missing',
         );
@@ -81,7 +80,6 @@ final class CliConformanceTest extends TestCase
         $fixture = self::projectRoot() . '/tests/Fixtures/Conformance/cli.md';
         $extraction = self::executeCli(
             'extract',
-            '--marker-name=akashi-example',
             $fixture,
             'selected',
         );

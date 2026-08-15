@@ -18,8 +18,8 @@ the report says an exact maintained line is unavailable.
 ## Discovery and Metadata Failures
 
 Corpus loading fails before PHPUnit yields data sets when an include or exclusion is missing, a path escapes the project
-root, the same physical document is reached twice, no documents or PHP examples are found, or marker/directive metadata
-is malformed. These messages name the configured path or maintained documentation line responsible.
+root, the same physical document is reached twice, no documents or PHP examples are found, or example metadata is
+malformed. These messages name the configured path or maintained documentation line responsible.
 
 Fix the source set or comment placement; rerunning individual data sets cannot bypass a corpus-level discovery error.
 

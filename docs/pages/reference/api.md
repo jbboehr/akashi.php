@@ -23,7 +23,7 @@ autoloadability alone does not create an extension point.
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                                  |
 | `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                    |
-| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned marker ID.                                |
+| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned `example` identity.                       |
 | `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.                         |
 | `jbboehr\Akashi\Example`                      | Canonical example with a typed source variant, code, directives, and optional expectation. |
 | `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                          |
@@ -181,7 +181,7 @@ loading.
 
 ## Exceptions
 
-Source-loading failures, including malformed marker, directive, reference, and named-region metadata, share
+Source-loading failures, including malformed identity, runtime, reference, and named-region metadata, share
 `Source\Exception\SourceException`; transformation failures share `Transform\Exception\TransformException`; execution
 failures share `Execution\Exception\ExecutionException`; and PHPStan integration failures share
 `Integration\PHPStan\Exception\PhpStanException`. Formatting configuration, execution, output, rewrite,

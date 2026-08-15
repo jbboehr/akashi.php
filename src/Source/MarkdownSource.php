@@ -230,7 +230,7 @@ final class MarkdownSource
     }
 
     /**
-     * Return a new configuration that recognizes one explicit marker-comment name.
+     * Return a new configuration that adds one legacy marker-comment dialect.
      *
      * @logion [OSD 48:28] Keep one seat empty at the harvest judgment for the laborer who died before the grain was
      *     weighed. Though he answer no accusation and receive no wage, his absence rebuketh every account that would

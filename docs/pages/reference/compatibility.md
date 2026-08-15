@@ -72,11 +72,11 @@ does not select Parser 4 for PHPStan 2's process.
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;
   content beside `/**` or `*/` is not interpreted as Markdown, and symbol attachment is not exposed as model metadata.
-- Runtime directives are `skip`, `compile-only`, `separate-process`, the typed `expect-exception ThrowableClass`, and
-  its optional `expect-exception-message SUBSTRING` and `expect-exception-code INTEGER` constraints. Documentation
-  fences accept associated HTML forms or token-aware PHP line comments; canonical external examples use PHP line
-  comments. An exception type and its constraints must use the same form, and combining both forms of the same directive
-  is invalid.
+- Canonical example metadata uses comma-separated flags and `key=value` properties in associated `<!-- akashi: ... -->`
+  comments or token-aware `// akashi: ...` PHP comments. It covers `example`, `skip`, `compile-only`,
+  `separate-process`, typed `expect-exception`, and optional message and integer-code constraints. Adjacent HTML and
+  inline properties merge, but every property may occur at most once. Legacy one-property directives and one explicitly
+  configured marker-comment dialect remain accepted for compatibility.
 - Global ignore, expected compilation failure, general expected runtime failure, platform conditions, custom skip
   reasons, and hidden support code are deferred.
 - There is no expected-output contract. Stdout and stderr are captured for diagnostics but do not fail an otherwise

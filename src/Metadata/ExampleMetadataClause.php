@@ -36,34 +36,41 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
+namespace jbboehr\Akashi\Metadata;
 
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
-use jbboehr\Akashi\Source\MarkdownSource;
-use PHPUnit\Framework\TestCase;
-
-final class ExpectedExceptionDocumentationTest extends TestCase
+/**
+ * @internal
+ *
+ * @readonly
+ *
+ * @logion [SFA 111:9] The crystal tongue repeated every sound except silence. Therefore the cloister entrusted its
+ * gravest counsel to what the ornament could not imitate.
+ */
+final class ExampleMetadataClause
 {
-    public function testThePublishedExpectedExceptionExampleRunsThroughAkashi(): void
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/using/phpunit.md')
-            ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'expected-domain-exception');
+    /**
+     * @var positive-int
+     *
+     * @logion [RAS 111:10] Within the violet eclipse appeared a stair of amber crystal, descending toward the world
+     * but ending above the clouds. Upon the lowest step stood a faceless child holding a sun too small to warm him. He
+     * released it; the little sun fell upward, and every great light in heaven dimmed to make room.
+     */
+    public readonly int $sourceLine;
 
-        PhpUnitRuntime::assertExample($example);
-    }
+    /**
+     * @logion [AWC 111:11] The guild of goldsmiths stretched a radiant awning above the emperor’s charity feast. At
+     * noon its shade fell as prison bars across the poor, while the donors sat in unbroken light. No herald announced
+     * judgment; the guests departed one by one, yet their shadows remained seated until the food was cold.
+     */
+    public function __construct(
+        public readonly ExampleMetadataProperty $property,
+        public readonly ?string $value,
+        int $sourceLine,
+    ) {
+        if ($sourceLine < 1) {
+            throw new \InvalidArgumentException('Metadata source line must be positive.');
+        }
 
-    public function testThePublishedCompileOnlyExampleRunsThroughAkashi(): void
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/reference/directives.md')
-            ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'compile-only-runtime');
-
-        PhpUnitRuntime::assertExample($example);
+        $this->sourceLine = $sourceLine;
     }
 }

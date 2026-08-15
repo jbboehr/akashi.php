@@ -30,7 +30,7 @@ The fluent methods are:
 | `includeFiles($paths)`              | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.       |
 | `includeDirectory($path)`           | Recursively add `.md` and `.php` files below one project-relative directory.                  |
 | `exclude($path)`                    | Exclude an exact path and, for a directory, its complete subtree.                             |
-| `withMarkerName($name)`             | Recognize one lowercase kebab-case marker-comment name across both source formats.            |
+| `withMarkerName($name)`             | Add one lowercase kebab-case legacy marker-comment dialect across both source formats.        |
 | `withPhpDocReferenceTags(...$tags)` | Replace the default `@akashi-example` external-reference tag with one or more accepted names. |
 | `load()`                            | Read selected sources and return one nonempty, deterministically ordered `ExampleCorpus`.     |
 
@@ -41,6 +41,10 @@ project-relative.
 
 `MarkdownSource` retains the Markdown-only API, including `loadDocuments()`, and now also accepts `includeFiles()`. Its
 explicit files and recursive directories continue to select only the case-sensitive `.md` extension.
+
+Canonical `akashi:` metadata, including `example=ID`, requires no source configuration. `withMarkerName()` is additive:
+it preserves a project-specific comment such as `<!-- yumemi-example: ID -->` while canonical metadata remains active.
+IDs from both forms share one corpus-wide uniqueness check.
 
 Includes and exclusions are evaluated when loading. Configured paths must exist, documents must be readable, and
 resolved documents must remain inside the project root. Symlinked directories are not traversed. Reaching one physical

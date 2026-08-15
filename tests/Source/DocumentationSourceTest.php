@@ -230,6 +230,31 @@ PHP);
             ->load();
     }
 
+    public function testRejectsDuplicateCanonicalMarkersAcrossInlineAndReferencedExamples(): void
+    {
+        $this->write(
+            'docs/example.md',
+            "<!-- akashi: example=duplicate -->\n```php\necho 'inline';\n```\n",
+        );
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/canonical.php */\n",
+        );
+        $this->write(
+            'examples/canonical.php',
+            "<?php\n// akashi: example=duplicate\necho 'referenced';\n",
+        );
+
+        $this->expectException(DuplicateMarkerException::class);
+        $this->expectExceptionMessage(
+            'Duplicate marker ID duplicate at examples/canonical.php:2; first declared at docs/example.md:1.',
+        );
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFiles(['docs/example.md', 'src/Examples.php'])
+            ->load();
+    }
+
     public function testResolvesAndDeduplicatesCanonicalNamedExamplesWithPresentationLocations(): void
     {
         $this->write('src/Conversion.php', <<<'PHP'
@@ -247,10 +272,10 @@ PHP);
 <?php
 
 // akashi-region: basic-conversion
-// akashi: separate-process
-// akashi: expect-exception RuntimeException
-// akashi: expect-exception-message documented
-// akashi: expect-exception-code 73
+// akashi: example=conversion-basic
+// akashi: separate-process, expect-exception=RuntimeException
+// akashi: expect-exception-message="documented"
+// akashi: expect-exception-code=73
 throw new RuntimeException('documented', 73);
 // akashi-region-end: basic-conversion
 PHP);
@@ -269,18 +294,20 @@ PHP);
         self::assertSame(4, $example->codeOrigin()->firstCodeLine);
         self::assertSame(8, $example->codeOrigin()->lastCodeLine);
         self::assertSame(
-            "// akashi: separate-process\n"
-                . "// akashi: expect-exception RuntimeException\n"
-                . "// akashi: expect-exception-message documented\n"
-                . "// akashi: expect-exception-code 73\n"
+            "// akashi: example=conversion-basic\n"
+                . "// akashi: separate-process, expect-exception=RuntimeException\n"
+                . "// akashi: expect-exception-message=\"documented\"\n"
+                . "// akashi: expect-exception-code=73\n"
                 . "throw new RuntimeException('documented', 73);\n",
             $example->code->source,
         );
+        self::assertSame('conversion-basic', $example->explicitMarkerId?->value);
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
         self::assertSame('RuntimeException', $example->expectedException?->className);
         self::assertSame('documented', $example->expectedException->message);
         self::assertSame(73, $example->expectedException->code);
-        self::assertSame(4, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
+        self::assertSame(4, $example->codeOrigin()->metadata->markerLine);
+        self::assertSame(5, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(5, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
         self::assertSame('basic-conversion', $example->source->region?->value);
         self::assertSame(
@@ -333,8 +360,8 @@ PHP);
 
         $this->expectException(DirectiveException::class);
         $this->expectExceptionMessage(
-            'Inline Akashi expect-exception-message directive at examples/example.php:2 requires an inline '
-                . 'expect-exception directive in the same example.',
+            'Akashi metadata property expect-exception-message at examples/example.php:2 requires expect-exception '
+                . 'for the same example.',
         );
 
         DocumentationSource::forProject($this->projectRoot)
@@ -356,8 +383,8 @@ PHP);
 
         $this->expectException(DirectiveException::class);
         $this->expectExceptionMessage(
-            'Inline Akashi expect-exception-code directive at examples/example.php:2 requires an inline '
-                . 'expect-exception directive in the same example.',
+            'Akashi metadata property expect-exception-code at examples/example.php:2 requires expect-exception '
+                . 'for the same example.',
         );
 
         DocumentationSource::forProject($this->projectRoot)

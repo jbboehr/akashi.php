@@ -32,6 +32,10 @@ The initial API review classified every autoloadable declaration as an entry poi
 analyzer-independent PHPStan diagnostic type, public exception, or explicit internal detail. The supported surface may
 change between minor releases before 1.0, but architecture tests prevent accidental autoloadability from becoming API.
 
+Canonical example metadata now unifies stable identity, runtime flags, and expected-exception values under one small
+grammar in Markdown, PHPDoc, and referenced canonical PHP. Legacy marker comments and one-property directives remain
+supported compatibility forms rather than a second internal model.
+
 ## Source Discovery Ergonomics
 
 The immutable source manifests now provide a bulk file include equivalent to:

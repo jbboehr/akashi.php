@@ -18,7 +18,7 @@ examples are normally run through PHPUnit.
 ## Usage
 
 ```console
-vendor/bin/akashi extract --marker-name=NAME [--project-root=PATH] FILE MARKER-ID
+vendor/bin/akashi extract [--marker-name=NAME] [--project-root=PATH] FILE MARKER-ID
 vendor/bin/akashi format (--check|--write) [--project-root=PATH] [--php-cs-fixer=PATH] [--config=PATH] FILE [FILE ...]
 vendor/bin/akashi sync (--check|--write) [--project-root=PATH] FILE [FILE ...]
 vendor/bin/akashi --help
@@ -42,10 +42,13 @@ contract requires failures to remain visible.
 ## Extract a Named Example
 
 `FILE` must use the case-sensitive `.md` or `.php` extension and may be absolute or relative to the current working
-directory. Markdown markers precede their fence in the document; PHPDoc markers precede their fence within the same
-docblock. `NAME` and `MARKER-ID` use lowercase kebab-case. The marker option may appear before or after the positional
-arguments, accepts either `--marker-name=NAME` or `--marker-name NAME`, and is required exactly once. Its explicit value
-lets the generic command support a project's existing comment convention.
+directory. Canonical `example=MARKER-ID` metadata may precede its fence in Markdown or PHPDoc, or appear as an actual
+PHP line comment inside fenced or referenced canonical code. `MARKER-ID` uses lowercase kebab-case.
+
+`--marker-name=NAME` optionally adds one lowercase kebab-case legacy marker-comment dialect, such as
+`<!-- yumemi-example: chosen -->`. It may appear before or after the positional arguments and accepts either
+`--marker-name=NAME` or `--marker-name NAME`. Canonical `akashi:` metadata remains recognized when this compatibility
+option is present. The option may be specified at most once.
 
 By default, Akashi treats `FILE`'s containing directory as the project root. Pass `--project-root=PATH` when `FILE`
 lives deeper in the project or its PHPDoc contains project-relative external-example references. The path may be
@@ -163,8 +166,9 @@ outside the project root use status `1`. Options may appear before or after file
 |    `2` | Invalid command or command arguments.                                                      |
 |   `70` | Unexpected internal software failure.                                                      |
 
-Invalid, missing, duplicate, orphaned, and non-PHP markers are extraction failures. Unknown commands or options and
-missing required arguments are usage failures. The extraction command still selects explicit fence markers; PHPDoc
-external references are corpus sources, not extraction marker IDs. PHP-CS-Fixer is optional and is required only when
-the formatting command is invoked. Generated help, command listing, and shell completion are supplied by Symfony
-Console; Akashi retains its own exact-command, duplicate-option, stream, and exit-status contracts around that router.
+Invalid, missing, duplicate, orphaned, and non-PHP example identities are extraction failures. Unknown commands or
+options and missing required arguments are usage failures. The extraction command selects an explicit `example`
+identity; a PHPDoc external reference is only a corpus source unless its resolved canonical code declares that metadata.
+PHP-CS-Fixer is optional and is required only when the formatting command is invoked. Generated help, command listing,
+and shell completion are supplied by Symfony Console; Akashi retains its own exact-command, duplicate-option, stream,
+and exit-status contracts around that router.

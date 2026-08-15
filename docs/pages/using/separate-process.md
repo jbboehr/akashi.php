@@ -81,10 +81,8 @@ Expected exceptions work across this boundary, including types declared only ins
 ```php
 namespace AkashiDocs\SeparateProcess;
 
-// akashi: separate-process
-// akashi: expect-exception AkashiDocs\SeparateProcess\ImportFailure
-// akashi: expect-exception-message Import rejected
-// akashi: expect-exception-code 73
+// akashi: separate-process, expect-exception=AkashiDocs\SeparateProcess\ImportFailure
+// akashi: expect-exception-message="Import rejected", expect-exception-code=73
 
 final class ImportFailure extends \RuntimeException
 {

@@ -48,21 +48,23 @@ files, Symfony Process, or PHPStan diagnostics to discover a corpus.
 ## Source Discovery
 
 `DocumentationSource` is an immutable manifest of an absolute project root, file and directory includes, exclusions, an
-optional marker name, and configured PHPDoc reference tags. Loading resolves and validates paths, rejects symbolic-link
-directory traversal and duplicate physical documents, sorts documents deterministically, and dispatches `.md` and `.php`
-documents by extension. `MarkdownSource` retains the same Markdown-only contract. Both accept bulk file iterables,
-including `SplFileInfo` values from Symfony Finder, without depending on Finder.
+optional legacy marker name, and configured PHPDoc reference tags. Loading resolves and validates paths, rejects
+symbolic-link directory traversal and duplicate physical documents, sorts documents deterministically, and dispatches
+`.md` and `.php` documents by extension. `MarkdownSource` retains the same Markdown-only contract. Both accept bulk file
+iterables, including `SplFileInfo` values from Symfony Finder, without depending on Finder.
 
 The source manifests deliberately remain concrete configuration entry points rather than implementations of a public
 source interface. Extension-based dispatch is sufficient for the current formats, while `ExampleCorpus` is the shared
 boundary consumed by PHPUnit, PHPStan, and extraction.
 
-The CommonMark adapter selects PHP fenced code blocks and associates configured marker comments and external Akashi
-directives using document structure rather than regular expressions over the whole file. A shared token-aware parser
-also recognizes `skip`, `compile-only`, `separate-process`, typed `expect-exception`, and optional
-`expect-exception-message` and `expect-exception-code` PHP line comments anywhere in fenced or canonical code. It
-rejects competing declarations and prevents matching text in strings and heredocs. Original source text and exact line
-and byte spans remain intact.
+The CommonMark adapter selects PHP fenced code blocks and associates canonical `akashi:` metadata plus an optional
+legacy marker dialect using document structure rather than regular expressions over the whole file. One internal typed
+grammar parser merges comma-separated flags and keyed properties from adjacent HTML comments and token-aware PHP line
+comments. It recognizes stable `example` identity, `skip`, `compile-only`, `separate-process`, typed `expect-exception`,
+and optional message and code constraints anywhere in fenced or referenced canonical code. It rejects duplicate or
+conflicting declarations and prevents matching text in strings and heredocs. Original source text and exact line and
+byte spans remain intact; the public model continues to expose separate typed identity, directives, and exception
+contracts rather than a generic metadata map.
 
 The PHPDoc adapter locates every `T_DOC_COMMENT` with PHP's tokenizer, projects each comment's interior lines into
 CommonMark by removing conventional docblock decoration, and extracts each comment independently. It then restores the
@@ -78,9 +80,9 @@ every PHPDoc presentation location. Referenced files do not have to be duplicate
 A nonempty ordered `ExampleCorpus` is constructed only after cross-document marker uniqueness, reference resolution,
 physical-source deduplication, and corpus ordering invariants hold.
 
-Discovery is separate from selection. A configured marker adds an explicit identity but does not hide unmarked fences; a
-PHPStan relevance predicate selects a subcorpus later; runtime skip and compile-only change PHPUnit disposition without
-deleting the example.
+Discovery is separate from selection. Canonical `example` metadata or a configured legacy marker adds an explicit
+identity but does not hide unnamed fences; a PHPStan relevance predicate selects a subcorpus later; runtime skip and
+compile-only change PHPUnit disposition without deleting the example.
 
 ## Canonical Example Model
 
@@ -209,10 +211,10 @@ with platform-native canonical absolute expectation keys.
 Symfony Console supplies declarative command definitions, generated help, command listing, shell completion, input and
 output routing, and cross-platform terminal handling. Akashi wraps that replaceable router with exact command names,
 single-occurrence options, stable statuses, and explicit stdout/stderr contracts. The extraction command loads one
-Markdown or PHP file with an explicit marker name, selects one author-assigned ID, and writes the original code with its
-documented final-newline contract. It does not enter either execution pipeline. `--project-root` supplies the
-reference-resolution boundary when the selected document is below the project root; reference targets themselves are not
-marker IDs.
+Markdown or PHP file, selects one author-assigned `example` identity, and writes the original code with its documented
+final-newline contract. An optional marker-name option adds a legacy marker-comment dialect. The command does not enter
+either execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is
+below the project root; reference targets themselves are not marker IDs.
 
 The synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end` comment as
 consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid structure.

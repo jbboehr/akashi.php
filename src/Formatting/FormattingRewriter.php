@@ -285,6 +285,7 @@ final class FormattingRewriter
                 $rewritten === null
                 || $rewritten->id->value !== $original->id->value
                 || $rewritten->code->source !== ($expectedById[$original->id->value] ?? $original->code->source)
+                || $rewritten->explicitMarkerId?->value !== $original->explicitMarkerId?->value
                 || $rewritten->expectedException?->className !== $original->expectedException?->className
                 || $rewritten->expectedException?->message !== $original->expectedException?->message
                 || $rewritten->expectedException?->code !== $original->expectedException?->code

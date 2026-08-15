@@ -1,6 +1,6 @@
 # Planning
 
-The Markdown MVP is implemented as a reusable library: deterministic CommonMark discovery, markers and directives,
+The Markdown MVP is implemented as a reusable library: deterministic CommonMark discovery, typed example metadata,
 in-process and child-process execution, PHPUnit data sets and reporting, PHPStan `RuleTestCase` verification, and the
 marked-example extraction CLI all have typed contracts and repository coverage.
 
@@ -75,6 +75,12 @@ candidate before returning a new immutable document. It rejects stale, cross-doc
 structurally unsafe inputs. `format --write` repeats the complete formatter pass and requires identical source and
 formatter results before using the existing stale-byte-protected, symbolic-link-rejecting atomic writer. No generic
 formatter registry is planned.
+
+Canonical authoring now uses one comma-separated `akashi:` grammar across associated HTML comments and token-aware PHP
+line comments. Stable `example` identity, runtime flags, and expected-exception values merge into the existing typed
+model, with every property accepted at most once per example. The CLI recognizes canonical identity without
+configuration. Legacy one-property directives and one configured marker-comment dialect remain compatibility inputs;
+structural region and synchronization delimiters and PHPDoc external references remain separate.
 
 ## External PHPStan verification
 

@@ -259,7 +259,7 @@ final class DocumentationSource
     }
 
     /**
-     * Return a new configuration that recognizes one explicit marker-comment name in either source format.
+     * Return a new configuration that adds one legacy marker-comment dialect in either source format.
      *
      * @logion [OSD 69:12] Place black salt upon the tongue before swearing beneath the bronze canopy. If it become
      *     sweet, speak nothing and depart from office; for the mouth that delighteth in the burden of an oath hath
@@ -389,10 +389,36 @@ final class DocumentationSource
             array_push($examples, ...$extracted);
         }
 
-        array_push(
-            $examples,
-            ...(new ExternalExampleResolver())->resolve($this->projectRoot, $references),
-        );
+        $externalExamples = (new ExternalExampleResolver())->resolve($this->projectRoot, $references);
+        foreach ($externalExamples as $example) {
+            $markerId = $example->explicitMarkerId?->value;
+            if ($markerId === null) {
+                continue;
+            }
+
+            $markerLine = $example->codeOrigin()->metadata->markerLine;
+            if ($markerLine === null) {
+                throw new \LogicException('An explicitly marked external example is missing its marker source line.');
+            }
+
+            $first = $markerLocations[$markerId] ?? null;
+            if ($first !== null) {
+                throw new DuplicateMarkerException(sprintf(
+                    'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
+                    $markerId,
+                    $example->codeOrigin()->document->path->value,
+                    $markerLine,
+                    $first['path'],
+                    $first['line'],
+                ));
+            }
+
+            $markerLocations[$markerId] = [
+                'path' => $example->codeOrigin()->document->path->value,
+                'line' => $markerLine,
+            ];
+        }
+        array_push($examples, ...$externalExamples);
 
         usort($examples, static function (\jbboehr\Akashi\Example $left, \jbboehr\Akashi\Example $right): int {
             return strcmp(

@@ -148,26 +148,25 @@ Separate-process examples are not rewritten. The child PHP process enables nativ
 
 ## Expected Exceptions
 
-For an example whose intended result is a thrown exception, place an `expect-exception` directive immediately inside its
-PHP fence:
+For an example whose intended result is a thrown exception, place `expect-exception` metadata immediately inside its PHP
+fence:
 
-<!-- akashi-example: expected-domain-exception -->
+<!-- akashi: example=expected-domain-exception -->
 
 ```php
-// akashi: expect-exception DomainException
-// akashi: expect-exception-message Invalid documentation input
-// akashi: expect-exception-code 73
+// akashi: expect-exception=DomainException
+// akashi: expect-exception-message="Invalid documentation input", expect-exception-code=73
 
 throw new DomainException('Invalid documentation input.', 73);
 ```
 
 The visible comment may appear anywhere and applies to the whole example. Prefer placing it immediately before the
 operation expected to throw; Akashi does not attempt to infer control flow or enforce that order. An equivalent
-`<!-- akashi: expect-exception DomainException -->` comment may instead precede the fence when surrounding prose makes
+`<!-- akashi: expect-exception=DomainException -->` comment may instead precede the fence when surrounding prose makes
 the failure clear or extracted PHP should not contain Akashi metadata. Its optional message constraint uses a second
-`<!-- akashi: expect-exception-message Invalid documentation input -->` comment, and its optional code constraint uses
-`<!-- akashi: expect-exception-code 73 -->`. Keep the type and constraints in the same inline or HTML form; do not
-combine the forms.
+`<!-- akashi: expect-exception-message="Invalid documentation input" -->` comment, and its optional code constraint uses
+`<!-- akashi: expect-exception-code=73 -->`. Adjacent HTML and inline properties are merged, but each property may occur
+only once.
 
 The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
 the type in the selected runtime, so application exception classes may come from its configured bootstrap or Composer

@@ -14,7 +14,7 @@
   - [Diagnose Failures](guides/diagnosing-failures.md)
 - [Reference](reference/index.md)
   - [Configuration](reference/configuration.md)
-  - [Directives](reference/directives.md)
+  - [Example Metadata](reference/directives.md)
   - [CLI](reference/cli.md)
   - [Public API](reference/api.md)
   - [Compatibility and Safety](reference/compatibility.md)

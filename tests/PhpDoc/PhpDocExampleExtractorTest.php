@@ -57,7 +57,7 @@ final class PhpDocExampleExtractorTest extends TestCase
 /**
  * Demonstrates a value.
  *
- * <!-- akashi-example: first-value -->
+ * <!-- akashi: example=first-value -->
  * <!-- akashi: separate-process -->
  *
  * ```PHP extra
@@ -72,16 +72,15 @@ function answer(): int
 
 /**
  * ```php
- * // akashi: expect-exception RuntimeException
- * // akashi: expect-exception-message expected
- * // akashi: expect-exception-code 73
+ * // akashi: expect-exception=RuntimeException
+ * // akashi: expect-exception-message=expected, expect-exception-code=73
  * throw new RuntimeException('expected', 73);
  * ```
  */
 PHP;
         $document = new Document('src/answer.php', str_replace("\n", "\r\n", $contents));
 
-        $examples = (new PhpDocExampleExtractor(new MarkerName('akashi-example')))->extract($document);
+        $examples = (new PhpDocExampleExtractor())->extract($document);
 
         self::assertCount(2, $examples);
         self::assertSame('src/answer.php PHPDoc example 1', $examples[0]->label);

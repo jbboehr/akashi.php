@@ -40,13 +40,12 @@ namespace jbboehr\Akashi\PhpDoc;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
-use jbboehr\Akashi\Markdown\Exception\DirectiveException;
+use jbboehr\Akashi\Metadata\ExampleMetadataParser;
 use jbboehr\Akashi\Markdown\InlineDirectiveParser;
 use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MetadataLocation;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ReferenceLocation;
@@ -226,47 +225,20 @@ final class ExternalExampleResolver
             $path = $source['document']->path->value;
             $ordinal = ($ordinals[$path] ?? 0) + 1;
             $ordinals[$path] = $ordinal;
-            $inline = (new InlineDirectiveParser())->parse(
+            $metadata = (new ExampleMetadataParser())->resolve(
                 $source['document'],
-                $source['firstLine'],
-                $source['code'],
+                (new InlineDirectiveParser())->parse(
+                    $source['document'],
+                    $source['firstLine'],
+                    $source['code'],
+                ),
             );
-            $constraints = [
-                [
-                    'name' => 'expect-exception-message',
-                    'present' => $inline['expectedExceptionMessage'] !== null,
-                    'line' => $inline['expectedExceptionMessageLine'],
-                ],
-                [
-                    'name' => 'expect-exception-code',
-                    'present' => $inline['expectedExceptionCode'] !== null,
-                    'line' => $inline['expectedExceptionCodeLine'],
-                ],
-            ];
-            foreach ($constraints as $constraint) {
-                if (!$constraint['present'] || $inline['expectedException'] !== null) {
-                    continue;
-                }
-
-                $line = $constraint['line'];
-                if ($line === null) {
-                    throw new \LogicException(sprintf('%s metadata is missing its source line.', $constraint['name']));
-                }
-
-                throw new DirectiveException(sprintf(
-                    'Inline Akashi %s directive at %s:%d requires an inline '
-                        . 'expect-exception directive in the same example.',
-                    $constraint['name'],
-                    $source['document']->path->value,
-                    $line,
-                ));
-            }
             $origin = new CodeOrigin(
                 $source['document'],
                 $source['firstLine'],
                 $source['lastLine'],
                 $source['span'],
-                $inline['metadata'],
+                $metadata->location,
             );
             $identity = $path . ($source['region'] === null ? '' : '#' . $source['region']->value);
 
@@ -277,8 +249,9 @@ final class ExternalExampleResolver
                 language: new Language('php'),
                 code: new ExampleCode($source['code']),
                 ordinal: $ordinal,
-                directives: $inline['directives'],
-                expectedException: $inline['expectedException'],
+                explicitMarkerId: $metadata->markerId,
+                directives: $metadata->directives,
+                expectedException: $metadata->expectedException,
             );
         }
 

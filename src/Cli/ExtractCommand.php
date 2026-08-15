@@ -52,7 +52,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Emits one explicitly marked PHP example without execution or transformation.
+ * Emits one explicitly named PHP example without execution or transformation.
  *
  * @internal
  *
@@ -62,11 +62,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  *     who carried stone but died before the vault was closed; for abundance without remembrance maketh a completed
  *     house poorer than its ruins.
  */
-#[AsCommand(name: 'extract', description: 'Write one explicitly marked PHP example to stdout.')]
+#[AsCommand(name: 'extract', description: 'Write one explicitly named PHP example to stdout.')]
 final class ExtractCommand extends Command
 {
     /**
-     * Define the explicit marker, optional project root, documentation file, and marker ID inputs.
+     * Define the optional legacy marker dialect, project root, documentation file, and example ID inputs.
      *
      * @logion [AWC 109:2] The western senate melted the seals of twelve rival houses and cast them into a single bronze
      *     column, proclaiming their quarrels ended. At sunset the column divided its shadow into twelve figures, each
@@ -79,7 +79,7 @@ final class ExtractCommand extends Command
             ->addOption(
                 'marker-name',
                 mode: InputOption::VALUE_REQUIRED,
-                description: 'Marker-comment name to select.',
+                description: 'Additional legacy marker-comment name to recognize.',
             )
             ->addOption(
                 'project-root',
@@ -87,7 +87,7 @@ final class ExtractCommand extends Command
                 description: 'Project root containing the documentation file.',
             )
             ->addArgument('file', InputArgument::REQUIRED, 'Markdown or PHP documentation file.')
-            ->addArgument('marker-id', InputArgument::REQUIRED, 'Explicit marker ID to extract.');
+            ->addArgument('marker-id', InputArgument::REQUIRED, 'Explicit example ID to extract.');
     }
 
     /**
@@ -103,10 +103,7 @@ final class ExtractCommand extends Command
             throw new UsageException('The --marker-name option may be specified only once.');
         }
         $markerName = $input->getOption('marker-name');
-        if ($markerName === null) {
-            throw new UsageException('The extract command requires --marker-name=NAME.');
-        }
-        if (!is_string($markerName)) {
+        if ($markerName !== null && !is_string($markerName)) {
             throw new \LogicException('Symfony returned invalid marker-name option evidence.');
         }
 
@@ -125,7 +122,7 @@ final class ExtractCommand extends Command
         }
 
         $markerId = new MarkerId($markerId);
-        $markerName = new MarkerName($markerName);
+        $markerName = $markerName === null ? null : new MarkerName($markerName);
 
         $file = $this->absolutePath($file, 'Documentation file');
 
@@ -138,10 +135,11 @@ final class ExtractCommand extends Command
             'documentation',
         );
 
-        $corpus = DocumentationSource::forProject($projectRoot)
-            ->includeFile($projectPath)
-            ->withMarkerName($markerName)
-            ->load();
+        $source = DocumentationSource::forProject($projectRoot)->includeFile($projectPath);
+        if ($markerName !== null) {
+            $source = $source->withMarkerName($markerName);
+        }
+        $corpus = $source->load();
         $example = (new MarkedExampleSelector())->select($corpus, $markerId);
 
         $output->write(

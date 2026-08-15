@@ -95,7 +95,7 @@ final class SourceLocation
     public readonly SourceSpan $codeSpan;
 
     /**
-     * Source lines for an associated explicit marker and runtime directives.
+     * Source lines for associated example identity and runtime metadata.
      *
      * @logion [AWC 49:24] An orchard keeper left the northern ladder against a tree long after age had taken his sight.
      *     Young workers called it useless until a storm stranded three nests upon broken branches. By sunset every
@@ -153,8 +153,16 @@ final class SourceLocation
             throw new \InvalidArgumentException('An empty code location must have an empty source span.');
         }
 
-        if ($metadata->markerLine !== null && $metadata->markerLine >= $openingFenceLine) {
-            throw new \InvalidArgumentException('Marker line must precede the opening fence.');
+        if ($metadata->markerLine !== null) {
+            $isExternal = $metadata->markerLine < $openingFenceLine;
+            $isInline = $lastCodeLine !== null
+                && $metadata->markerLine >= $firstCodeLine
+                && $metadata->markerLine <= $lastCodeLine;
+            if (!$isExternal && !$isInline) {
+                throw new \InvalidArgumentException(
+                    'Marker line must precede the opening fence or lie within its code content.',
+                );
+            }
         }
 
         foreach ([

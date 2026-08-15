@@ -1,4 +1,4 @@
-# Directives
+# Example Metadata
 
 <figure class="logion" data-logion="AWC 4:37">
 <div class="logion-text">
@@ -12,54 +12,79 @@ prepares dignity for the moment it cannot remain upright.</p>
 <img src="../images/logia/AWC-4_37.webp" alt="A practiced dancer safely guiding another performer down through a split stage" width="960" height="540" loading="eager" fetchpriority="high">
 </figure>
 
-Directives may be Akashi-owned HTML comments associated with the next documentation fence, or PHP line comments inside
-the example code itself. The current runtime directives are:
+Akashi uses one small metadata grammar for an example's stable identity, runtime disposition, execution mode, and
+expected exception. Write it in an HTML comment associated with the next Markdown or PHPDoc fence:
 
-```html
-<!-- akashi: skip -->
+````markdown
+<!-- akashi: example=isolated-greeting, separate-process -->
+
+```php
+echo "Hello!\n";
+```
+````
+
+The same grammar works as a tokenized PHP line comment inside a fence or referenced canonical PHP file:
+
+```php
+// akashi: example=invalid-input, expect-exception=RuntimeException
+// akashi: expect-exception-message="invalid documentation input", expect-exception-code=73
+
+throw new RuntimeException('invalid documentation input', 73);
 ```
 
-```html
+## Grammar
+
+Each comment contains a comma-separated list of flags and keyed properties:
+
+```text
+<!-- akashi: flag, key=value, key="quoted value" -->
+// akashi: flag, key=value, key="quoted value"
+```
+
+Whitespace around commas and `=` is ignored. Unquoted values are nonempty single tokens. Double-quoted values use JSON
+string escaping and may contain spaces, commas, or `=`. Property names and flags are case-sensitive lowercase
+kebab-case. Empty clauses, empty values, unknown properties, values on flags, and missing keyed values fail with the
+maintained source line.
+
+The flags are:
+
+| Flag               | Meaning                                                                   |
+| ------------------ | ------------------------------------------------------------------------- |
+| `skip`             | Ask PHPUnit to report the example as skipped.                             |
+| `compile-only`     | Parse the example for PHPUnit without executing it.                       |
+| `separate-process` | Select child-process execution instead of the default in-process backend. |
+
+The keyed properties are:
+
+| Property                   | Value                                                              |
+| -------------------------- | ------------------------------------------------------------------ |
+| `example`                  | A lowercase kebab-case identity used by selection and extraction.  |
+| `expect-exception`         | A global PHP throwable class or interface name.                    |
+| `expect-exception-message` | A nonempty, case-sensitive message substring.                      |
+| `expect-exception-code`    | A signed base-10 integer in the running PHP build's integer range. |
+
+Adjacent HTML comments are merged, so these forms are equivalent:
+
+```markdown
+<!-- akashi: example=conversion-basic, separate-process -->
+```
+
+```markdown
+<!-- akashi: example=conversion-basic -->
 <!-- akashi: separate-process -->
 ```
 
-```html
-<!-- akashi: compile-only -->
-```
-
-Canonical external PHP examples use the equivalent line-comment forms:
-
-```php
-// akashi: skip
-// akashi: separate-process
-// akashi: compile-only
-```
-
-An example may also declare the throwable type that successful runtime verification requires. The recommended form is
-visible inside the PHP example:
-
-```php
-// akashi: expect-exception RuntimeException
-// akashi: expect-exception-message invalid documentation input
-// akashi: expect-exception-code 73
-```
-
-The alternative HTML form keeps the annotation outside the extracted PHP:
-
-```html
-<!-- akashi: expect-exception RuntimeException -->
-<!-- akashi: expect-exception-message invalid documentation input -->
-<!-- akashi: expect-exception-code 73 -->
-```
+HTML and inline PHP metadata associated with the same fence are also merged. Every property may appear at most once
+across the complete example; even repeated flags fail rather than relying on precedence. Message and code constraints
+require `expect-exception` on that example.
 
 ## Association Rules
 
-Place directives immediately before a fenced PHP block. Blank lines are allowed. A configured marker and multiple
-directives may be stacked in any order:
+Place HTML metadata immediately before a fenced PHP block. Blank lines and adjacent Akashi metadata comments are
+allowed:
 
 ````markdown
-<!-- akashi-example: isolated-greeting -->
-<!-- akashi: separate-process -->
+<!-- akashi: example=isolated-greeting, separate-process -->
 
 ```php
 namespace DocumentationExample;
@@ -68,12 +93,10 @@ echo "Hello!\n";
 ```
 ````
 
-Prose or an unrelated CommonMark block breaks the association. Unknown directives, duplicate directives, malformed
-exception class names, orphaned directives, and directives targeting non-PHP fences fail during extraction with the
-comment's source location.
+Prose or an unrelated CommonMark block breaks the association. Orphaned metadata and metadata targeting non-PHP fences
+fail during extraction with the comment's source location.
 
-Message and code constraints are optional, but each requires an `expect-exception` directive in the same inline or HTML
-form. Inside PHPDoc, retain the normal leading `*` on each authored line. Akashi removes the docblock decoration before
+Inside PHPDoc, retain the normal leading `*` on each authored line. Akashi removes the docblock decoration before
 applying the same association rules, and metadata never crosses from one PHPDoc comment into another:
 
 ````php
@@ -86,20 +109,31 @@ applying the same association rules, and metadata never crosses from one PHPDoc 
  */
 ````
 
-Directives are deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to
-renderers and syntax highlighters.
+Metadata is deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to renderers
+and syntax highlighters.
 
-Any inline directive may appear anywhere as an actual PHP line comment and applies to the whole example. Place an
+Any inline metadata comment may appear anywhere as an actual PHP line comment and applies to the whole example. Place an
 expected-exception comment immediately before the operation expected to throw when that makes the example easier to
 read; Akashi does not infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside
 strings or heredocs is not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters,
 static analyzers, direct execution, and marked extraction all see it unchanged.
 
 Use the HTML form for documentation fences when surrounding prose already establishes the behavior or an extracted
-consumer fixture should not contain Akashi metadata. An example may use only one form of each directive; combining HTML
-and inline forms is rejected as duplicate metadata even when both express the same behavior. External whole-file and
-named-region examples use inline comments because their canonical code is not physically adjacent to the PHPDoc
-reference.
+consumer fixture should not contain Akashi metadata. External whole-file and named-region examples use inline comments
+because their canonical code is not physically adjacent to the PHPDoc reference.
+
+## Compatibility and Structural Syntax
+
+Legacy one-property directives remain accepted, including `<!-- akashi: expect-exception RuntimeException -->` and
+`// akashi: expect-exception-message invalid documentation input`. Projects may additionally recognize one legacy
+identity comment such as `<!-- yumemi-example: conversion-basic -->` through `withMarkerName('yumemi-example')` or the
+CLI's `--marker-name` option. Canonical and legacy metadata share the same typed result and duplicate-property checks.
+The legacy space form consumes the rest of its comment, including commas and `=`. Use canonical `key=value` syntax or an
+adjacent metadata comment when combining an exception constraint with another property.
+
+Structural constructs remain separate because they delimit or reference source rather than describe one example:
+`akashi-region` and `akashi-region-end` delimit canonical named regions, `akashi-sync` and `akashi-sync-end` delimit
+synchronized presentations, and PHPDoc `@akashi-example` references an external canonical source.
 
 ## Runtime Semantics
 
@@ -111,7 +145,7 @@ select the example, and marked extraction still returns its authored source.
 parser to validate it and records one successful assertion without selecting an execution backend, applying runtime
 transforms, loading the configured bootstrap, or executing authored code:
 
-<!-- akashi-example: compile-only-runtime -->
+<!-- akashi: example=compile-only-runtime -->
 
 ```php
 // akashi: compile-only
@@ -135,9 +169,8 @@ compatible with `Throwable`. A subtype satisfies an expectation for its parent t
 
 ````markdown
 ```php
-// akashi: expect-exception DomainException
-// akashi: expect-exception-message Invalid documentation input
-// akashi: expect-exception-code 73
+// akashi: expect-exception=DomainException
+// akashi: expect-exception-message="Invalid documentation input", expect-exception-code=73
 
 throw new DomainException('Invalid documentation input.', 73);
 ```

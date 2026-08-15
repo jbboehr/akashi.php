@@ -13,7 +13,7 @@ by what awakeneth, not by the noise of its arrival.</p>
 
 Akashi discovers Markdown documents and PHP source files, extracts PHP fenced blocks and PHPDoc references to canonical
 PHP files, and preserves their maintained source locations. Corpus selection controls which documentation files
-participate; markers and directives add metadata to examples but do not make unmarked PHP fences disappear.
+participate; example metadata adds identity and runtime behavior but does not make unmarked PHP fences disappear.
 
 ## Build a Corpus
 
@@ -71,7 +71,7 @@ inserting an earlier PHP fence therefore changes the generated ID. Referenced ex
 their canonical project-relative path and optional region name.
 
 The exact generated form is `example-{first 12 hexadecimal characters of sha1(project-relative path)}-{ordinal}`, with
-the ordinal padded to at least two digits. Use an explicit marker ID when another tool needs an identity that survives
+the ordinal padded to at least two digits. Use an explicit example ID when another tool needs an identity that survives
 reordering.
 
 ## Write PHPDoc Fences
@@ -107,8 +107,8 @@ The opening `/**` and closing `*/` lines are delimiters rather than Markdown con
 interior lines. An opening `<?php` tag inside the fence remains optional.
 
 The extracted code is prefix-free, while failures refer to the original `.php` path and PHPDoc line. Each docblock is
-parsed independently, so markers and directives cannot associate with a fence in a later comment. Use another fence
-language for a PHP fragment that should not enter any workflow.
+parsed independently, so metadata cannot associate with a fence in a later comment. Use another fence language for a PHP
+fragment that should not enter any workflow.
 
 Akashi extracts the fence, not its surrounding declaration. The example above therefore calls the project class through
 its fully qualified, Composer-autoloadable name. Supporting declarations must already be available through normal
@@ -300,40 +300,30 @@ filters and reports unambiguous.
 Use ordinary prose immediately around a fence to explain the example. Akashi does not require each example to carry a
 special name unless another consumer needs a durable identity.
 
-## Add a Stable Marker
+## Add a Stable Example ID
 
-For consumer extraction, configure one marker name and place a matching HTML comment before the fence:
+For consumer extraction, assign an `example` property in an Akashi metadata comment:
 
 ````markdown
-<!-- akashi-example: conversion-basic -->
+<!-- akashi: example=conversion-basic -->
 
 ```php
 $result = convert(1, 'meter', 'centimeter');
 ```
 ````
 
-```php
-<?php
+Example IDs use lowercase kebab-case and must be unique across the corpus. Identity is optional metadata: `load()` still
+returns every PHP fence. The same property may appear as `// akashi: example=conversion-basic` inside fenced or
+referenced canonical PHP. Continue to [Extracting Named Examples](extracting.md) when a consumer needs one named
+example.
 
-use jbboehr\Akashi\Source\DocumentationSource;
-
-$corpus = DocumentationSource::forProject(dirname(__DIR__))
-    ->includeFile('README.md')
-    ->includeDirectory('docs')
-    ->includeDirectory('src')
-    ->withMarkerName('akashi-example')
-    ->load();
-```
-
-Marker names and IDs use lowercase kebab-case. IDs must be unique across the corpus. Markers are optional metadata:
-`load()` still returns every PHP fence. Continue to [Extracting Named Examples](extracting.md) when a consumer needs one
-marked example.
+Projects retaining an older marker comment such as `<!-- yumemi-example: conversion-basic -->` can add that dialect with
+`withMarkerName('yumemi-example')`. Canonical `akashi:` metadata remains recognized alongside it.
 
 ## Add a Runtime Directive
 
-Akashi currently recognizes `skip`, `compile-only`, and `separate-process`. Place directives immediately before the PHP
-fence; a marker, multiple directives, and blank lines may be stacked together. Prose or an unrelated block breaks the
-association.
+Akashi currently recognizes `skip`, `compile-only`, and `separate-process`. Place metadata immediately before the PHP
+fence; adjacent comments and blank lines may be stacked together. Prose or an unrelated block breaks the association.
 
 ````markdown
 <!-- akashi: separate-process -->
@@ -343,6 +333,6 @@ exit(0);
 ```
 ````
 
-Unknown, duplicated, orphaned, or non-PHP directives fail during extraction. See
-[Directives](../reference/directives.md) for precedence and [Separate-Process Execution](separate-process.md) for
-backend configuration.
+Unknown, duplicated, orphaned, or non-PHP metadata fails during extraction. See
+[Example Metadata](../reference/directives.md) for grammar and precedence and
+[Separate-Process Execution](separate-process.md) for backend configuration.

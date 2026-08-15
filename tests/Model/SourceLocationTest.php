@@ -187,6 +187,21 @@ final class SourceLocationTest extends TestCase
         self::assertSame(6, $location->metadata->compileOnlyDirectiveLine);
     }
 
+    public function testAllowsAMarkerInsideTheCodeContent(): void
+    {
+        $location = new SourceLocation(
+            4,
+            5,
+            7,
+            8,
+            new SourceSpan(10, 50),
+            new SourceSpan(20, 40),
+            new MetadataLocation(markerLine: 6),
+        );
+
+        self::assertSame(6, $location->metadata->markerLine);
+    }
+
     public function testRejectsACompileOnlyDirectiveOutsideTheFenceAndCode(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -243,7 +258,13 @@ final class SourceLocationTest extends TestCase
      */
     public static function invalidMetadataLineProvider(): iterable
     {
-        yield 'marker on fence' => [4, null, null, null, 'Marker line must precede the opening fence.'];
+        yield 'marker on fence' => [
+            4,
+            null,
+            null,
+            null,
+            'Marker line must precede the opening fence or lie within its code content.',
+        ];
         yield 'separate-process directive after fence' => [
             null,
             8,

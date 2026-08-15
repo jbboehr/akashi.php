@@ -36,34 +36,35 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
+namespace jbboehr\Akashi\Metadata;
 
-use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
-use jbboehr\Akashi\Source\MarkdownSource;
-use PHPUnit\Framework\TestCase;
+use jbboehr\Akashi\Model\DirectiveSet;
+use jbboehr\Akashi\Model\ExpectedException;
+use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\MetadataLocation;
 
-final class ExpectedExceptionDocumentationTest extends TestCase
+/**
+ * @internal
+ *
+ * @readonly
+ *
+ * @logion [AWC 111:12] The imperial dyehouse produced a color clear as winter air for the ministers’ new robes of
+ * concord. Once worn, the cloth revealed every household expelled for the ceremony, complete with families seated at
+ * evening meals. The ministers cast off their robes, but the color followed their shadows through the capital,
+ * clothing each anew wherever he sought applause.
+ */
+final class ExampleMetadata
 {
-    public function testThePublishedExpectedExceptionExampleRunsThroughAkashi(): void
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/using/phpunit.md')
-            ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'expected-domain-exception');
-
-        PhpUnitRuntime::assertExample($example);
-    }
-
-    public function testThePublishedCompileOnlyExampleRunsThroughAkashi(): void
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/reference/directives.md')
-            ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'compile-only-runtime');
-
-        PhpUnitRuntime::assertExample($example);
+    /**
+     * @logion [RAS 111:13] A hive of blue glass appeared between the earth and its made moon, containing no insects,
+     * only silent stars arranged in chambers of gold. At midnight the chambers opened, and each star chose a different
+     * distance. The hive remained whole, for order had increased when possession ceased.
+     */
+    public function __construct(
+        public readonly ?MarkerId $markerId,
+        public readonly DirectiveSet $directives,
+        public readonly ?ExpectedException $expectedException,
+        public readonly MetadataLocation $location,
+    ) {
     }
 }

@@ -51,6 +51,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Unify stable example identity, runtime flags, and expected-exception constraints under comma-separated `akashi:`
+  metadata for Markdown, PHPDoc, and referenced canonical PHP; extraction recognizes `example=ID` without configuration,
+  while legacy marker comments and one-property directives remain supported as explicit compatibility forms.
 - Use the general `DocumentationSource` and a test-file-relative project root in the README and Quick Start PHPUnit
   examples, avoiding dependence on the process working directory.
 - Route the packaged CLI through Symfony Console for generated command help, command listing, Bash/Fish/Zsh completion,

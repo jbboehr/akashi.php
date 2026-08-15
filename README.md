@@ -75,7 +75,7 @@ compatible release on later PHP versions.
 - unconditional documentation assertions
 - source-aware parse, execution, assertion, and PHPStan failures
 - one reusable example corpus for runtime and static-analysis verification
-- configurable markers for stable consumer-fixture extraction
+- stable `example` identities and legacy-marker compatibility for consumer-fixture extraction
 - check or atomically update rendered copies from canonical PHP sources, with in-memory corrections and source-labelled
   unified diffs
 - optional PHP-CS-Fixer checks for PHP embedded in Markdown and PHPDoc

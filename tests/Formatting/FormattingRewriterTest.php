@@ -461,6 +461,25 @@ MARKDOWN);
         );
     }
 
+    public function testRejectsFormatterOutputThatChangesAnInlineCanonicalMarker(): void
+    {
+        $document = new Document('docs/example.md', <<<'MARKDOWN'
+```php
+// akashi: example=formatted-example
+$value=1;
+```
+MARKDOWN);
+        $example = (new CommonMarkExampleExtractor())->extract($document)[0];
+
+        $this->expectException(FormattingRewriteException::class);
+        $this->expectExceptionMessage('cannot be rendered safely');
+
+        (new FormattingRewriter())->rewrite(
+            $document,
+            new FormattingMismatch($example, new ExampleCode("\$value = 1;\n")),
+        );
+    }
+
     public function testAttributesInvalidCandidateDirectiveMetadataToTheExample(): void
     {
         $document = new Document('docs/example.md', <<<'MARKDOWN'
