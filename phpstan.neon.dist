@@ -28,6 +28,7 @@ parameters:
     strictRules:
         disallowedShortTernary: false
     paths:
+        - benchmarks
         - bin/akashi
         - src
         - tests

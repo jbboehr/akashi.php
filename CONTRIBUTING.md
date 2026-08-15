@@ -31,8 +31,8 @@ nix flake check --keep-going -L
 
 The flake exposes PHPUnit separately for PHP 8.1 through 8.5 and also checks PHPStan, PHP-CS-Fixer, Composer metadata,
 the root and auxiliary Composer lock pairs, PHP syntax, package contents, both ParaTest scheduling modes, the public
-documentation, repository formatting and hooks, and the PHPUnit 10 and PHPStan 1 consumer fixtures. These builds use
-Nix-managed Composer dependencies and do not read the checkout's `vendor/`.
+documentation, benchmark discovery, repository formatting and hooks, and the PHPUnit 10 and PHPStan 1 consumer fixtures.
+These builds use Nix-managed Composer dependencies and do not read the checkout's `vendor/`.
 
 Mutation testing is deliberately not part of `nix flake check`. Run its explicit Nix target when a change warrants it:
 
@@ -77,6 +77,9 @@ that you have the right to license it under these terms.
 
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the explicit mutation-testing
 workflow and guidance on interpreting escaped mutants.
+
+See [`docs/development/benchmarking.md`](docs/development/benchmarking.md) for timing benchmarks, local comparisons, and
+optional Linux performance-counter measurements.
 
 ## Doctrine of the Second Sun
 

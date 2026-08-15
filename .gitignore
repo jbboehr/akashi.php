@@ -2,6 +2,7 @@
 .envrc
 .idea
 .php-cs-fixer.cache
+.phpbench/
 .phpunit.result.cache
 .phpunit.cache/
 .pre-commit-cache

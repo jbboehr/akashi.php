@@ -17,6 +17,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     phps.url = "github:fossar/nix-phps";
+    php-perfidious = {
+      url = "github:jbboehr/php-perfidious";
+      flake = false;
+    };
     nix-github-actions = {
       url = "github:nix-community/nix-github-actions";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -32,6 +36,7 @@
       treefmt-nix,
       gitignore,
       phps,
+      php-perfidious,
       nix-github-actions,
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -39,6 +44,14 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         php-unwrapped = pkgs.php82;
+        perfidious = pkgs.callPackage "${php-perfidious}/nix/derivation.nix" {
+          php = php-unwrapped;
+          src = php-perfidious;
+          buildPecl = pkgs.callPackage "${nixpkgs}/pkgs/build-support/php/build-pecl.nix" {
+            php = php-unwrapped;
+          };
+          valgrindSupport = false;
+        };
         php81-unwrapped = phps.packages.${system}.php81;
         php81 = php81-unwrapped.buildEnv {
           extraConfig = "memory_limit = 2G";
@@ -60,6 +73,19 @@
               all,
             }:
             enabled ++ [ all.pcov ];
+        };
+        php-perf = php-unwrapped.buildEnv {
+          extraConfig = "memory_limit = 2G";
+          extensions =
+            {
+              enabled,
+              all,
+            }:
+            enabled
+            ++ [
+              all.pcov
+              perfidious
+            ];
         };
         php-xdebug = php-unwrapped.buildEnv {
           extraConfig = ''
@@ -186,7 +212,7 @@
         // php-checks.checks
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux { inherit agent-badge; };
         devShells = {
-          default = mkDevShell php;
+          default = mkDevShell (if pkgs.stdenv.isLinux then php-perf else php);
           php81 = mkDevShell php81;
           xdebug = mkDevShell php-xdebug;
         };

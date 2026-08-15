@@ -81,7 +81,7 @@ let
     manifest = ../composer.json;
     lock = ../composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-qj5mXzpLloJRf6Ub3zB1xL0XVNuaFgq9wO8sV8L/mwk=";
+    vendorHash = "sha256-9XrOQ+2d8Cg+obXT9hb80ZNokDZYtgbQGcv0C93oEew=";
   };
 
   php81Closure = mkComposerClosure {
@@ -90,7 +90,7 @@ let
     manifest = ../composer.json;
     lock = ./composer/php81/composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-6NEqoUWrnur8EqZ+UNaMi8gccd1VCgABySSzr+qtow4=";
+    vendorHash = "sha256-idnHD4+Z7IiZi8JYszSDAo7iOaSNSyYQrqDBYSo7ZXI=";
   };
 
   lowestClosure = mkComposerClosure {
@@ -99,7 +99,7 @@ let
     manifest = ../composer.json;
     lock = ./composer/lowest/composer.lock;
     rootBins = [ "bin/akashi" ];
-    vendorHash = "sha256-xpDOymInXHmb5gVl71uat0tLwRPYkySrG3eK+RtgtIk=";
+    vendorHash = "sha256-mh39nu5vAWA2amVnP9aLNWW9tZIcxoCxcTLPITFWkt0=";
   };
 
   phpstan1Closure = mkComposerClosure {
@@ -251,11 +251,24 @@ in
 
     php-lint-php81 = pkgs.runCommand "akashi-php-lint-php81" { nativeBuildInputs = [ php81 ]; } ''
       {
-        find ${src}/src ${src}/tests ${src}/tools -type f -name '*.php' -print0
+        find ${src}/benchmarks ${src}/src ${src}/tests ${src}/tools -type f -name '*.php' -print0
         printf '%s\0' ${src}/bin/akashi
       } | xargs -0 --no-run-if-empty -n 1 php -l
       touch "$out"
     '';
+
+    benchmark-smoke-php81 = mkPhpCheck {
+      name = "benchmark-smoke-php81";
+      php = php81;
+      closure = php81Closure;
+      command = "php vendor/bin/phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none";
+    };
+
+    benchmark-smoke-php82 = mkPhpCheck {
+      name = "benchmark-smoke-php82";
+      php = php82;
+      command = "php vendor/bin/phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none";
+    };
 
     package = mkPhpCheck {
       name = "package";
