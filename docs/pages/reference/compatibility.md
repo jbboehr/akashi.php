@@ -128,9 +128,11 @@ fail. It does not make infrastructure, transformation, or arbitrary process fail
 
 ## PHPStan Boundary
 
-The `//!` syntax is retained for current consumer compatibility. It matches mutable diagnostic message and tip text, not
-PHPStan identifiers, and must occupy its own line. Akashi requires exact diagnostic counts and a deterministic,
-one-to-one substring assignment.
+The preferred `// @akashi-phpstan-error IDENTIFIER[: optional text]` syntax matches the identifier exactly, optionally
+matches message or tip text, and requires the diagnostic line to fall within the next PHP statement. Repeated directives
+may target that statement. The legacy standalone `//!` syntax remains available for current consumer compatibility; it
+matches mutable message and tip text across the example without constraining an identifier or statement line. Akashi
+requires exact diagnostic counts and a deterministic one-to-one assignment for both forms.
 
 PHPStan verification loads every relevant example into the hosting test process before analysis. Persistent declarations
 cannot be unloaded, so preflight rejects collisions and built-in `define()`. Use one corpus-level verification test per

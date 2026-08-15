@@ -66,7 +66,16 @@ final class DiagnosticMatcher
         foreach ($expectations as $expectation) {
             $compatible = [];
             foreach ($diagnostics as $diagnosticIndex => $diagnostic) {
-                if (str_contains($diagnostic->searchableText(), $expectation->text)) {
+                $identifierMatches = $expectation->identifier === null
+                    || $diagnostic->identifier === $expectation->identifier;
+                $textMatches = $expectation->text === null
+                    || str_contains($diagnostic->searchableText(), $expectation->text);
+                $diagnosticLine = $diagnostic->sourceLine ?? $diagnostic->analyzerLine;
+                $lineMatches = $expectation->sourceLineRange === null
+                    || ($diagnosticLine !== null
+                        && $diagnosticLine >= $expectation->sourceLineRange['first']
+                        && $diagnosticLine <= $expectation->sourceLineRange['last']);
+                if ($identifierMatches && $textMatches && $lineMatches) {
                     $compatible[] = $diagnosticIndex;
                 }
             }

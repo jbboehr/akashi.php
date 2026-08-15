@@ -97,6 +97,7 @@ final class DocumentationPhpStanTest extends RuleTestCase
         $projectRoot = dirname(__DIR__);
         $configuration = PhpStanExampleConfiguration::forTokens(
             $projectRoot,
+            '@akashi-phpstan-error',
             '//!',
             '@analyze-example',
         );
@@ -107,8 +108,9 @@ final class DocumentationPhpStanTest extends RuleTestCase
 ```
 
 PHPStan owns `RuleTestCase`, the container, rule construction, and extension configuration. Akashi owns selection from
-the supplied corpus, `//!` expectation parsing, analysis-file preparation, diagnostic matching, source mapping, and
-reporting through PHPUnit. Tokens such as `@analyze-example` are chosen by the consuming project.
+the supplied corpus, identifier and legacy `//!` expectation parsing, analysis-file preparation, diagnostic matching,
+source mapping, and reporting through PHPUnit. `@akashi-phpstan-error` is Akashi's preferred expectation directive;
+tokens such as `@analyze-example` are chosen by the consuming project.
 
 ## Decide Which Workflow Sees an Example
 

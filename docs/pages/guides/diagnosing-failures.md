@@ -52,13 +52,16 @@ location in a recognized form. The original cause remains in the exception chain
 PHPStan verification distinguishes configuration and preflight failures from diagnostic mismatches. A mismatch report
 shows authored expectations, analyzer diagnostics, and their maintained documentation locations. Common causes are:
 
-- a diagnostic changed wording and no longer contains the `//!` substring;
+- a diagnostic identifier changed or its optional text no longer matches the message or tip;
+- a diagnostic is reported outside the statement associated with its identifier expectation;
+- a legacy diagnostic changed wording and no longer contains the `//!` substring;
 - the actual and expected diagnostic counts differ;
 - two expectations can match only one diagnostic;
 - an example selected by a relevance token unexpectedly reports a diagnostic;
 - declarations collide within the selected corpus or with the hosting process.
 
-PHPStan identifiers are displayed when available, but the current expectation grammar matches message and tip text.
+Identifier expectations display their exact identifier, associated statement span, and optional text constraint. Legacy
+`//!` expectations display their message-and-tip substring.
 
 ## Temporary Locations
 

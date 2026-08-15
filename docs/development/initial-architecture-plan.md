@@ -796,6 +796,8 @@ PHPStan integration: the core `Example` model remains analyzer-agnostic. `//!` c
 compatibility even if the identifier form is later implemented. Do not implement the new grammar during the MVP merely
 because its model seam is documented here.
 
+Implementation status: the identifier form was implemented after the MVP while preserving the legacy syntax.
+
 ## CLI design
 
 The CLI has a small explicit router and `Command` interface, not an application framework. The MVP command is:

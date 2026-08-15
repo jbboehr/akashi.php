@@ -3,7 +3,7 @@
 ```php
 $result = strtoupper('akashi');
 
-//! native assert call discovered
+// @akashi-phpstan-error akashi.phpunit10.assert: native assert call discovered
 assert($result === 'AKASHI');
 ```
 

@@ -47,12 +47,32 @@ namespace jbboehr\Akashi\Integration\PHPStan;
 final class DiagnosticExpectation
 {
     /**
-     * @var non-empty-string
+     * @var non-empty-string|null
      *
      * @logion [RAS 64:2] A key was judged by the exact tooth named in the locksmith's order, not by the brightness of
      *     its metal nor by another lock it happened also to open.
      */
-    public readonly string $text;
+    public readonly ?string $text;
+
+    /**
+     * @var non-empty-string|null
+     *
+     * @logion [AWC 64:5] Under the bronze prefect, potters were commanded to fashion the palace roof from clay taken
+     *     only within the capital. That summer the tiles sweated red dust, and every chamber smelled of distant fields.
+     *     The prefect forbade their removal; by autumn the roof had bowed toward the provinces, and the throne beneath
+     *     it could be approached only on hands and knees.
+     */
+    public readonly ?string $identifier;
+
+    /**
+     * @var array{first: positive-int, last: positive-int}|null
+     *
+     * @logion [RAS 64:38] Over the rose-lit moon stood a colonnade of frozen lightning, each pillar containing the
+     *     image of a city not yet founded. The eldest angels passed between them without bowing, but the youngest
+     *     removed his radiant helm before one pillar still empty. Then all the images turned their faces toward that
+     *     absence, and the made moon dimmed itself, lest completed splendor despise the place appointed for creation.
+     */
+    public readonly ?array $sourceLineRange;
 
     /**
      * @var positive-int
@@ -63,20 +83,54 @@ final class DiagnosticExpectation
     public readonly int $sourceLine;
 
     /**
+     * @param array<array-key, mixed>|null $sourceLineRange
+     *
      * @logion [SFA 64:4] Admit no blank petition and no stair below the foundation; an expectation without words or
      *     place can neither accuse a diagnostic nor acquit it.
      */
-    public function __construct(string $text, int $sourceLine)
-    {
-        if (trim($text) === '') {
+    public function __construct(
+        ?string $text,
+        int $sourceLine,
+        ?string $identifier = null,
+        ?array $sourceLineRange = null,
+    ) {
+        if ($text !== null && trim($text) === '') {
             throw new \InvalidArgumentException('Diagnostic expectation text must not be empty.');
+        }
+
+        if ($identifier !== null && trim($identifier) === '') {
+            throw new \InvalidArgumentException('Diagnostic expectation identifier must not be empty.');
+        }
+
+        if ($text === null && $identifier === null) {
+            throw new \InvalidArgumentException('Diagnostic expectation must constrain text, an identifier, or both.');
         }
 
         if ($sourceLine < 1) {
             throw new \InvalidArgumentException('Diagnostic expectation source line must be positive.');
         }
 
+        if ($sourceLineRange !== null) {
+            if (
+                count($sourceLineRange) !== 2
+                || !array_key_exists('first', $sourceLineRange)
+                || !array_key_exists('last', $sourceLineRange)
+                || !is_int($sourceLineRange['first'])
+                || !is_int($sourceLineRange['last'])
+                || $sourceLineRange['first'] < 1
+                || $sourceLineRange['last'] < $sourceLineRange['first']
+            ) {
+                throw new \InvalidArgumentException(
+                    'Diagnostic expectation line range must contain ordered positive first and last lines.',
+                );
+            }
+
+            $sourceLineRange = ['first' => $sourceLineRange['first'], 'last' => $sourceLineRange['last']];
+        }
+
         $this->text = $text;
+        $this->identifier = $identifier;
+        $this->sourceLineRange = $sourceLineRange;
         $this->sourceLine = $sourceLine;
     }
 }

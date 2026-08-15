@@ -125,7 +125,7 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 | --------------------------------------------------- | --------------------------------------------------------------- |
 | `Integration\PHPStan\PhpStanExampleConfiguration`   | Canonical project root and relevance predicate.                 |
 | `Integration\PHPStan\VerifiesPhpStanExamples`       | `RuleTestCase` trait that verifies a selected corpus.           |
-| `Integration\PHPStan\ExpectationParser`             | Parse authored `//!` expectations.                              |
+| `Integration\PHPStan\ExpectationParser`             | Parse identifier and legacy text expectations.                  |
 | `Integration\PHPStan\DiagnosticMatcher`             | Match framework-neutral diagnostics to expectations.            |
 | `Integration\PHPStan\PhpStanCommandRunner`          | Execute an explicit, boundary-preserving argument vector.       |
 | `Integration\PHPStan\PhpStanCommandVerifier`        | Run, decode, and verify an external PHPStan command.            |
@@ -139,10 +139,11 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 `AnalyzerDiagnostic::$ignorable` is nullable because diagnostics built outside the JSON decoder may not carry that
 PHPStan-specific evidence. `PhpStanVerificationResult` partitions deterministic file results into typed matched and
 mismatched maps while preserving analyzer-wide errors; `isSuccessful()` requires no global errors and no file
-mismatches. Matching compares authored text with diagnostic messages and tips; expectation source lines remain reporting
-metadata rather than analyzer-line constraints. An absent analyzer entry satisfies an explicit empty expectation list,
-so this result alone does not prove that a clean file was analyzed. Direct consumers may use these typed models with
-`ExpectationParser`, `DiagnosticMatcher`, `PhpStanJsonDecoder`, and `PhpStanResultVerifier`; the
+mismatches. `DiagnosticExpectation` can constrain an exact identifier, a message-or-tip substring, or both. Identifier
+directives also carry the maintained span of their associated PHP statement, which constrains the diagnostic line;
+legacy expectation source lines remain reporting metadata. An absent analyzer entry satisfies an explicit empty
+expectation list, so this result alone does not prove that a clean file was analyzed. Direct consumers may use these
+typed models with `ExpectationParser`, `DiagnosticMatcher`, `PhpStanJsonDecoder`, and `PhpStanResultVerifier`; the
 `VerifiesPhpStanExamples` trait remains the supported integration path for PHPStan's runtime objects.
 
 `PhpStanCommandResult` and `PhpStanCommandTermination` form the framework-neutral process model. A completed result
@@ -170,9 +171,11 @@ automatic failure.
 analysis paths, and exactly one platform-native canonical absolute expectation-map entry for each path.
 `PhpStanExternalFixturePlanner` builds this model from examples selected by `PhpStanExampleConfiguration`. The corpus
 and configuration must describe the same canonical project root. The planner accepts referenced whole files and named
-regions, groups aliases of each physical file when the filesystem reports a stable device/inode identity, chooses one
-deterministic analysis path, and deduplicates overlapping expectations. It rejects selected inline examples, missing
-selections, empty expectation markers, or canonical files changed since corpus loading.
+regions, parses region expectations against the complete canonical PHP file while restricting directives and associated
+statement spans to the selected region, groups aliases of each physical file when the filesystem reports a stable
+device/inode identity, chooses one deterministic analysis path, and deduplicates overlapping expectations. It rejects
+selected inline examples, missing selections, empty expectation markers, or canonical files changed since corpus
+loading.
 
 ## Exceptions
 

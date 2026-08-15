@@ -360,7 +360,23 @@ trait VerifiesPhpStanExamples
             $lines[] = '    (none)';
         }
         foreach ($mismatch->expectations as $expectation) {
-            $lines[] = sprintf('    - line %d: %s', $expectation->sourceLine, $expectation->text);
+            $identifier = $expectation->identifier !== null
+                ? sprintf(' [%s]', $expectation->identifier)
+                : '';
+            $text = $expectation->text !== null ? ': ' . $expectation->text : '';
+            $statement = $expectation->sourceLineRange !== null
+                ? sprintf(
+                    ' (statement %s)',
+                    $expectation->sourceLineRange['first'] === $expectation->sourceLineRange['last']
+                        ? sprintf('line %d', $expectation->sourceLineRange['first'])
+                        : sprintf(
+                            'lines %d-%d',
+                            $expectation->sourceLineRange['first'],
+                            $expectation->sourceLineRange['last'],
+                        ),
+                )
+                : '';
+            $lines[] = sprintf('    - line %d%s%s%s', $expectation->sourceLine, $identifier, $statement, $text);
         }
 
         $lines[] = 'Reported diagnostics:';

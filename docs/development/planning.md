@@ -105,6 +105,9 @@ Akashi work is:
 6. **Implemented:** `PhpStanExternalFixturePlanner` projects selected external canonical examples and stable named
    regions into direct analysis paths and grouped expectation maps. Ordinary PHP files carry diagnostic expectations
    while remaining directly usable by IDEs, formatters, PHP and PHPStan.
+7. **Implemented:** `// @akashi-phpstan-error IDENTIFIER[: optional text]` expectations associate exact PHPStan
+   identifiers and optional message-or-tip constraints with the next PHP statement. Legacy `//!` substring expectations
+   remain supported without statement-line constraints.
 
 The low-level command, decoder, framework-neutral verification, and command-verification outcome types are settled
 pre-1.0 public contracts. Akashi must not become responsible for constructing temporary Composer projects, adding

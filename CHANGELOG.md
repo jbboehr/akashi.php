@@ -41,9 +41,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   analyzer output, and completed diagnostic verification.
 - Project selected external canonical PHP examples and named regions into deterministic PHPStan analysis paths and
   expectation maps without generating temporary source.
+- Author PHPStan expectations with exact diagnostic identifiers, optional message-or-tip text, and association to the
+  next PHP statement while retaining legacy `//!` substring expectations.
 
 ### Changed
 
+- `DiagnosticExpectation::$text` is nullable so expectations can constrain text, an identifier, or both; identifier
+  expectations may also carry a maintained `sourceLineRange` for their associated statement.
 - Make `nix flake check --keep-going -L` the authoritative reproducible repository gate, with separated checks, shared
   immutable Composer closures, supported-PHP and consumer coverage, while retaining conventional PHP baseline CI and
   keeping mutation testing behind an explicit Nix target.

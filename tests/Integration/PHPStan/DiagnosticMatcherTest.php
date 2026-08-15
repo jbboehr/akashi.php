@@ -52,10 +52,17 @@ final class DiagnosticMatcherTest extends TestCase
 {
     public function testRepresentsExpectationsAndAnalyzerDiagnosticsWithoutAnalyzerTypes(): void
     {
-        $expectation = new DiagnosticExpectation('expected phrase', 17);
+        $expectation = new DiagnosticExpectation(
+            'expected phrase',
+            17,
+            'argument.type',
+            ['first' => 18, 'last' => 20],
+        );
         $diagnostic = new AnalyzerDiagnostic('argument.type', 'primary message', 'helpful tip', 3, 17);
 
         self::assertSame('expected phrase', $expectation->text);
+        self::assertSame('argument.type', $expectation->identifier);
+        self::assertSame(['first' => 18, 'last' => 20], $expectation->sourceLineRange);
         self::assertSame(17, $expectation->sourceLine);
         self::assertSame('argument.type', $diagnostic->identifier);
         self::assertSame('primary message', $diagnostic->message);
@@ -73,6 +80,8 @@ final class DiagnosticMatcherTest extends TestCase
         $boundaryDiagnostic = new AnalyzerDiagnostic(null, 'message', null, 1, 1);
 
         self::assertSame(1, $expectation->sourceLine);
+        self::assertNull($expectation->identifier);
+        self::assertNull($expectation->sourceLineRange);
         self::assertNull($diagnostic->identifier);
         self::assertNull($diagnostic->tip);
         self::assertNull($diagnostic->analyzerLine);
@@ -82,20 +91,63 @@ final class DiagnosticMatcherTest extends TestCase
         self::assertSame(1, $boundaryDiagnostic->sourceLine);
     }
 
+    /** @param array<array-key, mixed>|null $lineRange */
     #[DataProvider('invalidExpectationProvider')]
-    public function testRejectsInvalidExpectations(string $text, int $line, string $message): void
-    {
+    public function testRejectsInvalidExpectations(
+        ?string $text,
+        int $line,
+        ?string $identifier,
+        ?array $lineRange,
+        string $message,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new DiagnosticExpectation($text, $line);
+        new DiagnosticExpectation($text, $line, $identifier, $lineRange);
     }
 
-    /** @return iterable<string, array{string, int, string}> */
+    /** @return iterable<string, array{string|null, int, string|null, array<array-key, mixed>|null, string}> */
     public static function invalidExpectationProvider(): iterable
     {
-        yield 'empty text' => [' ', 1, 'text must not be empty'];
-        yield 'nonpositive line' => ['message', 0, 'source line must be positive'];
+        yield 'empty text' => [' ', 1, null, null, 'text must not be empty'];
+        yield 'empty identifier' => [null, 1, ' ', null, 'identifier must not be empty'];
+        yield 'no constraint' => [null, 1, null, null, 'must constrain text, an identifier, or both'];
+        yield 'nonpositive line' => ['message', 0, null, null, 'source line must be positive'];
+        yield 'missing line-range field' => [
+            null,
+            1,
+            'argument.type',
+            ['first' => 2],
+            'line range must contain ordered positive first and last lines',
+        ];
+        yield 'extra line-range field' => [
+            null,
+            1,
+            'argument.type',
+            ['first' => 2, 'last' => 3, 'other' => 4],
+            'line range must contain ordered positive first and last lines',
+        ];
+        yield 'noninteger line-range field' => [
+            null,
+            1,
+            'argument.type',
+            ['first' => '2', 'last' => 3],
+            'line range must contain ordered positive first and last lines',
+        ];
+        yield 'nonpositive line-range start' => [
+            null,
+            1,
+            'argument.type',
+            ['first' => 0, 'last' => 3],
+            'line range must contain ordered positive first and last lines',
+        ];
+        yield 'reversed line range' => [
+            null,
+            1,
+            'argument.type',
+            ['first' => 4, 'last' => 3],
+            'line range must contain ordered positive first and last lines',
+        ];
     }
 
     #[DataProvider('invalidDiagnosticProvider')]
@@ -149,6 +201,83 @@ final class DiagnosticMatcherTest extends TestCase
         self::assertSame($messageDiagnostic, $result->assignments[0]->diagnostic);
         self::assertSame($tipExpectation, $result->assignments[1]->expectation);
         self::assertSame($tipDiagnostic, $result->assignments[1]->diagnostic);
+    }
+
+    public function testMatchesExactIdentifiersWithOptionalTextConstraints(): void
+    {
+        $identifierOnly = new DiagnosticExpectation(null, 10, 'argument.type');
+        $combined = new DiagnosticExpectation('specific problem', 11, 'method.notFound');
+        $argumentDiagnostic = new AnalyzerDiagnostic('argument.type', 'Mutable wording.');
+        $methodDiagnostic = new AnalyzerDiagnostic('method.notFound', 'A specific problem occurred.');
+
+        $result = (new DiagnosticMatcher())->match(
+            [$identifierOnly, $combined],
+            [$methodDiagnostic, $argumentDiagnostic],
+        );
+
+        self::assertInstanceOf(DiagnosticsMatched::class, $result);
+        self::assertSame($argumentDiagnostic, $result->assignments[0]->diagnostic);
+        self::assertSame($methodDiagnostic, $result->assignments[1]->diagnostic);
+    }
+
+    #[DataProvider('identifierMismatchProvider')]
+    public function testRejectsIdentifierOrCombinedTextMismatches(
+        DiagnosticExpectation $expectation,
+        AnalyzerDiagnostic $diagnostic,
+    ): void {
+        $result = (new DiagnosticMatcher())->match([$expectation], [$diagnostic]);
+
+        self::assertInstanceOf(DiagnosticsMismatched::class, $result);
+        self::assertSame(DiagnosticMismatchKind::Assignment, $result->kind);
+    }
+
+    /** @return iterable<string, array{DiagnosticExpectation, AnalyzerDiagnostic}> */
+    public static function identifierMismatchProvider(): iterable
+    {
+        yield 'different identifier' => [
+            new DiagnosticExpectation(null, 10, 'argument.type'),
+            new AnalyzerDiagnostic('return.type', 'Same mutable message.'),
+        ];
+        yield 'missing identifier' => [
+            new DiagnosticExpectation(null, 10, 'argument.type'),
+            new AnalyzerDiagnostic(null, 'Same mutable message.'),
+        ];
+        yield 'identifier is case sensitive' => [
+            new DiagnosticExpectation(null, 10, 'Argument.Type'),
+            new AnalyzerDiagnostic('argument.type', 'Same mutable message.'),
+        ];
+        yield 'combined text mismatch' => [
+            new DiagnosticExpectation('expected text', 10, 'argument.type'),
+            new AnalyzerDiagnostic('argument.type', 'different text'),
+        ];
+        yield 'diagnostic before statement' => [
+            new DiagnosticExpectation(null, 10, 'argument.type', ['first' => 20, 'last' => 22]),
+            new AnalyzerDiagnostic('argument.type', 'message', analyzerLine: 19),
+        ];
+        yield 'diagnostic after statement' => [
+            new DiagnosticExpectation(null, 10, 'argument.type', ['first' => 20, 'last' => 22]),
+            new AnalyzerDiagnostic('argument.type', 'message', analyzerLine: 23),
+        ];
+        yield 'diagnostic without a line' => [
+            new DiagnosticExpectation(null, 10, 'argument.type', ['first' => 20, 'last' => 22]),
+            new AnalyzerDiagnostic('argument.type', 'message'),
+        ];
+    }
+
+    public function testMatchesEitherBoundaryAndPrefersMaintainedSourceLines(): void
+    {
+        $first = new DiagnosticExpectation(null, 10, 'argument.type', ['first' => 20, 'last' => 22]);
+        $last = new DiagnosticExpectation(null, 11, 'return.type', ['first' => 30, 'last' => 32]);
+
+        $result = (new DiagnosticMatcher())->match(
+            [$first, $last],
+            [
+                new AnalyzerDiagnostic('argument.type', 'first', analyzerLine: 999, sourceLine: 20),
+                new AnalyzerDiagnostic('return.type', 'last', analyzerLine: 1, sourceLine: 32),
+            ],
+        );
+
+        self::assertInstanceOf(DiagnosticsMatched::class, $result);
     }
 
     public function testRejectsACaseMismatchedPhrase(): void

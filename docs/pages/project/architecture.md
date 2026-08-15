@@ -172,10 +172,11 @@ or exception location. The subprocess backend rejects this contract because its 
 identity. The adapter and facade remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
-relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses and validates every selected example, writes
-private analysis files, preloads declarations, asks `RuleTestCase` for diagnostics, translates lines, and gives
-framework-neutral diagnostics to `DiagnosticMatcher`. Matching requires exact counts and deterministic one-to-one
-assignments before PHPUnit receives the result.
+relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses identifier-oriented expectations associated with
+the next PHP statement and legacy message-only expectations, writes private analysis files, preloads declarations, asks
+`RuleTestCase` for diagnostics, translates lines, and gives framework-neutral diagnostics to `DiagnosticMatcher`.
+Matching may constrain exact identifier, message-or-tip substring, and maintained statement span. It requires exact
+counts and deterministic one-to-one assignments before PHPUnit receives the result.
 
 External analysis has a narrower implemented seam. `PhpStanJsonDecoder` converts PHPStan 1.12 or 2.x JSON output into a
 typed `PhpStanJsonResult` without loading PHPStan or PHPUnit. The result keeps analyzer-wide errors, per-file
@@ -266,11 +267,11 @@ compose source, runtime, and verifier configuration through typed immutable valu
 Current architecture supports Markdown and inline PHPDoc fences, PHPDoc references to canonical external PHP files and
 named regions, synchronized-presentation inspection and in-memory rewriting through the library, check/write sync CLI,
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
-runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
-typed PHPStan command execution and composed verification, JSON decoding and standalone result verification, and marked
-extraction. External canonical PHP examples can also be projected into direct PHPStan command fixtures without generated
-source. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone Akashi
-test runner do not exist yet.
+runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, identifier- and
+text-oriented PHPStan expectations through `RuleTestCase`, typed PHPStan command execution and composed verification,
+JSON decoding and standalone result verification, and marked extraction. External canonical PHP examples can also be
+projected into direct PHPStan command fixtures without generated source. Hidden support code, documentation-renderer
+inclusion, generalized verifier plugins, and a standalone Akashi test runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely
 for them. The existing separation between original `Example`, prepared source, execution results, and verifier

@@ -613,7 +613,7 @@ all prohibited implementation material remain outside the MVP clean-room boundar
 * external canonical PHP example files, including stable named regions — implemented post-MVP;
 * documentation references to canonical examples — implemented post-MVP;
 * optional synchronized inline presentations of external canonical examples — parsing, comparison, in-memory rewriting,
-  and check-only CLI reporting implemented post-MVP; filesystem writing deferred;
+  and check/write CLI reporting with atomic filesystem persistence implemented post-MVP;
 * declaration-aware attachment metadata for examples on classes, methods, functions, and interfaces;
 * attribute-based examples;
 * arbitrary source adapters;

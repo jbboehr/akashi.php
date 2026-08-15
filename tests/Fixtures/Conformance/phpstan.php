@@ -37,7 +37,7 @@
 /**
  * ```php
  * // @akashi-phpstan-example
+ * // @akashi-phpstan-error akashi.conformanceEcho: echo statements are forbidden by the Akashi conformance rule
  * echo 'PHPDoc conformance';
- * //! echo statements are forbidden by the Akashi conformance rule
  * ```
  */

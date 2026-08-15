@@ -90,8 +90,9 @@ separate-process exception expectations, broader expected-failure semantics, glo
 with reasons, expected output, compile-only checks, platform conditions, configurable subprocess timeouts, alternate PHP
 binaries and INI profiles, and controlled child environments.
 
-The PHPStan roadmap includes an identifier-oriented expectation syntax that can coexist with `//!`, richer verifier
-results outside PHPUnit, and source mappings that can associate diagnostics with multiple maintained origins.
+PHPStan's identifier-oriented expectation syntax now coexists with legacy `//!` text expectations. Framework-neutral
+command verification and external canonical fixture planning are also implemented. A future mapping model may need to
+associate one diagnostic with multiple maintained origins.
 
 ## External PHPStan Verification
 

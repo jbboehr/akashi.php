@@ -279,8 +279,8 @@ competing doctest implementation:
 - subprocess isolation follows PHP's process model and Symfony Process's public integration API;
 - PHPUnit, PHPStan, Composer binary, and autoloader adapters follow their respective official integration contracts; and
 - PHPStan's diagnostic identifiers and identifier-oriented inline ignore comments are observed public behavior; the
-  proposed post-MVP `@akashi-phpstan-error` prefix, grammar, statement association, and expectation semantics are Akashi
-  decisions, not syntax from a competing doctest implementation.
+  implemented post-MVP `@akashi-phpstan-error` prefix, grammar, statement association, and expectation semantics are
+  Akashi decisions, not syntax from a competing doctest implementation.
 
 ## Accidental exposure
 

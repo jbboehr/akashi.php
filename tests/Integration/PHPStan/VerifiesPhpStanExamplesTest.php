@@ -191,7 +191,7 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
                 'example-a-01',
                 'docs/a.md',
                 1,
-                "<?php\n//! echo statements are forbidden\necho 'captured output';",
+                "<?php\n// @akashi-phpstan-error akashi.echo\necho 'captured output';",
             ),
             $this->example('example-b-01', 'docs/b.md', 1, "<?php\n\\{$recordCall}"),
         );
@@ -241,6 +241,40 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         }
 
         self::fail('A mismatched PHPStan expectation must fail the PHPUnit assertion.');
+    }
+
+    public function testReportsIdentifierOnlyExpectationsInMismatchOutput(): void
+    {
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-identifier-mismatch-01',
+            'docs/identifier-mismatch.md',
+            1,
+            "<?php\n// @akashi-phpstan-error expected.identifier\necho 'captured';",
+        ));
+
+        self::assertStringContainsString('line 11 [expected.identifier]', $failure->getMessage());
+        self::assertStringContainsString('(statement line 12)', $failure->getMessage());
+        self::assertStringNotContainsString('line 11 [expected.identifier]:', $failure->getMessage());
+        self::assertStringContainsString('[akashi.echo]', $failure->getMessage());
+    }
+
+    public function testRequiresAnIdentifierDiagnosticOnItsAssociatedStatement(): void
+    {
+        $this->controlledErrors = [self::analyserError(
+            'echo statements are forbidden in analyzed documentation',
+            2,
+            identifier: 'akashi.echo',
+        )];
+
+        $failure = $this->phpStanAssertionFailure($this->example(
+            'example-identifier-line-mismatch-01',
+            'docs/identifier-line-mismatch.md',
+            1,
+            "<?php\n// @akashi-phpstan-error akashi.echo\necho 'captured';",
+        ));
+
+        self::assertStringContainsString('line 11 [akashi.echo] (statement line 12)', $failure->getMessage());
+        self::assertStringContainsString('source line 11 [akashi.echo]', $failure->getMessage());
     }
 
     public function testOrdersAndRetainsEveryReportedDiagnostic(): void

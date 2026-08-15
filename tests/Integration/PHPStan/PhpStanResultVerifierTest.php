@@ -72,7 +72,7 @@ final class PhpStanResultVerifierTest extends TestCase
             ]),
             [
                 '/project/z.php' => [new DiagnosticExpectation('Read the guide.', 20)],
-                '/project/a.php' => [new DiagnosticExpectation('A problem.', 10)],
+                '/project/a.php' => [new DiagnosticExpectation('A problem.', 10, 'a.problem')],
             ],
         );
 

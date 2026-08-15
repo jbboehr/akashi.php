@@ -4,6 +4,6 @@
 <?php
 
 // @akashi-phpstan-example
+// @akashi-phpstan-error akashi.conformanceEcho
 echo 'analyzed';
-//! echo statements are forbidden by the Akashi conformance rule
 ```

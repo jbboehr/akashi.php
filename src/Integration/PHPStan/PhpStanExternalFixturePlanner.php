@@ -166,6 +166,8 @@ final class PhpStanExternalFixturePlanner
                     if (
                         $existingExpectation->sourceLine === $expectation->sourceLine
                         && $existingExpectation->text === $expectation->text
+                        && $existingExpectation->identifier === $expectation->identifier
+                        && $existingExpectation->sourceLineRange === $expectation->sourceLineRange
                     ) {
                         $duplicate = true;
                         break;

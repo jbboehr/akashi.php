@@ -4,5 +4,5 @@
 //! MissingPhpStanJsonFixtureClass
 $instance = new MissingPhpStanJsonFixtureClass();
 
-//! undefinedPhpStanJsonFixtureVariable
+// @akashi-phpstan-error variable.undefined
 echo $undefinedPhpStanJsonFixtureVariable;

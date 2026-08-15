@@ -110,7 +110,12 @@ final class PhpStanCommandVerifierTest extends TestCase
             $this->workspace,
             PHP_BINARY,
             self::emit($json, 'analysis warning', 1),
-            [$file => [new DiagnosticExpectation('undefined method', 12)]],
+            [$file => [new DiagnosticExpectation(
+                null,
+                12,
+                'method.notFound',
+                ['first' => 7, 'last' => 7],
+            )]],
         );
 
         self::assertInstanceOf(PhpStanCommandVerified::class, $result);
@@ -119,6 +124,42 @@ final class PhpStanCommandVerifierTest extends TestCase
         self::assertSame(1, $result->analyzerResult->fileErrorCount);
         self::assertTrue($result->verificationResult->isSuccessful());
         self::assertArrayHasKey($file, $result->verificationResult->matchesByFile);
+        self::assertSame(
+            'method.notFound',
+            $result->verificationResult->matchesByFile[$file]->assignments[0]->expectation->identifier,
+        );
+    }
+
+    public function testRejectsAJsonDiagnosticOutsideItsExpectedSourceRange(): void
+    {
+        $file = $this->workspace . '/example.php';
+        $json = self::phpStanJson([
+            $file => [
+                'errors' => 1,
+                'messages' => [[
+                    'message' => 'Call to an undefined method Example::missing().',
+                    'line' => 7,
+                    'ignorable' => true,
+                    'identifier' => 'method.notFound',
+                ]],
+            ],
+        ]);
+
+        $result = (new PhpStanCommandVerifier())->verify(
+            $this->workspace,
+            PHP_BINARY,
+            self::emit($json, '', 1),
+            [$file => [new DiagnosticExpectation(
+                null,
+                12,
+                'method.notFound',
+                ['first' => 8, 'last' => 8],
+            )]],
+        );
+
+        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
+        self::assertFalse($result->verificationResult->isSuccessful());
+        self::assertArrayHasKey($file, $result->verificationResult->mismatchesByFile);
     }
 
     public function testPreservesValidAnalyzerErrorsAndDiagnosticMismatches(): void

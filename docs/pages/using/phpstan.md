@@ -22,20 +22,39 @@ parsing, temporary analysis files, diagnostic matching, source-line mapping, and
 
 ## Express an Expected Diagnostic
 
-The current syntax is a standalone `//!` line followed by a case-sensitive diagnostic substring:
+Prefer a standalone identifier expectation immediately before the PHP statement that should produce the diagnostic:
+
+```php
+// @akashi-phpstan-error argument.type
+operationThatPHPStanShouldReject();
+```
+
+The identifier is matched exactly and case-sensitively. An optional nonempty text constraint can also match a
+case-sensitive substring in PHPStan's message plus optional tip:
+
+```php
+// @akashi-phpstan-error argument.type: incompatible unit
+operationThatPHPStanShouldReject();
+```
+
+Repeated directives may describe several diagnostics for the same next statement. Blank lines may separate the
+directives from that statement, but other comments or code may not intervene. The reported diagnostic line must fall
+within the statement's maintained source span. Malformed or misplaced identifier directives fail as authoring errors.
+
+Akashi also retains the standalone message-only form for existing consumers:
 
 ```php
 //! argument has an incompatible unit
 operationThatPHPStanShouldReject();
 ```
 
-The marker text must be nonempty. A trailing marker on the same line as PHP code is not recognized. Akashi requires the
-actual and expected diagnostic counts to match and assigns every expectation to a distinct diagnostic. A selected
-example with no expectations must analyze cleanly. Assignment considers the complete expectation/diagnostic set rather
-than committing to the first greedy substring match, so overlapping broad and narrow expectations remain deterministic.
+The `//!` text must be nonempty. It matches message and tip text across the selected example without constraining a
+PHPStan identifier or statement line. A trailing marker on the same line as PHP code is not recognized.
 
-This text-oriented syntax is implemented for current consumer compatibility. PHPStan diagnostic identifiers are retained
-and shown when available, but identifier-based expectations remain deferred.
+For both forms, Akashi requires actual and expected diagnostic counts to match and assigns every expectation to a
+distinct diagnostic. A selected example with no expectations must analyze cleanly. Assignment considers the complete
+expectation/diagnostic set rather than committing to the first greedy match, so overlapping broad and narrow
+expectations remain deterministic.
 
 ## Select Relevant Examples
 
@@ -62,6 +81,7 @@ use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
 
 $configuration = PhpStanExampleConfiguration::forTokens(
     $projectRoot,
+    '@akashi-phpstan-error',
     '//!',
     '@analyze-example',
 );
@@ -109,13 +129,13 @@ verify its output without loading PHPStan or PHPUnit classes. The consumer remai
 disposable Composer project and installing the packages under test.
 
 Keep the analyzed fixture as an ordinary PHP file. The selection token opts it into PHPStan verification, while each
-`//!` line records an expected diagnostic immediately before the relevant code:
+identifier directive records an expected diagnostic immediately before the relevant statement:
 
 ```php
 <?php
 
 // @akashi-phpstan-example
-//! Call to an undefined method Demo::missing()
+// @akashi-phpstan-error method.notFound: Call to an undefined method Demo::missing()
 (new Demo())->missing();
 ```
 
@@ -240,10 +260,11 @@ treated as trusted project tooling.
 
 `PhpStanResultVerifier` compares each expected file with the corresponding decoded diagnostics through the same
 deterministic one-to-one matcher used by the `RuleTestCase` integration. The returned `PhpStanVerificationResult` keeps
-successful file matches, file mismatches, and analyzer-wide errors separate. Matching uses a case-sensitive substring of
-the diagnostic message and optional tip, requires equal counts, and assigns every expectation to a distinct diagnostic.
-`DiagnosticExpectation::$sourceLine` identifies the authored expectation for reporting; it is not compared with
-`AnalyzerDiagnostic::$analyzerLine`.
+successful file matches, file mismatches, and analyzer-wide errors separate. An expectation can require an exact
+identifier, a case-sensitive message-or-tip substring, or both. When it carries a `sourceLineRange`, the diagnostic's
+maintained `sourceLine`, or its analyzer line when no maintained mapping exists, must fall within that range. Matching
+also requires equal counts and assigns every expectation to a distinct diagnostic. `DiagnosticExpectation::$sourceLine`
+identifies the authored expectation for reporting and is not itself a matching constraint.
 
 A missing expected file with at least one expectation and an unexpected diagnostic file become ordinary count mismatches
 with their complete evidence. An expected path with an empty expectation list matches an absent analyzer entry, because

@@ -54,7 +54,7 @@ final class DocumentationPhpStanExamplesCompatibility extends RuleTestCase
     {
         $this->assertPhpStanExamples(
             self::corpus(),
-            PhpStanExampleConfiguration::forTokens(dirname(__DIR__), '//!'),
+            PhpStanExampleConfiguration::forTokens(dirname(__DIR__), '@akashi-phpstan-error'),
         );
     }
 

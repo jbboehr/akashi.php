@@ -99,13 +99,13 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
             // akashi-region: clean
             // @akashi-phpstan-example
-            //! first external diagnostic
+            // @akashi-phpstan-error external.first
             $clean = 1;
             // akashi-region-end: clean
 
             // akashi-region: diagnostic
             // @akashi-phpstan-example
-            //! expected external diagnostic
+            // @akashi-phpstan-error external.expected: expected external diagnostic
             missingExternalFixtureFunction();
             // akashi-region-end: diagnostic
             PHP;
@@ -141,10 +141,53 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         self::assertSame([$fixturePath], array_keys($plan->expectationsByFile));
         $expectations = $plan->expectationsByFile[$fixturePath];
         self::assertCount(2, $expectations);
-        self::assertSame('first external diagnostic', $expectations[0]->text);
+        self::assertNull($expectations[0]->text);
+        self::assertSame('external.first', $expectations[0]->identifier);
         self::assertSame(5, $expectations[0]->sourceLine);
+        self::assertSame(['first' => 6, 'last' => 6], $expectations[0]->sourceLineRange);
         self::assertSame('expected external diagnostic', $expectations[1]->text);
+        self::assertSame('external.expected', $expectations[1]->identifier);
         self::assertSame(11, $expectations[1]->sourceLine);
+        self::assertSame(['first' => 12, 'last' => 12], $expectations[1]->sourceLineRange);
+    }
+
+    public function testParsesAContextDependentNamedRegionAgainstItsCanonicalFile(): void
+    {
+        $fixture = <<<'PHP'
+            <?php
+            final class ContextualFixture
+            {
+                // akashi-region: property
+                // @akashi-phpstan-example
+                // @akashi-phpstan-error assign.propertyType
+                private int $value = 'invalid';
+                // akashi-region-end: property
+            }
+            PHP;
+        $documentation = <<<'PHP'
+            <?php
+
+            /** @akashi-example examples/contextual.php#property */
+            final class ContextualFixtureDocumentation
+            {
+            }
+            PHP;
+        self::assertNotFalse(file_put_contents($this->workspace . '/examples/contextual.php', $fixture));
+        self::assertNotFalse(file_put_contents($this->workspace . '/src/Documentation.php', $documentation));
+
+        $plan = (new PhpStanExternalFixturePlanner())->plan(
+            DocumentationSource::forProject($this->workspace)
+                ->includeFile('src/Documentation.php')
+                ->load(),
+            PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
+        );
+
+        self::assertSame(['examples/contextual.php'], $plan->analysisPaths);
+        $expectations = $plan->expectationsByFile[$this->nativePath('examples/contextual.php')];
+        self::assertCount(1, $expectations);
+        self::assertSame('assign.propertyType', $expectations[0]->identifier);
+        self::assertSame(6, $expectations[0]->sourceLine);
+        self::assertSame(['first' => 7, 'last' => 7], $expectations[0]->sourceLineRange);
     }
 
     public function testGroupsNamedRegionsReferencedThroughHardLinkAliases(): void
@@ -195,7 +238,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         self::assertSame(
             ['first hard-link diagnostic', 'second hard-link diagnostic'],
             array_map(
-                static fn (DiagnosticExpectation $expectation): string => $expectation->text,
+                static fn (DiagnosticExpectation $expectation): ?string => $expectation->text,
                 $expectations,
             ),
         );
@@ -266,14 +309,14 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         self::assertSame(
             ['a diagnostic'],
             array_map(
-                static fn (DiagnosticExpectation $expectation): string => $expectation->text,
+                static fn (DiagnosticExpectation $expectation): ?string => $expectation->text,
                 $plan->expectationsByFile[$this->nativePath('examples/a.php')],
             ),
         );
         self::assertSame(
             ['z diagnostic'],
             array_map(
-                static fn (DiagnosticExpectation $expectation): string => $expectation->text,
+                static fn (DiagnosticExpectation $expectation): ?string => $expectation->text,
                 $plan->expectationsByFile[$this->nativePath('examples/z.php')],
             ),
         );
