@@ -26,12 +26,14 @@ This example is tested by Akashi in this repository.
 
 Create a PHPUnit test such as `tests/DocumentationExamplesTest.php`:
 
+<!-- akashi: compile-only -->
+
 ```php
 <?php
 
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationExamplesTest extends TestCase
@@ -40,7 +42,7 @@ final class DocumentationExamplesTest extends TestCase
 
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
-        return MarkdownSource::forProject(getcwd() ?: throw new RuntimeException('Project root unavailable.'))
+        return DocumentationSource::forProject(dirname(__DIR__))
             ->includeFile('README.md')
             ->load();
     }

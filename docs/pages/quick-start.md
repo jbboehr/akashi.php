@@ -43,12 +43,14 @@ enters the selected corpus.
 
 Create `tests/DocumentationExamplesTest.php`:
 
+<!-- akashi: compile-only -->
+
 ```php
 <?php
 
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
-use jbboehr\Akashi\Source\MarkdownSource;
+use jbboehr\Akashi\Source\DocumentationSource;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationExamplesTest extends TestCase
@@ -57,16 +59,15 @@ final class DocumentationExamplesTest extends TestCase
 
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
-        return MarkdownSource::forProject(getcwd() ?: throw new RuntimeException('Project root unavailable.'))
+        return DocumentationSource::forProject(dirname(__DIR__))
             ->includeFile('README.md')
             ->load();
     }
 }
 ```
 
-This quick start assumes PHPUnit runs from the project root, the directory containing `composer.json`. If your test
-command uses another working directory, replace `getcwd()` with a known absolute project-root path. The trait supplies
-the PHPUnit data provider and test method. Your test class supplies the corpus.
+For a test class directly inside `tests/`, `dirname(__DIR__)` resolves the project root independently of PHPUnit's
+working directory. The trait supplies the PHPUnit data provider and test method. Your test class supplies the corpus.
 
 ## 4. Run It
 
@@ -95,4 +96,5 @@ Akashi rewrites supported native `assert()` calls to PHPUnit assertions, so the 
 - [Extracting Named Examples](using/extracting.md) turns a marked fence into a stable consumer fixture.
 - [Compatibility and Safety](reference/compatibility.md) records supported versions and exact limitations.
 
-The executable fences in this tutorial are included in Akashi's own documentation-example test.
+The documentation example in this tutorial executes through Akashi. The PHPUnit integration snippet receives
+compile-only validation because its `__DIR__` is meaningful after copying it into the project's `tests/` directory.

@@ -51,6 +51,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Use the general `DocumentationSource` and a test-file-relative project root in the README and Quick Start PHPUnit
+  examples, avoiding dependence on the process working directory.
 - Route the packaged CLI through Symfony Console for generated command help, command listing, Bash/Fish/Zsh completion,
   standard terminal options, and future command growth while preserving exact command names, single-occurrence options,
   required failure diagnostics, and Akashi's stable stream and exit-status contracts.
