@@ -59,7 +59,13 @@ final class InlineDirectiveParser
     /**
      * @param positive-int $firstCodeLine
      *
-     * @return array{directives: DirectiveSet, expectedException: ?ExpectedException, metadata: MetadataLocation}
+     * @return array{
+     *     directives: DirectiveSet,
+     *     expectedException: ?ExpectedException,
+     *     expectedExceptionMessage: ?string,
+     *     expectedExceptionMessageLine: ?positive-int,
+     *     metadata: MetadataLocation
+     * }
      *
      * @logion [AWC 38:50] The city burned its genealogy; thereafter every infant cast the shadow of an ancestor whom no
      *     scribe could name.
@@ -73,6 +79,8 @@ final class InlineDirectiveParser
         $directiveLines = [];
         $expectedException = null;
         $expectedExceptionLine = null;
+        $expectedExceptionMessage = null;
+        $expectedExceptionMessageLine = null;
 
         foreach ($tokens as $token) {
             if (!is_array($token) || $token[0] !== T_COMMENT) {
@@ -117,6 +125,30 @@ final class InlineDirectiveParser
                 continue;
             }
 
+            if (preg_match('/\Aexpect-exception-message(?:[ \t]+(.*))?\z/D', $value, $expectedMatches) === 1) {
+                if ($expectedExceptionMessageLine !== null) {
+                    throw new DirectiveException(sprintf(
+                        'Duplicate inline Akashi directive expect-exception-message at %s:%d; first declared at %s:%d.',
+                        $document->path->value,
+                        $sourceLine,
+                        $document->path->value,
+                        $expectedExceptionMessageLine,
+                    ));
+                }
+
+                $expectedExceptionMessage = trim($expectedMatches[1] ?? '');
+                if ($expectedExceptionMessage === '') {
+                    throw new DirectiveException(sprintf(
+                        'Invalid inline Akashi expect-exception-message directive at %s:%d: '
+                            . 'Expected exception message must not be empty.',
+                        $document->path->value,
+                        $sourceLine,
+                    ));
+                }
+                $expectedExceptionMessageLine = $sourceLine;
+                continue;
+            }
+
             $directive = Directive::tryFrom($value);
             if ($directive === null) {
                 throw new DirectiveException(sprintf(
@@ -141,9 +173,15 @@ final class InlineDirectiveParser
             $directiveLines[$directive->value] = $sourceLine;
         }
 
+        if ($expectedExceptionMessage !== null && $expectedException !== null) {
+            $expectedException = new ExpectedException($expectedException->className, $expectedExceptionMessage);
+        }
+
         return [
             'directives' => new DirectiveSet(...$directives),
             'expectedException' => $expectedException,
+            'expectedExceptionMessage' => $expectedExceptionMessage,
+            'expectedExceptionMessageLine' => $expectedExceptionMessageLine,
             'metadata' => new MetadataLocation(
                 separateProcessDirectiveLine: $directiveLines[Directive::SeparateProcess->value] ?? null,
                 skipDirectiveLine: $directiveLines[Directive::Skip->value] ?? null,

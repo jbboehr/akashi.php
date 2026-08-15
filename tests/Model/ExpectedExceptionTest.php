@@ -59,6 +59,31 @@ final class ExpectedExceptionTest extends TestCase
         yield 'extended identifier bytes' => ['Domain\\Échec', 'Domain\\Échec'];
     }
 
+    public function testStoresAnOptionalMessageSubstringWithoutChangingMeaningfulWhitespace(): void
+    {
+        $expectation = new ExpectedException(\RuntimeException::class, '  invalid documentation input  ');
+
+        self::assertSame('RuntimeException', $expectation->className);
+        self::assertSame('  invalid documentation input  ', $expectation->message);
+        self::assertNull((new ExpectedException(\RuntimeException::class))->message);
+    }
+
+    #[DataProvider('invalidMessageProvider')]
+    public function testRejectsAnEmptyMessageSubstring(string $message): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected exception message must not be empty.');
+
+        new ExpectedException(\RuntimeException::class, $message);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function invalidMessageProvider(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'only whitespace' => [" \t "];
+    }
+
     #[DataProvider('invalidClassNameProvider')]
     public function testRejectsAnInvalidClassName(string $className): void
     {

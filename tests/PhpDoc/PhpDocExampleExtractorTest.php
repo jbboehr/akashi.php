@@ -73,6 +73,7 @@ function answer(): int
 /**
  * ```php
  * // akashi: expect-exception RuntimeException
+ * // akashi: expect-exception-message expected
  * throw new RuntimeException('expected');
  * ```
  */
@@ -94,6 +95,7 @@ PHP;
         self::assertSame(6, $this->inlineSource($examples[0])->location->metadata->markerLine);
         self::assertSame(7, $this->inlineSource($examples[0])->location->metadata->separateProcessDirectiveLine);
         self::assertSame('RuntimeException', $examples[1]->expectedException?->className);
+        self::assertSame('expected', $examples[1]->expectedException->message);
         self::assertSame(21, $this->inlineSource($examples[1])->location->metadata->expectedExceptionDirectiveLine);
         self::assertSame(
             " * ```PHP extra\r\n * \$value = 41 + 1;\r\n * assert(\$value === 42);\r\n * ```\r\n",

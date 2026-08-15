@@ -159,6 +159,30 @@ final class PhpUnitResultAsserter
             && $result->cleanupFailures === []
             && is_a($result->cause, $expectedException->className)
         ) {
+            if (
+                $expectedException->message !== null
+                && !str_contains($result->cause->getMessage(), $expectedException->message)
+            ) {
+                throw new ExpectationFailedException(
+                    implode("\n", [
+                        sprintf(
+                            'Documentation example %s expected %s at %s, but its message did not contain the '
+                                . 'expected substring.',
+                            $example->id->value,
+                            $expectedException->className,
+                            $expectationLocation,
+                        ),
+                        "Expected message substring:\n" . self::indent($expectedException->message),
+                        "Actual message:\n" . self::indent($result->cause->getMessage()),
+                        sprintf('Location: %s', self::sourceLocation($result)),
+                        "Cause:\n" . self::indent(self::throwableSummary($result->cause)),
+                        ...$capturedStreamSections,
+                    ]),
+                    null,
+                    self::previousException($result->cause),
+                );
+            }
+
             Assert::assertGreaterThan(-1, $result->durationNanoseconds, sprintf(
                 'Documentation example %s threw expected %s.',
                 $example->id->value,

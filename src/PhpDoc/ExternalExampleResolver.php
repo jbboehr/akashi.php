@@ -40,6 +40,7 @@ namespace jbboehr\Akashi\PhpDoc;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\InlineDirectiveParser;
 use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
@@ -230,6 +231,19 @@ final class ExternalExampleResolver
                 $source['firstLine'],
                 $source['code'],
             );
+            if ($inline['expectedExceptionMessage'] !== null && $inline['expectedException'] === null) {
+                $line = $inline['expectedExceptionMessageLine'];
+                if ($line === null) {
+                    throw new \LogicException('Expected-exception-message metadata is missing its source line.');
+                }
+
+                throw new DirectiveException(sprintf(
+                    'Inline Akashi expect-exception-message directive at %s:%d requires an inline '
+                        . 'expect-exception directive in the same example.',
+                    $source['document']->path->value,
+                    $line,
+                ));
+            }
             $origin = new CodeOrigin(
                 $source['document'],
                 $source['firstLine'],

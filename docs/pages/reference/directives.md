@@ -35,12 +35,14 @@ visible inside the PHP example:
 
 ```php
 // akashi: expect-exception RuntimeException
+// akashi: expect-exception-message invalid documentation input
 ```
 
 The alternative HTML form keeps the annotation outside the extracted PHP:
 
 ```html
 <!-- akashi: expect-exception RuntimeException -->
+<!-- akashi: expect-exception-message invalid documentation input -->
 ```
 
 ## Association Rules
@@ -63,6 +65,7 @@ Prose or an unrelated CommonMark block breaks the association. Unknown directive
 exception class names, orphaned directives, and directives targeting non-PHP fences fail during extraction with the
 comment's source location.
 
+The message constraint is optional, but it requires an `expect-exception` directive in the same inline or HTML form.
 Inside PHPDoc, retain the normal leading `*` on each authored line. Akashi removes the docblock decoration before
 applying the same association rules, and metadata never crosses from one PHPDoc comment into another:
 
@@ -108,14 +111,16 @@ available class or interface compatible with `Throwable`. A subtype satisfies an
 ````markdown
 ```php
 // akashi: expect-exception DomainException
+// akashi: expect-exception-message Invalid documentation input
 
 throw new DomainException('Invalid documentation input.');
 ```
 ````
 
-The example fails if it completes normally, throws an incompatible type, or cannot restore guarded process state. Akashi
-preserves the actual throwable as the previous exception on a mismatch. Message and code matching are not yet
-implemented.
+`expect-exception-message` requires a nonempty, case-sensitive substring in the actual exception message. This follows
+PHPUnit's `expectExceptionMessage()` behavior rather than requiring an exact string. The example fails if it completes
+normally, throws an incompatible type, has a mismatched message, or cannot restore guarded process state. Akashi
+preserves the actual throwable as the previous exception on a mismatch. Exception-code matching is not yet implemented.
 
 Expected exceptions currently require in-process execution. Combining `expect-exception` with an authored or configured
 separate-process mode is rejected explicitly because the child-process result does not preserve a trustworthy throwable
@@ -125,5 +130,5 @@ type. When `skip` is also present, skip takes precedence over configuration, tra
 
 Akashi does not currently implement a global ignore directive, compile-only mode, general expected runtime or
 compilation failure, conditional or platform-specific skip, custom skip reasons, hidden support-code syntax,
-expected-exception message or code matching, or expected exceptions in a separate process. These remain roadmap items
-and must not be inferred from Rust or PHPUnit terminology.
+expected-exception code matching, or expected exceptions in a separate process. These remain roadmap items and must not
+be inferred from Rust or PHPUnit terminology.

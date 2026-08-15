@@ -196,6 +196,55 @@ TEXT;
         self::assertSame($before + 1, Assert::getCount());
     }
 
+    public function testAcceptsACaseSensitiveExpectedExceptionMessageSubstring(): void
+    {
+        $result = $this->executeFailure("throw new RuntimeException('Invalid documentation input: unit');");
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult(
+            $result,
+            new ExpectedException(\RuntimeException::class, 'documentation input'),
+        );
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testReportsAnExpectedExceptionMessageMismatchAndPreservesTheThrowable(): void
+    {
+        $result = new ExecutionFailed(
+            $this->transform("throw new RuntimeException('Invalid Documentation Input');"),
+            FailurePhase::Execution,
+            new \RuntimeException('Invalid Documentation Input'),
+            'captured output',
+            [],
+            1,
+            1,
+            'captured warning',
+        );
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException(\RuntimeException::class, 'documentation input'),
+        );
+
+        self::assertStringContainsString(
+            'expected RuntimeException at docs/phpunit-result.md:10, but its message did not contain the expected '
+                . 'substring.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString(
+            "Expected message substring:\n    documentation input",
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString(
+            "Actual message:\n    Invalid Documentation Input",
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString("Captured stdout:\n    captured output", $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    captured warning", $failure->getMessage());
+        self::assertSame($result->cause, $failure->getPrevious());
+    }
+
     public function testAcceptsAnExpectedExceptionWithAZeroDuration(): void
     {
         $prepared = $this->transform("throw new RuntimeException('expected');");

@@ -162,7 +162,7 @@ final class PhpUnitRuntimeTest extends TestCase
 
         PhpUnitRuntime::assertExample($this->example(
             "throw new RuntimeException('documented failure');",
-            expectedException: new ExpectedException(\Exception::class),
+            expectedException: new ExpectedException(\Exception::class, 'documented'),
             expectedExceptionLine: 8,
         ));
 

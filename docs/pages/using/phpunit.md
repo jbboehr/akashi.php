@@ -155,6 +155,7 @@ inside its PHP fence:
 
 ```php
 // akashi: expect-exception DomainException
+// akashi: expect-exception-message Invalid documentation input
 
 throw new DomainException('Invalid documentation input.');
 ```
@@ -162,16 +163,20 @@ throw new DomainException('Invalid documentation input.');
 The visible comment may appear anywhere and applies to the whole example. Prefer placing it immediately before the
 operation expected to throw; Akashi does not attempt to infer control flow or enforce that order. An equivalent
 `<!-- akashi: expect-exception DomainException -->` comment may instead precede the fence when surrounding prose makes
-the failure clear or extracted PHP should not contain Akashi metadata. Do not combine the forms.
+the failure clear or extracted PHP should not contain Akashi metadata. Its optional message constraint uses a second
+`<!-- akashi: expect-exception-message Invalid documentation input -->` comment. Keep the type and message in the same
+inline or HTML form; do not combine the forms.
 
 The type name is interpreted globally, and a subclass satisfies a parent-class or interface expectation. Akashi checks
 the type after runtime setup and execution, so application exception classes may come from the configured bootstrap or
 Composer autoloader. A missing throwable, a different throwable type, or cleanup failure fails the PHPUnit data set with
-the maintained documentation location. The mismatch keeps the actual throwable in its exception chain.
+the maintained documentation location. When present, `expect-exception-message` requires a nonempty, case-sensitive
+substring in the actual message, matching PHPUnit's `expectExceptionMessage()` semantics. The mismatch keeps the actual
+throwable in its exception chain.
 
-This first contract intentionally matches only the throwable type. It does not match messages or codes, and it is not a
-general “any failure is success” mode. Expected exceptions are rejected for separate-process examples until that backend
-can return throwable identity without scraping child-process error text.
+The contract does not yet match exception codes and is not a general “any failure is success” mode. Expected exceptions
+are rejected for separate-process examples until that backend can return throwable identity without scraping
+child-process error text.
 
 ## Skips and Failures
 

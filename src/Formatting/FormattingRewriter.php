@@ -286,6 +286,7 @@ final class FormattingRewriter
                 || $rewritten->id->value !== $original->id->value
                 || $rewritten->code->source !== ($expectedById[$original->id->value] ?? $original->code->source)
                 || $rewritten->expectedException?->className !== $original->expectedException?->className
+                || $rewritten->expectedException?->message !== $original->expectedException?->message
             ) {
                 throw new FormattingRewriteException($message);
             }

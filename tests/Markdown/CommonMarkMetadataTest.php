@@ -133,6 +133,7 @@ MARKDOWN);
     {
         $examples = $this->extract(<<<'MARKDOWN'
 <!-- yumemi-example: expected-failure -->
+<!-- akashi: expect-exception-message invalid documentation input -->
 <!-- akashi: expect-exception \Domain\DocumentException -->
 
 ```php
@@ -142,7 +143,8 @@ MARKDOWN);
 
         self::assertCount(1, $examples);
         self::assertSame('Domain\DocumentException', $examples[0]->expectedException?->className);
-        self::assertSame(2, $examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
+        self::assertSame('invalid documentation input', $examples[0]->expectedException->message);
+        self::assertSame(3, $examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
     }
 
     #[DataProvider('inlineExpectedExceptionProvider')]
@@ -191,12 +193,29 @@ MARKDOWN);
         ];
     }
 
+    public function testAssociatesAnInlineExpectedExceptionMessageSubstring(): void
+    {
+        $examples = $this->extract(<<<'MARKDOWN'
+```php
+// akashi: expect-exception RuntimeException
+// akashi: expect-exception-message invalid documentation input
+throw new RuntimeException('Invalid documentation input: unit');
+```
+MARKDOWN);
+
+        self::assertCount(1, $examples);
+        self::assertSame('RuntimeException', $examples[0]->expectedException?->className);
+        self::assertSame('invalid documentation input', $examples[0]->expectedException->message);
+        self::assertSame(2, $examples[0]->codeOrigin()->metadata->expectedExceptionDirectiveLine);
+    }
+
     public function testDoesNotTreatDirectiveTextInsideAHeredocAsMetadata(): void
     {
         $examples = $this->extract(<<<'MARKDOWN'
 ```php
 $text = <<<'TEXT'
 // akashi: expect-exception RuntimeException
+// akashi: expect-exception-message expected
 TEXT;
 echo $text;
 ```
@@ -361,6 +380,37 @@ MARKDOWN);
             'Duplicate Akashi directive expect-exception at docs/directives.md:2; '
                 . 'first declared at docs/directives.md:1.',
         ];
+        yield 'missing expected exception message' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n"
+                . "<!-- akashi: expect-exception-message -->\n```php\necho 1;\n```\n",
+            'Invalid Akashi expect-exception-message directive at docs/directives.md:2: '
+                . 'Expected exception message must not be empty.',
+        ];
+        yield 'duplicate expected exception message' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n"
+                . "<!-- akashi: expect-exception-message first -->\n"
+                . "<!-- akashi: expect-exception-message second -->\n```php\necho 1;\n```\n",
+            'Duplicate Akashi directive expect-exception-message at docs/directives.md:3; '
+                . 'first declared at docs/directives.md:2.',
+        ];
+        yield 'expected exception message without a type' => [
+            "<!-- akashi: expect-exception-message invalid input -->\n```php\necho 1;\n```\n",
+            'Akashi expect-exception-message directive at docs/directives.md:1 requires an expect-exception directive '
+                . 'for the same PHP fence.',
+        ];
+        yield 'HTML message with inline type' => [
+            "<!-- akashi: expect-exception-message invalid input -->\n```php\n"
+                . "// akashi: expect-exception RuntimeException\nthrow new RuntimeException('invalid input');\n```\n",
+            'Akashi expect-exception-message directive at docs/directives.md:1 must use the same HTML or inline form '
+                . 'as expect-exception at docs/directives.md:3.',
+        ];
+        yield 'inline message with HTML type' => [
+            "<!-- akashi: expect-exception RuntimeException -->\n```php\n"
+                . "// akashi: expect-exception-message invalid input\n"
+                . "throw new RuntimeException('invalid input');\n```\n",
+            'Inline Akashi expect-exception-message directive at docs/directives.md:3 must use the same HTML or inline '
+                . 'form as expect-exception at docs/directives.md:1.',
+        ];
         yield 'missing inline expected exception class' => [
             "```php\n// akashi: expect-exception\necho 1;\n```\n",
             'Invalid inline Akashi expect-exception directive at docs/directives.md:2: '
@@ -376,6 +426,24 @@ MARKDOWN);
                 . "// akashi: expect-exception LogicException\nthrow new RuntimeException();\n```\n",
             'Duplicate inline Akashi directive expect-exception at docs/directives.md:3; '
                 . 'first declared at docs/directives.md:2.',
+        ];
+        yield 'missing inline expected exception message' => [
+            "```php\n// akashi: expect-exception RuntimeException\n"
+                . "// akashi: expect-exception-message\nthrow new RuntimeException();\n```\n",
+            'Invalid inline Akashi expect-exception-message directive at docs/directives.md:3: '
+                . 'Expected exception message must not be empty.',
+        ];
+        yield 'duplicate inline expected exception message' => [
+            "```php\n// akashi: expect-exception RuntimeException\n"
+                . "// akashi: expect-exception-message first\n"
+                . "// akashi: expect-exception-message second\nthrow new RuntimeException();\n```\n",
+            'Duplicate inline Akashi directive expect-exception-message at docs/directives.md:4; '
+                . 'first declared at docs/directives.md:3.',
+        ];
+        yield 'inline expected exception message without a type' => [
+            "```php\n// akashi: expect-exception-message invalid input\nthrow new RuntimeException();\n```\n",
+            'Inline Akashi expect-exception-message directive at docs/directives.md:2 requires an inline '
+                . 'expect-exception directive in the same example.',
         ];
         yield 'unknown inline directive' => [
             "```php\n// akashi: elsewhere\necho 1;\n```\n",
@@ -408,6 +476,11 @@ MARKDOWN);
         yield 'orphaned expected exception' => [
             "<!-- akashi: expect-exception RuntimeException -->\n\nIntervening prose.\n",
             'Akashi directive expect-exception RuntimeException at docs/directives.md:1 is not followed by a '
+                . 'fenced code block.',
+        ];
+        yield 'orphaned expected exception message' => [
+            "<!-- akashi: expect-exception-message invalid input -->\n\nIntervening prose.\n",
+            'Akashi directive expect-exception-message invalid input at docs/directives.md:1 is not followed by a '
                 . 'fenced code block.',
         ];
         yield 'expected exception on non-PHP fence' => [

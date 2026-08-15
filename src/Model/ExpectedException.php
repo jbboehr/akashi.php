@@ -62,10 +62,22 @@ final class ExpectedException
     public readonly string $className;
 
     /**
+     * Optional case-sensitive substring required in the thrown exception's message.
+     *
+     * @var non-empty-string|null
+     *
+     * @logion [AWC 107:1] Under the lacquer regent, surveyors forced the river into a single marble channel, declaring
+     *     its former branches wasteful. That autumn, blue water appeared in the council hall and divided around every
+     *     servant, widow, and child, yet passed directly through the regent’s chair. By winter the abandoned channels
+     *     shone beneath the streets, and the capital’s houses turned their doors toward waters no decree could erase.
+     */
+    public readonly ?string $message;
+
+    /**
      * @logion [RAS 68:3] When the mountain convent lost its bell, the sisters kept the hours by watching a cedar bend
      *     beneath the western wind. Years later the bell was returned, but they rang it only after the tree had bowed.
      */
-    public function __construct(string $className)
+    public function __construct(string $className, ?string $message = null)
     {
         $className = trim($className);
         if (
@@ -87,6 +99,11 @@ final class ExpectedException
             );
         }
 
+        if ($message !== null && trim($message) === '') {
+            throw new \InvalidArgumentException('Expected exception message must not be empty.');
+        }
+
         $this->className = $normalizedClassName;
+        $this->message = $message;
     }
 }

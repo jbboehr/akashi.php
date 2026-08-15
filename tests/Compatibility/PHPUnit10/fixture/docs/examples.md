@@ -15,6 +15,7 @@ throw new RuntimeException('A skipped example must not execute.');
 
 ```php
 // akashi: expect-exception Exception
+// akashi: expect-exception-message expected subtype
 
 throw new RuntimeException('An expected subtype satisfies its parent type.');
 ```

@@ -67,7 +67,7 @@ final class ExampleTest extends TestCase
         $fence = new FenceMetadata('php extra', '`', 3, 0);
         $markerId = new MarkerId('selected-example');
         $directives = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
-        $expectedException = new ExpectedException(\RuntimeException::class);
+        $expectedException = new ExpectedException(\RuntimeException::class, 'documented failure');
         $example = Example::fromInline(
             id: $id,
             label: 'docs/guide.md PHP example 1',

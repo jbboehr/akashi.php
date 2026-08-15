@@ -39,6 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\ProjectPath;
@@ -248,6 +249,7 @@ PHP);
 // akashi-region: basic-conversion
 // akashi: separate-process
 // akashi: expect-exception RuntimeException
+// akashi: expect-exception-message documented
 throw new RuntimeException('documented');
 // akashi-region-end: basic-conversion
 PHP);
@@ -264,15 +266,17 @@ PHP);
         self::assertSame('examples/conversion.php#basic-conversion referenced PHP example', $example->label);
         self::assertSame('examples/conversion.php', $example->codeOrigin()->document->path->value);
         self::assertSame(4, $example->codeOrigin()->firstCodeLine);
-        self::assertSame(6, $example->codeOrigin()->lastCodeLine);
+        self::assertSame(7, $example->codeOrigin()->lastCodeLine);
         self::assertSame(
             "// akashi: separate-process\n"
                 . "// akashi: expect-exception RuntimeException\n"
+                . "// akashi: expect-exception-message documented\n"
                 . "throw new RuntimeException('documented');\n",
             $example->code->source,
         );
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
         self::assertSame('RuntimeException', $example->expectedException?->className);
+        self::assertSame('documented', $example->expectedException->message);
         self::assertSame(4, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(5, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
         self::assertSame('basic-conversion', $example->source->region?->value);
@@ -287,6 +291,29 @@ PHP);
                 $example->source->references,
             ),
         );
+    }
+
+    public function testRejectsAnExpectedExceptionMessageWithoutATypeInACanonicalExample(): void
+    {
+        $this->write(
+            'src/Examples.php',
+            "<?php\n/** @akashi-example examples/example.php */\n",
+        );
+        $this->write('examples/example.php', <<<'PHP'
+<?php
+// akashi: expect-exception-message documented
+throw new RuntimeException('documented');
+PHP);
+
+        $this->expectException(DirectiveException::class);
+        $this->expectExceptionMessage(
+            'Inline Akashi expect-exception-message directive at examples/example.php:2 requires an inline '
+                . 'expect-exception directive in the same example.',
+        );
+
+        DocumentationSource::forProject($this->projectRoot)
+            ->includeFile('src/Examples.php')
+            ->load();
     }
 
     public function testConfiguredReferenceTagsReplaceTheDefaultAndMayBeCombined(): void
