@@ -1,5 +1,8 @@
 <?php
 
+// @akashi-phpstan-example
+//! MissingPhpStanJsonFixtureClass
 $instance = new MissingPhpStanJsonFixtureClass();
 
+//! undefinedPhpStanJsonFixtureVariable
 echo $undefinedPhpStanJsonFixtureVariable;

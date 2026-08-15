@@ -121,16 +121,17 @@ backend selection, preparation, execution, cleanup, and PHPUnit reporting within
 
 ## PHPStan
 
-| Type                                              | Purpose                                                         |
-| ------------------------------------------------- | --------------------------------------------------------------- |
-| `Integration\PHPStan\PhpStanExampleConfiguration` | Canonical project root and relevance predicate.                 |
-| `Integration\PHPStan\VerifiesPhpStanExamples`     | `RuleTestCase` trait that verifies a selected corpus.           |
-| `Integration\PHPStan\ExpectationParser`           | Parse authored `//!` expectations.                              |
-| `Integration\PHPStan\DiagnosticMatcher`           | Match framework-neutral diagnostics to expectations.            |
-| `Integration\PHPStan\PhpStanCommandRunner`        | Execute an explicit, boundary-preserving argument vector.       |
-| `Integration\PHPStan\PhpStanCommandVerifier`      | Run, decode, and verify an external PHPStan command.            |
-| `Integration\PHPStan\PhpStanJsonDecoder`          | Decode PHPStan 1.12/2.x JSON without loading PHPStan.           |
-| `Integration\PHPStan\PhpStanResultVerifier`       | Verify decoded per-file diagnostics without PHPUnit or PHPStan. |
+| Type                                                | Purpose                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------- |
+| `Integration\PHPStan\PhpStanExampleConfiguration`   | Canonical project root and relevance predicate.                 |
+| `Integration\PHPStan\VerifiesPhpStanExamples`       | `RuleTestCase` trait that verifies a selected corpus.           |
+| `Integration\PHPStan\ExpectationParser`             | Parse authored `//!` expectations.                              |
+| `Integration\PHPStan\DiagnosticMatcher`             | Match framework-neutral diagnostics to expectations.            |
+| `Integration\PHPStan\PhpStanCommandRunner`          | Execute an explicit, boundary-preserving argument vector.       |
+| `Integration\PHPStan\PhpStanCommandVerifier`        | Run, decode, and verify an external PHPStan command.            |
+| `Integration\PHPStan\PhpStanExternalFixturePlanner` | Project canonical PHP examples into direct analyzer fixtures.   |
+| `Integration\PHPStan\PhpStanJsonDecoder`            | Decode PHPStan 1.12/2.x JSON without loading PHPStan.           |
+| `Integration\PHPStan\PhpStanResultVerifier`         | Verify decoded per-file diagnostics without PHPUnit or PHPStan. |
 
 `AnalyzerDiagnostic`, `DiagnosticExpectation`, `DiagnosticAssignment`, `DiagnosticMatchResult`,
 `DiagnosticMismatchKind`, `DiagnosticsMatched`, `DiagnosticsMismatched`, `PhpStanJsonResult`, and
@@ -164,6 +165,14 @@ name means verification completed, not that expectations matched. `PhpStanComman
 launching the command and returns one of these variants. It applies the same 60-second default timeout as the runner;
 callers may provide another finite positive duration. Nonzero completed statuses remain evidence rather than an
 automatic failure.
+
+`PhpStanExternalFixturePlan` contains one canonical project root, a sorted nonempty list of project-relative `.php`
+analysis paths, and exactly one platform-native canonical absolute expectation-map entry for each path.
+`PhpStanExternalFixturePlanner` builds this model from examples selected by `PhpStanExampleConfiguration`. The corpus
+and configuration must describe the same canonical project root. The planner accepts referenced whole files and named
+regions, groups aliases of each physical file when the filesystem reports a stable device/inode identity, chooses one
+deterministic analysis path, and deduplicates overlapping expectations. It rejects selected inline examples, missing
+selections, empty expectation markers, or canonical files changed since corpus loading.
 
 ## Exceptions
 

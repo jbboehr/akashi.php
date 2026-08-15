@@ -43,6 +43,7 @@ tar -xf "${archives[0]}" -C "$PACKAGE_DIR"
 cp -R -- "$SHARED_FIXTURE_DIR/." "$CONSUMER_DIR/"
 cp -- "$FIXTURE_DIR/composer.json" "$CONSUMER_DIR/composer.json"
 mkdir -p -- "$CONSUMER_DIR/fixtures"
+cp -- "$FIXTURE_DIR/fixtures/documentation.php.fixture" "$CONSUMER_DIR/fixtures/documentation.php"
 cp -- "$FIXTURE_DIR/fixtures/phpstan-json.php.fixture" "$CONSUMER_DIR/fixtures/phpstan-json.php"
 
 # PHP expands $argv; the shell must preserve it literally.
@@ -118,10 +119,29 @@ fi
 php -r '
 require $argv[1] . "/vendor/autoload.php";
 
-$fixture = realpath($argv[1] . "/fixtures/phpstan-json.php");
 $phpStanScript = realpath($argv[1] . "/vendor/bin/phpstan");
-if (!is_string($fixture) || !is_string($phpStanScript)) {
+if (!is_string($phpStanScript)) {
     throw new RuntimeException("Unable to resolve the PHPStan compatibility fixture.");
+}
+
+$corpus = jbboehr\Akashi\Source\DocumentationSource::forProject($argv[1])
+    ->includeFile("fixtures/documentation.php")
+    ->load();
+$configuration = jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::forTokens(
+    $argv[1],
+    "@akashi-phpstan-example",
+);
+$fixtures = (new jbboehr\Akashi\Integration\PHPStan\PhpStanExternalFixturePlanner())->plan(
+    $corpus,
+    $configuration,
+);
+$fixture = realpath($argv[1] . "/fixtures/phpstan-json.php");
+if (
+    !is_string($fixture)
+    || $fixtures->analysisPaths !== ["fixtures/phpstan-json.php"]
+    || array_keys($fixtures->expectationsByFile) !== [$fixture]
+) {
+    throw new RuntimeException("Unexpected external PHPStan fixture plan.");
 }
 
 $result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verify(
@@ -133,21 +153,10 @@ $result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->ver
         "--no-progress",
         "--error-format=json",
         "--level=max",
-        "fixtures/phpstan-json.php",
+        "--",
+        ...$fixtures->analysisPaths,
     ],
-    [
-        // The matcher requires equal counts: keep this list aligned with the exact PHPStan 1.12 fixture output.
-        $fixture => [
-            new jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation(
-                "MissingPhpStanJsonFixtureClass",
-                3,
-            ),
-            new jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation(
-                "undefinedPhpStanJsonFixtureVariable",
-                5,
-            ),
-        ],
-    ],
+    $fixtures->expectationsByFile,
 );
 if (!$result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified) {
     throw new RuntimeException(sprintf(

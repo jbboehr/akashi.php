@@ -112,15 +112,17 @@ The sequence is:
    non-completion, malformed analyzer output, raw analysis exit status, and completed diagnostic verification distinct.
 5. **Implemented:** run the isolated PHPStan 1.12 consumer fixture's real analyzer command through the composed verifier
    and check its structured result at the package boundary.
-6. Reuse the implemented external canonical PHP examples and named-region authoring for ordinary PHP fixtures while
-   keeping disposable-project orchestration in the consumer.
+6. **Implemented:** project selected external canonical PHP examples and named regions into direct analysis paths and
+   grouped expectation maps while keeping disposable-project orchestration in the consumer.
 
 The existing `DiagnosticMatcher` and `DiagnosticMatchResult` types remain the lower-level matching contract.
 `PhpStanJsonDecoder` and `PhpStanJsonResult` establish the decoder boundary; `PhpStanResultVerifier` and
 `PhpStanVerificationResult` establish the framework-neutral verification boundary. `PhpStanCommandVerifier` and its
-three result variants establish the composed external-command boundary. Akashi will not construct temporary Composer
-projects, add repositories, install dependencies, inspect packages, define another project's compatibility matrix, or
-run package-specific runtime assertions. Those responsibilities remain with the consumer repository.
+three result variants establish the composed external-command boundary. `PhpStanExternalFixturePlanner` bridges the
+canonical example corpus to that boundary without generating source or invoking PHPStan. Akashi will not construct
+temporary Composer projects, add repositories, install dependencies, inspect packages, define another project's
+compatibility matrix, or run package-specific runtime assertions. Those responsibilities remain with the consumer
+repository.
 
 A standalone Akashi test runner, report formats, and broader plugin seams should follow concrete consumer demand. Akashi
 will not add registries or speculative interfaces merely to anticipate them.

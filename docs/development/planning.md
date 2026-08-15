@@ -102,9 +102,9 @@ Akashi work is:
    Its result variants keep non-completion, malformed analyzer output, and completed diagnostic verification distinct.
 5. **Implemented:** the isolated PHPStan 1.12 consumer fixture runs its real analyzer command through the composed
    verifier and checks the structured result before completing the package-boundary compatibility suite.
-6. Reuse the implemented external canonical PHP examples and stable named regions. Ordinary PHP files can now carry
-   diagnostic expectations while remaining directly usable by IDEs, formatters, PHP and PHPStan; this is still not a
-   prerequisite for decoding or command execution.
+6. **Implemented:** `PhpStanExternalFixturePlanner` projects selected external canonical examples and stable named
+   regions into direct analysis paths and grouped expectation maps. Ordinary PHP files carry diagnostic expectations
+   while remaining directly usable by IDEs, formatters, PHP and PHPStan.
 
 The low-level command, decoder, framework-neutral verification, and command-verification outcome types are settled
 pre-1.0 public contracts. Akashi must not become responsible for constructing temporary Composer projects, adding
@@ -112,7 +112,9 @@ Composer repositories, resolving or installing dependencies, creating or inspect
 compatibility matrix, or running package-specific runtime assertions.
 
 The previously passing standalone-decoder consumer gate supplied the migration baseline for step 5. The composed
-verifier replaced that path directly; the fixture did not retain two duplicate parsers in the same invocation.
+verifier replaced that path directly; the fixture did not retain two duplicate parsers in the same invocation. The same
+fixture now builds its analysis paths and expectations from a referenced canonical PHP file, completing step 6 without
+moving disposable-project preparation into Akashi.
 
 This work begins after 0.1 and must not expand the existing Markdown MVP.
 

@@ -106,21 +106,61 @@ PHPStan rule. If an example expects a diagnostic, the consumer-provided rule mus
 
 For end-to-end consumer fixtures, a project can run the installed `phpstan analyse --error-format=json` command and
 verify its output without loading PHPStan or PHPUnit classes. The consumer remains responsible for preparing the
-disposable Composer project and installing the packages under test:
+disposable Composer project and installing the packages under test.
+
+Keep the analyzed fixture as an ordinary PHP file. The selection token opts it into PHPStan verification, while each
+`//!` line records an expected diagnostic immediately before the relevant code:
 
 ```php
 <?php
 
-use jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation;
+// @akashi-phpstan-example
+//! Call to an undefined method Demo::missing()
+(new Demo())->missing();
+```
+
+Reference that canonical file from a PHPDoc location included in the documentation corpus:
+
+```php
+<?php
+
+/**
+ * @akashi-example fixtures/demo.php
+ */
+final class DemoDocumentation
+{
+}
+```
+
+The planner selects the referenced external example, validates that its maintained bytes still match the loaded corpus,
+and produces the analysis paths and exact expectation map consumed by the command verifier:
+
+```php
+<?php
+
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandNotCompleted;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExternalFixturePlanner;
+use jbboehr\Akashi\Source\DocumentationSource;
 
 $canonicalProjectRoot = realpath($projectRoot);
 if ($canonicalProjectRoot === false) {
     throw new RuntimeException('The PHPStan project root is unavailable.');
 }
+
+$corpus = DocumentationSource::forProject($canonicalProjectRoot)
+    ->includeFile('src/DemoDocumentation.php')
+    ->load();
+$fixtures = (new PhpStanExternalFixturePlanner())->plan(
+    $corpus,
+    PhpStanExampleConfiguration::forTokens(
+        $canonicalProjectRoot,
+        '@akashi-phpstan-example',
+    ),
+);
 
 $outcome = (new PhpStanCommandVerifier())->verify(
     projectRoot: $canonicalProjectRoot,
@@ -130,16 +170,10 @@ $outcome = (new PhpStanCommandVerifier())->verify(
         'analyse',
         '--error-format=json',
         '--no-progress',
-        'example.php',
+        '--',
+        ...$fixtures->analysisPaths,
     ],
-    expectationsByFile: [
-        $canonicalProjectRoot . '/example.php' => [
-            new DiagnosticExpectation(
-                'Call to an undefined method',
-                sourceLine: 12, // Authored expectation location for mismatch reporting.
-            ),
-        ],
-    ],
+    expectationsByFile: $fixtures->expectationsByFile,
     timeoutSeconds: 60.0,
 );
 
@@ -157,6 +191,16 @@ if (!$outcome instanceof PhpStanCommandVerified) {
 
 $verification = $outcome->verificationResult;
 ```
+
+The plan analyzes each selected canonical PHP file once. Whole-file and named-region references to the same file are
+grouped, and hard-link aliases are also grouped when the filesystem reports a stable device/inode identity. Duplicate
+expectations from overlapping references are removed. Selection is intentionally limited to referenced external
+examples: inline Markdown and PHPDoc examples still use the generated-source `RuleTestCase` path. Because PHPStan
+analyzes the complete physical file, a diagnostic outside a selected named region is unexpected and causes a mismatch.
+Callers that already own an expectation map may use `PhpStanCommandVerifier` directly without the planner. A project
+using both verification paths should give them distinct selection tokens, or use a custom `forProject()` predicate that
+selects only referenced sources. Keep the `--` argument before the planned paths so a valid project filename beginning
+with `-` cannot be parsed as a PHPStan option.
 
 The three result variants distinguish a command that did not complete, completed command output that could not be
 decoded, and a completed verification. `PhpStanCommandVerified` means that verification ran; inspect
@@ -182,11 +226,11 @@ exit status, standard streams, elapsed time, and any applicable timeout, signal,
 nonzero exit status is still a completed invocation because PHPStan may return diagnostics with that status; decoding
 and later verification decide what the output means.
 
-The runner canonicalizes the project root and executable with `realpath()` and inherits the caller's environment. Use
-that same canonical project root when constructing exact expectation paths, as the example does. The runner neither
-installs PHPStan nor chooses analysis paths or arguments, and it does not decode output automatically. Malformed
-arguments and timeout values are programmer errors; unavailable paths, local instrumentation failures, and process
-failures surfaced as exceptions are returned as typed infrastructure evidence.
+The runner canonicalizes the project root and executable with `realpath()` and inherits the caller's environment. The
+fixture planner derives exact expectation paths from that same canonical root. The runner neither installs PHPStan nor
+chooses analysis paths or arguments, and it does not decode output automatically. Malformed arguments and timeout values
+are programmer errors; unavailable paths, local instrumentation failures, and process failures surfaced as exceptions
+are returned as typed infrastructure evidence.
 
 Symfony Process may retry a failed direct POSIX launch through an escaped shell command line. Because it does not expose
 whether that fallback occurred, a resulting status such as `126` or `127` remains raw `Completed` evidence rather than

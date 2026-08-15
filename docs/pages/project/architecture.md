@@ -190,7 +190,10 @@ Its typed result preserves normal exit status and streams without treating a non
 failure, while timeout, signal, path/setup failure, local instrumentation failure, and process failures surfaced as
 exceptions remain distinguishable. `PhpStanCommandVerifier` validates expectations before launch and composes those
 three stages into typed non-completion, output-rejection, or completed-verification outcomes. It does not treat a
-nonzero analysis status as an automatic verification failure.
+nonzero analysis status as an automatic verification failure. `PhpStanExternalFixturePlanner` selects only referenced
+canonical PHP examples, groups whole-file and named-region expectations by physical identity where the filesystem
+reports one, validates that their loaded bytes are still current, and returns direct project-relative analysis paths
+with platform-native canonical absolute expectation keys.
 
 The extraction CLI is intentionally smaller. It loads one Markdown or PHP file with an explicit marker name, selects one
 author-assigned ID, and writes the original code with its documented final-newline contract. It does not enter either
@@ -265,7 +268,8 @@ named regions, synchronized-presentation inspection and in-memory rewriting thro
 optional PHP-CS-Fixer checks and validated in-memory formatting rewrites for inline examples, markers, token-aware
 runtime directives, both execution backends, typed in-process exception expectations, PHPUnit, PHPStan `RuleTestCase`,
 typed PHPStan command execution and composed verification, JSON decoding and standalone result verification, and marked
-extraction. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone Akashi
+extraction. External canonical PHP examples can also be projected into direct PHPStan command fixtures without generated
+source. Hidden support code, documentation-renderer inclusion, generalized verifier plugins, and a standalone Akashi
 test runner do not exist yet.
 
 Those directions are recorded in the [Roadmap](roadmap.md). No placeholder interfaces or registries are created solely

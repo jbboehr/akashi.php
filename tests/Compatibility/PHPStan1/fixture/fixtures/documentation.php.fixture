@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @akashi-example fixtures/phpstan-json.php
+ */
+final class PhpStanJsonFixtureDocumentation
+{
+}
