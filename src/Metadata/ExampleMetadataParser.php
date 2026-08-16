@@ -119,7 +119,7 @@ final class ExampleMetadataParser
                 );
             }
 
-            $value = $hasValue ? $this->parseValue($document, $matches[2], $sourceLine) : null;
+            $value = $hasValue ? $this->parseValue($document, $property, $matches[2], $sourceLine) : null;
             $clauses[] = new ExampleMetadataClause($property, $value, $sourceLine);
         }
 
@@ -183,6 +183,7 @@ final class ExampleMetadataParser
         $expectedType = $byProperty[ExampleMetadataProperty::ExpectException->value] ?? null;
         $expectedMessage = $byProperty[ExampleMetadataProperty::ExpectExceptionMessage->value] ?? null;
         $expectedCode = $byProperty[ExampleMetadataProperty::ExpectExceptionCode->value] ?? null;
+        $expectedOutput = $byProperty[ExampleMetadataProperty::ExpectOutput->value] ?? null;
         if ($expectedType === null && ($expectedMessage !== null || $expectedCode !== null)) {
             $constraint = $expectedMessage ?? $expectedCode;
 
@@ -258,6 +259,7 @@ final class ExampleMetadataParser
                 expectedExceptionDirectiveLine: $expectedType?->sourceLine,
                 compileOnlyDirectiveLine: $byProperty[ExampleMetadataProperty::CompileOnly->value]->sourceLine ?? null,
             ),
+            $expectedOutput?->value,
         );
     }
 
@@ -363,7 +365,7 @@ final class ExampleMetadataParser
     /**
      * @param positive-int $sourceLine
      *
-     * @return non-empty-string
+     * @return string
      *
      * @logion [AWC 111:19] The court of the amber regent trained white falcons to circle only above houses loyal to the
      * crown. For six summers the birds marked favor, and families moved beneath their flight as though heaven had
@@ -371,8 +373,12 @@ final class ExampleMetadataParser
      * from the court. The regent sent soldiers; the birds rose together, carrying the royal color out to sea until no
      * banner could imitate it.
      */
-    private function parseValue(Document $document, string $value, int $sourceLine): string
-    {
+    private function parseValue(
+        Document $document,
+        ExampleMetadataProperty $property,
+        string $value,
+        int $sourceLine,
+    ): string {
         $value = trim($value, " \t");
         if ($value === '') {
             throw $this->syntaxError($document, $sourceLine, 'Metadata values must not be empty.');
@@ -387,10 +393,9 @@ final class ExampleMetadataParser
             if (!is_string($decoded)) {
                 throw $this->syntaxError($document, $sourceLine, 'Quoted metadata value must be a string.');
             }
-            if ($decoded === '') {
+            if ($decoded === '' && $property !== ExampleMetadataProperty::ExpectOutput) {
                 throw $this->syntaxError($document, $sourceLine, 'Metadata values must not be empty.');
             }
-
             return $decoded;
         }
 

@@ -180,6 +180,24 @@ available for type and message matching but is reported as a mismatch when an in
 The contract is not a general “any failure is success” mode. In particular, a child exit, signal, timeout, startup
 failure, or malformed exception report remains a process or infrastructure failure rather than an expected exception.
 
+## Exact Output
+
+Use `expect-output` when stdout itself is part of the example's contract:
+
+<!-- akashi: example=phpunit-exact-output -->
+
+```php
+// akashi: expect-output="Hello, Akashi!\n"
+
+echo "Hello, Akashi!\n";
+```
+
+The quoted value uses JSON string escaping. Akashi compares the captured stdout bytes exactly: it does not trim output,
+normalize line endings, or perform pattern matching. `expect-output=""` explicitly requires no stdout. Expected output
+also works with `expect-exception`, covering bytes emitted before the matching throwable. Akashi checks execution and
+exception semantics first so an output mismatch does not hide a more fundamental runtime failure. Stderr continues to
+appear in failure diagnostics but cannot be asserted in this release.
+
 ## Skips and Failures
 
 An authored `<!-- akashi: skip -->` directive remains a named data set, but PHPUnit reports it as skipped before Akashi
@@ -188,9 +206,9 @@ configures, transforms, bootstraps, or executes the example. It does not remove 
 An authored `compile-only` directive also remains a named data set. Akashi validates its PHP syntax against the running
 host version and records one assertion without applying runtime transforms, loading a bootstrap, or executing the code.
 This is useful for valid illustrative fragments that should remain available to PHPStan and extraction. It cannot be
-combined with `separate-process` or an expected exception; `skip` takes precedence when both dispositions are present.
-Compile-only governs this PHPUnit path only. PHPStan verification requires selected files and executes their top-level
-code, so exclude unsafe compile-only fragments from the PHPStan subcorpus.
+combined with `separate-process`, an expected exception, or expected output; `skip` takes precedence when both
+dispositions are present. Compile-only governs this PHPUnit path only. PHPStan verification requires selected files and
+executes their top-level code, so exclude unsafe compile-only fragments from the PHPStan subcorpus.
 
 Successful examples record one completion assertion even when they contain no native assertion. Failures report the
 example ID, label, maintained documentation location when available, failure phase, cause, captured stdout and stderr,

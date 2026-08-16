@@ -91,8 +91,9 @@ formatter. The checker and pure rewriter remain independent of the CLI persisten
 Runtime skip is implemented through PHPUnit's skipped-test reporting. Compile-only examples receive source-aware syntax
 validation and one PHPUnit assertion without bootstrap loading, transformation, or execution. A typed PHPUnit-familiar
 exception-class expectation, optional case-sensitive message substring, and optional exact integer code are implemented
-for both execution backends. Deferred extensions include broader expected-failure semantics, global ignore and
-conditional skip policies with reasons, expected output, platform conditions, configurable subprocess timeouts,
+for both execution backends. Exact expected stdout is also implemented for successful and expected-exception examples,
+without trimming or line-ending normalization. Deferred extensions include broader expected-failure semantics, expected
+stderr, global ignore and conditional skip policies with reasons, platform conditions, configurable subprocess timeouts,
 alternate PHP binaries and INI profiles, and controlled child environments.
 
 PHPStan's identifier-oriented expectation syntax now coexists with legacy `//!` text expectations. Framework-neutral

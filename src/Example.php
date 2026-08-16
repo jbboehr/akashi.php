@@ -126,6 +126,16 @@ final class Example
     public readonly ?ExpectedException $expectedException;
 
     /**
+     * The exact stdout bytes required from runtime execution, or null when output is not asserted.
+     *
+     * @logion [AWC 112:2] The glassmakers of the eastern harbor fashioned clear bowls for a feast of peace, yet every
+     *     bowl showed a different scar upon the hands that lifted it. The guests exchanged vessels until dawn, but the
+     *     scars followed their rightful hands. Thereafter the feast continued without disguise, and even joy kept the
+     *     marks by which it had been purchased.
+     */
+    public readonly ?string $expectedOutput;
+
+    /**
      * @param int $ordinal
      *
      * @logion [AWC 21:4] A mapmaker left one island blank because no sailor agreed upon its shape. The king accused him
@@ -143,6 +153,7 @@ final class Example
         ?MarkerId $explicitMarkerId = null,
         DirectiveSet $directives = new DirectiveSet(),
         ?ExpectedException $expectedException = null,
+        ?string $expectedOutput = null,
     ) {
         if (trim($label) === '') {
             throw new \InvalidArgumentException('Example label must not be empty.');
@@ -157,6 +168,7 @@ final class Example
         $this->explicitMarkerId = $explicitMarkerId;
         $this->directives = $directives;
         $this->expectedException = $expectedException;
+        $this->expectedOutput = $expectedOutput;
     }
 
     /**
@@ -180,6 +192,7 @@ final class Example
         ?MarkerId $explicitMarkerId = null,
         DirectiveSet $directives = new DirectiveSet(),
         ?ExpectedException $expectedException = null,
+        ?string $expectedOutput = null,
     ): self {
         return new self(
             $id,
@@ -191,6 +204,7 @@ final class Example
             $explicitMarkerId,
             $directives,
             $expectedException,
+            $expectedOutput,
         );
     }
 

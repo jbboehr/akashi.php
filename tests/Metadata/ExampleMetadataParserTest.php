@@ -55,7 +55,8 @@ final class ExampleMetadataParserTest extends TestCase
         $clauses = $parser->parse(
             $document,
             'example=conversion-basic, separate-process, expect-exception=RuntimeException, '
-                . 'expect-exception-message="invalid, \\"quoted\\" input", expect-exception-code=73',
+                . 'expect-exception-message="invalid, \\"quoted\\" input", expect-exception-code=73, '
+                . 'expect-output="Hello, Akashi!\\n"',
             4,
         );
         $metadata = $parser->resolve($document, $clauses);
@@ -65,7 +66,20 @@ final class ExampleMetadataParserTest extends TestCase
         self::assertSame('RuntimeException', $metadata->expectedException?->className);
         self::assertSame('invalid, "quoted" input', $metadata->expectedException->message);
         self::assertSame(73, $metadata->expectedException->code);
+        self::assertSame("Hello, Akashi!\n", $metadata->expectedOutput);
         self::assertSame(4, $metadata->location->markerLine);
+    }
+
+    public function testAcceptsAnExplicitlyEmptyExpectedOutput(): void
+    {
+        $document = new Document('docs/example.md', "```php\necho 1;\n```\n");
+        $parser = new ExampleMetadataParser();
+        $metadata = $parser->resolve(
+            $document,
+            $parser->parse($document, 'expect-output=""', 4),
+        );
+
+        self::assertSame('', $metadata->expectedOutput);
     }
 
     public function testPreservesLegacyMessagePayloadsContainingCanonicalPunctuation(): void

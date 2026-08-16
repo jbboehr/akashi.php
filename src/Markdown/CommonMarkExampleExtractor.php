@@ -548,6 +548,7 @@ final class CommonMarkExampleExtractor
             explicitMarkerId: $metadata->markerId,
             directives: $metadata->directives,
             expectedException: $metadata->expectedException,
+            expectedOutput: $metadata->expectedOutput,
         );
     }
 

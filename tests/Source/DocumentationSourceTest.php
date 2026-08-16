@@ -276,6 +276,8 @@ PHP);
 // akashi: separate-process, expect-exception=RuntimeException
 // akashi: expect-exception-message="documented"
 // akashi: expect-exception-code=73
+// akashi: expect-output="before\n"
+echo "before\n";
 throw new RuntimeException('documented', 73);
 // akashi-region-end: basic-conversion
 PHP);
@@ -292,12 +294,14 @@ PHP);
         self::assertSame('examples/conversion.php#basic-conversion referenced PHP example', $example->label);
         self::assertSame('examples/conversion.php', $example->codeOrigin()->document->path->value);
         self::assertSame(4, $example->codeOrigin()->firstCodeLine);
-        self::assertSame(8, $example->codeOrigin()->lastCodeLine);
+        self::assertSame(10, $example->codeOrigin()->lastCodeLine);
         self::assertSame(
             "// akashi: example=conversion-basic\n"
                 . "// akashi: separate-process, expect-exception=RuntimeException\n"
                 . "// akashi: expect-exception-message=\"documented\"\n"
                 . "// akashi: expect-exception-code=73\n"
+                . "// akashi: expect-output=\"before\\n\"\n"
+                . "echo \"before\\n\";\n"
                 . "throw new RuntimeException('documented', 73);\n",
             $example->code->source,
         );
@@ -306,6 +310,7 @@ PHP);
         self::assertSame('RuntimeException', $example->expectedException?->className);
         self::assertSame('documented', $example->expectedException->message);
         self::assertSame(73, $example->expectedException->code);
+        self::assertSame("before\n", $example->expectedOutput);
         self::assertSame(4, $example->codeOrigin()->metadata->markerLine);
         self::assertSame(5, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(5, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);

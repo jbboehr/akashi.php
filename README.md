@@ -73,6 +73,7 @@ compatible release on later PHP versions.
 - fast in-process execution by default
 - opt-in child-process execution for examples that need process isolation
 - unconditional documentation assertions
+- expected throwable and exact stdout contracts
 - source-aware parse, execution, assertion, and PHPStan failures
 - one reusable example corpus for runtime and static-analysis verification
 - stable `example` identities and legacy-marker compatibility for consumer-fixture extraction

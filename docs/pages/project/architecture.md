@@ -61,10 +61,10 @@ The CommonMark adapter selects PHP fenced code blocks and associates canonical `
 legacy marker dialect using document structure rather than regular expressions over the whole file. One internal typed
 grammar parser merges comma-separated flags and keyed properties from adjacent HTML comments and token-aware PHP line
 comments. It recognizes stable `example` identity, `skip`, `compile-only`, `separate-process`, typed `expect-exception`,
-and optional message and code constraints anywhere in fenced or referenced canonical code. It rejects duplicate or
-conflicting declarations and prevents matching text in strings and heredocs. Original source text and exact line and
-byte spans remain intact; the public model continues to expose separate typed identity, directives, and exception
-contracts rather than a generic metadata map.
+optional message and code constraints, and exact expected stdout anywhere in fenced or referenced canonical code. It
+rejects duplicate or conflicting declarations and prevents matching text in strings and heredocs. Original source text
+and exact line and byte spans remain intact; the public model continues to expose separate typed identity, directives,
+and runtime expectations rather than a generic metadata map.
 
 The PHPDoc adapter locates every `T_DOC_COMMENT` with PHP's tokenizer, projects each comment's interior lines into
 CommonMark by removing conventional docblock decoration, and extracts each comment independently. It then restores the
@@ -176,12 +176,13 @@ compose a project-owned PHPUnit test class without an extension or mutable regis
 arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
 facade: it applies skip and compile-only disposition before mode precedence. Compile-only parses against the host PHP
 version and records one assertion without transformation, bootstrap loading, or execution. Ordinary examples are
-prepared and executed through the selected backend, then their result and optional expected throwable contract go to
-`PhpUnitResultAsserter`. A compatible authored exception is success only when execution has no cleanup failure, its
-message contains the optional case-sensitive substring, and its integer code equals the optional code constraint. Normal
-completion and type, message, or code mismatches fail at the maintained directive or exception location. Child exits,
-signals, timeouts, and infrastructure failures remain failures. The adapter and facade remain public for projects that
-need a custom PHPUnit method.
+prepared and executed through the selected backend, then their result, optional expected throwable contract, and
+optional exact stdout expectation go to `PhpUnitResultAsserter`. A compatible authored exception is success only when
+execution has no cleanup failure, its message contains the optional case-sensitive substring, and its integer code
+equals the optional code constraint. Normal completion and type, message, code, or stdout mismatches fail with
+maintained source context. Output comparison occurs only after the execution or exception contract succeeds. Child
+exits, signals, timeouts, and infrastructure failures remain failures. The adapter and facade remain public for projects
+that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses identifier-oriented expectations associated with

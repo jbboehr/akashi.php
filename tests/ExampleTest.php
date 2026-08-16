@@ -80,6 +80,7 @@ final class ExampleTest extends TestCase
             explicitMarkerId: $markerId,
             directives: $directives,
             expectedException: $expectedException,
+            expectedOutput: "documented output\n",
         );
 
         self::assertSame($id, $example->id);
@@ -96,6 +97,7 @@ final class ExampleTest extends TestCase
         self::assertSame($markerId, $example->explicitMarkerId);
         self::assertSame($directives, $example->directives);
         self::assertSame($expectedException, $example->expectedException);
+        self::assertSame("documented output\n", $example->expectedOutput);
         self::assertTrue($example->directives->contains(Directive::Skip));
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
     }
@@ -109,6 +111,7 @@ final class ExampleTest extends TestCase
         self::assertFalse($example->directives->contains(Directive::SeparateProcess));
         self::assertFalse($example->directives->contains(Directive::CompileOnly));
         self::assertNull($example->expectedException);
+        self::assertNull($example->expectedOutput);
     }
 
     #[DataProvider('invalidExampleProvider')]

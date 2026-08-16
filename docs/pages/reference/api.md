@@ -19,14 +19,14 @@ autoloadability alone does not create an extension point.
 
 ## Source and Corpus
 
-| Type                                          | Purpose                                                                                    |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                                  |
-| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.                    |
-| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned `example` identity.                       |
-| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.                         |
-| `jbboehr\Akashi\Example`                      | Canonical example with a typed source variant, code, directives, and optional expectation. |
-| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                          |
+| Type                                          | Purpose                                                                          |
+| --------------------------------------------- | -------------------------------------------------------------------------------- |
+| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                        |
+| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.          |
+| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned `example` identity.             |
+| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.               |
+| `jbboehr\Akashi\Example`                      | Canonical example with typed source, code, directives, and runtime expectations. |
+| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                |
 
 `DocumentationSource` is the ordinary entry point for mixed corpora; `MarkdownSource` remains the explicit Markdown-only
 entry point and exposes `loadDocuments()` for consumers that need the selected documents themselves.
@@ -41,9 +41,10 @@ matching `CodeOrigin` from one fenced `SourceLocation`.
 Path, identifier, language, fence, directive, and source-coordinate values under `jbboehr\Akashi\Model` are also public
 because the canonical model and configuration objects expose them as typed state. That includes
 `Model\ExpectedException`, which carries a normalized authored throwable class name, optional nonempty case-sensitive
-message substring, and optional integer code without requiring the class to exist before runtime setup. Their
-constructors enforce the same invariants used by source discovery; they are data contracts, not subclassing or
-service-replacement seams.
+message substring, and optional integer code without requiring the class to exist before runtime setup.
+`Example::$expectedOutput` carries an optional exact stdout byte string; `null` means no output contract, while an empty
+string explicitly requires silence. Public model constructors enforce the same invariants used by source discovery;
+these are data contracts, not subclassing or service-replacement seams.
 
 The supporting value types are grouped by what they preserve:
 

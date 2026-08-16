@@ -170,6 +170,54 @@ final class PhpUnitRuntimeTest extends TestCase
         self::assertSame($before + 1, Assert::getCount());
     }
 
+    public function testAcceptsExactExpectedOutputThroughInProcessExecution(): void
+    {
+        $before = Assert::getCount();
+
+        PhpUnitRuntime::assertExample($this->example(
+            "echo \"Hello, Akashi!\\n\";",
+            expectedOutput: "Hello, Akashi!\n",
+        ));
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testAcceptsExactExpectedOutputThroughSeparateProcessExecution(): void
+    {
+        $before = Assert::getCount();
+
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                "echo \"Hello from the child!\\n\";",
+                directives: new DirectiveSet(Directive::SeparateProcess),
+                directiveLine: 8,
+                expectedOutput: "Hello from the child!\n",
+            ),
+            RuntimeConfiguration::forProject($this->workspace),
+        );
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testAcceptsOutputBeforeASeparateProcessExpectedException(): void
+    {
+        $before = Assert::getCount();
+
+        PhpUnitRuntime::assertExample(
+            $this->example(
+                "echo \"before failure\\n\";\nthrow new RuntimeException('documented');",
+                directives: new DirectiveSet(Directive::SeparateProcess),
+                directiveLine: 8,
+                expectedException: new ExpectedException(\RuntimeException::class, 'documented'),
+                expectedExceptionLine: 10,
+                expectedOutput: "before failure\n",
+            ),
+            RuntimeConfiguration::forProject($this->workspace),
+        );
+
+        self::assertSame($before + 2, Assert::getCount());
+    }
+
     #[DataProvider('separateProcessExpectationProvider')]
     public function testAcceptsExpectedExceptionsForSeparateProcessExecution(bool $authoredDirective): void
     {
@@ -323,6 +371,21 @@ PHP,
             expectedException: $expectedException,
             expectedExceptionLine: $expectedException === null ? null : 10,
             compileOnlyDirectiveLine: 8,
+        ));
+    }
+
+    public function testCompileOnlyRejectsExpectedOutput(): void
+    {
+        $this->expectException(UnsupportedExampleException::class);
+        $this->expectExceptionMessage(
+            'Example example-runtime-01 at docs/runtime.md:8 cannot combine compile-only with expected output.',
+        );
+
+        PhpUnitRuntime::assertExample($this->example(
+            "echo 'not executed';",
+            directives: new DirectiveSet(Directive::CompileOnly),
+            compileOnlyDirectiveLine: 8,
+            expectedOutput: 'not executed',
         ));
     }
 
@@ -521,6 +584,7 @@ PHP,
         ?ExpectedException $expectedException = null,
         ?int $expectedExceptionLine = null,
         ?int $compileOnlyDirectiveLine = null,
+        ?string $expectedOutput = null,
     ): Example {
         $lineBreaks = preg_match_all('/\r\n|\r|\n/', $source);
         if ($lineBreaks === false) {
@@ -559,6 +623,7 @@ PHP,
             ordinal: 1,
             directives: $directives,
             expectedException: $expectedException,
+            expectedOutput: $expectedOutput,
         );
     }
 }

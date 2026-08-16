@@ -65,19 +65,18 @@ final class PhpUnitResultAsserter
      * @logion [OSD 60:9] Count the completed journey once even when no bell sounded upon the road; but if the traveler
      *     fell, raise the whole ledger before the court and conceal neither first wound nor broken gate.
      */
-    public function assertResult(ExecutionResult $result, ?ExpectedException $expectedException = null): void
-    {
+    public function assertResult(
+        ExecutionResult $result,
+        ?ExpectedException $expectedException = null,
+        ?string $expectedOutput = null,
+    ): void {
         if (!$result instanceof ExecutionSucceeded && !$result instanceof ExecutionFailed) {
             throw new \LogicException(sprintf('Unsupported execution result variant %s.', $result::class));
         }
 
         if ($expectedException !== null) {
             self::assertExpectedException($result, $expectedException);
-
-            return;
-        }
-
-        if ($result instanceof ExecutionSucceeded) {
+        } elseif ($result instanceof ExecutionSucceeded && $expectedOutput === null) {
             // GreaterThanOrEqual counts as two PHPUnit constraints; this records exactly one completion assertion.
             Assert::assertGreaterThan(
                 -1,
@@ -86,13 +85,32 @@ final class PhpUnitResultAsserter
             );
 
             return;
+        } elseif ($result instanceof ExecutionFailed) {
+            throw new ExpectationFailedException(
+                self::failureMessage($result),
+                null,
+                self::previousException($result->cause),
+            );
         }
 
-        throw new ExpectationFailedException(
-            self::failureMessage($result),
-            null,
-            self::previousException($result->cause),
-        );
+        if ($expectedOutput !== null) {
+            $example = $result->preparedExample->example;
+            $message = sprintf(
+                'Documentation example %s expected exact stdout at %s:%d.',
+                $example->id->value,
+                $example->codeOrigin()->document->path->value,
+                $example->codeOrigin()->firstCodeLine,
+            );
+            if ($result->stderr !== '') {
+                $message .= "\nCaptured stderr:\n" . self::indent($result->stderr);
+            }
+
+            Assert::assertSame(
+                $expectedOutput,
+                $result->stdout,
+                $message,
+            );
+        }
     }
 
     /**

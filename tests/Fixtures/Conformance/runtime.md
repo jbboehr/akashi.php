@@ -22,7 +22,7 @@ function conformance_declaration(): string
 assert(conformance_declaration() === 'second');
 ```
 
-<!-- akashi: separate-process -->
+<!-- akashi: separate-process, expect-output="child conformance\n" -->
 
 ```php
 <?php
@@ -30,4 +30,6 @@ assert(conformance_declaration() === 'second');
 namespace Akashi\ConformanceFixture;
 
 assert(__NAMESPACE__ === 'Akashi\\ConformanceFixture');
+
+echo "child conformance\n";
 ```

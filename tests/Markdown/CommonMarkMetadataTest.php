@@ -56,10 +56,11 @@ final class CommonMarkMetadataTest extends TestCase
     public function testMergesCanonicalHtmlAndInlineMetadataIntoOneTypedContract(): void
     {
         $document = new Document('docs/metadata.md', <<<'MARKDOWN'
-<!-- akashi: example = canonical-example, separate-process, expect-exception = RuntimeException -->
+<!-- akashi: example = canonical-example, separate-process, expect-exception = RuntimeException, expect-output = "before failure\n" -->
 
 ```php
 // akashi: expect-exception-message = "invalid, documented input", expect-exception-code = 73
+echo "before failure\n";
 throw new RuntimeException('invalid, documented input', 73);
 ```
 MARKDOWN);
@@ -70,6 +71,7 @@ MARKDOWN);
         self::assertSame('RuntimeException', $example->expectedException?->className);
         self::assertSame('invalid, documented input', $example->expectedException->message);
         self::assertSame(73, $example->expectedException->code);
+        self::assertSame("before failure\n", $example->expectedOutput);
         self::assertSame(1, $example->codeOrigin()->metadata->markerLine);
         self::assertSame(1, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
     }
@@ -504,6 +506,12 @@ MARKDOWN);
             'Akashi metadata property expect-exception-code at docs/directives.md:1 requires expect-exception '
                 . 'for the same example.',
         ];
+        yield 'duplicate expected output' => [
+            "<!-- akashi: expect-output=first -->\n"
+                . "<!-- akashi: expect-output=second -->\n```php\necho 'first';\n```\n",
+            'Duplicate Akashi metadata property expect-output at docs/directives.md:2; '
+                . 'first declared at docs/directives.md:1.',
+        ];
         yield 'missing inline expected exception class' => [
             "```php\n// akashi: expect-exception\necho 1;\n```\n",
             'Invalid Akashi expect-exception metadata at docs/directives.md:2: '
@@ -602,6 +610,10 @@ MARKDOWN);
             "<!-- akashi: expect-exception-code 73 -->\n\nIntervening prose.\n",
             'Akashi metadata expect-exception-code at docs/directives.md:1 is not followed by a fenced code block.',
         ];
+        yield 'orphaned expected output' => [
+            "<!-- akashi: expect-output=first -->\n\nIntervening prose.\n",
+            'Akashi metadata expect-output at docs/directives.md:1 is not followed by a fenced code block.',
+        ];
         yield 'expected exception on non-PHP fence' => [
             "<!-- akashi: expect-exception RuntimeException -->\n```shell\necho 1\n```\n",
             'Akashi metadata expect-exception at docs/directives.md:1 is followed by a shell fence, not a PHP fence.',
@@ -610,6 +622,10 @@ MARKDOWN);
             "<!-- akashi: expect-exception-code 73 -->\n```shell\necho 1\n```\n",
             'Akashi metadata expect-exception-code at docs/directives.md:1 is followed by a shell fence, not a PHP '
                 . 'fence.',
+        ];
+        yield 'expected output on non-PHP fence' => [
+            "<!-- akashi: expect-output=first -->\n```shell\necho first\n```\n",
+            'Akashi metadata expect-output at docs/directives.md:1 is followed by a shell fence, not a PHP fence.',
         ];
     }
 

@@ -838,9 +838,9 @@ interfaces for them unless an already-required abstraction naturally supports th
 
 * hidden setup or support lines, with syntax explicitly undecided;
 * hidden assertion expressions;
-* expected stdout;
 * expected stderr;
 * inline expected values;
+* richer output contracts beyond the implemented exact stdout comparison;
 * richer expected-exception contracts beyond the implemented throwable type, message substring, and exact integer code
   constraints available in both execution backends;
 * panic-style or expected-failure runtime tests;

@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   selecting an execution backend, applying runtime transforms, loading a bootstrap, or executing authored code.
 - Verify expected exception types, message substrings, and integer codes in both execution backends without treating
   child exits, signals, timeouts, or infrastructure failures as authored exceptions.
+- Compare exact expected stdout in both execution backends after successful execution or a satisfied expected-exception
+  contract, including explicit empty-output expectations and source-labelled PHPUnit string diffs.
 - Inspect strictly delimited synchronized Markdown or PHPDoc presentations against canonical whole PHP files or named
   regions, and render corrected documents in memory without changing their surrounding prose or formatting.
 - Check synchronized presentations from explicit Markdown or PHP files with `akashi sync --check`, source-labelled

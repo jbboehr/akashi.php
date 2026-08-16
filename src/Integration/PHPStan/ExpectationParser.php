@@ -99,6 +99,7 @@ final class ExpectationParser
                 explicitMarkerId: $example->explicitMarkerId,
                 directives: $example->directives,
                 expectedException: $example->expectedException,
+                expectedOutput: $example->expectedOutput,
             );
         }
 

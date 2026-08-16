@@ -575,6 +575,28 @@ MARKDOWN);
         );
     }
 
+    public function testRejectsFormatterOutputThatChangesExpectedOutput(): void
+    {
+        $document = new Document('docs/example.md', <<<'MARKDOWN'
+```php
+// akashi: expect-output="original\n"
+echo "original\n";
+```
+MARKDOWN);
+        $example = (new CommonMarkExampleExtractor())->extract($document)[0];
+
+        $this->expectException(FormattingRewriteException::class);
+        $this->expectExceptionMessage('cannot be rendered safely');
+
+        (new FormattingRewriter())->rewrite(
+            $document,
+            new FormattingMismatch(
+                $example,
+                new ExampleCode("// akashi: expect-output=\"changed\\n\"\necho \"original\\n\";\n"),
+            ),
+        );
+    }
+
     public function testAttributesNonUtf8FormatterOutputToTheInlineExample(): void
     {
         $document = new Document('docs/example.md', "```php\n\$value=1;\n```\n");

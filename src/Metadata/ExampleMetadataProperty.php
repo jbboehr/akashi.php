@@ -81,6 +81,12 @@ enum ExampleMetadataProperty: string
     case ExpectExceptionMessage = 'expect-exception-message';
 
     /**
+     * @logion [AWC 112:1] The salt pilgrims abandoned their gilded sandals at the desert’s edge. By dusk the sand bore
+     * luminous footprints ahead of them, and none thereafter claimed to lead.
+     */
+    case ExpectOutput = 'expect-output';
+
+    /**
      * @logion [AWC 111:7] The senate raised six silver columns for the victories of the new republic and carved no
      * names upon them. One autumn, black letters spread through the marble, recording not battles but the prices paid
      * for bread during each triumph. The columns remained upright, yet every public anthem thereafter caused one

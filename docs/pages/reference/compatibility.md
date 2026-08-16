@@ -77,10 +77,11 @@ does not select Parser 4 for PHPStan 2's process.
   `separate-process`, typed `expect-exception`, and optional message and integer-code constraints. Adjacent HTML and
   inline properties merge, but every property may occur at most once. Legacy one-property directives and one explicitly
   configured marker-comment dialect remain accepted for compatibility.
+- Exact `expect-output` metadata compares captured stdout bytes after successful execution or a satisfied expected
+  exception contract. Akashi does not normalize line endings, trim whitespace, or match patterns. Expected stderr is not
+  implemented.
 - Global ignore, expected compilation failure, general expected runtime failure, platform conditions, custom skip
   reasons, and hidden support code are deferred.
-- There is no expected-output contract. Stdout and stderr are captured for diagnostics but do not fail an otherwise
-  successful execution.
 - Expected exceptions match an available `Throwable` type and its subtypes. An optional message constraint uses a
   case-sensitive substring, and an optional signed base-10 integer code uses exact comparison. Both execution backends
   support this contract. A runtime string code, such as a PDO SQLSTATE, remains valid for type or message matching but

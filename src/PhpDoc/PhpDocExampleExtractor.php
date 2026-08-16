@@ -137,6 +137,7 @@ final class PhpDocExampleExtractor
             explicitMarkerId: $projected->explicitMarkerId,
             directives: $projected->directives,
             expectedException: $projected->expectedException,
+            expectedOutput: $projected->expectedOutput,
         );
     }
 }

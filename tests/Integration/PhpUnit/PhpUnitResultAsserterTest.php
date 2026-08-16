@@ -82,11 +82,50 @@ final class PhpUnitResultAsserterTest extends TestCase
         self::assertSame($before + 1, $after);
     }
 
+    public function testAcceptsExactExpectedOutputAsTheCompletionAssertion(): void
+    {
+        $result = new ExecutionSucceeded($this->transform("echo \"Hello, Akashi!\\n\";"), "Hello, Akashi!\n", 0);
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult($result, expectedOutput: "Hello, Akashi!\n");
+
+        self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testReportsAnExactExpectedOutputMismatchWithSourceAndDiffEvidence(): void
+    {
+        $result = new ExecutionSucceeded(
+            $this->transform("echo \"actual\\n\";"),
+            "actual\n",
+            0,
+            'documented warning',
+        );
+
+        $failure = $this->assertionFailure($result, expectedOutput: "expected\n");
+
+        self::assertStringContainsString(
+            'Documentation example example-phpunit-result-01 expected exact stdout at docs/phpunit-result.md:10.',
+            $failure->getMessage(),
+        );
+        self::assertStringContainsString('Failed asserting that two strings are identical.', $failure->getMessage());
+        self::assertStringContainsString("Captured stderr:\n    documented warning", $failure->getMessage());
+        self::assertNotNull($failure->getComparisonFailure());
+        self::assertSame("expected\n", $failure->getComparisonFailure()->getExpected());
+        self::assertSame("actual\n", $failure->getComparisonFailure()->getActual());
+    }
+
+    public function testAcceptsExplicitlyEmptyExpectedOutput(): void
+    {
+        $result = new ExecutionSucceeded($this->transform('return;'), '', 0);
+
+        (new PhpUnitResultAsserter())->assertResult($result, expectedOutput: '');
+    }
+
     public function testReportsAnAuthoredFailureAtItsMaintainedMarkdownLine(): void
     {
         $result = $this->executeFailure("echo 'before failure';\nthrow new RuntimeException('example failed');");
 
-        $failure = $this->assertionFailure($result);
+        $failure = $this->assertionFailure($result, expectedOutput: 'different output');
 
         self::assertStringContainsString(
             'Documentation example example-phpunit-result-01 failed during execution.',
@@ -96,6 +135,7 @@ final class PhpUnitResultAsserterTest extends TestCase
         self::assertStringContainsString('Location: docs/phpunit-result.md:11', $failure->getMessage());
         self::assertStringContainsString("Cause:\n    RuntimeException: example failed", $failure->getMessage());
         self::assertStringContainsString("Captured stdout:\n    before failure", $failure->getMessage());
+        self::assertStringNotContainsString('expected exact stdout', $failure->getMessage());
         self::assertSame($result->cause, $failure->getPrevious());
     }
 
@@ -198,6 +238,34 @@ TEXT;
         (new PhpUnitResultAsserter())->assertResult($result, new ExpectedException(\Exception::class));
 
         self::assertSame($before + 1, Assert::getCount());
+    }
+
+    public function testChecksOutputEmittedBeforeAnExpectedException(): void
+    {
+        $result = $this->executeFailure("echo \"before\\n\";\nthrow new RuntimeException('expected');");
+        $before = Assert::getCount();
+
+        (new PhpUnitResultAsserter())->assertResult(
+            $result,
+            new ExpectedException(\RuntimeException::class),
+            "before\n",
+        );
+
+        self::assertSame($before + 2, Assert::getCount());
+    }
+
+    public function testReportsAWrongExceptionBeforeAnOutputMismatch(): void
+    {
+        $result = $this->executeFailure("echo 'actual';\nthrow new LogicException('wrong');");
+
+        $failure = $this->assertionFailure(
+            $result,
+            new ExpectedException(\RuntimeException::class),
+            'expected',
+        );
+
+        self::assertStringContainsString('but LogicException was thrown.', $failure->getMessage());
+        self::assertStringNotContainsString('expected exact stdout', $failure->getMessage());
     }
 
     public function testAcceptsACaseSensitiveExpectedExceptionMessageSubstring(): void
@@ -595,9 +663,10 @@ TEXT;
     private function assertionFailure(
         ExecutionResult $result,
         ?ExpectedException $expectedException = null,
+        ?string $expectedOutput = null,
     ): ExpectationFailedException {
         try {
-            (new PhpUnitResultAsserter())->assertResult($result, $expectedException);
+            (new PhpUnitResultAsserter())->assertResult($result, $expectedException, $expectedOutput);
         } catch (ExpectationFailedException $failure) {
             return $failure;
         }

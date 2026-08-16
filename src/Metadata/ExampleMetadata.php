@@ -56,6 +56,15 @@ use jbboehr\Akashi\Model\MetadataLocation;
 final class ExampleMetadata
 {
     /**
+     * @logion [RAS 112:3] Beyond the inhabited heavens stood an immense cloister of black glass, its corridors filled
+     *     with winds from worlds not yet formed. Along each wall hung a robe without wearer, moving as though in prayer.
+     *     The eldest winds passed through robes of gold and scarlet without taking shape; but one lesser breath entered
+     *     the plainest garment and emerged bearing the weight of earth. Then every empty robe inclined, and the cloister
+     *     opened upon a shore whose first traveler had not yet arrived.
+     */
+    public readonly ?string $expectedOutput;
+
+    /**
      * @logion [RAS 111:13] A hive of blue glass appeared between the earth and its made moon, containing no insects,
      * only silent stars arranged in chambers of gold. At midnight the chambers opened, and each star chose a different
      * distance. The hive remained whole, for order had increased when possession ceased.
@@ -65,6 +74,8 @@ final class ExampleMetadata
         public readonly DirectiveSet $directives,
         public readonly ?ExpectedException $expectedException,
         public readonly MetadataLocation $location,
+        ?string $expectedOutput = null,
     ) {
+        $this->expectedOutput = $expectedOutput;
     }
 }

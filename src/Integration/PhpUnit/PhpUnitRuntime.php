@@ -106,6 +106,14 @@ final class PhpUnitRuntime
                     $directiveLine,
                 ));
             }
+            if ($example->expectedOutput !== null) {
+                throw new UnsupportedExampleException(sprintf(
+                    'Example %s at %s:%d cannot combine compile-only with expected output.',
+                    $example->id->value,
+                    $example->codeOrigin()->document->path->value,
+                    $directiveLine,
+                ));
+            }
 
             $parsed = (new PhpExampleParser())->parse($example);
             Assert::assertNotEmpty($parsed->tokens, sprintf(
@@ -141,6 +149,10 @@ final class PhpUnitRuntime
             $result = (new InProcessExecutor($configuration))->execute($preparedExample);
         }
 
-        (new PhpUnitResultAsserter())->assertResult($result, $example->expectedException);
+        (new PhpUnitResultAsserter())->assertResult(
+            $result,
+            $example->expectedException,
+            $example->expectedOutput,
+        );
     }
 }

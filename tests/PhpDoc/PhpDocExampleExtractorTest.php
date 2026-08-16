@@ -75,7 +75,8 @@ function answer(): int
 /**
  * ```php
  * // akashi: expect-exception=RuntimeException
- * // akashi: expect-exception-message=expected, expect-exception-code=73
+ * // akashi: expect-exception-message=expected, expect-exception-code=73, expect-output="before\n"
+ * echo "before\n";
  * throw new RuntimeException('expected', 73);
  * ```
  */
@@ -99,6 +100,7 @@ PHP;
         self::assertSame('RuntimeException', $examples[1]->expectedException?->className);
         self::assertSame('expected', $examples[1]->expectedException->message);
         self::assertSame(73, $examples[1]->expectedException->code);
+        self::assertSame("before\n", $examples[1]->expectedOutput);
         self::assertSame(21, $this->inlineSource($examples[1])->location->metadata->expectedExceptionDirectiveLine);
         self::assertSame(
             " * ```PHP extra\r\n * \$value = 41 + 1;\r\n * assert(\$value === 42);\r\n * ```\r\n",

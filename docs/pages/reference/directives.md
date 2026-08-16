@@ -13,7 +13,7 @@ prepares dignity for the moment it cannot remain upright.</p>
 </figure>
 
 Akashi uses one small metadata grammar for an example's stable identity, runtime disposition, execution mode, and
-expected exception. Write it in an HTML comment associated with the next Markdown or PHPDoc fence:
+expected runtime behavior. Write it in an HTML comment associated with the next Markdown or PHPDoc fence:
 
 ````markdown
 <!-- akashi: example=isolated-greeting, separate-process -->
@@ -43,8 +43,8 @@ Each comment contains a comma-separated list of flags and keyed properties:
 
 Whitespace around commas and `=` is ignored. Unquoted values are nonempty single tokens. Double-quoted values use JSON
 string escaping and may contain spaces, commas, or `=`. Property names and flags are case-sensitive lowercase
-kebab-case. Empty clauses, empty values, unknown properties, values on flags, and missing keyed values fail with the
-maintained source line.
+kebab-case. Empty clauses, unknown properties, values on flags, and missing keyed values fail with the maintained source
+line. Keyed values must be nonempty except that `expect-output=""` explicitly requires silent stdout.
 
 The flags are:
 
@@ -62,6 +62,7 @@ The keyed properties are:
 | `expect-exception`         | A global PHP throwable class or interface name.                    |
 | `expect-exception-message` | A nonempty, case-sensitive message substring.                      |
 | `expect-exception-code`    | A signed base-10 integer in the running PHP build's integer range. |
+| `expect-output`            | The exact stdout bytes required from runtime execution.            |
 
 Adjacent HTML comments are merged, so these forms are equivalent:
 
@@ -156,8 +157,8 @@ throw new RuntimeException('PHPUnit compile-only validation does not execute thi
 Parse failures retain the maintained documentation path and line. PHPStan and marked extraction may still select the
 same example independently. PHPStan verification requires selected files and therefore executes their top-level code; do
 not select a compile-only fragment whose top-level code is unsafe to run. `compile-only` cannot be combined with
-`separate-process` or an expected-exception contract, because neither backend selection nor a runtime throwable has
-meaning when PHPUnit execution is disabled.
+`separate-process`, an expected-exception contract, or expected output, because backend selection and runtime evidence
+have no meaning when PHPUnit execution is disabled.
 
 `separate-process` selects child-process execution. It overrides an in-process configured default and requires
 `RuntimeConfiguration` with an explicit project root. Akashi rejects missing configuration rather than silently running
@@ -187,8 +188,25 @@ child. Process exits, signals, timeouts, and infrastructure failures never satis
 is also present, skip takes precedence over compile-only validation, configuration, transformation, and expectation
 handling.
 
+`expect-output` compares captured stdout exactly after the ordinary execution contract succeeds. Double-quoted JSON
+escapes make line endings and other control characters explicit:
+
+<!-- akashi: example=exact-output -->
+
+```php
+// akashi: expect-output="Hello, Akashi!\n"
+
+echo "Hello, Akashi!\n";
+```
+
+Akashi does not normalize line endings, trim whitespace, or interpret patterns. `expect-output=""` asserts that stdout
+is empty. The property may accompany `expect-exception`; in that case Akashi first requires the expected throwable,
+message, and code contract to succeed, then compares output emitted before the throwable. Execution, cleanup, or
+exception mismatches remain the primary failure instead of being masked by an output mismatch. Stderr remains diagnostic
+evidence and has no expectation property in this release.
+
 ## Not Implemented
 
 Akashi does not currently implement a global ignore directive, expected compilation failure, general expected runtime
-failure, conditional or platform-specific skip, custom skip reasons, or hidden support-code syntax. These remain roadmap
-items and must not be inferred from Rust or PHPUnit terminology.
+failure, expected stderr, conditional or platform-specific skip, custom skip reasons, or hidden support-code syntax.
+These remain roadmap items and must not be inferred from Rust or PHPUnit terminology.
