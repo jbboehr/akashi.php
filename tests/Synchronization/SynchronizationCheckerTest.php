@@ -256,6 +256,11 @@ PHP);
         self::assertCount(2, $regions);
         self::assertSame('examples/one.php', $regions[0]->targetPath->value);
         self::assertSame('examples/two.php', $regions[1]->targetPath->value);
+        self::assertSame(12, $regions[1]->directiveLine);
+        self::assertSame(13, $regions[1]->location->openingFenceLine);
+        self::assertSame(14, $regions[1]->location->firstCodeLine);
+        self::assertSame(15, $regions[1]->location->closingFenceLine);
+        self::assertSame(16, $regions[1]->endDirectiveLine);
     }
 
     public function testReportsATypedMismatchAndPreservesTheCanonicalOpeningTag(): void

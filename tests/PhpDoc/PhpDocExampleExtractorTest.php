@@ -40,11 +40,13 @@ namespace jbboehr\Akashi\Tests\PhpDoc;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
+use jbboehr\Akashi\Markdown\Exception\DirectiveException;
 use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\MarkerName;
 use jbboehr\Akashi\PhpDoc\PhpDocExampleExtractor;
+use jbboehr\Akashi\PhpDoc\PhpDocMarkdownProjector;
 use PHPUnit\Framework\TestCase;
 
 final class PhpDocExampleExtractorTest extends TestCase
@@ -141,6 +143,76 @@ PHP);
         ]);
         self::assertSame("echo 'first';\n", $examples[0]->code->source);
         self::assertSame("echo 'second';\n", $examples[1]->code->source);
+    }
+
+    public function testProjectsCompactDocblocksWithExplicitSourceOffsets(): void
+    {
+        $document = new Document('src/examples.php', <<<'PHP'
+<?php
+/**
+ * First comment.
+ */
+
+function first(): void {}
+
+
+/**
+ * Second comment.
+ */
+PHP);
+
+        $projections = (new PhpDocMarkdownProjector())->project($document);
+
+        self::assertCount(2, $projections);
+        self::assertSame([1, 8], array_column($projections, 'sourceLineOffset'));
+        self::assertSame("\nFirst comment.\n", $projections[0]['document']->contents);
+        self::assertSame("\nSecond comment.\n", $projections[1]['document']->contents);
+        self::assertSame(2, $projections[1]['document']->lines->lineCount());
+    }
+
+    public function testReportsMetadataErrorsAtOriginalLinesInLateDocblocks(): void
+    {
+        $document = new Document(
+            'src/late.php',
+            "<?php\n" . str_repeat("\n", 50) . <<<'PHP'
+/**
+ * <!-- akashi: example -->
+ * ```php
+ * echo 'late';
+ * ```
+ */
+PHP,
+        );
+
+        $this->expectException(DirectiveException::class);
+        $this->expectExceptionMessage('Invalid Akashi metadata at src/late.php:53');
+
+        (new PhpDocExampleExtractor())->extract($document);
+    }
+
+    public function testKeepsUnclosedFencesInsideTheirOwnDocblock(): void
+    {
+        $document = new Document('src/examples.php', <<<'PHP'
+<?php
+/**
+ * ```php
+ * echo 'first';
+ */
+
+/**
+ * ```php
+ * echo 'second';
+ * ```
+ */
+PHP);
+
+        $examples = (new PhpDocExampleExtractor())->extract($document);
+
+        self::assertCount(2, $examples);
+        self::assertSame("echo 'first';\n", $examples[0]->code->source);
+        self::assertNull($this->inlineSource($examples[0])->location->closingFenceLine);
+        self::assertSame("echo 'second';\n", $examples[1]->code->source);
+        self::assertSame(10, $this->inlineSource($examples[1])->location->closingFenceLine);
     }
 
     public function testPreservesCompileOnlyMetadataFromAPhpDocFence(): void

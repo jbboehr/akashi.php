@@ -43,6 +43,8 @@ use jbboehr\Akashi\Document;
 /**
  * Projects conventional PHPDoc interiors onto line-preserving CommonMark documents.
  *
+ * @phpstan-type PhpDocProjection array{document: Document, sourceLineOffset: non-negative-int}
+ *
  * @internal
  *
  * @readonly
@@ -53,7 +55,7 @@ use jbboehr\Akashi\Document;
 final class PhpDocMarkdownProjector
 {
     /**
-     * @return list<Document>
+     * @return list<PhpDocProjection>
      *
      * @logion [AWC 98:17] In the summer of wax, the southern stair softened beneath every noble foot, yet remained hard
      *     beneath porters and children. The household abandoned the upper rooms, and their banners sagged unopened from
@@ -67,13 +69,16 @@ final class PhpDocMarkdownProjector
             if (!is_array($token) || $token[0] !== T_DOC_COMMENT) {
                 continue;
             }
+            if ($token[2] < 1) {
+                throw new \LogicException('PHP returned a non-positive PHPDoc source line.');
+            }
 
             $markdown = $this->markdown($token[1]);
             if ($markdown !== null) {
-                $projections[] = new Document(
-                    $document->path,
-                    str_repeat("\n", $token[2] - 1) . $markdown,
-                );
+                $projections[] = [
+                    'document' => new Document($document->path, $markdown),
+                    'sourceLineOffset' => $token[2] - 1,
+                ];
             }
         }
 

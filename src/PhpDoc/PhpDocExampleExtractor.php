@@ -44,8 +44,6 @@ use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Model\ExampleId;
 use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\MarkerName;
-use jbboehr\Akashi\Model\SourceLocation;
-use jbboehr\Akashi\Model\SourceSpan;
 
 /**
  * Extracts CommonMark PHP fences from the interior lines of PHPDoc comments.
@@ -95,9 +93,13 @@ final class PhpDocExampleExtractor
         $ordinal = 0;
 
         foreach ((new PhpDocMarkdownProjector())->project($document) as $projection) {
-            foreach ($commonMark->extract($projection) as $projected) {
+            foreach ($commonMark->extract(
+                $projection['document'],
+                $document,
+                $projection['sourceLineOffset'],
+            ) as $projected) {
                 ++$ordinal;
-                $examples[] = $this->restoreOriginalDocument($document, $projected, $ordinal);
+                $examples[] = $this->restoreFileIdentity($document, $projected, $ordinal);
             }
         }
 
@@ -105,14 +107,14 @@ final class PhpDocExampleExtractor
     }
 
     /**
-     * Restore the canonical PHP document and file-wide identity after parsing one comment projection.
+     * Restore file-wide identity after parsing one comment projection.
      *
      * @logion [RAS 69:27] I beheld ten thousand ivory fish swimming through the air around an ocean suspended above the
      *     moon. The Angel of Salt weighed each by the water remembered within its bones, and those fashioned only for
      *     beauty fell silently upon the marble observatory; but the smallest living fish entered the hanging sea, and
      *     the whole firmament tasted of praise.
      */
-    private function restoreOriginalDocument(Document $document, Example $projected, int $ordinal): Example
+    private function restoreFileIdentity(Document $document, Example $projected, int $ordinal): Example
     {
         if ($ordinal < 1) {
             throw new \LogicException('PHPDoc example ordinal must be positive.');
@@ -121,36 +123,16 @@ final class PhpDocExampleExtractor
         if (!$projected->source instanceof InlineExampleSource) {
             throw new \LogicException('A projected PHPDoc fence must have an inline source.');
         }
-        $location = $projected->source->location;
-        $fenceEndLine = $location->closingFenceLine ?? $location->lastCodeLine ?? $location->openingFenceLine;
-        $codeStart = $document->lines->lineStartOffset($location->firstCodeLine);
-        $codeEnd = $location->lastCodeLine === null
-            ? $codeStart
-            : $document->lines->lineStartOffset($location->lastCodeLine + 1);
-
-        return Example::fromInline(
+        return new Example(
             id: new ExampleId(sprintf(
                 'example-%s-%02d',
                 substr(sha1($document->path->value), 0, 12),
                 $ordinal,
             )),
             label: sprintf('%s PHPDoc example %d', $document->path->value, $ordinal),
-            document: $document,
-            location: new SourceLocation(
-                openingFenceLine: $location->openingFenceLine,
-                firstCodeLine: $location->firstCodeLine,
-                lastCodeLine: $location->lastCodeLine,
-                closingFenceLine: $location->closingFenceLine,
-                fenceSpan: new SourceSpan(
-                    $document->lines->lineStartOffset($location->openingFenceLine),
-                    $document->lines->lineStartOffset($fenceEndLine + 1),
-                ),
-                codeSpan: new SourceSpan($codeStart, $codeEnd),
-                metadata: $location->metadata,
-            ),
+            source: $projected->source,
             language: $projected->language,
             code: $projected->code,
-            fence: $projected->source->fence,
             ordinal: $ordinal,
             explicitMarkerId: $projected->explicitMarkerId,
             directives: $projected->directives,

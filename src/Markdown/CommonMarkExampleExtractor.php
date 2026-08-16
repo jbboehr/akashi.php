@@ -124,11 +124,25 @@ final class CommonMarkExampleExtractor
      *     gripped the newborn when her hands were wet. She taught her daughters to honor what serves before what is
      *     displayed. Welcome arrives safely by the humbler fabric.
      */
-    public function extract(Document $document): array
-    {
+    public function extract(
+        Document $document,
+        ?Document $sourceDocument = null,
+        int $sourceLineOffset = 0,
+    ): array {
+        $sourceDocument ??= $document;
+        if ($sourceLineOffset < 0) {
+            throw new \InvalidArgumentException('Source line offset must not be negative.');
+        }
+        if ($sourceDocument->path->value !== $document->path->value) {
+            throw new \InvalidArgumentException('Projected and source documents must have the same path.');
+        }
+        if ($sourceLineOffset + $document->lines->lineCount() > $sourceDocument->lines->lineCount()) {
+            throw new \InvalidArgumentException('Projected document lines must fit within the source document.');
+        }
+
         $ast = $this->parser->parse($document->contents);
-        $metadata = $this->collectMetadata($document, $ast);
-        $this->validateMetadataTargets($document, $metadata);
+        $metadata = $this->collectMetadata($document, $sourceDocument, $sourceLineOffset, $ast);
+        $this->validateMetadataTargets($sourceDocument, $metadata);
         $walker = $ast->walker();
         $examples = [];
         $markerLines = [];
@@ -145,6 +159,8 @@ final class CommonMarkExampleExtractor
 
             $example = $this->createExample(
                 $document,
+                $sourceDocument,
+                $sourceLineOffset,
                 $node,
                 count($examples) + 1,
                 $this->metadataForFence($node, $metadata),
@@ -161,9 +177,9 @@ final class CommonMarkExampleExtractor
                     throw new DuplicateMarkerException(sprintf(
                         'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
                         $markerId->value,
-                        $document->path->value,
+                        $sourceDocument->path->value,
                         $markerLine,
-                        $document->path->value,
+                        $sourceDocument->path->value,
                         $firstLine,
                     ));
                 }
@@ -180,12 +196,18 @@ final class CommonMarkExampleExtractor
     /**
      * @return array<int, ParsedMetadata>
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [OSD 47:32] When the eastern bridge fell, preserve its center stone upon the bank and carve thereon the
      *     names of those who crossed before the flood. Let the new span begin beside it, for safe passage is a debt to
      *     forgotten feet as well as living hands.
      */
-    private function collectMetadata(Document $document, Node $root): array
-    {
+    private function collectMetadata(
+        Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
+        Node $root,
+    ): array {
         $metadata = [];
         $walker = $root->walker();
 
@@ -195,7 +217,7 @@ final class CommonMarkExampleExtractor
                 continue;
             }
 
-            $parsed = $this->classifyMetadata($document, $node);
+            $parsed = $this->classifyMetadata($document, $sourceDocument, $sourceLineOffset, $node);
             if ($parsed !== null) {
                 $metadata[spl_object_id($node)] = $parsed;
             }
@@ -207,17 +229,30 @@ final class CommonMarkExampleExtractor
     /**
      * @return ParsedMetadata|null
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [SFA 47:14] Four generations tended a grove whose fruit none had tasted, for the trees flowered only at
      *     night. A traveler slept beneath them and woke with honey upon his cloak. The village ceased cutting barren
      *     branches and appointed children to keep the evening watch.
      */
-    private function classifyMetadata(Document $document, HtmlBlock $node): ?array
-    {
+    private function classifyMetadata(
+        Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
+        HtmlBlock $node,
+    ): ?array {
         $line = $node->getStartLine();
-        if ($line === null || $line < 1) {
+        if ($line === null || $line < 1 || $line > $document->lines->lineCount()) {
             throw new \LogicException(sprintf(
                 'CommonMark returned an invalid metadata source line for %s.',
-                $document->path->value,
+                $sourceDocument->path->value,
+            ));
+        }
+        $line += $sourceLineOffset;
+        if ($line > $sourceDocument->lines->lineCount()) {
+            throw new \LogicException(sprintf(
+                'CommonMark returned metadata beyond the source document %s.',
+                $sourceDocument->path->value,
             ));
         }
 
@@ -230,7 +265,7 @@ final class CommonMarkExampleExtractor
                     throw new InvalidMarkerMetadataException(sprintf(
                         'Invalid %s marker at %s:%d: %s',
                         $this->markerName->value,
-                        $document->path->value,
+                        $sourceDocument->path->value,
                         $line,
                         $exception->getMessage(),
                     ), previous: $exception);
@@ -251,7 +286,7 @@ final class CommonMarkExampleExtractor
             return null;
         }
 
-        $clauses = (new ExampleMetadataParser())->parse($document, $value, $line);
+        $clauses = (new ExampleMetadataParser())->parse($sourceDocument, $value, $line);
         foreach ($clauses as $clause) {
             if ($clause->property !== ExampleMetadataProperty::Example) {
                 continue;
@@ -262,7 +297,7 @@ final class CommonMarkExampleExtractor
             } catch (InvalidMarkerException $exception) {
                 throw new InvalidMarkerMetadataException(sprintf(
                     'Invalid Akashi example marker at %s:%d: %s',
-                    $document->path->value,
+                    $sourceDocument->path->value,
                     $line,
                     $exception->getMessage(),
                 ), previous: $exception);
@@ -410,6 +445,7 @@ final class CommonMarkExampleExtractor
     /**
      * @param positive-int $ordinal
      * @param list<ExampleMetadataClause> $associatedClauses
+     * @param non-negative-int $sourceLineOffset
      *
      * @logion [SFA 42:15] A cloth merchant scolded a silkworm for devouring mulberry leaves without payment. Months
      *     later he sold the silk and praised his own diligence. A child held up the empty cocoon and asked whose
@@ -417,6 +453,8 @@ final class CommonMarkExampleExtractor
      */
     private function createExample(
         Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
         FencedCode $node,
         int $ordinal,
         array $associatedClauses,
@@ -432,18 +470,27 @@ final class CommonMarkExampleExtractor
         ) {
             throw new \LogicException(sprintf(
                 'CommonMark returned an invalid source range for %s.',
-                $document->path->value,
+                $sourceDocument->path->value,
             ));
         }
 
-        $semanticLines = $this->semanticLines($document, $openingLine, $node->getLiteral());
-        $codeSource = $this->restoreLineEndings($document, $openingLine + 1, $semanticLines);
+        $openingLine += $sourceLineOffset;
+        $endLine += $sourceLineOffset;
+        if ($endLine > $sourceDocument->lines->lineCount()) {
+            throw new \LogicException(sprintf(
+                'CommonMark returned a source range beyond %s.',
+                $sourceDocument->path->value,
+            ));
+        }
+
+        $semanticLines = $this->semanticLines($sourceDocument, $openingLine, $node->getLiteral());
+        $codeSource = $this->restoreLineEndings($sourceDocument, $openingLine + 1, $semanticLines);
         $clauses = $associatedClauses;
         array_push(
             $clauses,
-            ...(new InlineDirectiveParser())->parse($document, $openingLine + 1, $codeSource),
+            ...(new InlineDirectiveParser())->parse($sourceDocument, $openingLine + 1, $codeSource),
         );
-        $metadata = (new ExampleMetadataParser())->resolve($document, $clauses);
+        $metadata = (new ExampleMetadataParser())->resolve($sourceDocument, $clauses);
 
         $lineDistance = $endLine - $openingLine;
         $semanticLineCount = count($semanticLines);
@@ -454,25 +501,25 @@ final class CommonMarkExampleExtractor
         } else {
             throw new \LogicException(sprintf(
                 'CommonMark source lines and code content disagree for %s:%d.',
-                $document->path->value,
+                $sourceDocument->path->value,
                 $openingLine,
             ));
         }
 
         $firstCodeLine = $openingLine + 1;
         $lastCodeLine = $semanticLineCount === 0 ? null : $openingLine + $semanticLineCount;
-        $codeStart = $document->lines->lineStartOffset($firstCodeLine);
+        $codeStart = $sourceDocument->lines->lineStartOffset($firstCodeLine);
         $codeEnd = $lastCodeLine === null
             ? $codeStart
-            : $document->lines->lineStartOffset($lastCodeLine + 1);
+            : $sourceDocument->lines->lineStartOffset($lastCodeLine + 1);
         $location = new SourceLocation(
             openingFenceLine: $openingLine,
             firstCodeLine: $firstCodeLine,
             lastCodeLine: $lastCodeLine,
             closingFenceLine: $closingLine,
             fenceSpan: new SourceSpan(
-                $document->lines->lineStartOffset($openingLine),
-                $document->lines->lineStartOffset($endLine + 1),
+                $sourceDocument->lines->lineStartOffset($openingLine),
+                $sourceDocument->lines->lineStartOffset($endLine + 1),
             ),
             codeSpan: new SourceSpan($codeStart, $codeEnd),
             metadata: $metadata->location,
@@ -488,11 +535,11 @@ final class CommonMarkExampleExtractor
         return Example::fromInline(
             id: new ExampleId(sprintf(
                 'example-%s-%02d',
-                substr(sha1($document->path->value), 0, 12),
+                substr(sha1($sourceDocument->path->value), 0, 12),
                 $ordinal,
             )),
-            label: sprintf('%s PHP example %d', $document->path->value, $ordinal),
-            document: $document,
+            label: sprintf('%s PHP example %d', $sourceDocument->path->value, $ordinal),
+            document: $sourceDocument,
             location: $location,
             language: new Language('php'),
             code: new ExampleCode($codeSource),

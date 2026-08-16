@@ -51,6 +51,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Reduce PHPDoc extraction and synchronization work by parsing compact per-comment projections while preserving exact
+  original source lines and byte spans.
 - Unify stable example identity, runtime flags, and expected-exception constraints under comma-separated `akashi:`
   metadata for Markdown, PHPDoc, and referenced canonical PHP; extraction recognizes `example=ID` without configuration,
   while legacy marker comments and one-property directives remain supported as explicit compatibility forms.

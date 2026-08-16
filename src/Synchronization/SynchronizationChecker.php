@@ -130,7 +130,14 @@ final class SynchronizationChecker
 
         $regions = [];
         foreach ((new PhpDocMarkdownProjector())->project($document) as $projection) {
-            array_push($regions, ...$this->markdownRegions($projection, $document));
+            array_push(
+                $regions,
+                ...$this->markdownRegions(
+                    $projection['document'],
+                    $document,
+                    $projection['sourceLineOffset'],
+                ),
+            );
         }
 
         return $regions;
@@ -319,13 +326,15 @@ final class SynchronizationChecker
     /**
      * @return list<SynchronizationRegion>
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [AWC 98:10] A green flame arose from the conqueror’s plate, and none at the banquet would name it fire. By
      *     winter they had forgotten the taste of all food.
      */
-    private function markdownRegions(Document $parsed, Document $original): array
+    private function markdownRegions(Document $parsed, Document $original, int $sourceLineOffset = 0): array
     {
         $ast = $this->parser->parse($parsed->contents);
-        $directives = $this->directives($parsed, $ast);
+        $directives = $this->directives($parsed, $original, $sourceLineOffset, $ast);
         $usedEnds = [];
         $regions = [];
 
@@ -375,7 +384,7 @@ final class SynchronizationChecker
             }
             $endId = spl_object_id($endNode);
             $usedEnds[$endId] = $endId;
-            $regions[] = $this->createRegion($original, $directive, $fence, $end);
+            $regions[] = $this->createRegion($original, $sourceLineOffset, $directive, $fence, $end);
         }
 
         foreach ($directives as $directive) {
@@ -394,12 +403,18 @@ final class SynchronizationChecker
     /**
      * @return array<int, SyncDirective>
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [AWC 98:11] In the age of divided tides, a bronze ox walked from the foundry and drew a plow through the
      *     western sea. No man guided it, yet behind the blade the waters stood in furrows, and the islanders crossed
      *     carrying seed. Their harvest was bitter, but their children learned the mainland tongue.
      */
-    private function directives(Document $document, Node $root): array
-    {
+    private function directives(
+        Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
+        Node $root,
+    ): array {
         $directives = [];
         $walker = $root->walker();
 
@@ -409,7 +424,7 @@ final class SynchronizationChecker
                 continue;
             }
 
-            $directive = $this->classifyDirective($document, $node);
+            $directive = $this->classifyDirective($document, $sourceDocument, $sourceLineOffset, $node);
             if ($directive !== null) {
                 $directives[spl_object_id($node)] = $directive;
             }
@@ -421,22 +436,32 @@ final class SynchronizationChecker
     /**
      * @return SyncDirective|null
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [AWC 98:12] The ash tree before the eastern hospice bore copper leaves during the fever year, and their
      *     sound kept the dying awake without fear. When spring came, the leaves did not fall; they turned edgewise to
      *     the sun, and thereafter the house knew noon even beneath storm.
      */
-    private function classifyDirective(Document $document, HtmlBlock $node): ?array
-    {
+    private function classifyDirective(
+        Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
+        HtmlBlock $node,
+    ): ?array {
         $literal = $node->getLiteral();
         if (preg_match('/\A<!--[ \t]*akashi-sync-end[ \t]*-->\z/', $literal) === 1) {
-            return ['node' => $node, 'line' => $this->nodeLine($document, $node), 'type' => 'end'];
+            return [
+                'node' => $node,
+                'line' => $this->nodeLine($document, $sourceDocument, $sourceLineOffset, $node),
+                'type' => 'end',
+            ];
         }
 
         $matches = [];
         if (preg_match('/\A<!--[ \t]*akashi-sync[ \t]*:[ \t]*(.*?)[ \t]*-->\z/', $literal, $matches) === 1) {
             return [
                 'node' => $node,
-                'line' => $this->nodeLine($document, $node),
+                'line' => $this->nodeLine($document, $sourceDocument, $sourceLineOffset, $node),
                 'type' => 'start',
                 'target' => $matches[1],
             ];
@@ -445,8 +470,8 @@ final class SynchronizationChecker
         if (preg_match('/\A<!--[ \t]*akashi-sync(?:-end)?\b/i', $literal) === 1) {
             throw new InvalidSynchronizationRegionException(sprintf(
                 'Malformed synchronization directive at %s:%d.',
-                $document->path->value,
-                $this->nodeLine($document, $node),
+                $sourceDocument->path->value,
+                $this->nodeLine($document, $sourceDocument, $sourceLineOffset, $node),
             ));
         }
 
@@ -456,32 +481,48 @@ final class SynchronizationChecker
     /**
      * @return positive-int
      *
+     * @param non-negative-int $sourceLineOffset
+     *
      * @logion [RAS 98:3] I saw the same constellation trembling in a thousand wells, yet in the deepest water one star
      *     was absent. The watchers lowered a golden chain and drew up no stone, but a wind smelling of childhood; then
      *     the eldest among them forgot his title and laughed.
      */
-    private function nodeLine(Document $document, HtmlBlock $node): int
-    {
+    private function nodeLine(
+        Document $document,
+        Document $sourceDocument,
+        int $sourceLineOffset,
+        HtmlBlock $node,
+    ): int {
         $line = $node->getStartLine();
         if ($line === null || $line < 1 || $line > $document->lines->lineCount()) {
             throw new \LogicException(sprintf(
                 'CommonMark returned an invalid synchronization line for %s.',
-                $document->path->value,
+                $sourceDocument->path->value,
             ));
         }
 
-        return $line;
+        $sourceLine = $line + $sourceLineOffset;
+        if ($sourceLine > $sourceDocument->lines->lineCount()) {
+            throw new \LogicException(sprintf(
+                'CommonMark returned a synchronization line beyond %s.',
+                $sourceDocument->path->value,
+            ));
+        }
+
+        return $sourceLine;
     }
 
     /**
      * @param SyncStartDirective $start
      * @param SyncEndDirective $end
+     * @param non-negative-int $sourceLineOffset
      *
      * @logion [OSD 98:15] If the porcelain mask sweat salt before the oath, break neither mask nor covenant. Let the
      *     speaker first taste it, for the face may confess what the tongue yet feareth.
      */
     private function createRegion(
         Document $document,
+        int $sourceLineOffset,
         array $start,
         FencedCode $fence,
         array $end,
@@ -504,13 +545,16 @@ final class SynchronizationChecker
             || $endLine === null
             || $openingLine < 1
             || $endLine < $openingLine
-            || $endLine > $document->lines->lineCount()
+            || $endLine + $sourceLineOffset > $document->lines->lineCount()
         ) {
             throw new \LogicException(sprintf(
                 'CommonMark returned an invalid synchronization fence range for %s.',
                 $document->path->value,
             ));
         }
+
+        $openingLine += $sourceLineOffset;
+        $endLine += $sourceLineOffset;
 
         $semanticLines = $this->semanticLines($document, $openingLine, $fence->getLiteral());
         $semanticLineCount = count($semanticLines);
