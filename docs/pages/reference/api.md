@@ -17,6 +17,49 @@ classify every autoloadable Akashi declaration as an entry point, canonical mode
 exception, or explicitly internal declaration. This reference groups the public types by consumer workflow;
 autoloadability alone does not create an extension point.
 
+## Migrating from 0.1
+
+Projects that build a corpus through `MarkdownSource` and execute or analyze it through the PHPUnit and PHPStan traits
+do not need code changes for 0.2. Existing Markdown fences, explicitly configured legacy marker comments, runtime
+directives, and text-based PHPStan expectations remain accepted.
+
+Direct consumers of the canonical model need the following changes.
+
+### Example sources
+
+`Example` now distinguishes inline documentation fences from canonical external PHP sources. Replace the removed
+properties as follows:
+
+| 0.1 access           | 0.2 replacement                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| `$example->document` | `$example->codeOrigin()->document`                                                 |
+| `$example->location` | `$example->source->location` after confirming `source` is an `InlineExampleSource` |
+| `$example->fence`    | `$example->source->fence` after confirming `source` is an `InlineExampleSource`    |
+
+Use `codeOrigin()` whenever the maintained code location is sufficient. Inspect `Example::$source` only when the
+presentation distinction matters: `InlineExampleSource` carries the former fence location and metadata, while
+`ReferencedExampleSource` carries a canonical origin, optional named region, and one or more PHPDoc reference locations.
+
+Code that directly constructed a 0.1 inline example should use `Example::fromInline()` with the former constructor
+arguments. The 0.2 constructor instead accepts an `InlineExampleSource|ReferencedExampleSource` and is intended for
+integrations that already model that distinction.
+
+Manually constructed `ExampleCorpus` values must be ordered by canonical source path, first code line, and example ID.
+Corpora returned by `MarkdownSource` or `DocumentationSource` already satisfy this invariant.
+
+### PHPStan diagnostic expectations
+
+`DiagnosticExpectation::$text` is now nullable because an expectation may constrain only a stable PHPStan identifier.
+Consumers reading the property must handle `null`. Existing `new DiagnosticExpectation($text, $sourceLine)` calls remain
+valid; the optional identifier and source-line range parameters are additive.
+
+`Directive::CompileOnly` is a new enum case. Consumers using an exhaustive `match` over `Directive` must handle it.
+Trailing optional parameters added to `AnalyzerDiagnostic`, `ExpectedException`, and `MetadataLocation` do not require
+changes to existing calls.
+
+No other 0.1 public type or member was removed. The change from native readonly classes to final classes composed only
+of readonly properties enables PHP 8.1 support without making model state mutable.
+
 ## Source and Corpus
 
 | Type                                          | Purpose                                                                          |

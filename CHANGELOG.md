@@ -53,6 +53,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Pre-1.0 public-model change:** `Example` now represents inline and referenced sources explicitly. Direct consumers
+  must replace the removed `document`, `location`, and `fence` properties and the former constructor with `source`,
+  `codeOrigin()`, and `Example::fromInline()` as appropriate. Manually assembled corpora now order examples by canonical
+  source path, source line, and ID. `DiagnosticExpectation::$text` is nullable for identifier-only expectations. The
+  [API migration notes](docs/pages/reference/api.md#migrating-from-01) describe each required change; ordinary source,
+  PHPUnit-trait, and PHPStan-trait workflows remain source-compatible.
 - Reduce PHPDoc extraction and synchronization work by parsing compact per-comment projections while preserving exact
   original source lines and byte spans.
 - Unify stable example identity, runtime flags, and expected-exception constraints under comma-separated `akashi:`
