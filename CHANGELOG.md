@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-15
+
 ### Added
 
 - Discover fenced PHP examples from conventional multiline PHPDoc comments while preserving their original file and line
@@ -103,5 +105,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Configure project roots, bootstrap files, and default execution modes through immutable runtime configuration.
 - Support PHP 8.2 and later, PHPUnit 10.5 and 11.5, optional PHPStan 2.x integration, and verified ParaTest scheduling.
 
-[Unreleased]: https://github.com/jbboehr/akashi.php/compare/v0.1.0...master
+[Unreleased]: https://github.com/jbboehr/akashi.php/compare/v0.2.0...master
+[0.2.0]: https://github.com/jbboehr/akashi.php/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jbboehr/akashi.php/releases/tag/v0.1.0

@@ -12,7 +12,7 @@ passage; the singers waited without complaint, for ceremony cannot restore a gat
 </figure>
 
 Akashi is a reusable documentation-example library for PHP projects. Its Markdown/PHPDoc, runtime, PHPUnit, and PHPStan
-workflows are usable outside its original consumers. The 0.1 release remains under active pre-1.0 development, so its
+workflows are usable outside its original consumers. The 0.2 release remains under active pre-1.0 development, so its
 public API may change between minor releases before 1.0.
 
 ## Supported Platforms and Integrations

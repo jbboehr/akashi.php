@@ -60,7 +60,7 @@ only generated code.
 Akashi requires PHP 8.1 or later. Install it with a compatible PHPUnit release:
 
 ```console
-composer require --dev "jbboehr/akashi:^0.1" "phpunit/phpunit:^10.5 || ^11.5"
+composer require --dev "jbboehr/akashi:^0.2" "phpunit/phpunit:^10.5 || ^11.5"
 ```
 
 Akashi supports the PHPUnit 10.5 and 11.5 release lines. Composer selects PHPUnit 10.5 on PHP 8.1 and the newest
