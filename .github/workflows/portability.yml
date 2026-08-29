@@ -71,10 +71,12 @@ jobs:
               run: composer analyse
 
             - name: Run PHPUnit
+              id: phpunit
               shell: bash
               run: |
+                  mkdir -p build/test-results
                   set +e
-                  composer test 2>&1 | tee phpunit-output.log
+                  composer test -- --log-junit build/test-results/phpunit.xml 2>&1 | tee phpunit-output.log
                   status=${PIPESTATUS[0]}
 
                   if [ "$status" -ne 0 ]; then
@@ -86,6 +88,17 @@ jobs:
                   fi
 
                   exit "$status"
+
+            - name: Upload PHPUnit test report
+              if:
+                  ${{ !cancelled() && (steps.phpunit.conclusion == 'success' || steps.phpunit.conclusion == 'failure')
+                  }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-junit-${{ matrix.os }}-php82
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: error
+                  retention-days: 14
 
             - name: Verify Composer package archive
               if: ${{ always() }}

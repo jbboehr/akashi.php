@@ -22,7 +22,8 @@ jobs:
             matrix:
                 include:
                     - name: PHPUnit
-                      command: composer test
+                      command:
+                          mkdir -p build/test-results && composer test -- --log-junit build/test-results/phpunit.xml
                     - name: PHPStan
                       command: composer analyse
                     - name: php-cs-fixer
@@ -57,7 +58,19 @@ jobs:
               run: composer install --prefer-dist --no-interaction --no-progress
 
             - name: Run ${{ matrix.name }}
+              id: validation
               run: ${{ matrix.command }}
+
+            - name: Upload PHPUnit test report
+              if:
+                  ${{ !cancelled() && matrix.name == 'PHPUnit' && (steps.validation.conclusion == 'success' ||
+                  steps.validation.conclusion == 'failure') }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-junit-linux-php82
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: error
+                  retention-days: 14
 
     nix-matrix:
         name: Generate Nix matrix
