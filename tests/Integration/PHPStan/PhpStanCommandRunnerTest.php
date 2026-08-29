@@ -233,7 +233,9 @@ PHP;
         self::assertNull($result->termSignal);
         self::assertNull($result->timeoutSeconds);
         self::assertSame(
-            'PHPStan command project root does not exist or is not a readable directory: ' . $missingRoot . '.',
+            'PHPStan command project root does not exist or is not a readable directory: '
+                . str_replace('\\', '/', $missingRoot)
+                . '.',
             $result->failureMessage,
         );
     }
@@ -247,7 +249,9 @@ PHP;
 
         self::assertSame(PhpStanCommandTermination::InfrastructureFailed, $result->termination);
         self::assertSame(
-            'PHPStan command project root does not exist or is not a readable directory: ' . $file . '.',
+            'PHPStan command project root does not exist or is not a readable directory: '
+                . str_replace('\\', '/', $file)
+                . '.',
             $result->failureMessage,
         );
     }
@@ -263,7 +267,9 @@ PHP;
         self::assertNull($result->termSignal);
         self::assertNull($result->timeoutSeconds);
         self::assertSame(
-            'PHPStan command executable does not exist or is not a file: ' . $missingExecutable . '.',
+            'PHPStan command executable does not exist or is not a file: '
+                . str_replace('\\', '/', $missingExecutable)
+                . '.',
             $result->failureMessage,
         );
     }
@@ -292,10 +298,10 @@ PHP;
         self::assertFileDoesNotExist($injectionTarget);
     }
 
-    public function testRunsAnExecuteOnlyBinaryOnUnix(): void
+    public function testRunsAnExecuteOnlyBinaryOnLinux(): void
     {
-        if (DIRECTORY_SEPARATOR === '\\' || (function_exists('posix_geteuid') && posix_geteuid() === 0)) {
-            self::markTestSkipped('Execute-only permission behavior requires a non-root Unix user.');
+        if (PHP_OS_FAMILY !== 'Linux' || (function_exists('posix_geteuid') && posix_geteuid() === 0)) {
+            self::markTestSkipped('Execute-only PHP binary behavior requires a non-root Linux user.');
         }
 
         $executable = $this->workspace . '/execute-only-php';
@@ -341,7 +347,9 @@ PHP;
 
         self::assertSame(PhpStanCommandTermination::InfrastructureFailed, $result->termination);
         self::assertSame(
-            'PHPStan command executable does not exist or is not a file: ' . $directory . '.',
+            'PHPStan command executable does not exist or is not a file: '
+                . str_replace('\\', '/', $directory)
+                . '.',
             $result->failureMessage,
         );
     }

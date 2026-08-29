@@ -234,7 +234,10 @@ final class PhpStanCommandVerifierTest extends TestCase
 
         self::assertInstanceOf(PhpStanCommandNotCompleted::class, $result);
         self::assertSame(PhpStanCommandTermination::InfrastructureFailed, $result->commandResult->termination);
-        self::assertStringContainsString($missingRoot, $result->commandResult->failureMessage ?? '');
+        self::assertStringContainsString(
+            str_replace('\\', '/', $missingRoot),
+            $result->commandResult->failureMessage ?? '',
+        );
     }
 
     public function testReturnsNonCompletedSignalEvidence(): void

@@ -130,7 +130,7 @@ final class ApplicationTest extends TestCase
         $version = InstalledVersions::getPrettyVersion('jbboehr/akashi') ?? 'unknown';
 
         self::assertSame(ExitCode::Success->value, $result['status']);
-        self::assertSame('Akashi ' . $version . "\n", $result['stdout']);
+        self::assertSame('Akashi ' . $version . PHP_EOL, $result['stdout']);
         self::assertSame('', $result['stderr']);
     }
 
