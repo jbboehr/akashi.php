@@ -170,6 +170,12 @@ in
     phpunit-php84 = phpunitCheck "phpunit-php84" php84 normalClosure;
     phpunit-php85 = phpunitCheck "phpunit-php85" php85 normalClosure;
 
+    phpunit-reverse-order = mkPhpCheck {
+      name = "phpunit-reverse-order";
+      php = php82;
+      command = "php vendor/bin/phpunit --colors=never --no-coverage --order-by=reverse";
+    };
+
     phpstan = mkPhpCheck {
       name = "phpstan";
       php = php82;

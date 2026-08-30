@@ -30,9 +30,10 @@ nix flake check --keep-going -L
 ```
 
 The flake exposes PHPUnit separately for PHP 8.1 through 8.5 and also checks PHPStan, PHP-CS-Fixer, Composer metadata,
-the root and auxiliary Composer lock pairs, PHP syntax, package contents, both ParaTest scheduling modes, the public
-documentation, benchmark discovery, repository formatting and hooks, and the PHPUnit 10 and PHPStan 1 consumer fixtures.
-These builds use Nix-managed Composer dependencies and do not read the checkout's `vendor/`.
+the root and auxiliary Composer lock pairs, PHP syntax, package contents, a reverse-order PHPUnit run, both ParaTest
+scheduling modes, the public documentation, benchmark discovery, repository formatting and hooks, and the PHPUnit 10 and
+PHPStan 1 consumer fixtures. These builds use Nix-managed Composer dependencies and do not read the checkout's
+`vendor/`.
 
 Mutation testing is deliberately not part of `nix flake check`. Run its explicit Nix target when a change warrants it:
 
@@ -40,8 +41,8 @@ Mutation testing is deliberately not part of `nix flake check`. Run its explicit
 nix build .#mutation -L
 ```
 
-`composer check` and `composer check:full` remain useful mutable-Composer interfaces. The latter includes consumer,
-ParaTest, and mutation checks, but the separated Nix derivations are the reproducible validation authority.
+`composer check` and `composer check:full` remain useful mutable-Composer interfaces. The latter includes reverse-order,
+consumer, ParaTest, and mutation checks, but the separated Nix derivations are the reproducible validation authority.
 
 ### Updating Nix Composer dependencies
 

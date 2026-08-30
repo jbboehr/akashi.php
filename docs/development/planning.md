@@ -36,10 +36,11 @@ its parser-facing token representation independent of PHP-Parser's version-speci
 this as its own immutable consumer check; `composer test:phpstan1` retains the conventional online path.
 
 Routine validation is `nix flake check --keep-going -L`. Checks are independent derivations so failures remain visible
-and successful dependency closures can be reused from the Nix store. Mutation testing is an explicit
-`nix build .#mutation -L` target and a generated Nix CI entry, not a routine flake check. GitHub also retains three
-small conventional PHP 8.2 baseline jobs for PHPUnit, PHPStan, and PHP-CS-Fixer as an independent control over the Nix
-harness.
+and successful dependency closures can be reused from the Nix store. A canonical PHP 8.2 check repeats the suite in
+reverse discovery order to expose undeclared state or order coupling without making the ordinary local command
+nondeterministic. Mutation testing is an explicit `nix build .#mutation -L` target and a generated Nix CI entry, not a
+routine flake check. GitHub also retains three small conventional PHP 8.2 baseline jobs for PHPUnit, PHPStan, and
+PHP-CS-Fixer as an independent control over the Nix harness.
 
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and

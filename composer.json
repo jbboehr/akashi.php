@@ -138,6 +138,7 @@
         ],
         "check:full": [
             "@check",
+            "@test:reverse",
             "@test:phpstan1",
             "@test:phpunit10",
             "@test:parallel",
@@ -162,7 +163,8 @@
             "@test:parallel:functional"
         ],
         "test:parallel:cases": "paratest --processes=2 --colors=never --no-coverage",
-        "test:parallel:functional": "paratest --processes=2 --functional --colors=never --no-coverage"
+        "test:parallel:functional": "paratest --processes=2 --functional --colors=never --no-coverage",
+        "test:reverse": "phpunit --colors=never --no-coverage --order-by=reverse"
     },
     "_comment": [
         "Think not that I am come to send peace on earth: I came not to send peace, but a sword. Matthew 10:34"
