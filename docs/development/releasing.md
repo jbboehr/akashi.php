@@ -25,10 +25,12 @@ access.
 3. Enter `nix develop` and run `composer install --no-interaction` so the committed lock is used without updating it.
 4. Move the accumulated `[Unreleased]` entries beneath the release version and date while retaining a new empty
    `[Unreleased]` section.
-5. Review installation examples and release-status wording in `README.md`, `docs/pages/README.md`, the Quick Start,
+5. Update `projectVersion` in `nix/php-checks.nix` to the release version so Nix derivation and Composer-repository
+   metadata identify the tagged release correctly.
+6. Review installation examples and release-status wording in `README.md`, `docs/pages/README.md`, the Quick Start,
    compatibility reference, API reference, and roadmap together so the tagged source does not contradict itself. Keep
    accurate pre-1.0 stability qualifications; publishing a new tag does not make the API stable by itself.
-6. Commit the changelog or any other release-only metadata, rerun the gates below, and require a clean worktree again.
+7. Commit the changelog or any other release-only metadata, rerun the gates below, and require a clean worktree again.
 
 Do not add promises for deferred roadmap work. The release notes describe only behavior present in the tagged commit.
 

@@ -10,7 +10,7 @@
 }:
 
 let
-  projectVersion = "0.1.0";
+  projectVersion = "0.2.0";
 
   mkComposerSource =
     name: manifest: lock: rootBins:
