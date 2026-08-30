@@ -47,7 +47,7 @@ namespace jbboehr\Akashi\Model;
  *     called it weak because it had never hardened; before they could enthrone its survival as proof, it returned to
  *     clay beneath the morning rain.
  */
-final class PhpDocTagName
+final class PhpDocTagName implements \Stringable
 {
     /**
      * @logion [RAS 97:57] I beheld one drop of amber suspended above the firmament, and within it burned five suns,
@@ -70,5 +70,17 @@ final class PhpDocTagName
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the validated PHPDoc tag name.
+     *
+     * @logion [OSD 113:7] Open no red parasol beneath the earth, though the cavern rain fall warm. Those drops are the
+     *     mountain’s withheld testimony; whoever sheltereth from them shall return above with a dry garment and a mouth
+     *     full of stone.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

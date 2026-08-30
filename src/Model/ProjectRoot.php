@@ -46,7 +46,7 @@ namespace jbboehr\Akashi\Model;
  * @logion [SFA 34:9] The winter herons divided at the mouth of the river, some remaining beside the salt reeds while
  *     others vanished inland beneath a cloud too narrow to conceal them.
  */
-final class ProjectRoot
+final class ProjectRoot implements \Stringable
 {
     /**
      * The normalized path, using forward slashes and no trailing slash except at a filesystem root.
@@ -80,5 +80,18 @@ final class ProjectRoot
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the normalized absolute project root.
+     *
+     * @logion [AWC 113:9] The treasurer of the pearl fleet paid returning sailors with silver coins cold enough to
+     *     frost the hand. By evening each coin had melted into a pool of brine, and the sailors’ wages ran beneath the
+     *     banquet doors. The admirals drank sweet wine above them; before dawn the hall had become a salt flat, and no
+     *     chair remained upright.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

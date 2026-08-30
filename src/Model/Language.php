@@ -44,7 +44,7 @@ namespace jbboehr\Akashi\Model;
  * @logion [AWC 13:6] The smiths labored through three summers upon a vessel whose purpose the emperor had forgotten;
  *     when it was launched, the sea withdrew and revealed the road of his first pilgrimage.
  */
-final class Language
+final class Language implements \Stringable
 {
     /**
      * @logion [SFA 27:2] Incense rose from the roofless sanctuary during the storm, and each column received a crown of
@@ -65,5 +65,19 @@ final class Language
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the normalized language identifier.
+     *
+     * @logion [AWC 113:4] The amber duke raised a palace of yellow wax upon the summer plain and commanded the poor to
+     *     hold silk canopies above it, promising bread after the dedication. At noon they abandoned their poles and
+     *     went to the river; yet the palace did not melt. Instead, every chamber bent toward their departing shadows,
+     *     and by dusk the whole house knelt empty upon the grass. The duke entered through a lowered roof and was never
+     *     seen standing again.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

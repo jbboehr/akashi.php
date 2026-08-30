@@ -46,7 +46,7 @@ namespace jbboehr\Akashi\Model;
  * @logion [RAS 35:11] During the wedding feast a second sun appeared beneath the floor, and the dancers continued until
  *     both lights set together and the oldest among them remembered a summer erased from every calendar.
  */
-final class ProjectPath
+final class ProjectPath implements \Stringable
 {
     /**
      * @logion [OSD 35:4] At the third watch feed the oxen of thy enemy before tending thine own, that dawn may find the
@@ -92,5 +92,17 @@ final class ProjectPath
         }
 
         $this->value = $segments === [] ? '.' : implode('/', $segments);
+    }
+
+    /**
+     * Return the normalized project-relative path.
+     *
+     * @logion [AWC 113:8] At the end of the pepper war, the soldiers stacked their helmets around a fig tree and
+     *     refused the king’s order to burn the defeated farms. By spring the tree had grown through the iron, bearing
+     *     fruit inside every helmet; the king ate none, and his descendants inherited teeth that rusted in rain.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

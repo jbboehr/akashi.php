@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Allow validated path, identity, and language value objects to be rendered through PHP's `Stringable` contract while
+  retaining their typed public state.
 - Verify one complete external PHPStan fixture plan without manually separating its project root, analysis paths, and
   expectation map at the command boundary.
 - Opt into exception-oriented PHPStan command verification while retaining the complete typed result as failure

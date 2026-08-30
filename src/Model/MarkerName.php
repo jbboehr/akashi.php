@@ -47,7 +47,7 @@ namespace jbboehr\Akashi\Model;
  *     crossed from shore to shore. Thereafter they carried the sick upon its brightness, but built no houses there;
  *     providence may open a passage without granting a province.
  */
-final class MarkerName
+final class MarkerName implements \Stringable
 {
     /**
      * @logion [AWC 45:18] During the drought, a vintner filled his finest cask with rainwater and sealed it beneath the
@@ -72,5 +72,16 @@ final class MarkerName
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the validated marker name.
+     *
+     * @logion [AWC 113:6] The unfinished tower fell beneath one night of rain, but a single unbaked brick floated to
+     *     the fishermen. They set it upon dry ground; by morning it had become a red hill no ruler could quarry.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

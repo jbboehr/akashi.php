@@ -45,7 +45,7 @@ namespace jbboehr\Akashi\Model;
  *     circle and moved away. Silence widened behind it, giving each light room to burn. Space began as permission
  *     granted to departure. Bless what releases without cursing the one who leaves.
  */
-final class DocumentPath
+final class DocumentPath implements \Stringable
 {
     /**
      * @logion [SFA 18:7] A white boar entered the naming feast carrying a cracked wooden spoon. It ignored every laden
@@ -97,5 +97,18 @@ final class DocumentPath
         }
 
         $this->value = implode('/', $segments);
+    }
+
+    /**
+     * Return the normalized document path.
+     *
+     * @logion [AWC 113:2] After the governor enclosed the common wells, every jar in his cellar poured forth a red cord
+     *     instead of wine. The cords crept beneath doors and over walls, knotting themselves around the dry wellheads.
+     *     His household cut them nightly, yet by dawn the knots had tightened, and no wine returned while one well
+     *     remained barred.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

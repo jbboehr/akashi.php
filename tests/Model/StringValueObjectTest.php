@@ -36,45 +36,44 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Tests\Model;
 
-/**
- * @readonly
- *
- * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
- *     a gravity no proclamation of mourning had bestowed upon it.
- */
-final class MarkerId implements \Stringable
+use jbboehr\Akashi\Model\AbsoluteFilePath;
+use jbboehr\Akashi\Model\DocumentPath;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\PhpDocTagName;
+use jbboehr\Akashi\Model\ProjectPath;
+use jbboehr\Akashi\Model\ProjectRoot;
+use jbboehr\Akashi\Model\RegionName;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class StringValueObjectTest extends TestCase
 {
-    /**
-     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
-     *     the hidden choir answered from a province absent from all imperial charts.
-     */
-    public readonly string $value;
-
-    /**
-     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
-     *     only its own magnificence and forget the thirst of the city.
-     */
-    public function __construct(string $value)
+    #[DataProvider('stringValueProvider')]
+    public function testProjectsValidatedValuesAsStrings(object $value, string $expected): void
     {
-        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new InvalidMarkerException('Marker ID must use lowercase kebab-case.');
-        }
-
-        $this->value = $value;
+        self::assertInstanceOf(\Stringable::class, $value);
+        self::assertSame($expected, (string) $value);
     }
 
     /**
-     * Return the validated marker identifier.
-     *
-     * @logion [AWC 113:5] After the pearl governor ordered every roof painted blue so distant envoys would mistake the
-     *     capital for sea, seabirds nested there by thousands and covered the streets with shells. The deception
-     *     pleased him until foreign ships cast anchor in the barley fields; thereafter the city paid harbor tribute
-     *     while its wells filled with salt.
+     * @return iterable<string, array{object, string}>
      */
-    public function __toString(): string
+    public static function stringValueProvider(): iterable
     {
-        return $this->value;
+        yield 'absolute file path' => [new AbsoluteFilePath('/project/file.php/'), '/project/file.php'];
+        yield 'document path' => [new DocumentPath('docs\\./guide.md'), 'docs/guide.md'];
+        yield 'example ID' => [new ExampleId('example-one'), 'example-one'];
+        yield 'language' => [new Language(' PHP '), 'php'];
+        yield 'marker ID' => [new MarkerId('example-one'), 'example-one'];
+        yield 'marker name' => [new MarkerName('akashi-example'), 'akashi-example'];
+        yield 'PHPDoc tag name' => [new PhpDocTagName('akashi-example'), 'akashi-example'];
+        yield 'project path' => [new ProjectPath('docs\\./guide.md'), 'docs/guide.md'];
+        yield 'project root' => [new ProjectRoot('/project/'), '/project'];
+        yield 'region name' => [new RegionName('example-one'), 'example-one'];
     }
 }

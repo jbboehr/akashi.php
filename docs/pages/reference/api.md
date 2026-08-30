@@ -103,6 +103,21 @@ Most consumers receive and inspect these values through the canonical model rath
 Direct construction remains supported for typed integrations that create documents or examples without weakening the
 model to raw arrays or ambiguous strings.
 
+The validated string value objects in the table above implement PHP's `Stringable` contract when they represent paths,
+identities, names, or languages. Casting one to `string` returns the same normalized value exposed by its public
+`$value` property:
+
+```php
+use jbboehr\Akashi\Model\ProjectPath;
+
+$path = new ProjectPath('docs\\./guide.md');
+
+assert((string) $path === 'docs/guide.md');
+```
+
+Semantic payloads such as `ExampleCode` remain explicitly accessed through their named properties rather than acquiring
+an implicit string conversion.
+
 ## Synchronization
 
 | Type                                      | Purpose                                                                                  |

@@ -49,7 +49,7 @@ namespace jbboehr\Akashi\Model;
  *     stone mouth spoke a cruelty committed inside the gates. The citizens plastered them shut, but the words rose from
  *     the wells. A wall that guards unrepented wrong shall become its herald.
  */
-final class ExampleId
+final class ExampleId implements \Stringable
 {
     /**
      * @logion [OSD 22:5] For nine days, a square cloud stood above a ruined village, giving shade but no rain. When the
@@ -70,5 +70,17 @@ final class ExampleId
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the validated example identifier.
+     *
+     * @logion [SFA 113:3] Moss groweth only upon the smiling mouth of the cedar mask; its brow and hollow eyes remain
+     *     dry through every monsoon. Call not this decay, for false welcome is the first chamber wherein the forest
+     *     repossesseth a house.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

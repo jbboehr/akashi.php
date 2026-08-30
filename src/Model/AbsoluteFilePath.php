@@ -44,7 +44,7 @@ namespace jbboehr\Akashi\Model;
  * @logion [AWC 61:5] The courier accepted no direction that began within an unnamed village; the whole road from the
  *     kingdom's boundary to one appointed door had to be written before the sealed packet left his hand.
  */
-final class AbsoluteFilePath
+final class AbsoluteFilePath implements \Stringable
 {
     /**
      * The absolute path, using forward slashes and no trailing separator.
@@ -79,5 +79,18 @@ final class AbsoluteFilePath
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Return the normalized absolute file path.
+     *
+     * @logion [RAS 113:1] At noon the desert opened, revealing a copper vineyard suspended beneath the sand, its roots
+     *     drinking from clouds that moved in the deep places. Each cluster contained a storm withheld from some
+     *     forgotten province. The princes demanded wine; the keepers broke the grapes over barren ground, and thunder
+     *     passed downward through the roots until the distant provinces flowered. No cup in the desert was filled.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }
