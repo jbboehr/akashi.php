@@ -209,9 +209,11 @@ become typed infrastructure evidence.
 infrastructure evidence. `PhpStanCommandOutputRejected` carries completed command evidence and the JSON decode failure.
 `PhpStanCommandVerified` carries the completed command, decoded analyzer result, and diagnostic verification result; its
 name means verification completed, not that expectations matched. `PhpStanCommandVerifier` validates expectations before
-launching the command and returns one of these variants. It applies the same 60-second default timeout as the runner;
-callers may provide another finite positive duration. Nonzero completed statuses remain evidence rather than an
-automatic failure.
+launching the command and returns one of these variants. `verifyPlan()` consumes a `PhpStanExternalFixturePlan`, inserts
+the option delimiter before its analysis paths, and keeps the plan's project root, paths, and expectations together;
+`verify()` remains the lower-level operation for callers that already own an expectation map. Both apply the same
+60-second default timeout as the runner; callers may provide another finite positive duration. Nonzero completed
+statuses remain evidence rather than an automatic failure.
 
 `PhpStanExternalFixturePlan` contains one canonical project root, a sorted nonempty list of project-relative `.php`
 analysis paths, and exactly one platform-native canonical absolute expectation-map entry for each path.

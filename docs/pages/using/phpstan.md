@@ -182,18 +182,15 @@ $fixtures = (new PhpStanExternalFixturePlanner())->plan(
     ),
 );
 
-$outcome = (new PhpStanCommandVerifier())->verify(
-    projectRoot: $canonicalProjectRoot,
+$outcome = (new PhpStanCommandVerifier())->verifyPlan(
+    plan: $fixtures,
     executable: PHP_BINARY,
-    arguments: [
+    argumentsBeforePaths: [
         $canonicalProjectRoot . '/vendor/bin/phpstan',
         'analyse',
         '--error-format=json',
         '--no-progress',
-        '--',
-        ...$fixtures->analysisPaths,
     ],
-    expectationsByFile: $fixtures->expectationsByFile,
     timeoutSeconds: 60.0,
 );
 
@@ -217,10 +214,11 @@ grouped, and hard-link aliases are also grouped when the filesystem reports a st
 expectations from overlapping references are removed. Selection is intentionally limited to referenced external
 examples: inline Markdown and PHPDoc examples still use the generated-source `RuleTestCase` path. Because PHPStan
 analyzes the complete physical file, a diagnostic outside a selected named region is unexpected and causes a mismatch.
-Callers that already own an expectation map may use `PhpStanCommandVerifier` directly without the planner. A project
-using both verification paths should give them distinct selection tokens, or use a custom `forProject()` predicate that
-selects only referenced sources. Keep the `--` argument before the planned paths so a valid project filename beginning
-with `-` cannot be parsed as a PHPStan option.
+`PhpStanCommandVerifier::verifyPlan()` consumes the complete plan, appends an owned `--` delimiter and its analysis
+paths, and passes the plan's canonical root and expectation map through the lower-level verifier. This prevents callers
+from accidentally separating the three parts of one plan. Callers that already own an expectation map may instead use
+`PhpStanCommandVerifier::verify()` directly without the planner. A project using both verification paths should give
+them distinct selection tokens, or use a custom `forProject()` predicate that selects only referenced sources.
 
 The three result variants distinguish a command that did not complete, completed command output that could not be
 decoded, and a completed verification. `PhpStanCommandVerified` means that verification ran; inspect

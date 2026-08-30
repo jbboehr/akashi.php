@@ -144,8 +144,8 @@ if (
     throw new RuntimeException("Unexpected external PHPStan fixture plan.");
 }
 
-$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verify(
-    $argv[1],
+$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verifyPlan(
+    $fixtures,
     PHP_BINARY,
     [
         $phpStanScript,
@@ -153,10 +153,7 @@ $result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->ver
         "--no-progress",
         "--error-format=json",
         "--level=max",
-        "--",
-        ...$fixtures->analysisPaths,
     ],
-    $fixtures->expectationsByFile,
 );
 if (!$result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified) {
     throw new RuntimeException(sprintf(

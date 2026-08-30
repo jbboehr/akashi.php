@@ -53,6 +53,42 @@ use jbboehr\Akashi\Model\ProjectRoot;
 final class PhpStanCommandVerifier
 {
     /**
+     * Run PHPStan with the paths and expectations in one external fixture plan.
+     *
+     * The supplied arguments precede the owned `--` delimiter and planned analysis paths.
+     *
+     * @param list<string> $argumentsBeforePaths
+     *
+     * @throws \InvalidArgumentException When command input is malformed.
+     *
+     * @logion [AWC 112:3] In the reign of the enamel prefects, the court paved the burial road with translucent stone,
+     *     that no procession should be troubled by mud. Thereafter the dead cast their shadows upward through the road,
+     *     and the prefects commanded crimson carpets to conceal them. The third procession halted, and the bearers
+     *     would not advance until the carpets were burned; thus the capital learned that dignity which hideth its debt
+     *     shall be carried no farther.
+     */
+    public function verifyPlan(
+        PhpStanExternalFixturePlan $plan,
+        AbsoluteFilePath|string $executable,
+        array $argumentsBeforePaths,
+        float $timeoutSeconds = 60.0,
+    ): PhpStanCommandVerificationResult {
+        $arguments = $argumentsBeforePaths;
+        $arguments[] = '--';
+        foreach ($plan->analysisPaths as $analysisPath) {
+            $arguments[] = $analysisPath;
+        }
+
+        return $this->verify(
+            $plan->projectRoot,
+            $executable,
+            $arguments,
+            $plan->expectationsByFile,
+            $timeoutSeconds,
+        );
+    }
+
+    /**
      * @param list<string> $arguments
      * @param array<non-empty-string, list<DiagnosticExpectation>> $expectationsByFile
      *

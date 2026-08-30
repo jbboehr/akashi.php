@@ -46,8 +46,10 @@ use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandResult;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExternalFixturePlan;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonResult;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanVerificationResult;
+use jbboehr\Akashi\Model\ProjectRoot;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -128,6 +130,154 @@ final class PhpStanCommandVerifierTest extends TestCase
             'method.notFound',
             $result->verificationResult->matchesByFile[$file]->assignments[0]->expectation->identifier,
         );
+    }
+
+    public function testVerifiesAnExternalFixturePlanWithoutManualDisassembly(): void
+    {
+        $optionLikeFile = $this->nativePath('-option-like.php');
+        $nestedDirectory = $this->nativePath('nested');
+        $nestedFile = $this->nativePath('nested/example file.php');
+        self::assertTrue(mkdir($nestedDirectory));
+        self::assertNotFalse(file_put_contents($optionLikeFile, "<?php\nmissingFunction();\n"));
+        self::assertNotFalse(file_put_contents($nestedFile, "<?php\n\nmissingVariable();\n"));
+        $json = self::phpStanJson([
+            $optionLikeFile => [
+                'errors' => 1,
+                'messages' => [[
+                    'message' => 'Function missingFunction not found.',
+                    'line' => 2,
+                    'ignorable' => true,
+                    'identifier' => 'function.notFound',
+                ]],
+            ],
+            $nestedFile => [
+                'errors' => 1,
+                'messages' => [[
+                    'message' => 'Function missingVariable not found.',
+                    'line' => 3,
+                    'ignorable' => true,
+                    'identifier' => 'function.notFound',
+                ]],
+            ],
+        ]);
+        $runner = $this->nativePath('phpstan-fixture.php');
+        self::assertNotFalse(file_put_contents($runner, sprintf(
+            <<<'PHP'
+                <?php
+
+                if (
+                    getcwd() !== %s
+                    || array_slice($argv, 1) !== [
+                        'analyse',
+                        '--configuration=phpstan fixture.neon',
+                        '--memory-limit=1G',
+                        '--',
+                        '-option-like.php',
+                        'nested/example file.php',
+                    ]
+                ) {
+                    fwrite(STDOUT, 'unexpected invocation');
+                    exit(70);
+                }
+
+                fwrite(STDOUT, base64_decode(%s));
+                exit(1);
+                PHP,
+            var_export($this->workspace, true),
+            var_export(base64_encode($json), true),
+        )));
+        $plan = new PhpStanExternalFixturePlan(
+            new ProjectRoot($this->workspace),
+            ['nested/example file.php', '-option-like.php'],
+            [
+                $nestedFile => [new DiagnosticExpectation(
+                    null,
+                    3,
+                    'function.notFound',
+                    ['first' => 3, 'last' => 3],
+                )],
+                $optionLikeFile => [new DiagnosticExpectation(
+                    null,
+                    2,
+                    'function.notFound',
+                    ['first' => 2, 'last' => 2],
+                )],
+            ],
+        );
+
+        $result = (new PhpStanCommandVerifier())->verifyPlan(
+            $plan,
+            PHP_BINARY,
+            [
+                $runner,
+                'analyse',
+                '--configuration=phpstan fixture.neon',
+                '--memory-limit=1G',
+            ],
+        );
+
+        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
+        self::assertSame(1, $result->commandResult->exitCode);
+        self::assertTrue($result->verificationResult->isSuccessful());
+        self::assertArrayHasKey($optionLikeFile, $result->verificationResult->matchesByFile);
+        self::assertArrayHasKey($nestedFile, $result->verificationResult->matchesByFile);
+    }
+
+    public function testVerifyPlanRejectsSparseArgumentsBeforeLaunchingTheCommand(): void
+    {
+        $file = $this->nativePath('example.php');
+        $sideEffect = $this->nativePath('must-not-exist');
+        $runner = $this->nativePath('must-not-run.php');
+        self::assertNotFalse(file_put_contents(
+            $runner,
+            sprintf("<?php\ntouch(%s);\n", var_export($sideEffect, true)),
+        ));
+        $plan = new PhpStanExternalFixturePlan(
+            new ProjectRoot($this->workspace),
+            ['example.php'],
+            [$file => []],
+        );
+
+        try {
+            (new \ReflectionMethod(PhpStanCommandVerifier::class, 'verifyPlan'))->invoke(
+                new PhpStanCommandVerifier(),
+                $plan,
+                PHP_BINARY,
+                [1 => $runner],
+            );
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame('PHPStan command arguments must form a list.', $exception->getMessage());
+            self::assertFileDoesNotExist($sideEffect);
+
+            return;
+        }
+
+        self::assertFileDoesNotExist($sideEffect, 'Malformed plan arguments launched the command.');
+        self::fail('Malformed plan arguments must be rejected before command execution.');
+    }
+
+    public function testVerifyPlanForwardsItsTimeoutAndRetainsTheDefault(): void
+    {
+        $method = new \ReflectionMethod(PhpStanCommandVerifier::class, 'verifyPlan');
+        self::assertSame(60.0, $method->getParameters()[3]->getDefaultValue());
+        $file = $this->nativePath('example.php');
+        $plan = new PhpStanExternalFixturePlan(
+            new ProjectRoot($this->workspace),
+            ['example.php'],
+            [$file => []],
+        );
+
+        $result = (new PhpStanCommandVerifier())->verifyPlan(
+            $plan,
+            PHP_BINARY,
+            ['-r', "fwrite(STDOUT, 'partial'); usleep(500000);"],
+            0.05,
+        );
+
+        self::assertInstanceOf(PhpStanCommandNotCompleted::class, $result);
+        self::assertSame(PhpStanCommandTermination::TimedOut, $result->commandResult->termination);
+        self::assertSame('partial', $result->commandResult->stdout);
+        self::assertSame(0.05, $result->commandResult->timeoutSeconds);
     }
 
     public function testRejectsAJsonDiagnosticOutsideItsExpectedSourceRange(): void
@@ -468,5 +618,10 @@ final class PhpStanCommandVerifierTest extends TestCase
                 $exitCode,
             ),
         ];
+    }
+
+    private function nativePath(string $relativePath): string
+    {
+        return str_replace('/', DIRECTORY_SEPARATOR, $this->workspace . '/' . $relativePath);
     }
 }
