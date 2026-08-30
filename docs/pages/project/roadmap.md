@@ -79,12 +79,18 @@ remaining suggested sequence is:
 2. Documentation-renderer integrations.
 
 Generated-line mappings now compose across sequential transformations while retaining Markdown, PHPDoc, whole-file, and
-named-region origins. Future features that combine several maintained origins will need a richer mapping model, but the
-current pipeline no longer requires each transform to reconstruct the original map itself.
+named-region origins. Hidden support code will require the next mapping step: each generated line in one prepared
+artifact must identify its visible origin, its external setup origin, or the absence of an exact maintained line.
 
-No hidden-line syntax is selected. Any future design should remain explicit and compatible with PHP parsers, formatters,
-IDEs, renderers, and static analyzers. Akashi integrates with configured formatters rather than becoming a PHP
-formatter. The checker and pure rewriter remain independent of the CLI persistence boundary.
+The accepted hidden-support design uses one explicit `setup=path.php` or `setup=path.php#region` metadata property per
+example. The target is an ordinary PHP file or stable named region, executed once immediately before the visible body in
+the same variable scope but as a separate compilation segment. Rust-style hidden-line preprocessing is not planned.
+Setup exceptions and output cannot satisfy visible expected-exception or expected-output contracts. Ordinary extraction
+remains lexical and returns only the visible authored code. Runtime behavior remains unimplemented; the complete design
+and staged acceptance criteria are recorded in `docs/development/hidden-support-code.md`.
+
+Akashi integrates with configured formatters rather than becoming a PHP formatter. The checker and pure rewriter remain
+independent of the CLI persistence boundary.
 
 ## Runtime and Verification
 

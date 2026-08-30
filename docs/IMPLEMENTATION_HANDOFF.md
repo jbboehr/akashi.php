@@ -777,9 +777,12 @@ hidden-line behavior is acceptable as high-level behavioral inspiration, but Aka
 * transformed hidden lines complicate source mapping; and
 * explicit setup references may be more PHP-idiomatic.
 
-Potential approaches include referenced setup files or named regions, an explicit Akashi directive, separate visible
-and support-code sections, source-level annotations understood by Akashi, or renderer-specific integrations. Do not
-select a syntax during the MVP.
+The MVP did not select a syntax. Post-MVP planning now selects one explicit `setup=path.php` or
+`setup=path.php#region` metadata property that references an ordinary PHP file or stable named region. Setup and visible
+code remain separate maintained sources and compilation segments, and implementation must add typed multi-origin
+diagnostics before the behavior is advertised. Rust-style inline hidden lines and renderer preprocessing remain
+deferred. The complete contract is recorded in `docs/development/hidden-support-code.md`; runtime support is not
+implemented.
 
 > Prefer an explicit, PHP-idiomatic design that remains compatible with PHP parsers, formatters, IDEs, documentation
 > renderers, and static analyzers.
@@ -836,7 +839,7 @@ interfaces for them unless an already-required abstraction naturally supports th
 
 ### Additional example semantics
 
-* hidden setup or support lines, with syntax explicitly undecided;
+* hidden setup through an external whole-file or named-region reference, designed but not implemented;
 * hidden assertion expressions;
 * expected stderr;
 * inline expected values;

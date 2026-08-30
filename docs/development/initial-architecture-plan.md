@@ -904,7 +904,8 @@ Public rustdoc behavior helps identify useful capabilities, but does not dictate
 - executable documentation-comment examples map to a future PHPDoc source rather than a requirement to keep substantial
   code physically inside comments;
 - externally included documentation reinforces the seam between canonical code origins and presentation locations;
-- hidden supporting lines map to a future display-versus-execution source transform whose syntax remains undecided;
+- hidden supporting lines originally mapped to an undecided display-versus-execution transform; the later accepted
+  design instead uses an explicit external whole-file or named-region setup, as recorded in `hidden-support-code.md`;
 - authored runtime skips remain visible through PHPUnit; broader ignore and conditional-skip policies map to explicit
   outcomes with reasons, never silent omission;
 - compile-only examples map to a future execution policy separate from backend selection;

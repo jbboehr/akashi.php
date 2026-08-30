@@ -45,7 +45,9 @@ PHP-CS-Fixer as an independent control over the Nix harness.
 Source maps now compose each transformation's generated-line relation through the preceding map. End-to-end coverage
 guards maintained runtime failure locations for Markdown fences, inline PHPDoc fences, whole external PHP files, and
 named regions. Synthetic generated lines remain unmapped, and a future general multi-origin mapping model is deferred
-until hidden support code or another transformation requires it.
+until hidden support code or another transformation requires it. The accepted hidden-support contract and its staged
+multi-origin requirement are recorded in [hidden-support-code.md](hidden-support-code.md); no runtime behavior is
+implemented yet.
 
 Compile-only is implemented as a runtime disposition independent of backend selection. PHPUnit parses the maintained
 example against the host PHP version, retains source-aware parse failures, records one successful assertion, and does
