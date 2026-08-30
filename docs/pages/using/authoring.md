@@ -295,7 +295,9 @@ remain deferred.
 
 The human-readable example label is derived from its source location and becomes the PHPUnit data-set name.
 `PhpUnitExampleDataSets::fromCorpus()` rejects duplicate labels before yielding the first data set, which keeps PHPUnit
-filters and reports unambiguous.
+filters and reports unambiguous. PHP converts integer-form string keys to numbered array keys, so Akashi prefixes those
+labels with `~` before PHPUnit materializes them. An authored label already beginning with `~` receives another `~`;
+this escaping is deterministic and collision-free.
 
 Use ordinary prose immediately around a fence to explain the example. Akashi does not require each example to carry a
 special name unless another consumer needs a durable identity.

@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Define a PHPUnit example corpus and its optional runtime configuration through one immutable suite hook while keeping
+  the existing corpus-only trait as the default integration.
 - Allow validated path, identity, and language value objects to be rendered through PHP's `Stringable` contract while
   retaining their typed public state.
 - Verify one complete external PHPStan fixture plan without manually separating its project root, analysis paths, and
@@ -64,6 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Preserve integer-form labels as named PHPUnit data sets through collision-free `~` prefix escaping.
 - **Pre-1.0 public-model change:** `Example` now represents inline and referenced sources explicitly. Direct consumers
   must replace the removed `document`, `location`, and `fence` properties and the former constructor with `source`,
   `codeOrigin()`, and `Example::fromInline()` as appropriate. Manually assembled corpora now order examples by canonical

@@ -49,6 +49,7 @@ use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 final class PhpUnitExampleDataSetsTest extends TestCase
 {
@@ -64,7 +65,7 @@ final class PhpUnitExampleDataSetsTest extends TestCase
 
         self::assertSame([
             ['First example', [$first]],
-            ['2048', [$second]],
+            ['~2048', [$second]],
         ], $observed);
     }
 
@@ -81,6 +82,76 @@ final class PhpUnitExampleDataSetsTest extends TestCase
         );
 
         $dataSets->rewind();
+    }
+
+    public function testIntegerFormLabelsRemainNamedAndCannotCollideWithTheirEncodedForm(): void
+    {
+        $maximumInteger = (string) PHP_INT_MAX;
+        $overflowInteger = $maximumInteger . '0';
+        $dataSets = iterator_to_array(PhpUnitExampleDataSets::fromCorpus(new ExampleCorpus(
+            $this->example('example-data-set-01', '0', 1),
+            $this->example('example-data-set-02', '~0', 2),
+            $this->example('example-data-set-03', '-1', 3),
+            $this->example('example-data-set-04', '01', 4),
+            $this->example('example-data-set-05', $maximumInteger, 5),
+            $this->example('example-data-set-06', '~' . $maximumInteger, 6),
+            $this->example('example-data-set-07', $overflowInteger, 7),
+        )));
+
+        self::assertSame([
+            '~0',
+            '~~0',
+            '~-1',
+            '01',
+            '~' . $maximumInteger,
+            '~~' . $maximumInteger,
+            $overflowInteger,
+        ], array_keys($dataSets));
+    }
+
+    public function testPhpUnitDiscoversAndFiltersIntegerFormAndTildePrefixedLabelsByTheirEscapedNames(): void
+    {
+        $fixture = 'tests/Fixtures/PhpUnit/EscapedIntegerFormDataSetLabels.php';
+        $list = self::phpUnitReport(['--list-tests', $fixture]);
+
+        self::assertStringContainsString('::testExample"~2048"', $list);
+        self::assertStringContainsString('::testExample"~~2048"', $list);
+        self::assertStringNotContainsString('::testExample#2048', $list);
+
+        foreach (['~2048', '~~2048'] as $label) {
+            $report = self::phpUnitReport([
+                '--testdox',
+                '--filter',
+                'testExample@' . $label,
+                $fixture,
+            ]);
+
+            self::assertStringContainsString(sprintf('with data set "%s"', $label), $report);
+            self::assertStringContainsString('OK (1 test, 1 assertion)', $report);
+        }
+    }
+
+    /** @param list<string> $arguments */
+    private static function phpUnitReport(array $arguments): string
+    {
+        $projectRoot = dirname(__DIR__, 3);
+        $process = new Process([
+            PHP_BINARY,
+            $projectRoot . '/vendor/bin/phpunit',
+            '--no-configuration',
+            '--bootstrap',
+            $projectRoot . '/vendor/autoload.php',
+            '--colors=never',
+            '--do-not-cache-result',
+            ...$arguments,
+        ], $projectRoot);
+
+        $process->run();
+
+        $report = $process->getOutput() . $process->getErrorOutput();
+        self::assertSame(0, $process->getExitCode(), $report);
+
+        return $report;
     }
 
     /** @param positive-int $ordinal */

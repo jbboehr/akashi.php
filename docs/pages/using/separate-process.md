@@ -26,37 +26,39 @@ exit(0);
 ```
 ````
 
-In the ordinary trait-based integration, provide explicit runtime configuration through its optional hook. The
-project-owned `DocumentationCorpus` helper is described in
-[Test a README and docs/](../guides/test-documentation.md#define-the-source-set).
+Use the suite-based integration when discovery and execution should share one project root:
 
 ```php
 <?php
 
-use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
-use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleSuite;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExampleSuite;
+use jbboehr\Akashi\Source\DocumentationSource;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentationExamplesTest extends TestCase
 {
-    use VerifiesPhpUnitExamples;
+    use VerifiesPhpUnitExampleSuite;
 
-    protected static function akashiExampleCorpus(): ExampleCorpus
+    protected static function akashiExampleSuite(): PhpUnitExampleSuite
     {
-        return DocumentationCorpus::load();
-    }
+        $projectRoot = dirname(__DIR__);
 
-    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
-    {
-        return RuntimeConfiguration::forProject(dirname(__DIR__))
-            ->withBootstrap('vendor/autoload.php');
+        return new PhpUnitExampleSuite(
+            corpus: DocumentationSource::forProject($projectRoot)
+                ->includeFile('README.md')
+                ->load(),
+            runtimeConfiguration: RuntimeConfiguration::forProject($projectRoot)
+                ->withBootstrap('vendor/autoload.php'),
+        );
     }
 }
 ```
 
 A separate-process directive without `RuntimeConfiguration` is rejected; Akashi never weakens requested isolation by
-running the example in-process.
+running the example in-process. The ordinary `VerifiesPhpUnitExamples` trait remains supported with separate corpus and
+runtime-configuration hooks when that shape better fits a project-owned corpus helper.
 
 Projects using a custom PHPUnit method can pass the same configuration directly to the lower-level facade:
 
@@ -93,7 +95,7 @@ throw new ImportFailure('Import rejected by the isolated example.', 73);
 
 ## Make It the Default
 
-Projects may select child execution for every unmarked example by changing the trait's configuration hook:
+Projects may select child execution for every unmarked example in either trait's runtime configuration:
 
 ```php
 <?php

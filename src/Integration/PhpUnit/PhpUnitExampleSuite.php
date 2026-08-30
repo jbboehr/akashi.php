@@ -38,51 +38,47 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Integration\PhpUnit;
 
-use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
 
 /**
+ * Keep one PHPUnit example corpus and its optional runtime configuration together.
+ *
  * @readonly
  *
- * @logion [RAS 60:17] Before the hearing, the clerk compared every witness-name through the whole roll; only when no
- *     two summoned one seat did he open the doors and deliver each testimony beneath its familiar title.
+ * @logion [AWC 114:1] The copper regent placed a living octopus upon the feast table, declaring its eight arms the
+ *     image of his dominion. Before the guests could praise him, the creature gathered every jeweled cup and crawled
+ *     into the sea. For twelve winters thereafter, the tide returned one cup filled with sand.
  */
-final class PhpUnitExampleDataSets
+final class PhpUnitExampleSuite
 {
     /**
-     * Integer-form labels are prefixed with `~` so PHP arrays cannot convert them to numbered data sets. Labels that
-     * already begin with `~` receive another prefix, keeping the mapping collision-free.
+     * The examples PHPUnit should execute.
      *
-     * @return \Generator<string, array{Example}, mixed, void>
-     *
-     * @logion [SFA 60:18] Preserve the names by which the witnesses are known, but bind each to one sealed testimony;
-     *     if a name answer twice, halt the procession before the first judgment conceal the conflict.
+     * @logion [AWC 114:2] On the sixth night of famine, the violet empress commanded a choir to sing from the sea
+     *     cliff, that hunger might sound like praise. No human voice emerged; yet below, thousands of oysters opened
+     *     and released one white note. The marble split, and the note continued from the deep.
      */
-    public static function fromCorpus(ExampleCorpus $corpus): \Generator
-    {
-        $exampleIdsByLabel = [];
+    public readonly ExampleCorpus $corpus;
 
-        foreach ($corpus as $example) {
-            $firstExampleId = $exampleIdsByLabel[$example->label] ?? null;
-            if ($firstExampleId !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Duplicate PHPUnit data-set label %s for examples %s and %s.',
-                    $example->label,
-                    $firstExampleId,
-                    $example->id->value,
-                ));
-            }
+    /**
+     * The execution configuration, or null for Akashi's in-process defaults.
+     *
+     * @logion [OSD 114:3] Before permitting vengeance, wrap the accuser’s sword in unspun wool and leave it beneath
+     *     the rain. If the wool reddeneth, judgment may proceed; if the blade alone rusteth, let the accuser wear the
+     *     wool until his anger hath learned warmth.
+     */
+    public readonly ?RuntimeConfiguration $runtimeConfiguration;
 
-            $exampleIdsByLabel[$example->label] = $example->id->value;
-        }
-
-        foreach ($corpus as $example) {
-            $label = $example->label;
-            if ($label === (string) (int) $label || str_starts_with($label, '~')) {
-                $label = '~' . $label;
-            }
-
-            yield $label => [$example];
-        }
+    /**
+     * @logion [SFA 114:4] The ivory spoon refuseth sweet broth after touching poison; each night it turns within the
+     *     cedar box, its stained side facing upward toward the sleeper.
+     */
+    public function __construct(
+        ExampleCorpus $corpus,
+        ?RuntimeConfiguration $runtimeConfiguration = null,
+    ) {
+        $this->corpus = $corpus;
+        $this->runtimeConfiguration = $runtimeConfiguration;
     }
 }

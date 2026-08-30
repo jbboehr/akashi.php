@@ -173,16 +173,20 @@ The child protects PHPUnit from ordinary fatal process behavior. It is not an op
 
 `VerifiesPhpUnitExamples` is the ordinary consumer integration: its corpus and optional runtime-configuration hooks
 compose a project-owned PHPUnit test class without an extension or mutable registry. It delegates named provider
-arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. `PhpUnitRuntime` is the runtime
-facade: it applies skip and compile-only disposition before mode precedence. Compile-only parses against the host PHP
-version and records one assertion without transformation, bootstrap loading, or execution. Ordinary examples are
-prepared and executed through the selected backend, then their result, optional expected throwable contract, and
-optional exact stdout expectation go to `PhpUnitResultAsserter`. A compatible authored exception is success only when
-execution has no cleanup failure, its message contains the optional case-sensitive substring, and its integer code
-equals the optional code constraint. Normal completion and type, message, code, or stdout mismatches fail with
-maintained source context. Output comparison occurs only after the execution or exception contract succeeds. Child
-exits, signals, timeouts, and infrastructure failures remain failures. The adapter and facade remain public for projects
-that need a custom PHPUnit method.
+arguments to `PhpUnitExampleDataSets`, which rejects duplicate labels before yielding. For configured test classes,
+`PhpUnitExampleSuite` immutably joins the corpus and runtime configuration, while `VerifiesPhpUnitExampleSuite` exposes
+them through one hook. The suite is resolved once per provider invocation; each data set carries only its selected
+example and the shared runtime configuration, so PHPUnit and ParaTest do not receive the complete corpus for every test.
+The two traits are alternative public entry points and preserve the same runtime semantics without a hidden registry or
+cache. `PhpUnitRuntime` is the runtime facade: it applies skip and compile-only disposition before mode precedence.
+Compile-only parses against the host PHP version and records one assertion without transformation, bootstrap loading, or
+execution. Ordinary examples are prepared and executed through the selected backend, then their result, optional
+expected throwable contract, and optional exact stdout expectation go to `PhpUnitResultAsserter`. A compatible authored
+exception is success only when execution has no cleanup failure, its message contains the optional case-sensitive
+substring, and its integer code equals the optional code constraint. Normal completion and type, message, code, or
+stdout mismatches fail with maintained source context. Output comparison occurs only after the execution or exception
+contract succeeds. Child exits, signals, timeouts, and infrastructure failures remain failures. The adapter and facade
+remain public for projects that need a custom PHPUnit method.
 
 PHPStan follows a separate verification path over the same `Example` model. `PhpStanExampleConfiguration` selects a
 relevant ordered subcorpus. The `VerifiesPhpStanExamples` trait parses identifier-oriented expectations associated with

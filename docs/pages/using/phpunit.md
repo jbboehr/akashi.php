@@ -42,36 +42,45 @@ project remains responsible for source selection and can share the same `Example
 
 ## Configure Runtime Execution
 
-Without an override, the trait selects the in-process defaults. Override its second hook when examples need an explicit
-project working directory, a bootstrap, or child-process execution:
+Without an override, the ordinary trait selects the in-process defaults. When examples need an explicit project working
+directory, a bootstrap, or child-process execution, `VerifiesPhpUnitExampleSuite` keeps the corpus and runtime
+configuration in one immutable definition:
 
 ```php
 <?php
 
-use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
-use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleSuite;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExampleSuite;
+use jbboehr\Akashi\Source\DocumentationSource;
 use PHPUnit\Framework\TestCase;
 
 final class ConfiguredDocumentationExamplesTest extends TestCase
 {
-    use VerifiesPhpUnitExamples;
+    use VerifiesPhpUnitExampleSuite;
 
-    protected static function akashiExampleCorpus(): ExampleCorpus
+    protected static function akashiExampleSuite(): PhpUnitExampleSuite
     {
-        return DocumentationCorpus::load();
-    }
+        $projectRoot = dirname(__DIR__);
 
-    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
-    {
-        return RuntimeConfiguration::forProject(dirname(__DIR__))
-            ->withBootstrap('vendor/autoload.php');
+        return new PhpUnitExampleSuite(
+            corpus: DocumentationSource::forProject($projectRoot)
+                ->includeFile('README.md')
+                ->load(),
+            runtimeConfiguration: RuntimeConfiguration::forProject($projectRoot)
+                ->withBootstrap('vendor/autoload.php'),
+        );
     }
 }
 ```
 
+The suite hook runs once per data-provider invocation while PHPUnit builds the data sets. Each data set carries only its
+example and the shared runtime configuration; Akashi keeps no mutable static suite registry. Use either PHPUnit trait in
+one test class, not both.
+
 The runtime configuration is immutable. Its project root is canonicalized immediately, and its bootstrap must be a
-readable file that resolves inside that root.
+readable file that resolves inside that root. Existing users of `VerifiesPhpUnitExamples` may instead continue to
+override `akashiRuntimeConfiguration()` alongside `akashiExampleCorpus()`.
 
 ## Customize the PHPUnit Test
 

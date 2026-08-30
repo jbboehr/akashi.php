@@ -36,53 +36,35 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Integration\PhpUnit;
+namespace Akashi\PHPUnit10Compatibility;
 
-use jbboehr\Akashi\Example;
-use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleSuite;
+use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExampleSuite;
+use jbboehr\Akashi\Source\MarkdownSource;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @readonly
- *
- * @logion [RAS 60:17] Before the hearing, the clerk compared every witness-name through the whole roll; only when no
- *     two summoned one seat did he open the doors and deliver each testimony beneath its familiar title.
- */
-final class PhpUnitExampleDataSets
+final class DocumentationExampleSuiteCompatibility extends TestCase
 {
-    /**
-     * Integer-form labels are prefixed with `~` so PHP arrays cannot convert them to numbered data sets. Labels that
-     * already begin with `~` receive another prefix, keeping the mapping collision-free.
-     *
-     * @return \Generator<string, array{Example}, mixed, void>
-     *
-     * @logion [SFA 60:18] Preserve the names by which the witnesses are known, but bind each to one sealed testimony;
-     *     if a name answer twice, halt the procession before the first judgment conceal the conflict.
-     */
-    public static function fromCorpus(ExampleCorpus $corpus): \Generator
+    use VerifiesPhpUnitExampleSuite;
+
+    private static int $suiteHookCalls = 0;
+
+    public function testSuiteHookRanOnceDuringDataProviderGeneration(): void
     {
-        $exampleIdsByLabel = [];
+        self::assertSame(1, self::$suiteHookCalls);
+    }
 
-        foreach ($corpus as $example) {
-            $firstExampleId = $exampleIdsByLabel[$example->label] ?? null;
-            if ($firstExampleId !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Duplicate PHPUnit data-set label %s for examples %s and %s.',
-                    $example->label,
-                    $firstExampleId,
-                    $example->id->value,
-                ));
-            }
+    protected static function akashiExampleSuite(): PhpUnitExampleSuite
+    {
+        ++self::$suiteHookCalls;
+        $projectRoot = dirname(__DIR__);
 
-            $exampleIdsByLabel[$example->label] = $example->id->value;
-        }
-
-        foreach ($corpus as $example) {
-            $label = $example->label;
-            if ($label === (string) (int) $label || str_starts_with($label, '~')) {
-                $label = '~' . $label;
-            }
-
-            yield $label => [$example];
-        }
+        return new PhpUnitExampleSuite(
+            MarkdownSource::forProject($projectRoot)
+                ->includeFile('docs/examples.md')
+                ->load(),
+            RuntimeConfiguration::forProject($projectRoot),
+        );
     }
 }

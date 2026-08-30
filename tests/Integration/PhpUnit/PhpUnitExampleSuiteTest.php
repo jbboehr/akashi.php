@@ -36,53 +36,70 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Integration\PhpUnit;
+namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 
+use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleSuite;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @readonly
- *
- * @logion [RAS 60:17] Before the hearing, the clerk compared every witness-name through the whole roll; only when no
- *     two summoned one seat did he open the doors and deliver each testimony beneath its familiar title.
- */
-final class PhpUnitExampleDataSets
+final class PhpUnitExampleSuiteTest extends TestCase
 {
-    /**
-     * Integer-form labels are prefixed with `~` so PHP arrays cannot convert them to numbered data sets. Labels that
-     * already begin with `~` receive another prefix, keeping the mapping collision-free.
-     *
-     * @return \Generator<string, array{Example}, mixed, void>
-     *
-     * @logion [SFA 60:18] Preserve the names by which the witnesses are known, but bind each to one sealed testimony;
-     *     if a name answer twice, halt the procession before the first judgment conceal the conflict.
-     */
-    public static function fromCorpus(ExampleCorpus $corpus): \Generator
+    public function testKeepsOneCorpusAndItsRuntimeConfigurationTogether(): void
     {
-        $exampleIdsByLabel = [];
+        $corpus = new ExampleCorpus($this->example());
+        $runtimeConfiguration = RuntimeConfiguration::forProject(dirname(__DIR__, 3));
 
-        foreach ($corpus as $example) {
-            $firstExampleId = $exampleIdsByLabel[$example->label] ?? null;
-            if ($firstExampleId !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Duplicate PHPUnit data-set label %s for examples %s and %s.',
-                    $example->label,
-                    $firstExampleId,
-                    $example->id->value,
-                ));
-            }
+        $suite = new PhpUnitExampleSuite(
+            corpus: $corpus,
+            runtimeConfiguration: $runtimeConfiguration,
+        );
 
-            $exampleIdsByLabel[$example->label] = $example->id->value;
-        }
+        self::assertSame($corpus, $suite->corpus);
+        self::assertSame($runtimeConfiguration, $suite->runtimeConfiguration);
+    }
 
-        foreach ($corpus as $example) {
-            $label = $example->label;
-            if ($label === (string) (int) $label || str_starts_with($label, '~')) {
-                $label = '~' . $label;
-            }
+    public function testUsesInProcessDefaultsWhenRuntimeConfigurationIsOmitted(): void
+    {
+        $suite = new PhpUnitExampleSuite(new ExampleCorpus($this->example()));
 
-            yield $label => [$example];
-        }
+        self::assertNull($suite->runtimeConfiguration);
+    }
+
+    public function testExposedSuiteStateIsImmutable(): void
+    {
+        self::assertTrue((new \ReflectionProperty(PhpUnitExampleSuite::class, 'corpus'))->isReadOnly());
+        self::assertTrue((new \ReflectionProperty(PhpUnitExampleSuite::class, 'runtimeConfiguration'))->isReadOnly());
+    }
+
+    private function example(): Example
+    {
+        $code = 'assert(true);';
+
+        return Example::fromInline(
+            id: new ExampleId('phpunit-suite-01'),
+            label: 'PHPUnit suite example',
+            document: new Document('docs/phpunit-suite.md', $code),
+            location: new SourceLocation(
+                9,
+                10,
+                10,
+                11,
+                new SourceSpan(0, strlen($code)),
+                new SourceSpan(0, strlen($code)),
+            ),
+            language: new Language('php'),
+            code: new ExampleCode($code),
+            fence: new FenceMetadata('php', '`', 3, 0),
+            ordinal: 1,
+        );
     }
 }

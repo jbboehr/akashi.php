@@ -166,19 +166,23 @@ ordinary PHP files and should use normal project formatter commands directly.
 
 ## PHPUnit Runtime
 
-| Type                                          | Purpose                                                                     |
-| --------------------------------------------- | --------------------------------------------------------------------------- |
-| `Integration\PhpUnit\VerifiesPhpUnitExamples` | Provide a named PHPUnit test for every example in a consumer corpus.        |
-| `Integration\PhpUnit\PhpUnitExampleDataSets`  | Convert a corpus to uniquely labeled PHPUnit data-provider arguments.       |
-| `Integration\PhpUnit\PhpUnitRuntime`          | Apply runtime disposition, then validate or execute and assert one example. |
-| `Execution\RuntimeConfiguration`              | Canonical project root, optional bootstrap, and default execution mode.     |
-| `Execution\ExecutionMode`                     | `InProcess` or `SeparateProcess`.                                           |
+| Type                                              | Purpose                                                                     |
+| ------------------------------------------------- | --------------------------------------------------------------------------- |
+| `Integration\PhpUnit\VerifiesPhpUnitExamples`     | Provide a named PHPUnit test for every example in a consumer corpus.        |
+| `Integration\PhpUnit\PhpUnitExampleSuite`         | Keep one corpus and optional runtime configuration together.                |
+| `Integration\PhpUnit\VerifiesPhpUnitExampleSuite` | Provide named PHPUnit tests from one immutable suite hook.                  |
+| `Integration\PhpUnit\PhpUnitExampleDataSets`      | Convert a corpus to uniquely labeled PHPUnit data-provider arguments.       |
+| `Integration\PhpUnit\PhpUnitRuntime`              | Apply runtime disposition, then validate or execute and assert one example. |
+| `Execution\RuntimeConfiguration`                  | Canonical project root, optional bootstrap, and default execution mode.     |
+| `Execution\ExecutionMode`                         | `InProcess` or `SeparateProcess`.                                           |
 
 Prepared-source, transform, executor, result, and failure types describe Akashi's internal implementation boundary. They
-are not public extension points. Most runtime consumers should use `VerifiesPhpUnitExamples`; projects that need a
-custom PHPUnit method can use `PhpUnitExampleDataSets` and `PhpUnitRuntime::assertExample()` directly. Both paths keep
-skip and compile-only disposition, backend selection, preparation, execution, cleanup, and PHPUnit reporting within the
-supported facade.
+are not public extension points. Most runtime consumers should use `VerifiesPhpUnitExamples`. Configured tests may use
+`PhpUnitExampleSuite` with `VerifiesPhpUnitExampleSuite` to return discovery and execution configuration from one hook;
+the suite hook is evaluated once per data-provider invocation. The two traits are alternatives and must not be used on
+the same test class. Projects that need a custom PHPUnit method can use `PhpUnitExampleDataSets` and
+`PhpUnitRuntime::assertExample()` directly. All three paths keep skip and compile-only disposition, backend selection,
+preparation, execution, cleanup, and PHPUnit reporting within the supported facade.
 
 ## PHPStan
 

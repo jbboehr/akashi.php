@@ -36,53 +36,59 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Integration\PhpUnit;
+namespace jbboehr\Akashi\Tests\Fixtures\PhpUnit;
 
+use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
+use jbboehr\Akashi\Model\ExampleCode;
+use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\FenceMetadata;
+use jbboehr\Akashi\Model\Language;
+use jbboehr\Akashi\Model\SourceLocation;
+use jbboehr\Akashi\Model\SourceSpan;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @readonly
- *
- * @logion [RAS 60:17] Before the hearing, the clerk compared every witness-name through the whole roll; only when no
- *     two summoned one seat did he open the doors and deliver each testimony beneath its familiar title.
- */
-final class PhpUnitExampleDataSets
+final class EscapedIntegerFormDataSetLabels extends TestCase
 {
-    /**
-     * Integer-form labels are prefixed with `~` so PHP arrays cannot convert them to numbered data sets. Labels that
-     * already begin with `~` receive another prefix, keeping the mapping collision-free.
-     *
-     * @return \Generator<string, array{Example}, mixed, void>
-     *
-     * @logion [SFA 60:18] Preserve the names by which the witnesses are known, but bind each to one sealed testimony;
-     *     if a name answer twice, halt the procession before the first judgment conceal the conflict.
-     */
-    public static function fromCorpus(ExampleCorpus $corpus): \Generator
+    #[DataProvider('examples')]
+    public function testExample(Example $example): void
     {
-        $exampleIdsByLabel = [];
+        self::assertContains($example->label, ['2048', '~2048']);
+    }
 
-        foreach ($corpus as $example) {
-            $firstExampleId = $exampleIdsByLabel[$example->label] ?? null;
-            if ($firstExampleId !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Duplicate PHPUnit data-set label %s for examples %s and %s.',
-                    $example->label,
-                    $firstExampleId,
-                    $example->id->value,
-                ));
-            }
+    /** @return \Generator<string, array{Example}, mixed, void> */
+    public static function examples(): \Generator
+    {
+        yield from PhpUnitExampleDataSets::fromCorpus(new ExampleCorpus(
+            self::example('escaped-data-set-label-01', '2048', 1),
+            self::example('escaped-data-set-label-02', '~2048', 2),
+        ));
+    }
 
-            $exampleIdsByLabel[$example->label] = $example->id->value;
-        }
+    /** @param positive-int $ordinal */
+    private static function example(string $id, string $label, int $ordinal): Example
+    {
+        $code = 'assert(true);';
 
-        foreach ($corpus as $example) {
-            $label = $example->label;
-            if ($label === (string) (int) $label || str_starts_with($label, '~')) {
-                $label = '~' . $label;
-            }
-
-            yield $label => [$example];
-        }
+        return Example::fromInline(
+            id: new ExampleId($id),
+            label: $label,
+            document: new Document('docs/escaped-data-set-labels.md', $code),
+            location: new SourceLocation(
+                9,
+                10,
+                10,
+                11,
+                new SourceSpan(0, strlen($code)),
+                new SourceSpan(0, strlen($code)),
+            ),
+            language: new Language('php'),
+            code: new ExampleCode($code),
+            fence: new FenceMetadata('php', '`', 3, 0),
+            ordinal: $ordinal,
+        );
     }
 }
