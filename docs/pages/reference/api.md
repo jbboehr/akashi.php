@@ -215,6 +215,12 @@ the option delimiter before its analysis paths, and keeps the plan's project roo
 60-second default timeout as the runner; callers may provide another finite positive duration. Nonzero completed
 statuses remain evidence rather than an automatic failure.
 
+`verifyPlanOrThrow()` and `verifyOrThrow()` provide the exception-oriented form of those operations. They return a
+`PhpStanCommandVerified` only when the command completes, its JSON is accepted, and diagnostics match. Every other typed
+outcome raises `PhpStanCommandVerificationFailedException`. The exception's `result` property preserves the original
+`PhpStanCommandNotCompleted`, `PhpStanCommandOutputRejected`, or unsuccessful `PhpStanCommandVerified` evidence;
+rejected-output exceptions also chain the decoder failure as their previous exception.
+
 `PhpStanExternalFixturePlan` contains one canonical project root, a sorted nonempty list of project-relative `.php`
 analysis paths, and exactly one platform-native canonical absolute expectation-map entry for each path.
 `PhpStanExternalFixturePlanner` builds this model from examples selected by `PhpStanExampleConfiguration`. The corpus
@@ -243,9 +249,10 @@ should catch the narrowest meaningful type or its family base instead of parsing
 
 Malformed inputs passed directly to the analyzer-independent PHPStan model, `PhpStanResultVerifier`, or
 `PhpStanCommandVerifier` are programmer errors reported as `\InvalidArgumentException`, not `PhpStanException`
-instances. The same applies to malformed command paths, argument vectors, and timeout values; supported operational
-command failures are returned as `PhpStanCommandResult` or `PhpStanCommandVerificationResult` evidence instead of
-exceptions.
+instances. The same applies to malformed command paths, argument vectors, and timeout values. The `verify()` and
+`verifyPlan()` methods return supported operational failures as `PhpStanCommandVerificationResult` evidence;
+`verifyOrThrow()` and `verifyPlanOrThrow()` instead raise `PhpStanCommandVerificationFailedException` while retaining
+that evidence on the exception.
 
 `PhpUnitRuntime::assertExample()` can also raise PHPUnit's ordinary expectation-failure or skipped-test control flow.
 

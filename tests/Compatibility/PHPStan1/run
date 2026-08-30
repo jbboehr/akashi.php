@@ -144,7 +144,7 @@ if (
     throw new RuntimeException("Unexpected external PHPStan fixture plan.");
 }
 
-$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verifyPlan(
+$result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->verifyPlanOrThrow(
     $fixtures,
     PHP_BINARY,
     [
@@ -155,17 +155,6 @@ $result = (new jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier())->ver
         "--level=max",
     ],
 );
-if (!$result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified) {
-    throw new RuntimeException(sprintf(
-        "PHPStan 1.12 command verification did not complete: %s. Cause: %s; stdout: %s; stderr: %s",
-        $result::class,
-        $result instanceof jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected
-            ? $result->cause->getMessage()
-            : ($result->commandResult->failureMessage ?? "none"),
-        var_export($result->commandResult->stdout, true),
-        var_export($result->commandResult->stderr, true),
-    ));
-}
 if ($result->commandResult->exitCode !== 1) {
     throw new RuntimeException(sprintf(
         "Expected PHPStan JSON fixture analysis to exit 1, got %s; stdout: %s; stderr: %s.",

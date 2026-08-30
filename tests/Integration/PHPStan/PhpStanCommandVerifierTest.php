@@ -39,6 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Integration\PHPStan;
 
 use jbboehr\Akashi\Integration\PHPStan\DiagnosticExpectation;
+use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanCommandVerificationFailedException;
 use jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanJsonDecodeException;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandNotCompleted;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected;
@@ -205,7 +206,7 @@ final class PhpStanCommandVerifierTest extends TestCase
             ],
         );
 
-        $result = (new PhpStanCommandVerifier())->verifyPlan(
+        $result = (new PhpStanCommandVerifier())->verifyPlanOrThrow(
             $plan,
             PHP_BINARY,
             [
@@ -216,11 +217,286 @@ final class PhpStanCommandVerifierTest extends TestCase
             ],
         );
 
-        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
         self::assertSame(1, $result->commandResult->exitCode);
         self::assertTrue($result->verificationResult->isSuccessful());
         self::assertArrayHasKey($optionLikeFile, $result->verificationResult->matchesByFile);
         self::assertArrayHasKey($nestedFile, $result->verificationResult->matchesByFile);
+    }
+
+    public function testVerifyOrThrowPreservesDiagnosticMismatchEvidence(): void
+    {
+        $file = $this->nativePath('example.php');
+        $json = self::phpStanJson([
+            $file => [
+                'errors' => 1,
+                'messages' => [[
+                    'message' => 'Actual diagnostic',
+                    'line' => 7,
+                    'ignorable' => true,
+                    'identifier' => 'actual.identifier',
+                ]],
+            ],
+        ]);
+
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                $this->workspace,
+                PHP_BINARY,
+                self::emit($json, 'analysis warning', 1),
+                [$file => [new DiagnosticExpectation(
+                    null,
+                    7,
+                    'expected.identifier',
+                    ['first' => 7, 'last' => 7],
+                )]],
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertSame(
+                'PHPStan command diagnostics did not match: 0 analyzer-wide errors and 1 mismatched file.',
+                $failure->getMessage(),
+            );
+            self::assertInstanceOf(PhpStanCommandVerified::class, $failure->result);
+            self::assertFalse($failure->result->verificationResult->isSuccessful());
+            self::assertArrayHasKey($file, $failure->result->verificationResult->mismatchesByFile);
+            self::assertSame('analysis warning', $failure->result->commandResult->stderr);
+            self::assertNull($failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('A diagnostic mismatch must throw typed failure evidence.');
+    }
+
+    public function testVerifyOrThrowPreservesRejectedOutputAndItsCause(): void
+    {
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                $this->workspace,
+                PHP_BINARY,
+                self::emit('not json', 'proxy warning', 2),
+                [],
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertStringStartsWith('PHPStan command output was rejected: ', $failure->getMessage());
+            self::assertInstanceOf(PhpStanCommandOutputRejected::class, $failure->result);
+            self::assertSame('not json', $failure->result->commandResult->stdout);
+            self::assertSame('proxy warning', $failure->result->commandResult->stderr);
+            self::assertSame($failure->result->cause, $failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('Rejected analyzer output must throw typed failure evidence.');
+    }
+
+    public function testVerifyOrThrowPreservesNonCompletionEvidence(): void
+    {
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                $this->workspace,
+                PHP_BINARY,
+                ['-r', "fwrite(STDOUT, 'partial'); usleep(500000);"],
+                [],
+                0.05,
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertSame(
+                'PHPStan command did not complete: timed out after 0.05 seconds.',
+                $failure->getMessage(),
+            );
+            self::assertInstanceOf(PhpStanCommandNotCompleted::class, $failure->result);
+            self::assertSame(PhpStanCommandTermination::TimedOut, $failure->result->commandResult->termination);
+            self::assertSame('partial', $failure->result->commandResult->stdout);
+            self::assertSame(0.05, $failure->result->commandResult->timeoutSeconds);
+            self::assertNull($failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('A command timeout must throw typed failure evidence.');
+    }
+
+    public function testVerifyOrThrowPreservesInfrastructureFailureEvidence(): void
+    {
+        $missingRoot = $this->nativePath('missing');
+
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                $missingRoot,
+                PHP_BINARY,
+                [],
+                [],
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertInstanceOf(PhpStanCommandNotCompleted::class, $failure->result);
+            self::assertSame(
+                PhpStanCommandTermination::InfrastructureFailed,
+                $failure->result->commandResult->termination,
+            );
+            self::assertStringContainsString(
+                str_replace('\\', '/', $missingRoot),
+                $failure->result->commandResult->failureMessage ?? '',
+            );
+            self::assertSame(
+                sprintf(
+                    'PHPStan command did not complete: %s',
+                    $failure->result->commandResult->failureMessage,
+                ),
+                $failure->getMessage(),
+            );
+            self::assertSame('', $failure->result->commandResult->stdout);
+            self::assertSame('', $failure->result->commandResult->stderr);
+            self::assertNull($failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('An infrastructure failure must throw typed non-completion evidence.');
+    }
+
+    public function testVerifyOrThrowPreservesSignalEvidence(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\' || !function_exists('posix_kill')) {
+            self::markTestSkipped('Process-signal evidence requires a Unix-like platform with ext-posix.');
+        }
+
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                $this->workspace,
+                PHP_BINARY,
+                [
+                    '-r',
+                    <<<'PHP'
+                        fwrite(STDOUT, 'partial');
+                        fflush(STDOUT);
+                        fwrite(STDERR, 'signal warning');
+                        fflush(STDERR);
+                        posix_kill(getmypid(), 15);
+                        usleep(500000);
+                        PHP,
+                ],
+                [],
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertSame('PHPStan command did not complete: terminated by signal 15.', $failure->getMessage());
+            self::assertInstanceOf(PhpStanCommandNotCompleted::class, $failure->result);
+            self::assertSame(PhpStanCommandTermination::Signaled, $failure->result->commandResult->termination);
+            self::assertSame(15, $failure->result->commandResult->termSignal);
+            self::assertSame('partial', $failure->result->commandResult->stdout);
+            self::assertSame('signal warning', $failure->result->commandResult->stderr);
+            self::assertNull($failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('A process signal must throw typed non-completion evidence.');
+    }
+
+    public function testVerifyOrThrowRejectsAnalyzerWideErrorsWithoutFileMismatches(): void
+    {
+        $json = self::phpStanJson([], ['Configuration could not be loaded.']);
+
+        try {
+            (new PhpStanCommandVerifier())->verifyOrThrow(
+                projectRoot: $this->workspace,
+                executable: PHP_BINARY,
+                arguments: self::emit($json, 'configuration warning', 1),
+                expectationsByFile: [],
+            );
+        } catch (PhpStanCommandVerificationFailedException $failure) {
+            self::assertSame(
+                'PHPStan command diagnostics did not match: 1 analyzer-wide error and 0 mismatched files.',
+                $failure->getMessage(),
+            );
+            self::assertInstanceOf(PhpStanCommandVerified::class, $failure->result);
+            self::assertSame(['Configuration could not be loaded.'], $failure->result->analyzerResult->globalErrors);
+            self::assertSame(
+                ['Configuration could not be loaded.'],
+                $failure->result->verificationResult->globalErrors,
+            );
+            self::assertSame([], $failure->result->verificationResult->mismatchesByFile);
+            self::assertSame($json, $failure->result->commandResult->stdout);
+            self::assertSame('configuration warning', $failure->result->commandResult->stderr);
+            self::assertSame(1, $failure->result->commandResult->exitCode);
+            self::assertNull($failure->getPrevious());
+
+            return;
+        }
+
+        self::fail('An analyzer-wide error must fail verification without a file mismatch.');
+    }
+
+    public function testVerifyOrThrowAcceptsNamedArgumentsAndACompletedNonzeroExit(): void
+    {
+        $json = self::phpStanJson([]);
+
+        $result = (new PhpStanCommandVerifier())->verifyOrThrow(
+            expectationsByFile: [],
+            arguments: self::emit($json, 'non-fatal warning', 23),
+            executable: PHP_BINARY,
+            projectRoot: $this->workspace,
+        );
+
+        self::assertSame(PhpStanCommandTermination::Completed, $result->commandResult->termination);
+        self::assertSame(23, $result->commandResult->exitCode);
+        self::assertSame('non-fatal warning', $result->commandResult->stderr);
+        self::assertTrue($result->verificationResult->isSuccessful());
+    }
+
+    public function testThrowingConveniencesMatchDataApiParameterContracts(): void
+    {
+        foreach ([
+            ['verify', 'verifyOrThrow'],
+            ['verifyPlan', 'verifyPlanOrThrow'],
+        ] as [$dataMethod, $throwingMethod]) {
+            $dataParameters = (new \ReflectionMethod(PhpStanCommandVerifier::class, $dataMethod))->getParameters();
+            $throwingParameters = (new \ReflectionMethod(PhpStanCommandVerifier::class, $throwingMethod))->getParameters();
+
+            self::assertSame(
+                array_map(
+                    static fn (\ReflectionParameter $parameter): array => [
+                        'name' => $parameter->getName(),
+                        'type' => (string) $parameter->getType(),
+                        'hasDefault' => $parameter->isDefaultValueAvailable(),
+                        'default' => $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                    ],
+                    $dataParameters,
+                ),
+                array_map(
+                    static fn (\ReflectionParameter $parameter): array => [
+                        'name' => $parameter->getName(),
+                        'type' => (string) $parameter->getType(),
+                        'hasDefault' => $parameter->isDefaultValueAvailable(),
+                        'default' => $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                    ],
+                    $throwingParameters,
+                ),
+                sprintf('%s() must preserve %s() parameter names, types, and defaults.', $throwingMethod, $dataMethod),
+            );
+        }
+    }
+
+    public function testVerifyOrThrowRejectsMalformedExpectationsBeforeLaunchingTheCommand(): void
+    {
+        $sideEffect = $this->nativePath('must-not-exist');
+
+        try {
+            (new \ReflectionMethod(PhpStanCommandVerifier::class, 'verifyOrThrow'))->invoke(
+                new PhpStanCommandVerifier(),
+                $this->workspace,
+                PHP_BINARY,
+                ['-r', sprintf('touch(%s);', var_export($sideEffect, true))],
+                ['/example.php' => ['not an expectation']],
+            );
+        } catch (\InvalidArgumentException $exception) {
+            self::assertStringContainsString('must contain only expectation values', $exception->getMessage());
+            self::assertFileDoesNotExist($sideEffect);
+
+            return;
+        }
+
+        self::assertFileDoesNotExist($sideEffect, 'Malformed expectations launched the command.');
+        self::fail('Malformed expectations must remain programmer input errors in the throwing API.');
     }
 
     public function testVerifyPlanRejectsSparseArgumentsBeforeLaunchingTheCommand(): void
@@ -555,6 +831,48 @@ final class PhpStanCommandVerifierTest extends TestCase
         new PhpStanCommandVerified($timedOut, $analysis, $verification);
     }
 
+    public function testCommandVerificationFailureRejectsSuccessfulEvidence(): void
+    {
+        $completed = new PhpStanCommandResult(
+            PhpStanCommandTermination::Completed,
+            '',
+            '',
+            0,
+            exitCode: 0,
+        );
+        $verified = new PhpStanCommandVerified(
+            $completed,
+            new PhpStanJsonResult(0, 0, [], []),
+            new PhpStanVerificationResult([], [], []),
+        );
+
+        self::expectException(\InvalidArgumentException::class);
+        self::expectExceptionMessage('Successful PHPStan command verification cannot be represented as a failure.');
+        new PhpStanCommandVerificationFailedException($verified);
+    }
+
+    public function testCommandVerificationFailureRetainsTheExactFailedResult(): void
+    {
+        $completed = new PhpStanCommandResult(
+            PhpStanCommandTermination::Completed,
+            'analyzer output',
+            'analyzer warning',
+            42,
+            exitCode: 1,
+        );
+        $verified = new PhpStanCommandVerified(
+            $completed,
+            new PhpStanJsonResult(1, 0, ['Analyzer-wide failure.'], []),
+            new PhpStanVerificationResult(['Analyzer-wide failure.'], [], []),
+        );
+
+        $failure = new PhpStanCommandVerificationFailedException($verified);
+
+        self::assertSame($verified, $failure->result);
+        self::assertSame($completed, $failure->result->commandResult);
+        self::assertSame(['Analyzer-wide failure.'], $failure->result->verificationResult->globalErrors);
+    }
+
     public function testNotCompletedOutcomeRejectsCompletedEvidence(): void
     {
         $completed = new PhpStanCommandResult(
@@ -620,6 +938,7 @@ final class PhpStanCommandVerifierTest extends TestCase
         ];
     }
 
+    /** @return non-empty-string */
     private function nativePath(string $relativePath): string
     {
         return str_replace('/', DIRECTORY_SEPARATOR, $this->workspace . '/' . $relativePath);

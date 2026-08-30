@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Verify one complete external PHPStan fixture plan without manually separating its project root, analysis paths, and
   expectation map at the command boundary.
+- Opt into exception-oriented PHPStan command verification while retaining the complete typed result as failure
+  evidence.
 
 ## [0.2.0] - 2026-08-15
 

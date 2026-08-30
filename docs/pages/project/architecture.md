@@ -204,10 +204,11 @@ Its typed result preserves normal exit status and streams without treating a non
 failure, while timeout, signal, path/setup failure, local instrumentation failure, and process failures surfaced as
 exceptions remain distinguishable. `PhpStanCommandVerifier` validates expectations before launch and composes those
 three stages into typed non-completion, output-rejection, or completed-verification outcomes. It does not treat a
-nonzero analysis status as an automatic verification failure. `PhpStanExternalFixturePlanner` selects only referenced
-canonical PHP examples, groups whole-file and named-region expectations by physical identity where the filesystem
-reports one, validates that their loaded bytes are still current, and returns direct project-relative analysis paths
-with platform-native canonical absolute expectation keys.
+nonzero analysis status as an automatic verification failure. Its exception-oriented convenience methods require a
+successful diagnostic match while retaining the complete typed outcome on `PhpStanCommandVerificationFailedException`.
+`PhpStanExternalFixturePlanner` selects only referenced canonical PHP examples, groups whole-file and named-region
+expectations by physical identity where the filesystem reports one, validates that their loaded bytes are still current,
+and returns direct project-relative analysis paths with platform-native canonical absolute expectation keys.
 
 Symfony Console supplies declarative command definitions, generated help, command listing, shell completion, input and
 output routing, and cross-platform terminal handling. Akashi wraps that replaceable router with exact command names,

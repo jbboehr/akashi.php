@@ -137,6 +137,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Formatting\Exception\UnsupportedFormattingExampleException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\NoRelevantExamplesException::class,
+            \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanCommandVerificationFailedException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanConfigurationException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanException::class,
             \jbboehr\Akashi\Integration\PHPStan\Exception\PhpStanJsonDecodeException::class,
