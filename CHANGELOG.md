@@ -66,6 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Reject a caller-supplied `--` in PHPStan fixture-plan arguments before launching the analyzer because the plan
+  verifier owns the delimiter before its analysis paths.
 - Preserve integer-form labels as named PHPUnit data sets through collision-free `~` prefix escaping.
 - **Pre-1.0 public-model change:** `Example` now represents inline and referenced sources explicitly. Direct consumers
   must replace the removed `document`, `location`, and `fence` properties and the former constructor with `source`,

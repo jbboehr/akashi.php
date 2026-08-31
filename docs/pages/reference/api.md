@@ -229,10 +229,10 @@ infrastructure evidence. `PhpStanCommandOutputRejected` carries completed comman
 `PhpStanCommandVerified` carries the completed command, decoded analyzer result, and diagnostic verification result; its
 name means verification completed, not that expectations matched. `PhpStanCommandVerifier` validates expectations before
 launching the command and returns one of these variants. `verifyPlan()` consumes a `PhpStanExternalFixturePlan`, inserts
-the option delimiter before its analysis paths, and keeps the plan's project root, paths, and expectations together;
-`verify()` remains the lower-level operation for callers that already own an expectation map. Both apply the same
-60-second default timeout as the runner; callers may provide another finite positive duration. Nonzero completed
-statuses remain evidence rather than an automatic failure.
+the option delimiter before its analysis paths, rejects that owned delimiter in the caller-supplied preceding arguments,
+and keeps the plan's project root, paths, and expectations together; `verify()` remains the lower-level operation for
+callers that already own an expectation map. Both apply the same 60-second default timeout as the runner; callers may
+provide another finite positive duration. Nonzero completed statuses remain evidence rather than an automatic failure.
 
 `verifyPlanOrThrow()` and `verifyOrThrow()` provide the exception-oriented form of those operations. They return a
 `PhpStanCommandVerified` only when the command completes, its JSON is accepted, and diagnostics match. Every other typed

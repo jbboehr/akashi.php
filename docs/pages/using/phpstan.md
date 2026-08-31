@@ -200,11 +200,12 @@ expectations from overlapping references are removed. Selection is intentionally
 examples: inline Markdown and PHPDoc examples still use the generated-source `RuleTestCase` path. Because PHPStan
 analyzes the complete physical file, a diagnostic outside a selected named region is unexpected and causes a mismatch.
 `PhpStanCommandVerifier::verifyPlanOrThrow()` consumes the complete plan, appends an owned `--` delimiter and its
-analysis paths, and passes the plan's canonical root and expectation map through the lower-level verifier. It returns
-concrete `PhpStanCommandVerified` evidence only when diagnostics match. Non-completion, rejected JSON output, global
-analyzer errors, and diagnostic mismatches raise `PhpStanCommandVerificationFailedException`; its `result` property
-retains the original typed variant, including command streams and any decoder cause. A nonzero analyzer exit status is
-not independently a failure because expected diagnostics commonly produce one.
+analysis paths, and passes the plan's canonical root and expectation map through the lower-level verifier. Do not
+include `--` in `argumentsBeforePaths`; the plan verifier rejects its owned delimiter there before launching PHPStan. It
+returns concrete `PhpStanCommandVerified` evidence only when diagnostics match. Non-completion, rejected JSON output,
+global analyzer errors, and diagnostic mismatches raise `PhpStanCommandVerificationFailedException`; its `result`
+property retains the original typed variant, including command streams and any decoder cause. A nonzero analyzer exit
+status is not independently a failure because expected diagnostics commonly produce one.
 
 Use `verifyPlan()` instead when policy code needs every outcome as data. Callers that already own an expectation map may
 use the parallel `verifyOrThrow()` or `verify()` methods without the planner. A project using both verification paths

@@ -532,6 +532,41 @@ final class PhpStanCommandVerifierTest extends TestCase
         self::fail('Malformed plan arguments must be rejected before command execution.');
     }
 
+    public function testVerifyPlanRejectsItsOwnedDelimiterBeforeLaunchingTheCommand(): void
+    {
+        $file = $this->nativePath('example.php');
+        $sideEffect = $this->nativePath('must-not-exist');
+        $runner = $this->nativePath('must-not-run.php');
+        self::assertNotFalse(file_put_contents(
+            $runner,
+            sprintf("<?php\ntouch(%s);\n", var_export($sideEffect, true)),
+        ));
+        $plan = new PhpStanExternalFixturePlan(
+            new ProjectRoot($this->workspace),
+            ['example.php'],
+            [$file => []],
+        );
+
+        try {
+            (new PhpStanCommandVerifier())->verifyPlan(
+                $plan,
+                PHP_BINARY,
+                [$runner, '--'],
+            );
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame(
+                'PHPStan arguments before planned paths must not contain the owned -- delimiter.',
+                $exception->getMessage(),
+            );
+            self::assertFileDoesNotExist($sideEffect);
+
+            return;
+        }
+
+        self::assertFileDoesNotExist($sideEffect, 'A caller-supplied delimiter launched the command.');
+        self::fail('The fixture-plan verifier must reject its owned delimiter in caller arguments.');
+    }
+
     public function testVerifyPlanForwardsItsTimeoutAndRetainsTheDefault(): void
     {
         $method = new \ReflectionMethod(PhpStanCommandVerifier::class, 'verifyPlan');

@@ -82,7 +82,8 @@ final class PhpStanCommandVerifier
     /**
      * Run PHPStan with the paths and expectations in one external fixture plan.
      *
-     * The supplied arguments precede the owned `--` delimiter and planned analysis paths.
+     * The supplied arguments precede the owned `--` delimiter and planned analysis paths and must not contain that
+     * delimiter themselves.
      *
      * @param list<string> $argumentsBeforePaths
      *
@@ -100,6 +101,12 @@ final class PhpStanCommandVerifier
         array $argumentsBeforePaths,
         float $timeoutSeconds = 60.0,
     ): PhpStanCommandVerificationResult {
+        if (in_array('--', $argumentsBeforePaths, true)) {
+            throw new \InvalidArgumentException(
+                'PHPStan arguments before planned paths must not contain the owned -- delimiter.',
+            );
+        }
+
         $arguments = $argumentsBeforePaths;
         $arguments[] = '--';
         foreach ($plan->analysisPaths as $analysisPath) {
