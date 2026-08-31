@@ -17,6 +17,21 @@ classify every autoloadable Akashi declaration as an entry point, canonical mode
 exception, or explicitly internal declaration. This reference groups the public types by consumer workflow;
 autoloadability alone does not create an extension point.
 
+## Migrating from 0.2
+
+`DocumentationSource` and `MarkdownSource` remain immutable, but their builder methods now use names that communicate
+that each call returns a new configuration. Replace source-manifest calls as follows:
+
+| 0.2 method                | Replacement               |
+| ------------------------- | ------------------------- |
+| `includeFile($path)`      | `withFile($path)`         |
+| `includeFiles($paths)`    | `withFiles($paths)`       |
+| `includeDirectory($path)` | `withDirectory($path)`    |
+| `exclude($path)`          | `withExcludedPath($path)` |
+
+Arguments, validation, ordering, and loading behavior are unchanged. Continue chaining or assigning every builder call;
+ignoring the returned instance leaves the earlier immutable configuration unchanged.
+
 ## Migrating from 0.1
 
 Projects that build a corpus through `MarkdownSource` and execute or analyze it through the PHPUnit and PHPStan traits

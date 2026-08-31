@@ -128,7 +128,7 @@ PHP);
             'external-named-region' => 'examples/regions.php:4',
         ];
         $examples = DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles(['README.md', 'src/Examples.php'])
+            ->withFiles(['README.md', 'src/Examples.php'])
             ->load();
 
         self::assertCount(count($expectations), $examples);

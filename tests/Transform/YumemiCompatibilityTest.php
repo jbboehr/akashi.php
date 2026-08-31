@@ -53,8 +53,8 @@ final class YumemiCompatibilityTest extends TestCase
         $root = __DIR__ . '/../Fixtures/Compatibility/Yumemi';
 
         $corpus = MarkdownSource::forProject($root)
-            ->includeFile('README.md')
-            ->includeDirectory('docs/pages')
+            ->withFile('README.md')
+            ->withDirectory('docs/pages')
             ->load();
         $transformer = new InProcessTransformer();
         $parser = (new ParserFactory())->createForHostVersion();

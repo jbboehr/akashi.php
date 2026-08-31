@@ -26,20 +26,20 @@ The fluent methods are:
 
 | Method                              | Contract                                                                                      |
 | ----------------------------------- | --------------------------------------------------------------------------------------------- |
-| `includeFile($path)`                | Add one project-relative file with the case-sensitive `.md` or `.php` extension.              |
-| `includeFiles($paths)`              | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.       |
-| `includeDirectory($path)`           | Recursively add `.md` and `.php` files below one project-relative directory.                  |
-| `exclude($path)`                    | Exclude an exact path and, for a directory, its complete subtree.                             |
+| `withFile($path)`                   | Add one project-relative file with the case-sensitive `.md` or `.php` extension.              |
+| `withFiles($paths)`                 | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.       |
+| `withDirectory($path)`              | Recursively add `.md` and `.php` files below one project-relative directory.                  |
+| `withExcludedPath($path)`           | Exclude an exact path and, for a directory, its complete subtree.                             |
 | `withMarkerName($name)`             | Add one lowercase kebab-case legacy marker-comment dialect across both source formats.        |
 | `withPhpDocReferenceTags(...$tags)` | Replace the default `@akashi-example` external-reference tag with one or more accepted names. |
 | `load()`                            | Read selected sources and return one nonempty, deterministically ordered `ExampleCorpus`.     |
 
-`includeFiles()` consumes its iterable immediately to preserve immutable configuration. Symfony Finder entries extend
+`withFiles()` consumes its iterable immediately to preserve immutable configuration. Symfony Finder entries extend
 `SplFileInfo`, so a Finder restricted to files can be passed directly. A `SplFileInfo` may carry an absolute pathname,
 but the resolved file must remain inside the configured project root. Strings and `ProjectPath` values remain
 project-relative.
 
-`MarkdownSource` retains the Markdown-only API, including `loadDocuments()`, and now also accepts `includeFiles()`. Its
+`MarkdownSource` retains the Markdown-only API, including `loadDocuments()`, and now also accepts `withFiles()`. Its
 explicit files and recursive directories continue to select only the case-sensitive `.md` extension.
 
 Canonical `akashi:` metadata, including `example=ID`, requires no source configuration. `withMarkerName()` is additive:

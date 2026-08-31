@@ -135,7 +135,7 @@ final class ExtractCommand extends Command
             'documentation',
         );
 
-        $source = DocumentationSource::forProject($projectRoot)->includeFile($projectPath);
+        $source = DocumentationSource::forProject($projectRoot)->withFile($projectPath);
         if ($markerName !== null) {
             $source = $source->withMarkerName($markerName);
         }

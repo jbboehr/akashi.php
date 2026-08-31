@@ -78,7 +78,7 @@ final class PhpStanConformanceTest extends RuleTestCase
     {
         $projectRoot = dirname(__DIR__, 2);
         $corpus = DocumentationSource::forProject($projectRoot)
-            ->includeFiles([
+            ->withFiles([
                 'tests/Fixtures/Conformance/phpstan.md',
                 'tests/Fixtures/Conformance/phpstan.php',
             ])

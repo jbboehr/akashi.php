@@ -54,7 +54,7 @@ final class ParaTestExampleSuiteCompatibilityTest extends TestCase
 
         return new PhpUnitExampleSuite(
             MarkdownSource::forProject($projectRoot)
-                ->includeFile('tests/Fixtures/Markdown/paratest.md')
+                ->withFile('tests/Fixtures/Markdown/paratest.md')
                 ->load(),
             RuntimeConfiguration::forProject($projectRoot),
         );

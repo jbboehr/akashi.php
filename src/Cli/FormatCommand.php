@@ -218,7 +218,7 @@ final class FormatCommand extends Command
                 new \SplFileInfo($absoluteFile),
                 'documentation',
             );
-            $source = $source->includeFile($projectPath);
+            $source = $source->withFile($projectPath);
             $selectedIncludes[] = new IncludeRule(IncludeKind::File, $projectPath);
         }
 

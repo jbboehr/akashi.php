@@ -49,7 +49,7 @@ final class ExpectedExceptionDocumentationTest extends TestCase
     {
         $projectRoot = dirname(__DIR__, 3);
         $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/using/phpunit.md')
+            ->withFile('docs/pages/using/phpunit.md')
             ->load();
         $example = (new MarkedExampleSelector())->select($corpus, 'expected-domain-exception');
 
@@ -60,7 +60,7 @@ final class ExpectedExceptionDocumentationTest extends TestCase
     {
         $projectRoot = dirname(__DIR__, 3);
         $corpus = MarkdownSource::forProject($projectRoot)
-            ->includeFile('docs/pages/reference/directives.md')
+            ->withFile('docs/pages/reference/directives.md')
             ->load();
         $example = (new MarkedExampleSelector())->select($corpus, 'compile-only-runtime');
 

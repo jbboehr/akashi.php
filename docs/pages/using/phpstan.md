@@ -169,7 +169,7 @@ if ($canonicalProjectRoot === false) {
 }
 
 $corpus = DocumentationSource::forProject($canonicalProjectRoot)
-    ->includeFile('src/DemoDocumentation.php')
+    ->withFile('src/DemoDocumentation.php')
     ->load();
 $fixtures = (new PhpStanExternalFixturePlanner())->plan(
     $corpus,

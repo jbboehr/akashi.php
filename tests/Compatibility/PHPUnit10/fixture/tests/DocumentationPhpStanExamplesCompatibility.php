@@ -66,7 +66,7 @@ final class DocumentationPhpStanExamplesCompatibility extends RuleTestCase
     private static function corpus(): ExampleCorpus
     {
         return MarkdownSource::forProject(dirname(__DIR__))
-            ->includeFile('docs/examples.md')
+            ->withFile('docs/examples.md')
             ->load();
     }
 }

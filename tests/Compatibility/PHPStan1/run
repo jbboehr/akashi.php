@@ -125,7 +125,7 @@ if (!is_string($phpStanScript)) {
 }
 
 $corpus = jbboehr\Akashi\Source\DocumentationSource::forProject($argv[1])
-    ->includeFile("fixtures/documentation.php")
+    ->withFile("fixtures/documentation.php")
     ->load();
 $configuration = jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration::forTokens(
     $argv[1],

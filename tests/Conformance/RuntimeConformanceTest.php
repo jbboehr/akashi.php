@@ -53,7 +53,7 @@ final class RuntimeConformanceTest extends TestCase
     public function testFailureReportsTheMaintainedMarkdownLocation(): void
     {
         $corpus = MarkdownSource::forProject(self::projectRoot())
-            ->includeFile('tests/Fixtures/Conformance/failure.md')
+            ->withFile('tests/Fixtures/Conformance/failure.md')
             ->load();
 
         try {
@@ -75,7 +75,7 @@ final class RuntimeConformanceTest extends TestCase
     {
         $fixtureRoot = self::projectRoot() . '/tests/Fixtures/Compatibility/Yumemi';
         $corpus = MarkdownSource::forProject($fixtureRoot)
-            ->includeFile('README.md')
+            ->withFile('README.md')
             ->load();
 
         PhpUnitRuntime::assertExample(iterator_to_array($corpus, false)[0]);
@@ -84,7 +84,7 @@ final class RuntimeConformanceTest extends TestCase
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
         return MarkdownSource::forProject(self::projectRoot())
-            ->includeFile('tests/Fixtures/Conformance/runtime.md')
+            ->withFile('tests/Fixtures/Conformance/runtime.md')
             ->load();
     }
 

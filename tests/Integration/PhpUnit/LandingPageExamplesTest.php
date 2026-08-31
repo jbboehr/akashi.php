@@ -53,10 +53,10 @@ final class LandingPageExamplesTest extends TestCase
         $projectRoot = dirname(__DIR__, 3);
 
         return DocumentationSource::forProject($projectRoot)
-            ->includeFile('README.md')
-            ->includeFile('docs/pages/README.md')
-            ->includeFile('docs/pages/quick-start.md')
-            ->includeFile('src/Model/ExampleId.php')
+            ->withFile('README.md')
+            ->withFile('docs/pages/README.md')
+            ->withFile('docs/pages/quick-start.md')
+            ->withFile('src/Model/ExampleId.php')
             ->load();
     }
 

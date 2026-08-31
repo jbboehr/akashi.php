@@ -117,9 +117,9 @@ final class MarkdownSourceTest extends TestCase
         $this->write('docs/pages/reference/UPPER.MD', 'Wrong extension case');
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeFile('README.md')
-            ->includeDirectory('docs/pages')
-            ->exclude('docs/pages/SUMMARY.md')
+            ->withFile('README.md')
+            ->withDirectory('docs/pages')
+            ->withExcludedPath('docs/pages/SUMMARY.md')
             ->loadDocuments();
 
         self::assertSame(
@@ -136,7 +136,7 @@ final class MarkdownSourceTest extends TestCase
         $this->write('README.md', '# Project');
         $root = new ProjectRoot($this->projectRoot);
         $base = MarkdownSource::forProject($root);
-        $included = $base->includeFile(new ProjectPath('README.md'));
+        $included = $base->withFile(new ProjectPath('README.md'));
 
         self::assertSame($root, $base->projectRoot);
         self::assertNotSame($base, $included);
@@ -156,8 +156,8 @@ final class MarkdownSourceTest extends TestCase
         $this->write('a.md', '# First');
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeFile('z.md')
-            ->includeFile('a.md')
+            ->withFile('z.md')
+            ->withFile('a.md')
             ->loadDocuments();
 
         self::assertSame(['a.md', 'z.md'], $this->paths($documents));
@@ -175,8 +175,8 @@ final class MarkdownSourceTest extends TestCase
         };
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeFiles($generator())
-            ->includeFiles(new \ArrayIterator([
+            ->withFiles($generator())
+            ->withFiles(new \ArrayIterator([
                 new \SplFileInfo($this->projectRoot . '/c.md'),
             ]))
             ->loadDocuments();
@@ -190,7 +190,7 @@ final class MarkdownSourceTest extends TestCase
         $this->write('docs/guide.md', '# Guide');
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('.')
+            ->withDirectory('.')
             ->loadDocuments();
 
         self::assertSame(['README.md', 'docs/guide.md'], $this->paths($documents));
@@ -203,8 +203,8 @@ final class MarkdownSourceTest extends TestCase
         $this->write('docs/drafts/nested/two.md', '# Draft');
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory(new ProjectPath('docs'))
-            ->exclude(new ProjectPath('docs/drafts'))
+            ->withDirectory(new ProjectPath('docs'))
+            ->withExcludedPath(new ProjectPath('docs/drafts'))
             ->loadDocuments();
 
         self::assertSame(['docs/keep.md'], $this->paths($documents));
@@ -213,7 +213,7 @@ final class MarkdownSourceTest extends TestCase
     public function testRejectsAMissingProjectRootWhenLoading(): void
     {
         $root = $this->workspace . '/missing';
-        $source = MarkdownSource::forProject($root)->includeFile('README.md');
+        $source = MarkdownSource::forProject($root)->withFile('README.md');
 
         $this->expectException(ProjectRootNotFoundException::class);
         $this->expectExceptionMessage(
@@ -235,7 +235,7 @@ final class MarkdownSourceTest extends TestCase
         $this->expectExceptionMessage('Unable to read project root: ' . $this->projectRoot . '.');
 
         try {
-            MarkdownSource::forProject($this->projectRoot)->includeFile('README.md')->loadDocuments();
+            MarkdownSource::forProject($this->projectRoot)->withFile('README.md')->loadDocuments();
         } finally {
             self::assertTrue(chmod($this->projectRoot, 0o700));
         }
@@ -249,7 +249,7 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeFile('docs/missing.md')
+            ->withFile('docs/missing.md')
             ->loadDocuments();
     }
 
@@ -261,7 +261,7 @@ final class MarkdownSourceTest extends TestCase
             'Configured Markdown file must use the case-sensitive .md extension: ' . $path . '.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeFile($path);
+        MarkdownSource::forProject($this->projectRoot)->withFile($path);
     }
 
     /**
@@ -284,7 +284,7 @@ final class MarkdownSourceTest extends TestCase
             'Configured Markdown file does not exist or is not a file: docs.md.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeFile('docs.md')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withFile('docs.md')->loadDocuments();
     }
 
     public function testRejectsAMissingConfiguredDirectory(): void
@@ -294,7 +294,7 @@ final class MarkdownSourceTest extends TestCase
             'Configured Markdown directory does not exist or is not a directory: docs.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
     }
 
     public function testRejectsAConfiguredDirectoryThatIsAFile(): void
@@ -306,7 +306,7 @@ final class MarkdownSourceTest extends TestCase
             'Configured Markdown directory does not exist or is not a directory: docs.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
     }
 
     public function testRejectsAMissingConfiguredExclusion(): void
@@ -319,8 +319,8 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('docs')
-            ->exclude('docs/missing.md')
+            ->withDirectory('docs')
+            ->withExcludedPath('docs/missing.md')
             ->loadDocuments();
     }
 
@@ -333,7 +333,7 @@ final class MarkdownSourceTest extends TestCase
             'Configured source paths did not contain any included Markdown documents.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
     }
 
     public function testCanExcludeTheWholeProjectRoot(): void
@@ -346,8 +346,8 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('.')
-            ->exclude('.')
+            ->withDirectory('.')
+            ->withExcludedPath('.')
             ->loadDocuments();
     }
 
@@ -361,8 +361,8 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeFile('README.md')
-            ->includeFile('README.md')
+            ->withFile('README.md')
+            ->withFile('README.md')
             ->loadDocuments();
     }
 
@@ -376,8 +376,8 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeFile('docs/guide.md')
-            ->includeDirectory('docs')
+            ->withFile('docs/guide.md')
+            ->withDirectory('docs')
             ->loadDocuments();
     }
 
@@ -393,7 +393,7 @@ final class MarkdownSourceTest extends TestCase
             'Markdown document docs/b.md resolves to the same physical file as docs/a.md.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
     }
 
     public function testRejectsASymbolicLinkToAFileOutsideTheProject(): void
@@ -406,7 +406,7 @@ final class MarkdownSourceTest extends TestCase
             'Markdown document resolves outside the project root: docs/outside.md.',
         );
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
     }
 
     public function testDoesNotFollowSymbolicLinkDirectoriesDuringRecursion(): void
@@ -416,7 +416,7 @@ final class MarkdownSourceTest extends TestCase
         $this->makeSymlink('../linked', 'docs/linked');
 
         $documents = MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('docs')
+            ->withDirectory('docs')
             ->loadDocuments();
 
         self::assertSame(['docs/visible.md'], $this->paths($documents));
@@ -433,7 +433,7 @@ final class MarkdownSourceTest extends TestCase
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('docs/linked')
+            ->withDirectory('docs/linked')
             ->loadDocuments();
     }
 
@@ -454,7 +454,7 @@ final class MarkdownSourceTest extends TestCase
         $this->expectExceptionMessage('Unable to read Markdown document: docs/guide.md.');
 
         try {
-            MarkdownSource::forProject($this->projectRoot)->includeFile('docs/guide.md')->loadDocuments();
+            MarkdownSource::forProject($this->projectRoot)->withFile('docs/guide.md')->loadDocuments();
         } finally {
             self::assertTrue(chmod($this->projectRoot . '/docs/guide.md', 0o600));
         }
@@ -473,7 +473,7 @@ final class MarkdownSourceTest extends TestCase
         $this->expectExceptionMessage('Unable to read Markdown directory: docs.');
 
         try {
-            MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+            MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
         } finally {
             self::assertTrue(chmod($this->projectRoot . '/docs', 0o700));
         }
@@ -492,7 +492,7 @@ final class MarkdownSourceTest extends TestCase
         $this->expectExceptionMessage('Unable to read Markdown directory: docs.');
 
         try {
-            MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->loadDocuments();
+            MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->loadDocuments();
         } finally {
             self::assertTrue(chmod($this->projectRoot . '/docs/private', 0o700));
         }
@@ -504,7 +504,7 @@ final class MarkdownSourceTest extends TestCase
         $this->write('docs/a.md', "```php\necho 'a1';\n```\n\n```PHP extra\necho 'a2';\n```\n");
 
         $corpus = MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('docs')
+            ->withDirectory('docs')
             ->load();
         $examples = iterator_to_array($corpus);
 
@@ -529,7 +529,7 @@ final class MarkdownSourceTest extends TestCase
 echo 'selected';
 ```
 MARKDOWN);
-        $source = MarkdownSource::forProject($this->projectRoot)->includeFile('docs/guide.md');
+        $source = MarkdownSource::forProject($this->projectRoot)->withFile('docs/guide.md');
         $markedSource = $source->withMarkerName(new MarkerName('yumemi-example'));
 
         $unmarkedExamples = iterator_to_array($source->load());
@@ -550,7 +550,7 @@ MARKDOWN);
 
         try {
             MarkdownSource::forProject($this->projectRoot)
-                ->includeFile('docs/invalid.md')
+                ->withFile('docs/invalid.md')
                 ->withMarkerName('yumemi-example')
                 ->load();
             self::fail('The invalid authored marker was accepted.');
@@ -602,7 +602,7 @@ MARKDOWN);
         );
 
         MarkdownSource::forProject($this->projectRoot)
-            ->includeDirectory('docs')
+            ->withDirectory('docs')
             ->withMarkerName('yumemi-example')
             ->load();
     }
@@ -614,7 +614,7 @@ MARKDOWN);
         $this->expectException(NoExamplesFoundException::class);
         $this->expectExceptionMessage('Configured Markdown documents did not contain any PHP fenced blocks.');
 
-        MarkdownSource::forProject($this->projectRoot)->includeDirectory('docs')->load();
+        MarkdownSource::forProject($this->projectRoot)->withDirectory('docs')->load();
     }
 
     /**

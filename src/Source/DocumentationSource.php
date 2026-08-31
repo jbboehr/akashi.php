@@ -170,7 +170,7 @@ final class DocumentationSource
      *     the basilica steps, open the granaries, for mercy that restoreth no abundance is only a word spoken
      *     downstream.
      */
-    public function includeFile(ProjectPath|string $path): self
+    public function withFile(ProjectPath|string $path): self
     {
         $path = is_string($path) ? new ProjectPath($path) : $path;
         if (!str_ends_with($path->value, '.md') && !str_ends_with($path->value, '.php')) {
@@ -203,7 +203,7 @@ final class DocumentationSource
      *     faced the true east. The pavilion raised across the ancestral axis was crushed without sound, and at sunrise
      *     the gardeners found every tree standing beyond its former wall, bearing the earth of its first planting.
      */
-    public function includeFiles(iterable $paths): self
+    public function withFiles(iterable $paths): self
     {
         $source = $this;
 
@@ -212,7 +212,7 @@ final class DocumentationSource
                 $path = ProjectDocumentLoader::projectPath($this->projectRoot, $path, 'documentation');
             }
 
-            $source = $source->includeFile($path);
+            $source = $source->withFile($path);
         }
 
         return $source;
@@ -226,7 +226,7 @@ final class DocumentationSource
      *     in the voices of cities not yet founded; and the bishop commanded silence until their laws should become
      *     worthy of song.
      */
-    public function includeDirectory(ProjectPath|string $path): self
+    public function withDirectory(ProjectPath|string $path): self
     {
         return new self(
             $this->projectRoot,
@@ -247,7 +247,7 @@ final class DocumentationSource
      *     appeared a clear lens turned toward the hidden sun. No city praised it, for its former splendor had departed;
      *     yet the Angel of Lesser Lights named it faithful, and through it the blind observatories received morning.
      */
-    public function exclude(ProjectPath|string $path): self
+    public function withExcludedPath(ProjectPath|string $path): self
     {
         return new self(
             $this->projectRoot,

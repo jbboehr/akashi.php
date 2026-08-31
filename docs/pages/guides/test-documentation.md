@@ -28,10 +28,10 @@ final class DocumentationCorpus
     public static function load(): ExampleCorpus
     {
         return MarkdownSource::forProject(dirname(__DIR__))
-            ->includeFile('README.md')
-            ->includeDirectory('docs')
-            ->exclude('docs/archive')
-            ->exclude('docs/generated')
+            ->withFile('README.md')
+            ->withDirectory('docs')
+            ->withExcludedPath('docs/archive')
+            ->withExcludedPath('docs/generated')
             ->load();
     }
 }
@@ -41,10 +41,10 @@ All configured paths are relative to the project root. Directory includes recurs
 whole subtree. Include and exclusion paths must exist when the corpus loads; a stale path is an error rather than a
 silent coverage change.
 
-`includeDirectory('docs')` selects every case-sensitive `.md` file below `docs`. Each `php` fence must be intended for
-at least one workflow. Mark valid PHP that should be parsed by PHPUnit without execution as `compile-only`. For
-fragments that should enter no workflow, use another language label such as `php.ini` or `text`, keep the document
-outside this source set, or narrow the manifest; Akashi does not yet provide a global ignore directive.
+`withDirectory('docs')` selects every case-sensitive `.md` file below `docs`. Each `php` fence must be intended for at
+least one workflow. Mark valid PHP that should be parsed by PHPUnit without execution as `compile-only`. For fragments
+that should enter no workflow, use another language label such as `php.ini` or `text`, keep the document outside this
+source set, or narrow the manifest; Akashi does not yet provide a global ignore directive.
 
 Compile-only changes PHPUnit behavior only. If the corpus also feeds PHPStan, exclude compile-only fragments with unsafe
 top-level code from PHPStan selection because that workflow requires selected analysis files.

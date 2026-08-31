@@ -53,7 +53,7 @@ final class ParaTestCompatibilityTest extends TestCase
         $projectRoot = dirname(__DIR__, 3);
 
         return MarkdownSource::forProject($projectRoot)
-            ->includeFile('tests/Fixtures/Markdown/paratest.md')
+            ->withFile('tests/Fixtures/Markdown/paratest.md')
             ->load();
     }
 

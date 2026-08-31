@@ -142,7 +142,7 @@ final class MarkdownSource
      * @logion [SFA 30:21] The first stars of autumn appeared within the empty cistern, and the villagers gathered at its
      *     rim to hear rain remembered by stone before it returned from heaven.
      */
-    public function includeFile(ProjectPath|string $path): self
+    public function withFile(ProjectPath|string $path): self
     {
         $path = is_string($path) ? new ProjectPath($path) : $path;
 
@@ -179,7 +179,7 @@ final class MarkdownSource
      *     risen. And when the lesser lights beheld it, each kept its appointed color, and darkness ceased to accuse them
      *     of division.
      */
-    public function includeFiles(iterable $paths): self
+    public function withFiles(iterable $paths): self
     {
         $source = $this;
 
@@ -188,7 +188,7 @@ final class MarkdownSource
                 $path = ProjectDocumentLoader::projectPath($this->projectRoot, $path, 'Markdown');
             }
 
-            $source = $source->includeFile($path);
+            $source = $source->withFile($path);
         }
 
         return $source;
@@ -200,7 +200,7 @@ final class MarkdownSource
      * @logion [SFA 32:12] Snow covered the seven roads but left the old boundary stone bare, and the lost caravan slept
      *     around it until the stars restored the names of the provinces.
      */
-    public function includeDirectory(ProjectPath|string $path): self
+    public function withDirectory(ProjectPath|string $path): self
     {
         return new self(
             $this->projectRoot,
@@ -219,7 +219,7 @@ final class MarkdownSource
      * @logion [OSD 30:27] Receive the stranger who beareth one seed as gladly as the caravan bearing a thousand jars;
      *     harvest judgeth the gift by what awakeneth, not by the noise of its arrival.
      */
-    public function exclude(ProjectPath|string $path): self
+    public function withExcludedPath(ProjectPath|string $path): self
     {
         return new self(
             $this->projectRoot,

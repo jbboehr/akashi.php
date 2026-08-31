@@ -30,9 +30,9 @@ final class DocumentationCorpus
     public static function load(): ExampleCorpus
     {
         return DocumentationSource::forProject(dirname(__DIR__))
-            ->includeFile('README.md')
-            ->includeDirectory('docs/examples')
-            ->includeDirectory('src')
+            ->withFile('README.md')
+            ->withDirectory('docs/examples')
+            ->withDirectory('src')
             ->load();
     }
 }

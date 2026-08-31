@@ -25,10 +25,10 @@ Create a source configuration from an absolute project root, then add project-re
 use jbboehr\Akashi\Source\DocumentationSource;
 
 $corpus = DocumentationSource::forProject(dirname(__DIR__))
-    ->includeFile('README.md')
-    ->includeDirectory('docs')
-    ->includeDirectory('src')
-    ->exclude('docs/archive')
+    ->withFile('README.md')
+    ->withDirectory('docs')
+    ->withDirectory('src')
+    ->withExcludedPath('docs/archive')
     ->load();
 ```
 
@@ -36,7 +36,7 @@ Each configuration method returns a new immutable value. Scalar path syntax is c
 readability, and document identity are checked by `load()`. `DocumentationSource` selects case-sensitive `.md` and
 `.php` files and dispatches each format to its corresponding extractor.
 
-`includeFiles()` accepts an array, generator, or iterator of project-relative strings, `ProjectPath` values, or
+`withFiles()` accepts an array, generator, or iterator of project-relative strings, `ProjectPath` values, or
 `SplFileInfo` objects. A Symfony Finder configured with `files()` can therefore be passed directly without adding
 Symfony Finder as an Akashi dependency. Directory includes remain available for the zero-dependency common case.
 
@@ -156,7 +156,7 @@ The default reference tag is `@akashi-example`. To consume another public tag co
 
 ```php
 $source = DocumentationSource::forProject(dirname(__DIR__))
-    ->includeDirectory('src')
+    ->withDirectory('src')
     ->withPhpDocReferenceTags('example');
 ```
 

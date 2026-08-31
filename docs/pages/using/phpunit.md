@@ -65,7 +65,7 @@ final class ConfiguredDocumentationExamplesTest extends TestCase
 
         return new PhpUnitExampleSuite(
             corpus: DocumentationSource::forProject($projectRoot)
-                ->includeFile('README.md')
+                ->withFile('README.md')
                 ->load(),
             runtimeConfiguration: RuntimeConfiguration::forProject($projectRoot)
                 ->withBootstrap('vendor/autoload.php'),

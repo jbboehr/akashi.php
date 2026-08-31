@@ -43,7 +43,7 @@ final class DocumentationExamplesTest extends TestCase
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
         return DocumentationSource::forProject(dirname(__DIR__))
-            ->includeFile('README.md')
+            ->withFile('README.md')
             ->load();
     }
 }

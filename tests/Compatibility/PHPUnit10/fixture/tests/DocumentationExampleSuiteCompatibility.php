@@ -62,7 +62,7 @@ final class DocumentationExampleSuiteCompatibility extends TestCase
 
         return new PhpUnitExampleSuite(
             MarkdownSource::forProject($projectRoot)
-                ->includeFile('docs/examples.md')
+                ->withFile('docs/examples.md')
                 ->load(),
             RuntimeConfiguration::forProject($projectRoot),
         );

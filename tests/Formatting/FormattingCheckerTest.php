@@ -198,7 +198,7 @@ PHP);
         ));
         self::assertNotFalse(file_put_contents($this->workspace . '/examples/example.php', "<?php\necho 1;\n"));
         $checker = $this->checker("<?php\nexit(99);\n");
-        $corpus = DocumentationSource::forProject($this->workspace)->includeFile('src/Example.php')->load();
+        $corpus = DocumentationSource::forProject($this->workspace)->withFile('src/Example.php')->load();
 
         self::assertSame([], $checker->check($corpus));
     }
@@ -213,7 +213,7 @@ PHP);
         ));
         self::assertNotFalse(file_put_contents($this->workspace . '/examples/example.php', "<?php\necho 1;\n"));
         $referenced = iterator_to_array(
-            DocumentationSource::forProject($this->workspace)->includeFile('src/Example.php')->load(),
+            DocumentationSource::forProject($this->workspace)->withFile('src/Example.php')->load(),
         )[0];
         $inline = (new CommonMarkExampleExtractor())->extract(
             new Document('zz/example.md', "```php\n\$value=1;\n```\n"),
@@ -244,7 +244,7 @@ $path = $argv[count($argv) - 1];
 $source = file_get_contents($path);
 file_put_contents($path, str_replace('$value=1;', '$value = 1;', $source));
 PHP);
-        $corpus = DocumentationSource::forProject($this->workspace)->includeFile('src/Example.php')->load();
+        $corpus = DocumentationSource::forProject($this->workspace)->withFile('src/Example.php')->load();
 
         $mismatches = $checker->check($corpus);
 

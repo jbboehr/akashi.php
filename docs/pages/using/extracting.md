@@ -74,7 +74,7 @@ use jbboehr\Akashi\Source\DocumentationSource;
 use jbboehr\Akashi\Source\MarkedExampleSelector;
 
 $corpus = DocumentationSource::forProject(dirname(__DIR__))
-    ->includeFile('docs/examples.md')
+    ->withFile('docs/examples.md')
     ->load();
 
 $example = (new MarkedExampleSelector())->select($corpus, 'greeting');

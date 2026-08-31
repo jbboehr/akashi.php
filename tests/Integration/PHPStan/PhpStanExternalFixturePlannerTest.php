@@ -126,7 +126,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         self::assertNotFalse(file_put_contents($this->workspace . '/src/Documentation.php', $documentation));
 
         $corpus = DocumentationSource::forProject($this->workspace)
-            ->includeFile('src/Documentation.php')
+            ->withFile('src/Documentation.php')
             ->load();
         $configuration = PhpStanExampleConfiguration::forTokens(
             $this->workspace,
@@ -177,7 +177,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
@@ -228,7 +228,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '//!'),
         );
@@ -265,7 +265,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
@@ -300,7 +300,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
@@ -332,7 +332,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         $this->expectException(PhpStanConfigurationException::class);
         $this->expectExceptionMessage('includes inline example');
         (new PhpStanExternalFixturePlanner())->plan(
-            DocumentationSource::forProject($this->workspace)->includeFile('README.md')->load(),
+            DocumentationSource::forProject($this->workspace)->withFile('README.md')->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
     }
@@ -352,7 +352,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
         $this->expectExceptionMessage('contains an empty PHPStan diagnostic expectation');
         (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
@@ -370,7 +370,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
             "<?php\n/** @akashi-example examples/fixture.php */\nfinal class StaleExternalFixtureDocumentation {}\n",
         ));
         $corpus = DocumentationSource::forProject($this->workspace)
-            ->includeFile('src/Documentation.php')
+            ->withFile('src/Documentation.php')
             ->load();
         self::assertNotFalse(file_put_contents($fixturePath, "<?php\n// changed\n", FILE_APPEND));
 
@@ -394,7 +394,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
             "<?php\n/** @akashi-example examples/fixture.php */\nfinal class ReplacedExternalFixtureDocumentation {}\n",
         ));
         $corpus = DocumentationSource::forProject($this->workspace)
-            ->includeFile('src/Documentation.php')
+            ->withFile('src/Documentation.php')
             ->load();
         self::assertTrue(unlink($fixturePath));
         self::assertTrue(mkdir($fixturePath));
@@ -421,7 +421,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
             "<?php\n/** @akashi-example examples/fixture.php */\nfinal class SymlinkExternalFixtureDocumentation {}\n",
         ));
         $corpus = DocumentationSource::forProject($this->workspace)
-            ->includeFile('src/Documentation.php')
+            ->withFile('src/Documentation.php')
             ->load();
 
         $replacement = tempnam(sys_get_temp_dir(), 'akashi-external-phpstan-target-');
@@ -466,7 +466,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '//!'),
         );
@@ -519,7 +519,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($this->workspace)
-                ->includeFile('src/Documentation.php')
+                ->withFile('src/Documentation.php')
                 ->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '//!'),
         );
@@ -548,7 +548,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $this->expectException(NoRelevantExamplesException::class);
         (new PhpStanExternalFixturePlanner())->plan(
-            DocumentationSource::forProject($this->workspace)->includeFile('README.md')->load(),
+            DocumentationSource::forProject($this->workspace)->withFile('README.md')->load(),
             PhpStanExampleConfiguration::forTokens($this->workspace, '@akashi-phpstan-example'),
         );
     }
@@ -612,7 +612,7 @@ final class PhpStanExternalFixturePlannerTest extends TestCase
 
         $plan = (new PhpStanExternalFixturePlanner())->plan(
             DocumentationSource::forProject($filesystemRoot)
-                ->includeFile($documentationRelative)
+                ->withFile($documentationRelative)
                 ->load(),
             PhpStanExampleConfiguration::forTokens($filesystemRoot, '@akashi-phpstan-example'),
         );

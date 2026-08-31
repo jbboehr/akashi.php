@@ -69,7 +69,7 @@ final class DocumentationExamplesCompatibility extends TestCase
     protected static function akashiExampleCorpus(): ExampleCorpus
     {
         return MarkdownSource::forProject(dirname(__DIR__))
-            ->includeFile('docs/examples.md')
+            ->withFile('docs/examples.md')
             ->load();
     }
 

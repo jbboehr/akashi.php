@@ -42,7 +42,7 @@ The immutable source manifests now provide a bulk file include equivalent to:
 
 ```php
 /** @param iterable<ProjectPath|string|\SplFileInfo> $paths */
-public function includeFiles(iterable $paths): self;
+public function withFiles(iterable $paths): self;
 ```
 
 It applies existing file validation to arrays and iterators of project-relative paths. It also accepts `SplFileInfo`, so

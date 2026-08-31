@@ -113,8 +113,8 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeDirectory('.')
-                ->exclude('docs')
+                ->withDirectory('.')
+                ->withExcludedPath('docs')
                 ->load(),
         );
 
@@ -143,8 +143,8 @@ PHP);
         ]);
 
         $corpus = DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles($generator())
-            ->includeFiles($finderLike)
+            ->withFiles($generator())
+            ->withFiles($finderLike)
             ->load();
 
         self::assertSame(
@@ -163,7 +163,7 @@ PHP);
 
         self::assertCount(
             1,
-            DocumentationSource::forProject($this->projectRoot)->includeDirectory('docs')->load(),
+            DocumentationSource::forProject($this->projectRoot)->withDirectory('docs')->load(),
         );
 
         $this->expectException(UnsupportedSourcePathException::class);
@@ -171,7 +171,7 @@ PHP);
             'Configured documentation file must use the case-sensitive .md or .php extension: docs/example.txt.',
         );
 
-        DocumentationSource::forProject($this->projectRoot)->includeFile('docs/example.txt');
+        DocumentationSource::forProject($this->projectRoot)->withFile('docs/example.txt');
     }
 
     public function testRejectsFileInfoOutsideTheProjectRoot(): void
@@ -182,7 +182,7 @@ PHP);
         $this->expectExceptionMessage('Included documentation file is outside the project root:');
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles([new \SplFileInfo($this->workspace . '/outside.md')]);
+            ->withFiles([new \SplFileInfo($this->workspace . '/outside.md')]);
     }
 
     public function testCanonicalizesAbsoluteFileInfoPathsBeforeMakingThemProjectRelative(): void
@@ -191,7 +191,7 @@ PHP);
 
         $file = new \SplFileInfo($this->projectRoot . '/../project/docs/example.md');
         $corpus = DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles([$file])
+            ->withFiles([$file])
             ->load();
 
         self::assertSame(
@@ -225,7 +225,7 @@ PHP);
         );
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles(['a.md', 'b.php'])
+            ->withFiles(['a.md', 'b.php'])
             ->withMarkerName('akashi-example')
             ->load();
     }
@@ -251,7 +251,7 @@ PHP);
         );
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFiles(['docs/example.md', 'src/Examples.php'])
+            ->withFiles(['docs/example.md', 'src/Examples.php'])
             ->load();
     }
 
@@ -284,7 +284,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Conversion.php')
+                ->withFile('src/Conversion.php')
                 ->load(),
         );
 
@@ -342,7 +342,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Examples.php')
+                ->withFile('src/Examples.php')
                 ->load(),
         );
 
@@ -370,7 +370,7 @@ PHP);
         );
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -393,7 +393,7 @@ PHP);
         );
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -410,7 +410,7 @@ PHP);
         $this->write('examples/native.php', "<?php\nassert(2 === 2);\n");
 
         $legacy = DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->withPhpDocReferenceTags('example')
             ->load();
         self::assertSame(
@@ -422,7 +422,7 @@ PHP);
         );
 
         $combined = DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->withPhpDocReferenceTags('akashi-example', 'example')
             ->load();
         self::assertSame(
@@ -450,7 +450,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Examples.php')
+                ->withFile('src/Examples.php')
                 ->load(),
         );
 
@@ -474,7 +474,7 @@ PHP);
         );
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -492,7 +492,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Examples.php')
+                ->withFile('src/Examples.php')
                 ->load(),
         );
 
@@ -513,7 +513,7 @@ PHP);
         $this->expectExceptionMessage($message);
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -578,7 +578,7 @@ PHP);
         $this->expectExceptionMessage('Referenced example file resolves outside the project root');
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -598,7 +598,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Examples.php')
+                ->withFile('src/Examples.php')
                 ->load(),
         );
 
@@ -627,7 +627,7 @@ PHP);
 
         $examples = iterator_to_array(
             DocumentationSource::forProject($this->projectRoot)
-                ->includeFile('src/Examples.php')
+                ->withFile('src/Examples.php')
                 ->load(),
         );
 
@@ -650,7 +650,7 @@ PHP);
         $this->expectExceptionMessage($message);
 
         DocumentationSource::forProject($this->projectRoot)
-            ->includeFile('src/Examples.php')
+            ->withFile('src/Examples.php')
             ->load();
     }
 
@@ -698,7 +698,7 @@ PHP);
             'Configured documentation files did not contain any PHP fenced blocks or external example references.',
         );
 
-        DocumentationSource::forProject($this->projectRoot)->includeDirectory('.')->load();
+        DocumentationSource::forProject($this->projectRoot)->withDirectory('.')->load();
     }
 
     public function testRejectsASelectedManifestWithoutSupportedDocuments(): void
@@ -710,7 +710,7 @@ PHP);
             'Configured source paths did not contain any included documentation files.',
         );
 
-        DocumentationSource::forProject($this->projectRoot)->includeDirectory('docs')->load();
+        DocumentationSource::forProject($this->projectRoot)->withDirectory('docs')->load();
     }
 
     private function write(string $path, string $contents): void

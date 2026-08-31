@@ -66,6 +66,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Pre-1.0 source-configuration change:** Rename the immutable `DocumentationSource` and `MarkdownSource` builder
+  methods from `includeFile()`, `includeFiles()`, `includeDirectory()`, and `exclude()` to `withFile()`, `withFiles()`,
+  `withDirectory()`, and `withExcludedPath()` so ignored return values are less likely to be mistaken for mutation.
 - Reject a caller-supplied `--` in PHPStan fixture-plan arguments before launching the analyzer because the plan
   verifier owns the delimiter before its analysis paths.
 - Preserve integer-form labels as named PHPUnit data sets through collision-free `~` prefix escaping.

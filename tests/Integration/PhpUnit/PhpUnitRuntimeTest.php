@@ -416,7 +416,7 @@ final class SkippedDocumentationExampleTest extends TestCase
     public function testSkippedDocumentationExample(): void
     {
         $corpus = MarkdownSource::forProject(__DIR__)
-            ->includeFile('example.md')
+            ->withFile('example.md')
             ->load();
 
         foreach ($corpus as $example) {
