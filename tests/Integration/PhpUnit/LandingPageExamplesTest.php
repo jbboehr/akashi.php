@@ -56,7 +56,7 @@ final class LandingPageExamplesTest extends TestCase
             ->withFile('README.md')
             ->withFile('docs/pages/README.md')
             ->withFile('docs/pages/quick-start.md')
-            ->withFile('src/Model/ExampleId.php')
+            ->withFile('src/Model/CorpusExampleId.php')
             ->load();
     }
 

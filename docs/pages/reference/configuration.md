@@ -30,7 +30,7 @@ The fluent methods are:
 | `withFiles($paths)`                 | Add files from an array or iterator of strings, `ProjectPath`, or `SplFileInfo` values.       |
 | `withDirectory($path)`              | Recursively add `.md` and `.php` files below one project-relative directory.                  |
 | `withExcludedPath($path)`           | Exclude an exact path and, for a directory, its complete subtree.                             |
-| `withMarkerName($name)`             | Add one lowercase kebab-case legacy marker-comment dialect across both source formats.        |
+| `withLegacyMarkerName($name)`       | Add one lowercase kebab-case legacy marker-comment dialect across both source formats.        |
 | `withPhpDocReferenceTags(...$tags)` | Replace the default `@akashi-example` external-reference tag with one or more accepted names. |
 | `load()`                            | Read selected sources and return one nonempty, deterministically ordered `ExampleCorpus`.     |
 
@@ -42,14 +42,14 @@ project-relative.
 `MarkdownSource` retains the Markdown-only API, including `loadDocuments()`, and now also accepts `withFiles()`. Its
 explicit files and recursive directories continue to select only the case-sensitive `.md` extension.
 
-Canonical `akashi:` metadata, including `example=ID`, requires no source configuration. `withMarkerName()` is additive:
-it preserves a project-specific comment such as `<!-- yumemi-example: ID -->` while canonical metadata remains active.
-IDs from both forms share one corpus-wide uniqueness check.
+Canonical `akashi:` metadata, including `example=ID`, requires no source configuration. `withLegacyMarkerName()` is
+additive: it preserves a project-specific comment such as `<!-- yumemi-example: ID -->` while canonical metadata remains
+active. IDs from both forms share one corpus-wide uniqueness check.
 
 Includes and exclusions are evaluated when loading. Configured paths must exist, documents must be readable, and
 resolved documents must remain inside the project root. Symlinked directories are not traversed. Reaching one physical
 document through multiple includes is an error. Documents are ordered by slash-normalized project-relative path using
-bytewise lexical comparison. The final mixed corpus is ordered by canonical code path, first code line, and stable
+bytewise lexical comparison. The final mixed corpus is ordered by canonical code path, first code line, and corpus
 example ID, so inline and referenced examples remain deterministic together.
 
 External PHP files referenced by selected PHPDoc do not also need to appear in the include manifest. They must resolve

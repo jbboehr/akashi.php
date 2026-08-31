@@ -220,8 +220,8 @@ dispositions are present. Compile-only governs this PHPUnit path only. PHPStan v
 executes their top-level code, so exclude unsafe compile-only fragments from the PHPStan subcorpus.
 
 Successful examples record one completion assertion even when they contain no native assertion. Failures report the
-example ID, label, maintained documentation location when available, failure phase, cause, captured stdout and stderr,
-and cleanup problems. The original exception remains in the exception chain.
+corpus example ID, label, maintained documentation location when available, failure phase, cause, captured stdout and
+stderr, and cleanup problems. The original exception remains in the exception chain.
 
 In-process execution is trusted-code isolation, not a sandbox. Read
 [Compatibility and Safety](../reference/compatibility.md) before running generated, third-party, or otherwise untrusted

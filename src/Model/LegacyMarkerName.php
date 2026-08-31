@@ -39,7 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Model;
 
 /**
- * Validated name of an explicit Markdown marker.
+ * Validated name of a legacy marker-comment dialect.
  *
  * @readonly
  *
@@ -47,7 +47,7 @@ namespace jbboehr\Akashi\Model;
  *     crossed from shore to shore. Thereafter they carried the sick upon its brightness, but built no houses there;
  *     providence may open a passage without granting a province.
  */
-final class MarkerName implements \Stringable
+final class LegacyMarkerName implements \Stringable
 {
     /**
      * @logion [AWC 45:18] During the drought, a vintner filled his finest cask with rainwater and sealed it beneath the
@@ -64,18 +64,18 @@ final class MarkerName implements \Stringable
     public function __construct(string $value)
     {
         if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
-            throw new \InvalidArgumentException('Marker name must use lowercase kebab-case.');
+            throw new \InvalidArgumentException('Legacy marker name must use lowercase kebab-case.');
         }
 
         if ($value === 'akashi') {
-            throw new \InvalidArgumentException('Marker name akashi is reserved for Akashi directives.');
+            throw new \InvalidArgumentException('Legacy marker name akashi is reserved for Akashi directives.');
         }
 
         $this->value = $value;
     }
 
     /**
-     * Return the validated marker name.
+     * Return the validated legacy marker name.
      *
      * @logion [AWC 113:6] The unfinished tower fell beneath one night of rain, but a single unbaked brick floated to
      *     the fishermen. They set it upon dry ground; by morning it had become a red hill no ruler could quarry.

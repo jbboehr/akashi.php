@@ -52,7 +52,7 @@ use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Execution\SeparateProcessFailureKind;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
@@ -649,7 +649,7 @@ PHP;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-subprocess-executor-01'),
+            corpusId: new CorpusExampleId('example-subprocess-executor-01'),
             label: 'Subprocess executor fixture',
             document: new Document('docs/subprocess.md', $source),
             location: new SourceLocation(

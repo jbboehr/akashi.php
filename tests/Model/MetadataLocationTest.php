@@ -48,7 +48,7 @@ final class MetadataLocationTest extends TestCase
     {
         $location = new MetadataLocation();
 
-        self::assertNull($location->markerLine);
+        self::assertNull($location->namedIdLine);
         self::assertNull($location->separateProcessDirectiveLine);
         self::assertNull($location->skipDirectiveLine);
         self::assertNull($location->expectedExceptionDirectiveLine);
@@ -59,7 +59,7 @@ final class MetadataLocationTest extends TestCase
     {
         $location = new MetadataLocation(3, 5, 4, 2, 6);
 
-        self::assertSame(3, $location->markerLine);
+        self::assertSame(3, $location->namedIdLine);
         self::assertSame(5, $location->separateProcessDirectiveLine);
         self::assertSame(4, $location->skipDirectiveLine);
         self::assertSame(2, $location->expectedExceptionDirectiveLine);
@@ -76,7 +76,7 @@ final class MetadataLocationTest extends TestCase
 
     #[DataProvider('invalidLineProvider')]
     public function testRejectsNonpositiveMetadataLines(
-        ?int $markerLine,
+        ?int $namedIdLine,
         ?int $directiveLine,
         ?int $skipDirectiveLine,
         ?int $expectedExceptionDirectiveLine,
@@ -86,7 +86,7 @@ final class MetadataLocationTest extends TestCase
         $this->expectExceptionMessage($message);
 
         $unexpectedLocation = (new \ReflectionClass(MetadataLocation::class))->newInstanceArgs(
-            [$markerLine, $directiveLine, $skipDirectiveLine, $expectedExceptionDirectiveLine],
+            [$namedIdLine, $directiveLine, $skipDirectiveLine, $expectedExceptionDirectiveLine],
         );
 
         self::fail('Unexpectedly constructed ' . $unexpectedLocation::class . '.');
@@ -97,7 +97,7 @@ final class MetadataLocationTest extends TestCase
      */
     public static function invalidLineProvider(): iterable
     {
-        yield 'marker' => [0, null, null, null, 'Marker line must be positive.'];
+        yield 'named example ID' => [0, null, null, null, 'Named example ID line must be positive.'];
         yield 'separate-process directive' => [
             null,
             -1,

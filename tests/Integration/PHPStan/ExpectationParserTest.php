@@ -43,7 +43,7 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Integration\PHPStan\Exception\ExpectationParseException;
 use jbboehr\Akashi\Integration\PHPStan\ExpectationParser;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -297,7 +297,7 @@ PHP;
         $lastCodeLine = $firstCodeLine + $lineCount - 1;
 
         return Example::fromInline(
-            id: new ExampleId('phpstan-example-01'),
+            corpusId: new CorpusExampleId('phpstan-example-01'),
             label: 'PHPStan expectation fixture',
             document: new Document('docs/phpstan.md', $source),
             location: new SourceLocation(

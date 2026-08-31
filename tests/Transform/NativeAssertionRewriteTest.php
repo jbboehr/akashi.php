@@ -42,7 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Integration\PhpUnit\NativeAssertion;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -248,7 +248,7 @@ PHP;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-assertion-01'),
+            corpusId: new CorpusExampleId('example-assertion-01'),
             label: 'Native assertion fixture',
             document: new Document('docs/assertions.md', $source),
             location: new SourceLocation(

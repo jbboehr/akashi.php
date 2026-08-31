@@ -60,20 +60,20 @@ final class PhpUnitExampleDataSets
      */
     public static function fromCorpus(ExampleCorpus $corpus): \Generator
     {
-        $exampleIdsByLabel = [];
+        $corpusIdsByLabel = [];
 
         foreach ($corpus as $example) {
-            $firstExampleId = $exampleIdsByLabel[$example->label] ?? null;
-            if ($firstExampleId !== null) {
+            $firstCorpusExampleId = $corpusIdsByLabel[$example->label] ?? null;
+            if ($firstCorpusExampleId !== null) {
                 throw new \InvalidArgumentException(sprintf(
                     'Duplicate PHPUnit data-set label %s for examples %s and %s.',
                     $example->label,
-                    $firstExampleId,
-                    $example->id->value,
+                    $firstCorpusExampleId,
+                    $example->corpusId->value,
                 ));
             }
 
-            $exampleIdsByLabel[$example->label] = $example->id->value;
+            $corpusIdsByLabel[$example->label] = $example->corpusId->value;
         }
 
         foreach ($corpus as $example) {

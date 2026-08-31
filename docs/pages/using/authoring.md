@@ -66,12 +66,12 @@ Backtick and tilde fences, longer fences, indentation, block quotes, and other C
 CommonMark parser. Additional info-string words are retained as metadata but do not currently change Akashi behavior.
 
 Every inline example retains the original code, document, fence metadata, line and byte spans, and its ordinal in the
-document. Generated inline IDs combine a hash of the project-relative path with that ordinal. Moving the document or
-inserting an earlier PHP fence therefore changes the generated ID. Referenced examples instead derive stable IDs from
-their canonical project-relative path and optional region name.
+document. Corpus IDs for inline examples combine a hash of the project-relative path with that ordinal. Moving the
+document or inserting an earlier PHP fence therefore changes the corpus ID. Referenced examples instead derive corpus
+IDs from their canonical project-relative path and optional region name.
 
 The exact generated form is `example-{first 12 hexadecimal characters of sha1(project-relative path)}-{ordinal}`, with
-the ordinal padded to at least two digits. Use an explicit example ID when another tool needs an identity that survives
+the ordinal padded to at least two digits. Use a named example ID when another tool needs an identity that survives
 reordering.
 
 ## Write PHPDoc Fences
@@ -302,7 +302,7 @@ this escaping is deterministic and collision-free.
 Use ordinary prose immediately around a fence to explain the example. Akashi does not require each example to carry a
 special name unless another consumer needs a durable identity.
 
-## Add a Stable Example ID
+## Add a Named Example ID
 
 For consumer extraction, assign an `example` property in an Akashi metadata comment:
 
@@ -314,13 +314,13 @@ $result = convert(1, 'meter', 'centimeter');
 ```
 ````
 
-Example IDs use lowercase kebab-case and must be unique across the corpus. Identity is optional metadata: `load()` still
-returns every PHP fence. The same property may appear as `// akashi: example=conversion-basic` inside fenced or
+Named example IDs use lowercase kebab-case and must be unique across the corpus. Identity is optional metadata: `load()`
+still returns every PHP fence. The same property may appear as `// akashi: example=conversion-basic` inside fenced or
 referenced canonical PHP. Continue to [Extracting Named Examples](extracting.md) when a consumer needs one named
 example.
 
 Projects retaining an older marker comment such as `<!-- yumemi-example: conversion-basic -->` can add that dialect with
-`withMarkerName('yumemi-example')`. Canonical `akashi:` metadata remains recognized alongside it.
+`withLegacyMarkerName('yumemi-example')`. Canonical `akashi:` metadata remains recognized alongside it.
 
 ## Add a Runtime Directive
 

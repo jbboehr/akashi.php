@@ -43,12 +43,12 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -60,16 +60,16 @@ final class ExampleTest extends TestCase
     {
         $document = new Document('docs/guide.md', "```php\r\necho 1;\r\n```\r\n");
         $source = "<?php\r\n\r\necho 1;\r\n";
-        $id = new ExampleId('example-a1b2c3-01');
+        $id = new CorpusExampleId('example-a1b2c3-01');
         $location = new SourceLocation(1, 2, 2, 3, new SourceSpan(0, 25), new SourceSpan(8, 17));
         $language = new Language(' PHP ');
         $code = new ExampleCode($source);
         $fence = new FenceMetadata('php extra', '`', 3, 0);
-        $markerId = new MarkerId('selected-example');
+        $namedId = new NamedExampleId('selected-example');
         $directives = new DirectiveSet(Directive::Skip, Directive::SeparateProcess);
         $expectedException = new ExpectedException(\RuntimeException::class, 'documented failure', 73);
         $example = Example::fromInline(
-            id: $id,
+            corpusId: $id,
             label: 'docs/guide.md PHP example 1',
             document: $document,
             location: $location,
@@ -77,13 +77,13 @@ final class ExampleTest extends TestCase
             code: $code,
             fence: $fence,
             ordinal: 1,
-            explicitMarkerId: $markerId,
+            namedId: $namedId,
             directives: $directives,
             expectedException: $expectedException,
             expectedOutput: "documented output\n",
         );
 
-        self::assertSame($id, $example->id);
+        self::assertSame($id, $example->corpusId);
         self::assertSame('docs/guide.md PHP example 1', $example->label);
         self::assertInstanceOf(InlineExampleSource::class, $example->source);
         self::assertSame($document, $example->codeOrigin()->document);
@@ -94,7 +94,7 @@ final class ExampleTest extends TestCase
         self::assertSame($source, $example->code->source);
         self::assertSame($fence, $example->source->fence);
         self::assertSame(1, $example->ordinal);
-        self::assertSame($markerId, $example->explicitMarkerId);
+        self::assertSame($namedId, $example->namedId);
         self::assertSame($directives, $example->directives);
         self::assertSame($expectedException, $example->expectedException);
         self::assertSame("documented output\n", $example->expectedOutput);
@@ -106,7 +106,7 @@ final class ExampleTest extends TestCase
     {
         $example = $this->example();
 
-        self::assertNull($example->explicitMarkerId);
+        self::assertNull($example->namedId);
         self::assertFalse($example->directives->contains(Directive::Skip));
         self::assertFalse($example->directives->contains(Directive::SeparateProcess));
         self::assertFalse($example->directives->contains(Directive::CompileOnly));
@@ -121,7 +121,7 @@ final class ExampleTest extends TestCase
         $this->expectExceptionMessage($message);
 
         Example::fromInline(
-            id: new ExampleId('example-01'),
+            corpusId: new CorpusExampleId('example-01'),
             label: $label,
             document: new Document('docs/guide.md', ''),
             location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),
@@ -144,7 +144,7 @@ final class ExampleTest extends TestCase
     private function example(): Example
     {
         return Example::fromInline(
-            id: new ExampleId('example-guide-01'),
+            corpusId: new CorpusExampleId('example-guide-01'),
             label: 'docs/guide.md PHP example 1',
             document: new Document('docs/guide.md', ''),
             location: new SourceLocation(1, 2, null, 2, new SourceSpan(0, 1), new SourceSpan(1, 1)),

@@ -86,7 +86,7 @@ final class ExpectationParser
                 new SourceSpan(0, strlen($document->contents)),
             );
             $parseExample = new Example(
-                id: $example->id,
+                corpusId: $example->corpusId,
                 label: $example->label,
                 source: new ReferencedExampleSource(
                     $contextOrigin,
@@ -96,7 +96,7 @@ final class ExpectationParser
                 language: $example->language,
                 code: new ExampleCode($document->contents),
                 ordinal: $example->ordinal,
-                explicitMarkerId: $example->explicitMarkerId,
+                namedId: $example->namedId,
                 directives: $example->directives,
                 expectedException: $example->expectedException,
                 expectedOutput: $example->expectedOutput,
@@ -201,7 +201,7 @@ final class ExpectationParser
                 if ($text === '') {
                     throw new ExpectationParseException(sprintf(
                         'Example %s at %s:%d contains an empty PHPStan diagnostic expectation.',
-                        $example->id->value,
+                        $example->corpusId->value,
                         $example->codeOrigin()->document->path->value,
                         $sourceLine,
                     ));
@@ -221,7 +221,7 @@ final class ExpectationParser
                     throw new ExpectationParseException(sprintf(
                         'Example %s at %s:%d contains a misplaced PHPStan diagnostic identifier expectation; '
                         . 'the directive must occupy a standalone line.',
-                        $example->id->value,
+                        $example->corpusId->value,
                         $selectedOrigin->document->path->value,
                         $sourceLine,
                     ));
@@ -237,7 +237,7 @@ final class ExpectationParser
             ) !== 1) {
                 throw new ExpectationParseException(sprintf(
                     'Example %s at %s:%d contains a malformed PHPStan diagnostic identifier expectation.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $sourceLine,
                 ));
@@ -253,7 +253,7 @@ final class ExpectationParser
             if ($statementRange === null) {
                 throw new ExpectationParseException(sprintf(
                     'Example %s at %s:%d contains a PHPStan diagnostic identifier expectation that is not followed by a statement.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $sourceLine,
                 ));
@@ -272,7 +272,7 @@ final class ExpectationParser
                 ) {
                     throw new ExpectationParseException(sprintf(
                         'Example %s at %s:%d contains a PHPStan diagnostic identifier expectation that does not immediately precede a statement.',
-                        $example->id->value,
+                        $example->corpusId->value,
                         $example->codeOrigin()->document->path->value,
                         $sourceLine,
                     ));

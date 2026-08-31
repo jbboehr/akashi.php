@@ -42,7 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -132,7 +132,7 @@ final class SeparateProcessTransformerTest extends TestCase
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-separate-transform-01'),
+            corpusId: new CorpusExampleId('example-separate-transform-01'),
             label: 'Separate-process transform fixture',
             document: new Document('docs/separate.md', $source),
             location: new SourceLocation(

@@ -226,18 +226,18 @@ final class CommonMarkExampleExtractorTest extends TestCase
             $document->lines->slice($this->inlineSource($examples[0])->location->codeSpan),
             $examples[0]->code->source,
         );
-        self::assertSame('example-c2bba259c960-01', $examples[0]->id->value);
-        self::assertNull($examples[0]->explicitMarkerId);
+        self::assertSame('example-c2bba259c960-01', $examples[0]->corpusId->value);
+        self::assertNull($examples[0]->namedId);
     }
 
-    public function testKeepsExampleIdentitiesUniqueBeyondTwoDigitOrdinals(): void
+    public function testKeepsCorpusExampleIdentitiesUniqueBeyondTwoDigitOrdinals(): void
     {
         $document = new Document(
             'docs/many-examples.md',
             str_repeat("```php\necho 1;\n```\n\n", 100),
         );
         $examples = $this->extractor->extract($document);
-        $ids = array_map(static fn (Example $example): string => $example->id->value, $examples);
+        $ids = array_map(static fn (Example $example): string => $example->corpusId->value, $examples);
 
         self::assertCount(100, $examples);
         self::assertSame(99, $examples[98]->ordinal);

@@ -39,11 +39,11 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Cli;
 
 use jbboehr\Akashi\Cli\Exception\UsageException;
-use jbboehr\Akashi\Model\MarkerId;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\NamedExampleId;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\DocumentationSource;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
+use jbboehr\Akashi\Source\NamedExampleSelector;
 use jbboehr\Akashi\Source\ProjectDocumentLoader;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -66,7 +66,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class ExtractCommand extends Command
 {
     /**
-     * Define the optional legacy marker dialect, project root, documentation file, and example ID inputs.
+     * Define the optional legacy marker dialect, project root, documentation file, and named example ID inputs.
      *
      * @logion [AWC 109:2] The western senate melted the seals of twelve rival houses and cast them into a single bronze
      *     column, proclaiming their quarrels ended. At sunset the column divided its shadow into twelve figures, each
@@ -77,7 +77,7 @@ final class ExtractCommand extends Command
     {
         $this
             ->addOption(
-                'marker-name',
+                'legacy-marker-name',
                 mode: InputOption::VALUE_REQUIRED,
                 description: 'Additional legacy marker-comment name to recognize.',
             )
@@ -87,7 +87,7 @@ final class ExtractCommand extends Command
                 description: 'Project root containing the documentation file.',
             )
             ->addArgument('file', InputArgument::REQUIRED, 'Markdown or PHP documentation file.')
-            ->addArgument('marker-id', InputArgument::REQUIRED, 'Explicit example ID to extract.');
+            ->addArgument('example-id', InputArgument::REQUIRED, 'Named example ID to extract.');
     }
 
     /**
@@ -99,12 +99,12 @@ final class ExtractCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if ($this->optionOccurrences($input, 'marker-name') > 1) {
-            throw new UsageException('The --marker-name option may be specified only once.');
+        if ($this->optionOccurrences($input, 'legacy-marker-name') > 1) {
+            throw new UsageException('The --legacy-marker-name option may be specified only once.');
         }
-        $markerName = $input->getOption('marker-name');
-        if ($markerName !== null && !is_string($markerName)) {
-            throw new \LogicException('Symfony returned invalid marker-name option evidence.');
+        $legacyMarkerName = $input->getOption('legacy-marker-name');
+        if ($legacyMarkerName !== null && !is_string($legacyMarkerName)) {
+            throw new \LogicException('Symfony returned invalid legacy-marker-name option evidence.');
         }
 
         if ($this->optionOccurrences($input, 'project-root') > 1) {
@@ -116,13 +116,13 @@ final class ExtractCommand extends Command
         }
 
         $file = $input->getArgument('file');
-        $markerId = $input->getArgument('marker-id');
-        if (!is_string($file) || !is_string($markerId)) {
+        $namedId = $input->getArgument('example-id');
+        if (!is_string($file) || !is_string($namedId)) {
             throw new \LogicException('Symfony returned invalid extract argument evidence.');
         }
 
-        $markerId = new MarkerId($markerId);
-        $markerName = $markerName === null ? null : new MarkerName($markerName);
+        $namedId = new NamedExampleId($namedId);
+        $legacyMarkerName = $legacyMarkerName === null ? null : new LegacyMarkerName($legacyMarkerName);
 
         $file = $this->absolutePath($file, 'Documentation file');
 
@@ -136,11 +136,11 @@ final class ExtractCommand extends Command
         );
 
         $source = DocumentationSource::forProject($projectRoot)->withFile($projectPath);
-        if ($markerName !== null) {
-            $source = $source->withMarkerName($markerName);
+        if ($legacyMarkerName !== null) {
+            $source = $source->withLegacyMarkerName($legacyMarkerName);
         }
         $corpus = $source->load();
-        $example = (new MarkedExampleSelector())->select($corpus, $markerId);
+        $example = (new NamedExampleSelector())->select($corpus, $namedId);
 
         $output->write(
             $this->withLegacyTrailingNewline($example->code->source),

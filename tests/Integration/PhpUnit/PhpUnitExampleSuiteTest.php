@@ -44,7 +44,7 @@ use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleSuite;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -85,7 +85,7 @@ final class PhpUnitExampleSuiteTest extends TestCase
         $code = 'assert(true);';
 
         return Example::fromInline(
-            id: new ExampleId('phpunit-suite-01'),
+            corpusId: new CorpusExampleId('phpunit-suite-01'),
             label: 'PHPUnit suite example',
             document: new Document('docs/phpunit-suite.md', $code),
             location: new SourceLocation(

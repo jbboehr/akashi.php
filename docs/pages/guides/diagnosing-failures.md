@@ -25,7 +25,7 @@ Fix the source set or comment placement; rerunning individual data sets cannot b
 
 ## Parse and Transform Failures
 
-PHP syntax errors and unsupported in-process constructs report the example ID and maintained Markdown or PHPDoc
+PHP syntax errors and unsupported in-process constructs report the corpus example ID and maintained Markdown or PHPDoc
 location. Unsupported examples commonly need either a source change or an explicit `<!-- akashi: separate-process -->`
 directive. Akashi does not silently reroute them, because doing so would hide a change in execution semantics.
 
@@ -36,7 +36,7 @@ An assertion-transform error usually means the native `assert()` call uses unsup
 
 The PHPUnit report includes:
 
-- the example ID and human-readable data-set label;
+- the corpus example ID and human-readable data-set label;
 - the failure phase;
 - the maintained document and line, or the example start when an exact line is unavailable;
 - the original exception or child-process outcome;

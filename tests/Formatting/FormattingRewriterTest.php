@@ -46,7 +46,7 @@ use jbboehr\Akashi\Formatting\FormattingRewriter;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\PhpDocTagName;
 use jbboehr\Akashi\Model\ReferencedExampleSource;
@@ -329,13 +329,13 @@ MARKDOWN),
         $document = new Document('docs/example.md', "```php\n\$value=1;\n```\n");
         $current = (new CommonMarkExampleExtractor())->extract($document)[0];
         $forged = new Example(
-            new ExampleId('another-example'),
+            new CorpusExampleId('another-example'),
             $current->label,
             $current->source,
             $current->language,
             $current->code,
             $current->ordinal,
-            $current->explicitMarkerId,
+            $current->namedId,
             $current->directives,
             $current->expectedException,
         );
@@ -354,13 +354,13 @@ MARKDOWN),
         $document = new Document('docs/example.md', "```php\n\$value=1;\n```\n");
         $current = (new CommonMarkExampleExtractor())->extract($document)[0];
         $forged = new Example(
-            $current->id,
+            $current->corpusId,
             $current->label,
             $current->source,
             $current->language,
             $current->code,
             2,
-            $current->explicitMarkerId,
+            $current->namedId,
             $current->directives,
             $current->expectedException,
         );
@@ -389,7 +389,7 @@ MARKDOWN),
             )],
         );
         $example = new Example(
-            new ExampleId('referenced-example'),
+            new CorpusExampleId('referenced-example'),
             'Referenced example',
             $source,
             new Language('php'),
@@ -604,7 +604,7 @@ MARKDOWN);
 
         $this->expectException(FormattingRewriteException::class);
         $this->expectExceptionMessage(
-            'Formatter output for inline example ' . $example->id->value . ' at docs/example.md:2 cannot be rendered safely.',
+            'Formatter output for inline example ' . $example->corpusId->value . ' at docs/example.md:2 cannot be rendered safely.',
         );
 
         (new FormattingRewriter())->rewrite(

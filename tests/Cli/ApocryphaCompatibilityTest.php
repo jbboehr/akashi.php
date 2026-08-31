@@ -45,7 +45,7 @@ use Symfony\Component\Process\Process;
 final class ApocryphaCompatibilityTest extends TestCase
 {
     #[DataProvider('markedExampleProvider')]
-    public function testExtractsCapturedApocryphaExamplesByteForByte(string $markerId, string $expectedFile): void
+    public function testExtractsCapturedApocryphaExamplesByteForByte(string $namedId, string $expectedFile): void
     {
         $fixtures = __DIR__ . '/../Fixtures/Compatibility/Apocrypha';
         $file = $fixtures . '/marked-examples.md';
@@ -57,9 +57,9 @@ final class ApocryphaCompatibilityTest extends TestCase
             PHP_BINARY,
             $projectRoot . '/bin/akashi',
             'extract',
-            '--marker-name=yumemi-example',
+            '--legacy-marker-name=yumemi-example',
             $file,
-            $markerId,
+            $namedId,
         ], $projectRoot);
         $process->run();
 

@@ -48,7 +48,7 @@ use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
@@ -601,7 +601,7 @@ PHP,
         $lastCodeLine = $firstCodeLine + $lineCount - 1;
 
         return Example::fromInline(
-            id: new ExampleId($id),
+            corpusId: new CorpusExampleId($id),
             label: 'PHPUnit runtime fixture',
             document: new Document('docs/runtime.md', $source),
             location: new SourceLocation(

@@ -71,35 +71,35 @@ final class ExampleCorpus implements \Countable, \IteratorAggregate
 
         $examples = array_values($examples);
         $ids = [];
-        $markerIds = [];
+        $namedIds = [];
         $previous = null;
 
         foreach ($examples as $example) {
-            $id = $example->id->value;
+            $id = $example->corpusId->value;
             if (array_key_exists($id, $ids)) {
-                throw new \InvalidArgumentException(sprintf('Duplicate example ID %s.', $id));
+                throw new \InvalidArgumentException(sprintf('Duplicate corpus example ID %s.', $id));
             }
             $ids[$id] = null;
 
-            $markerId = $example->explicitMarkerId?->value;
-            if ($markerId !== null) {
-                if (array_key_exists($markerId, $markerIds)) {
-                    throw new \InvalidArgumentException(sprintf('Duplicate marker ID %s.', $markerId));
+            $namedId = $example->namedId?->value;
+            if ($namedId !== null) {
+                if (array_key_exists($namedId, $namedIds)) {
+                    throw new \InvalidArgumentException(sprintf('Duplicate named example ID %s.', $namedId));
                 }
-                $markerIds[$markerId] = null;
+                $namedIds[$namedId] = null;
             }
 
             if ($previous !== null) {
                 $pathComparison = strcmp($previous->codeOrigin()->document->path->value, $example->codeOrigin()->document->path->value);
                 $lineComparison = $previous->codeOrigin()->firstCodeLine <=> $example->codeOrigin()->firstCodeLine;
-                $idComparison = strcmp($previous->id->value, $example->id->value);
+                $idComparison = strcmp($previous->corpusId->value, $example->corpusId->value);
                 if (
                     $pathComparison > 0
                     || ($pathComparison === 0 && $lineComparison > 0)
                     || ($pathComparison === 0 && $lineComparison === 0 && $idComparison >= 0)
                 ) {
                     throw new \InvalidArgumentException(
-                        'Examples must be ordered by canonical source path, source line, and example ID.',
+                        'Examples must be ordered by canonical source path, source line, and corpus example ID.',
                     );
                 }
             }

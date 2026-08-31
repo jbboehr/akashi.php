@@ -41,13 +41,13 @@ namespace jbboehr\Akashi\Tests\Source;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NamedExampleOnNonPhpFenceException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
 use jbboehr\Akashi\Model\Directive;
-use jbboehr\Akashi\Model\InvalidMarkerException;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
@@ -530,13 +530,13 @@ echo 'selected';
 ```
 MARKDOWN);
         $source = MarkdownSource::forProject($this->projectRoot)->withFile('docs/guide.md');
-        $markedSource = $source->withMarkerName(new MarkerName('yumemi-example'));
+        $markedSource = $source->withLegacyMarkerName(new LegacyMarkerName('yumemi-example'));
 
         $unmarkedExamples = iterator_to_array($source->load());
         $markedExamples = iterator_to_array($markedSource->load());
 
-        self::assertNull($unmarkedExamples[0]->explicitMarkerId);
-        self::assertSame('selected-example', $markedExamples[0]->explicitMarkerId?->value);
+        self::assertNull($unmarkedExamples[0]->namedId);
+        self::assertSame('selected-example', $markedExamples[0]->namedId?->value);
         self::assertTrue($unmarkedExamples[0]->directives->contains(Directive::SeparateProcess));
         self::assertTrue($markedExamples[0]->directives->contains(Directive::SeparateProcess));
     }
@@ -551,16 +551,16 @@ MARKDOWN);
         try {
             MarkdownSource::forProject($this->projectRoot)
                 ->withFile('docs/invalid.md')
-                ->withMarkerName('yumemi-example')
+                ->withLegacyMarkerName('yumemi-example')
                 ->load();
             self::fail('The invalid authored marker was accepted.');
         } catch (SourceException $exception) {
-            self::assertInstanceOf(InvalidMarkerMetadataException::class, $exception);
+            self::assertInstanceOf(InvalidNamedExampleMetadataException::class, $exception);
             self::assertSame(
-                'Invalid yumemi-example marker at docs/invalid.md:1: Marker ID must use lowercase kebab-case.',
+                'Invalid yumemi-example marker at docs/invalid.md:1: Named example ID must use lowercase kebab-case.',
                 $exception->getMessage(),
             );
-            self::assertInstanceOf(InvalidMarkerException::class, $exception->getPrevious());
+            self::assertInstanceOf(InvalidNamedExampleIdException::class, $exception->getPrevious());
         }
     }
 
@@ -579,13 +579,13 @@ MARKDOWN);
     public static function metadataSourceExceptionProvider(): iterable
     {
         yield 'directive' => [DirectiveException::class];
-        yield 'duplicate marker' => [DuplicateMarkerException::class];
-        yield 'invalid marker' => [InvalidMarkerMetadataException::class];
-        yield 'non-PHP marker' => [NonPhpMarkerException::class];
-        yield 'orphaned marker' => [OrphanedMarkerException::class];
+        yield 'duplicate marker' => [DuplicateNamedExampleIdException::class];
+        yield 'invalid marker' => [InvalidNamedExampleMetadataException::class];
+        yield 'non-PHP marker' => [NamedExampleOnNonPhpFenceException::class];
+        yield 'orphaned marker' => [OrphanedNamedExampleMetadataException::class];
     }
 
-    public function testRejectsDuplicateMarkerIdsAcrossDocuments(): void
+    public function testRejectsDuplicateNamedExampleIdsAcrossDocuments(): void
     {
         $this->write(
             'docs/a.md',
@@ -596,14 +596,14 @@ MARKDOWN);
             "\n<!-- yumemi-example: selected-example -->\n```php\necho 'b';\n```\n",
         );
 
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $this->expectExceptionMessage(
-            'Duplicate marker ID selected-example at docs/b.md:2; first declared at docs/a.md:1.',
+            'Duplicate named example ID selected-example at docs/b.md:2; first declared at docs/a.md:1.',
         );
 
         MarkdownSource::forProject($this->projectRoot)
             ->withDirectory('docs')
-            ->withMarkerName('yumemi-example')
+            ->withLegacyMarkerName('yumemi-example')
             ->load();
     }
 

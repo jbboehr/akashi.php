@@ -217,7 +217,7 @@ final class PhpStanDeclarationValidator
                     'duplicate %s declaration %s already authored by example %s at %s:%d',
                     $kind,
                     $name,
-                    $previous->id->value,
+                    $previous->corpusId->value,
                     $previous->codeOrigin()->document->path->value,
                     $previous->codeOrigin()->firstCodeLine,
                 ),
@@ -259,7 +259,7 @@ final class PhpStanDeclarationValidator
 
         throw new PhpStanVerificationException(sprintf(
             'Unsafe PHPStan example %s at %s:%d: %s.',
-            $example->id->value,
+            $example->corpusId->value,
             $example->codeOrigin()->document->path->value,
             $sourceLine ?? $example->codeOrigin()->firstCodeLine,
             $reason,

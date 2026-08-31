@@ -41,13 +41,13 @@ namespace jbboehr\Akashi\Tests\Markdown;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NamedExampleOnNonPhpFenceException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
 use jbboehr\Akashi\Model\Directive;
-use jbboehr\Akashi\Model\InvalidMarkerException;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -66,13 +66,13 @@ throw new RuntimeException('invalid, documented input', 73);
 MARKDOWN);
         $example = (new CommonMarkExampleExtractor())->extract($document)[0];
 
-        self::assertSame('canonical-example', $example->explicitMarkerId?->value);
+        self::assertSame('canonical-example', $example->namedId?->value);
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
         self::assertSame('RuntimeException', $example->expectedException?->className);
         self::assertSame('invalid, documented input', $example->expectedException->message);
         self::assertSame(73, $example->expectedException->code);
         self::assertSame("before failure\n", $example->expectedOutput);
-        self::assertSame(1, $example->codeOrigin()->metadata->markerLine);
+        self::assertSame(1, $example->codeOrigin()->metadata->namedIdLine);
         self::assertSame(1, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
     }
 
@@ -87,9 +87,9 @@ echo $value;
 MARKDOWN);
         $example = (new CommonMarkExampleExtractor())->extract($document)[0];
 
-        self::assertSame('inline-example', $example->explicitMarkerId?->value);
+        self::assertSame('inline-example', $example->namedId?->value);
         self::assertTrue($example->directives->contains(Directive::Skip));
-        self::assertSame(3, $example->codeOrigin()->metadata->markerLine);
+        self::assertSame(3, $example->codeOrigin()->metadata->namedIdLine);
     }
 
     public function testCanonicalAndConfiguredLegacyMarkersAreBothRecognized(): void
@@ -107,8 +107,8 @@ echo 'legacy';
 MARKDOWN);
         $examples = (new CommonMarkExampleExtractor('yumemi-example'))->extract($document);
 
-        self::assertSame('canonical', $examples[0]->explicitMarkerId?->value);
-        self::assertSame('legacy', $examples[1]->explicitMarkerId?->value);
+        self::assertSame('canonical', $examples[0]->namedId?->value);
+        self::assertSame('legacy', $examples[1]->namedId?->value);
     }
 
     public function testAssociatesMarkersAndDirectivesInEitherOrderAcrossWhitespace(): void
@@ -132,22 +132,22 @@ echo 'second';
 MARKDOWN);
 
         self::assertCount(2, $examples);
-        self::assertSame('first-example', $examples[0]->explicitMarkerId?->value);
-        self::assertSame('second-example', $examples[1]->explicitMarkerId?->value);
+        self::assertSame('first-example', $examples[0]->namedId?->value);
+        self::assertSame('second-example', $examples[1]->namedId?->value);
         self::assertTrue($examples[0]->directives->contains(Directive::Skip));
         self::assertTrue($examples[1]->directives->contains(Directive::Skip));
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
         self::assertTrue($examples[1]->directives->contains(Directive::SeparateProcess));
-        self::assertSame(1, $examples[0]->codeOrigin()->metadata->markerLine);
+        self::assertSame(1, $examples[0]->codeOrigin()->metadata->namedIdLine);
         self::assertSame(4, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(3, $examples[0]->codeOrigin()->metadata->skipDirectiveLine);
-        self::assertSame(12, $examples[1]->codeOrigin()->metadata->markerLine);
+        self::assertSame(12, $examples[1]->codeOrigin()->metadata->namedIdLine);
         self::assertSame(10, $examples[1]->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(11, $examples[1]->codeOrigin()->metadata->skipDirectiveLine);
         self::assertSame("<?php\necho 'first';\n", $examples[0]->code->source);
     }
 
-    public function testRecognizesOnlyTheConfiguredMarkerName(): void
+    public function testRecognizesOnlyTheConfiguredLegacyMarkerName(): void
     {
         $document = new Document('docs/metadata.md', <<<'MARKDOWN'
 <!-- selected-example: selected -->
@@ -160,12 +160,12 @@ echo 'selected';
 echo 'ignored';
 ```
 MARKDOWN);
-        $extractor = new CommonMarkExampleExtractor(new MarkerName('selected-example'));
+        $extractor = new CommonMarkExampleExtractor(new LegacyMarkerName('selected-example'));
         $examples = $extractor->extract($document);
 
         self::assertCount(2, $examples);
-        self::assertSame('selected', $examples[0]->explicitMarkerId?->value);
-        self::assertNull($examples[1]->explicitMarkerId);
+        self::assertSame('selected', $examples[0]->namedId?->value);
+        self::assertNull($examples[1]->namedId);
     }
 
     public function testAssociatesMetadataWithinACommonMarkContainer(): void
@@ -181,9 +181,9 @@ MARKDOWN);
 MARKDOWN);
 
         self::assertCount(1, $examples);
-        self::assertSame('quoted-example', $examples[0]->explicitMarkerId?->value);
+        self::assertSame('quoted-example', $examples[0]->namedId?->value);
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
-        self::assertSame(1, $examples[0]->codeOrigin()->metadata->markerLine);
+        self::assertSame(1, $examples[0]->codeOrigin()->metadata->namedIdLine);
         self::assertSame(3, $examples[0]->codeOrigin()->metadata->separateProcessDirectiveLine);
     }
 
@@ -327,25 +327,25 @@ MARKDOWN);
         self::assertSame(7, $examples[1]->codeOrigin()->metadata->compileOnlyDirectiveLine);
     }
 
-    public function testRejectsAnInvalidMarkerIdWithItsSourceLocation(): void
+    public function testRejectsAnInvalidNamedExampleIdWithItsSourceLocation(): void
     {
         try {
             $this->extract("<!-- yumemi-example: Invalid_ID -->\n```php\necho 1;\n```\n");
             self::fail('The invalid authored marker was accepted.');
-        } catch (InvalidMarkerMetadataException $exception) {
+        } catch (InvalidNamedExampleMetadataException $exception) {
             self::assertSame(
-                'Invalid yumemi-example marker at docs/metadata.md:1: Marker ID must use lowercase kebab-case.',
+                'Invalid yumemi-example marker at docs/metadata.md:1: Named example ID must use lowercase kebab-case.',
                 $exception->getMessage(),
             );
-            self::assertInstanceOf(InvalidMarkerException::class, $exception->getPrevious());
+            self::assertInstanceOf(InvalidNamedExampleIdException::class, $exception->getPrevious());
         }
     }
 
-    public function testRejectsADuplicateMarkerIdWithBothSourceLocations(): void
+    public function testRejectsADuplicateNamedExampleIdWithBothSourceLocations(): void
     {
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $this->expectExceptionMessage(
-            'Duplicate marker ID repeated at docs/metadata.md:6; first declared at docs/metadata.md:1.',
+            'Duplicate named example ID repeated at docs/metadata.md:6; first declared at docs/metadata.md:1.',
         );
 
         $this->extract(<<<'MARKDOWN'
@@ -363,9 +363,9 @@ MARKDOWN);
 
     public function testRejectsMultipleMarkersAssociatedWithOneFence(): void
     {
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $this->expectExceptionMessage(
-            'Duplicate Akashi example marker at docs/metadata.md:2; first declared at docs/metadata.md:1.',
+            'Duplicate Akashi named example metadata at docs/metadata.md:2; first declared at docs/metadata.md:1.',
         );
 
         $this->extract(<<<'MARKDOWN'
@@ -379,9 +379,9 @@ MARKDOWN);
 
     public function testRejectsAMarkerSeparatedFromTheFenceByProse(): void
     {
-        $this->expectException(OrphanedMarkerException::class);
+        $this->expectException(OrphanedNamedExampleMetadataException::class);
         $this->expectExceptionMessage(
-            'Marker selected at docs/metadata.md:1 is not followed by a fenced code block.',
+            'Named example ID selected at docs/metadata.md:1 is not followed by a fenced code block.',
         );
 
         $this->extract(<<<'MARKDOWN'
@@ -397,9 +397,9 @@ MARKDOWN);
 
     public function testRejectsAMarkerSeparatedByUnrecognizedMetadata(): void
     {
-        $this->expectException(OrphanedMarkerException::class);
+        $this->expectException(OrphanedNamedExampleMetadataException::class);
         $this->expectExceptionMessage(
-            'Marker selected at docs/metadata.md:1 is not followed by a fenced code block.',
+            'Named example ID selected at docs/metadata.md:1 is not followed by a fenced code block.',
         );
 
         $this->extract(<<<'MARKDOWN'
@@ -413,9 +413,9 @@ MARKDOWN);
 
     public function testRejectsAMarkerFollowedByANonPhpFence(): void
     {
-        $this->expectException(NonPhpMarkerException::class);
+        $this->expectException(NamedExampleOnNonPhpFenceException::class);
         $this->expectExceptionMessage(
-            'Marker selected at docs/metadata.md:1 is followed by a javascript fence, not a PHP fence.',
+            'Named example ID selected at docs/metadata.md:1 is followed by a javascript fence, not a PHP fence.',
         );
 
         $this->extract("<!-- yumemi-example: selected -->\n```javascript\necho 1;\n```\n");

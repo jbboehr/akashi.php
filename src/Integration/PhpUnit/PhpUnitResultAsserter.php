@@ -81,7 +81,7 @@ final class PhpUnitResultAsserter
             Assert::assertGreaterThan(
                 -1,
                 $result->durationNanoseconds,
-                sprintf('Documentation example %s completed.', $result->preparedExample->example->id->value),
+                sprintf('Documentation example %s completed.', $result->preparedExample->example->corpusId->value),
             );
 
             return;
@@ -97,7 +97,7 @@ final class PhpUnitResultAsserter
             $example = $result->preparedExample->example;
             $message = sprintf(
                 'Documentation example %s expected exact stdout at %s:%d.',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->firstCodeLine,
             );
@@ -150,7 +150,7 @@ final class PhpUnitResultAsserter
             throw new ExpectationFailedException(implode("\n", [
                 sprintf(
                     'Documentation example %s expected %s at %s, but execution completed without throwing.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $expectedException->className,
                     $expectationLocation,
                 ),
@@ -165,7 +165,7 @@ final class PhpUnitResultAsserter
             $sections = [sprintf(
                 'Documentation example %s expects %s at %s, but that name does not identify an available '
                     . 'Throwable type.',
-                $example->id->value,
+                $example->corpusId->value,
                 $expectedException->className,
                 $expectationLocation,
             )];
@@ -187,7 +187,7 @@ final class PhpUnitResultAsserter
             throw new ExpectationFailedException(implode("\n", [
                 sprintf(
                     'Documentation example %s expected %s at %s, but execution completed without throwing.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $expectedException->className,
                     $expectationLocation,
                 ),
@@ -215,7 +215,7 @@ final class PhpUnitResultAsserter
                         sprintf(
                             'Documentation example %s expected %s at %s, but its message did not contain the '
                                 . 'expected substring.',
-                            $example->id->value,
+                            $example->corpusId->value,
                             $expectedException->className,
                             $expectationLocation,
                         ),
@@ -238,7 +238,7 @@ final class PhpUnitResultAsserter
                     implode("\n", [
                         sprintf(
                             'Documentation example %s expected %s at %s, but its exception code did not match.',
-                            $example->id->value,
+                            $example->corpusId->value,
                             $expectedException->className,
                             $expectationLocation,
                         ),
@@ -255,7 +255,7 @@ final class PhpUnitResultAsserter
 
             Assert::assertGreaterThan(-1, $result->durationNanoseconds, sprintf(
                 'Documentation example %s threw expected %s.',
-                $example->id->value,
+                $example->corpusId->value,
                 $expectedException->className,
             ));
 
@@ -273,7 +273,7 @@ final class PhpUnitResultAsserter
             $sections = [
                 sprintf(
                     'Documentation example %s expected %s at %s, but %s was thrown.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $expectedException->className,
                     $expectationLocation,
                     $actualClassName,
@@ -294,7 +294,7 @@ final class PhpUnitResultAsserter
             sprintf(
                 "Documentation example %s could not satisfy expected %s at %s because execution did not complete "
                     . "cleanly.\n%s",
-                $example->id->value,
+                $example->corpusId->value,
                 $expectedException->className,
                 $expectationLocation,
                 self::failureMessage($result),
@@ -314,7 +314,7 @@ final class PhpUnitResultAsserter
         $sections = [
             sprintf(
                 'Documentation example %s failed during %s.',
-                $example->id->value,
+                $example->corpusId->value,
                 $result->phase->value,
             ),
             sprintf('Label: %s', $example->label),

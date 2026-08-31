@@ -51,7 +51,7 @@ use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleSelector;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\ProjectRoot;
@@ -322,7 +322,7 @@ final class PhpStanExampleConfigurationTest extends TestCase
         $sourceLength = strlen($source);
 
         return Example::fromInline(
-            id: new ExampleId($id),
+            corpusId: new CorpusExampleId($id),
             label: $path . ' PHP example ' . $ordinal,
             document: new Document($path, $documentContents ?? $source),
             location: new SourceLocation(

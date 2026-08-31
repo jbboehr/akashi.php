@@ -44,17 +44,17 @@ use jbboehr\Akashi\Metadata\ExampleMetadataClause;
 use jbboehr\Akashi\Metadata\ExampleMetadataParser;
 use jbboehr\Akashi\Metadata\ExampleMetadataProperty;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NamedExampleOnNonPhpFenceException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
-use jbboehr\Akashi\Model\InvalidMarkerException;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\NamedExampleId;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use League\CommonMark\Environment\Environment;
@@ -95,30 +95,30 @@ final class CommonMarkExampleExtractor
      *     the golden vessels cracked beneath boiling wine, but the little cup endured. Two kings drank from it in turn
      *     and sent the jeweled fragments home unopened.
      */
-    private readonly ?MarkerName $markerName;
+    private readonly ?LegacyMarkerName $legacyMarkerName;
 
     /**
      * @logion [RAS 42:21] An army seized every copper cooking pot to forge a monument to its campaign. The monument
      *     rose; soup vanished from the alleys. Before winter ended, soldiers chipped metal from their own glory and
      *     returned it to the smiths. A victory that empties kitchens must finally eat itself.
      */
-    public function __construct(MarkerName|string|null $markerName = null)
+    public function __construct(LegacyMarkerName|string|null $legacyMarkerName = null)
     {
         $environment = new Environment([]);
         $environment->addExtension(new CommonMarkCoreExtension());
 
         $this->parser = new MarkdownParser($environment);
-        $this->markerName = is_string($markerName) ? new MarkerName($markerName) : $markerName;
+        $this->legacyMarkerName = is_string($legacyMarkerName) ? new LegacyMarkerName($legacyMarkerName) : $legacyMarkerName;
     }
 
     /**
      * @return list<Example>
      *
      * @throws DirectiveException
-     * @throws DuplicateMarkerException
-     * @throws InvalidMarkerMetadataException
-     * @throws NonPhpMarkerException
-     * @throws OrphanedMarkerException
+     * @throws DuplicateNamedExampleIdException
+     * @throws InvalidNamedExampleMetadataException
+     * @throws NamedExampleOnNonPhpFenceException
+     * @throws OrphanedNamedExampleMetadataException
      *
      * @logion [AWC 42:3] A midwife carried a silk cloth and a rough linen cloth. The silk adorned the cradle; the linen
      *     gripped the newborn when her hands were wet. She taught her daughters to honor what serves before what is
@@ -145,7 +145,7 @@ final class CommonMarkExampleExtractor
         $this->validateMetadataTargets($sourceDocument, $metadata);
         $walker = $ast->walker();
         $examples = [];
-        $markerLines = [];
+        $namedIdLines = [];
 
         while (($event = $walker->next()) !== null) {
             $node = $event->getNode();
@@ -165,26 +165,26 @@ final class CommonMarkExampleExtractor
                 count($examples) + 1,
                 $this->metadataForFence($node, $metadata),
             );
-            $markerId = $example->explicitMarkerId;
-            $markerLine = $example->codeOrigin()->metadata->markerLine;
-            if ($markerId !== null) {
-                if ($markerLine === null) {
-                    throw new \LogicException('Associated marker metadata is missing its source line.');
+            $namedId = $example->namedId;
+            $namedIdLine = $example->codeOrigin()->metadata->namedIdLine;
+            if ($namedId !== null) {
+                if ($namedIdLine === null) {
+                    throw new \LogicException('Associated named example metadata is missing its source line.');
                 }
 
-                $firstLine = $markerLines[$markerId->value] ?? null;
+                $firstLine = $namedIdLines[$namedId->value] ?? null;
                 if ($firstLine !== null) {
-                    throw new DuplicateMarkerException(sprintf(
-                        'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
-                        $markerId->value,
+                    throw new DuplicateNamedExampleIdException(sprintf(
+                        'Duplicate named example ID %s at %s:%d; first declared at %s:%d.',
+                        $namedId->value,
                         $sourceDocument->path->value,
-                        $markerLine,
+                        $namedIdLine,
                         $sourceDocument->path->value,
                         $firstLine,
                     ));
                 }
 
-                $markerLines[$markerId->value] = $markerLine;
+                $namedIdLines[$namedId->value] = $namedIdLine;
             }
 
             $examples[] = $example;
@@ -256,15 +256,15 @@ final class CommonMarkExampleExtractor
             ));
         }
 
-        if ($this->markerName !== null) {
-            $value = $this->metadataValue($node->getLiteral(), $this->markerName->value);
+        if ($this->legacyMarkerName !== null) {
+            $value = $this->metadataValue($node->getLiteral(), $this->legacyMarkerName->value);
             if ($value !== null) {
                 try {
-                    new MarkerId($value);
-                } catch (InvalidMarkerException $exception) {
-                    throw new InvalidMarkerMetadataException(sprintf(
+                    new NamedExampleId($value);
+                } catch (InvalidNamedExampleIdException $exception) {
+                    throw new InvalidNamedExampleMetadataException(sprintf(
                         'Invalid %s marker at %s:%d: %s',
-                        $this->markerName->value,
+                        $this->legacyMarkerName->value,
                         $sourceDocument->path->value,
                         $line,
                         $exception->getMessage(),
@@ -293,10 +293,10 @@ final class CommonMarkExampleExtractor
             }
 
             try {
-                new MarkerId($clause->value ?? '');
-            } catch (InvalidMarkerException $exception) {
-                throw new InvalidMarkerMetadataException(sprintf(
-                    'Invalid Akashi example marker at %s:%d: %s',
+                new NamedExampleId($clause->value ?? '');
+            } catch (InvalidNamedExampleIdException $exception) {
+                throw new InvalidNamedExampleMetadataException(sprintf(
+                    'Invalid Akashi named example metadata at %s:%d: %s',
                     $sourceDocument->path->value,
                     $line,
                     $exception->getMessage(),
@@ -334,10 +334,10 @@ final class CommonMarkExampleExtractor
     private function validateMetadataTargets(Document $document, array $metadata): void
     {
         foreach ($metadata as $item) {
-            $markerClause = null;
+            $namedIdClause = null;
             foreach ($item['clauses'] as $clause) {
                 if ($clause->property === ExampleMetadataProperty::Example) {
-                    $markerClause = $clause;
+                    $namedIdClause = $clause;
                     break;
                 }
             }
@@ -348,10 +348,10 @@ final class CommonMarkExampleExtractor
             }
 
             if (!$target instanceof FencedCode) {
-                if ($markerClause !== null) {
-                    throw new OrphanedMarkerException(sprintf(
-                        'Marker %s at %s:%d is not followed by a fenced code block.',
-                        $markerClause->value ?? '',
+                if ($namedIdClause !== null) {
+                    throw new OrphanedNamedExampleMetadataException(sprintf(
+                        'Named example ID %s at %s:%d is not followed by a fenced code block.',
+                        $namedIdClause->value ?? '',
                         $document->path->value,
                         $item['line'],
                     ));
@@ -370,10 +370,10 @@ final class CommonMarkExampleExtractor
             }
 
             $language = $this->fenceLanguage($target);
-            if ($markerClause !== null) {
-                throw new NonPhpMarkerException(sprintf(
-                    'Marker %s at %s:%d is followed by a %s fence, not a PHP fence.',
-                    $markerClause->value ?? '',
+            if ($namedIdClause !== null) {
+                throw new NamedExampleOnNonPhpFenceException(sprintf(
+                    'Named example ID %s at %s:%d is followed by a %s fence, not a PHP fence.',
+                    $namedIdClause->value ?? '',
                     $document->path->value,
                     $item['line'],
                     $language,
@@ -533,7 +533,7 @@ final class CommonMarkExampleExtractor
         );
 
         return Example::fromInline(
-            id: new ExampleId(sprintf(
+            corpusId: new CorpusExampleId(sprintf(
                 'example-%s-%02d',
                 substr(sha1($sourceDocument->path->value), 0, 12),
                 $ordinal,
@@ -545,7 +545,7 @@ final class CommonMarkExampleExtractor
             code: new ExampleCode($codeSource),
             fence: $fence,
             ordinal: $ordinal,
-            explicitMarkerId: $metadata->markerId,
+            namedId: $metadata->namedId,
             directives: $metadata->directives,
             expectedException: $metadata->expectedException,
             expectedOutput: $metadata->expectedOutput,

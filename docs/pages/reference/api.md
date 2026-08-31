@@ -36,6 +36,32 @@ Rename `PhpStanCommandVerified` imports and type checks to `PhpStanCommandVerifi
 `verify()` and `verifyPlan()` methods use this variant whenever execution and diagnostic comparison completed, including
 when diagnostics mismatch. The exception-oriented methods continue to return it only after a successful comparison.
 
+Identity names now distinguish Akashi-assigned corpus identity from stable author-assigned identity:
+
+| 0.2 API                                             | Replacement                                                |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| `Model\ExampleId`                                   | `Model\CorpusExampleId`                                    |
+| `Example::$id`                                      | `Example::$corpusId`                                       |
+| `Model\MarkerId`                                    | `Model\NamedExampleId`                                     |
+| `Example::$explicitMarkerId`                        | `Example::$namedId`                                        |
+| `Source\MarkedExampleSelector`                      | `Source\NamedExampleSelector`                              |
+| `Model\MarkerName`                                  | `Model\LegacyMarkerName`                                   |
+| `withMarkerName()`                                  | `withLegacyMarkerName()`                                   |
+| `Model\InvalidMarkerException`                      | `Model\InvalidNamedExampleIdException`                     |
+| `Model\MetadataLocation::$markerLine`               | `Model\MetadataLocation::$namedIdLine`                     |
+| `Markdown\Exception\DuplicateMarkerException`       | `Markdown\Exception\DuplicateNamedExampleIdException`      |
+| `Markdown\Exception\InvalidMarkerMetadataException` | `Markdown\Exception\InvalidNamedExampleMetadataException`  |
+| `Markdown\Exception\NonPhpMarkerException`          | `Markdown\Exception\NamedExampleOnNonPhpFenceException`    |
+| `Markdown\Exception\OrphanedMarkerException`        | `Markdown\Exception\OrphanedNamedExampleMetadataException` |
+| `Source\Exception\MarkerNotFoundException`          | `Source\Exception\NamedExampleNotFoundException`           |
+
+Related metadata exceptions use the same named-example terminology. The extraction command's positional argument is now
+documented as `EXAMPLE-ID`, and `--marker-name` is now `--legacy-marker-name`.
+
+`CorpusExampleId` identifies every example inside one deterministic corpus and may change when an inline example moves
+or its ordinal changes. `NamedExampleId` exists only when an author assigns `example=ID`; use it for extraction or any
+integration that needs identity to survive document reordering.
+
 ## Migrating from 0.1
 
 Projects that build a corpus through `MarkdownSource` and execute or analyze it through the PHPUnit and PHPStan traits
@@ -63,8 +89,8 @@ Code that directly constructed a 0.1 inline example should use `Example::fromInl
 arguments. The 0.2 constructor instead accepts an `InlineExampleSource|ReferencedExampleSource` and is intended for
 integrations that already model that distinction.
 
-Manually constructed `ExampleCorpus` values must be ordered by canonical source path, first code line, and example ID.
-Corpora returned by `MarkdownSource` or `DocumentationSource` already satisfy this invariant.
+Manually constructed `ExampleCorpus` values must be ordered by canonical source path, first code line, and corpus
+example ID. Corpora returned by `MarkdownSource` or `DocumentationSource` already satisfy this invariant.
 
 ### PHPStan diagnostic expectations
 
@@ -76,19 +102,19 @@ valid; the optional identifier and source-line range parameters are additive.
 Trailing optional parameters added to `AnalyzerDiagnostic`, `ExpectedException`, and `MetadataLocation` do not require
 changes to existing calls.
 
-No other 0.1 public type or member was removed. The change from native readonly classes to final classes composed only
-of readonly properties enables PHP 8.1 support without making model state mutable.
+The 0.2 release removed no other 0.1 public type or member. The change from native readonly classes to final classes
+composed only of readonly properties enables PHP 8.1 support without making model state mutable.
 
 ## Source and Corpus
 
-| Type                                          | Purpose                                                                          |
-| --------------------------------------------- | -------------------------------------------------------------------------------- |
-| `jbboehr\Akashi\Source\DocumentationSource`   | Immutable mixed Markdown/PHPDoc discovery and extraction.                        |
-| `jbboehr\Akashi\Source\MarkdownSource`        | Immutable file/directory discovery and CommonMark PHP-fence extraction.          |
-| `jbboehr\Akashi\Source\MarkedExampleSelector` | Select exactly one example by an author-assigned `example` identity.             |
-| `jbboehr\Akashi\Document`                     | One maintained Markdown or PHP source document and its line index.               |
-| `jbboehr\Akashi\Example`                      | Canonical example with typed source, code, directives, and runtime expectations. |
-| `jbboehr\Akashi\ExampleCorpus`                | Ordered, nonempty, unique collection of examples.                                |
+| Type                                         | Purpose                                                                          |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `jbboehr\Akashi\Source\DocumentationSource`  | Immutable mixed Markdown/PHPDoc discovery and extraction.                        |
+| `jbboehr\Akashi\Source\MarkdownSource`       | Immutable file/directory discovery and CommonMark PHP-fence extraction.          |
+| `jbboehr\Akashi\Source\NamedExampleSelector` | Select exactly one example by an author-assigned `example` identity.             |
+| `jbboehr\Akashi\Document`                    | One maintained Markdown or PHP source document and its line index.               |
+| `jbboehr\Akashi\Example`                     | Canonical example with typed source, code, directives, and runtime expectations. |
+| `jbboehr\Akashi\ExampleCorpus`               | Ordered, nonempty, unique collection of examples.                                |
 
 `DocumentationSource` is the ordinary entry point for mixed corpora; `MarkdownSource` remains the explicit Markdown-only
 entry point and exposes `loadDocuments()` for consumers that need the selected documents themselves.
@@ -113,7 +139,7 @@ The supporting value types are grouped by what they preserve:
 | Concern          | Types                                                                                                                                                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Project paths    | `Model\ProjectRoot`, `Model\ProjectPath`, `Model\AbsoluteFilePath`, `Model\DocumentPath`                                                                                                                                                    |
-| Example identity | `Model\ExampleId`, `Model\MarkerId`, `Model\MarkerName`, `Model\RegionName`, `Model\PhpDocTagName`                                                                                                                                          |
+| Example identity | `Model\CorpusExampleId`, `Model\NamedExampleId`, `Model\LegacyMarkerName`, `Model\RegionName`, `Model\PhpDocTagName`                                                                                                                        |
 | Authored source  | `Model\ExampleCode`, `Model\Language`, `Model\LineIndex`, `Model\CodeOrigin`, `Model\SourceSpan`, `Model\SourceLocation`, `Model\MetadataLocation`, `Model\InlineExampleSource`, `Model\ReferencedExampleSource`, `Model\ReferenceLocation` |
 | Fence metadata   | `Model\FenceCharacter`, `Model\FenceMetadata`                                                                                                                                                                                               |
 | Runtime metadata | `Model\Directive`, `Model\DirectiveSet`, `Model\ExpectedException`                                                                                                                                                                          |

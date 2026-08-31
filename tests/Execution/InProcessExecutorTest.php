@@ -51,7 +51,7 @@ use jbboehr\Akashi\Execution\RuntimeConfiguration;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Model\DocumentPath;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -547,7 +547,7 @@ PHP));
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-executor-01'),
+            corpusId: new CorpusExampleId('example-executor-01'),
             label: 'In-process executor fixture',
             document: new Document('docs/executor.md', $source),
             location: new SourceLocation(

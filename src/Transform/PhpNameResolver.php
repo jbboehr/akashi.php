@@ -78,7 +78,7 @@ final class PhpNameResolver
 
             throw new PhpParseException(sprintf(
                 'Unable to resolve names in example %s at %s:%d: %s',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->codeOrigin()->document->path->value,
                 $sourceLine ?? $example->codeOrigin()->firstCodeLine,
                 $error->getRawMessage(),

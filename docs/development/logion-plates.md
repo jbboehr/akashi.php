@@ -30,7 +30,7 @@ on narrow screens. Each plate appears directly below its page title, before the 
 | `using/phpunit.md`                | OSD 59:1  | `NativeAssertion`            | A common stone weighed once beneath a judicial lamp                         | Complete              |
 | `using/phpstan.md`                | RAS 66:9  | `VerifiesPhpStanExamples`    | Seven stars compared with their reflections above a glass city              | Complete              |
 | `using/separate-process.md`       | AWC 62:10 | `SubprocessExecutor`         | A witness crossing alone into a distant temporary tribunal                  | Complete              |
-| `using/extracting.md`             | SFA 48:40 | `MarkedExampleSelector`      | A child clearing a mill channel while the waiting white horse departs       | Complete              |
+| `using/extracting.md`             | SFA 48:40 | `NamedExampleSelector`       | A child clearing a mill channel while the waiting white horse departs       | Complete              |
 | `guides/index.md`                 | AWC 42:3  | `CommonMarkExampleExtractor` | A humble linen cloth safely receiving a newborn beside ceremonial silk      | Complete              |
 | `guides/test-documentation.md`    | RAS 47:26 | `CommonMarkExampleExtractor` | Rising snow revealing the patient repairs of an observatory dome            | Complete              |
 | `guides/reuse-runtime-phpstan.md` | RAS 31:24 | `MarkdownSource`             | Two processions crossing a glass mountain with one shared wound             | Complete              |

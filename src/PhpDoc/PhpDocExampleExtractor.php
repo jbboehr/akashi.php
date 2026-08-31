@@ -41,9 +41,9 @@ namespace jbboehr\Akashi\PhpDoc;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\InlineExampleSource;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 
 /**
  * Extracts CommonMark PHP fences from the interior lines of PHPDoc comments.
@@ -61,7 +61,7 @@ final class PhpDocExampleExtractor
      * @logion [AWC 69:23] When the granary prefect denied the famine, his ledgers bled indigo through their bindings.
      *     None could close them until the hungry were numbered aloud.
      */
-    private readonly ?MarkerName $markerName;
+    private readonly ?LegacyMarkerName $legacyMarkerName;
 
     /**
      * Create an extractor with an optional explicit marker-comment name.
@@ -71,9 +71,9 @@ final class PhpDocExampleExtractor
      *     separation an injury cut their portion; and immediately their clocks drifted from the firmament, each keeping
      *     an hour no other creature could enter.
      */
-    public function __construct(?MarkerName $markerName = null)
+    public function __construct(?LegacyMarkerName $legacyMarkerName = null)
     {
-        $this->markerName = $markerName;
+        $this->legacyMarkerName = $legacyMarkerName;
     }
 
     /**
@@ -88,7 +88,7 @@ final class PhpDocExampleExtractor
      */
     public function extract(Document $document): array
     {
-        $commonMark = new CommonMarkExampleExtractor($this->markerName);
+        $commonMark = new CommonMarkExampleExtractor($this->legacyMarkerName);
         $examples = [];
         $ordinal = 0;
 
@@ -124,7 +124,7 @@ final class PhpDocExampleExtractor
             throw new \LogicException('A projected PHPDoc fence must have an inline source.');
         }
         return new Example(
-            id: new ExampleId(sprintf(
+            corpusId: new CorpusExampleId(sprintf(
                 'example-%s-%02d',
                 substr(sha1($document->path->value), 0, 12),
                 $ordinal,
@@ -134,7 +134,7 @@ final class PhpDocExampleExtractor
             language: $projected->language,
             code: $projected->code,
             ordinal: $ordinal,
-            explicitMarkerId: $projected->explicitMarkerId,
+            namedId: $projected->namedId,
             directives: $projected->directives,
             expectedException: $projected->expectedException,
             expectedOutput: $projected->expectedOutput,

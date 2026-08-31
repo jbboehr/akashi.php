@@ -57,7 +57,7 @@ final class InProcessTransformer
      */
     public function transform(Example $example, ?ExecutionScope $scope = null): InProcessPreparedExample
     {
-        $scope ??= (new ExecutionScopeFactory())->create($example->id);
+        $scope ??= (new ExecutionScopeFactory())->create($example->corpusId);
         $parsed = (new PhpExampleParser())->parse($example);
         $resolved = (new PhpNameResolver())->resolve($example, $parsed);
         (new InProcessSafetyValidator())->validate($example, $resolved);

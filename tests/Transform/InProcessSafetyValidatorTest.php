@@ -41,7 +41,7 @@ namespace jbboehr\Akashi\Tests\Transform;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -386,7 +386,7 @@ PHP);
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-safety-01'),
+            corpusId: new CorpusExampleId('example-safety-01'),
             label: 'Safety fixture',
             document: new Document('docs/safety.md', $source),
             location: new SourceLocation(

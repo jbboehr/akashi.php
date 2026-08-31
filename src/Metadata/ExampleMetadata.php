@@ -40,7 +40,7 @@ namespace jbboehr\Akashi\Metadata;
 
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExpectedException;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\MetadataLocation;
 
 /**
@@ -70,7 +70,7 @@ final class ExampleMetadata
      * distance. The hive remained whole, for order had increased when possession ceased.
      */
     public function __construct(
-        public readonly ?MarkerId $markerId,
+        public readonly ?NamedExampleId $namedId,
         public readonly DirectiveSet $directives,
         public readonly ?ExpectedException $expectedException,
         public readonly MetadataLocation $location,

@@ -38,33 +38,33 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Tests\Model;
 
-use jbboehr\Akashi\Model\ExampleId;
-use jbboehr\Akashi\Model\InvalidMarkerException;
-use jbboehr\Akashi\Model\MarkerId;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\CorpusExampleId;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
+use jbboehr\Akashi\Model\NamedExampleId;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class IdentifierTest extends TestCase
 {
-    public function testAcceptsFileSafeExampleIds(): void
+    public function testAcceptsFileSafeCorpusExampleIds(): void
     {
-        self::assertSame('example-a1_b.c-2', (new ExampleId('example-a1_b.c-2'))->value);
+        self::assertSame('example-a1_b.c-2', (new CorpusExampleId('example-a1_b.c-2'))->value);
     }
 
-    #[DataProvider('invalidExampleIdProvider')]
-    public function testRejectsInvalidExampleIds(string $value): void
+    #[DataProvider('invalidCorpusExampleIdProvider')]
+    public function testRejectsInvalidCorpusExampleIds(string $value): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Example ID must be a lowercase file-safe identifier.');
+        $this->expectExceptionMessage('Corpus example ID must be a lowercase file-safe identifier.');
 
-        new ExampleId($value);
+        new CorpusExampleId($value);
     }
 
     /**
      * @return iterable<string, array{string}>
      */
-    public static function invalidExampleIdProvider(): iterable
+    public static function invalidCorpusExampleIdProvider(): iterable
     {
         yield 'empty' => [''];
         yield 'uppercase' => ['Example-01'];
@@ -74,49 +74,49 @@ final class IdentifierTest extends TestCase
         yield 'trailing separator' => ['example-01_'];
     }
 
-    public function testAcceptsKebabCaseMarkerIds(): void
+    public function testAcceptsKebabCaseNamedExampleIds(): void
     {
-        self::assertSame('selected-example-2', (new MarkerId('selected-example-2'))->value);
+        self::assertSame('selected-example-2', (new NamedExampleId('selected-example-2'))->value);
     }
 
-    public function testAcceptsKebabCaseMarkerNames(): void
+    public function testAcceptsKebabCaseLegacyMarkerNames(): void
     {
-        self::assertSame('yumemi-example', (new MarkerName('yumemi-example'))->value);
+        self::assertSame('yumemi-example', (new LegacyMarkerName('yumemi-example'))->value);
     }
 
-    #[DataProvider('invalidMarkerNameProvider')]
-    public function testRejectsInvalidOrReservedMarkerNames(string $value, string $message): void
+    #[DataProvider('invalidLegacyMarkerNameProvider')]
+    public function testRejectsInvalidOrReservedLegacyMarkerNames(string $value, string $message): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        new MarkerName($value);
+        new LegacyMarkerName($value);
     }
 
     /**
      * @return iterable<string, array{string, string}>
      */
-    public static function invalidMarkerNameProvider(): iterable
+    public static function invalidLegacyMarkerNameProvider(): iterable
     {
-        yield 'empty' => ['', 'Marker name must use lowercase kebab-case.'];
-        yield 'uppercase' => ['Yumemi-example', 'Marker name must use lowercase kebab-case.'];
-        yield 'underscore' => ['yumemi_example', 'Marker name must use lowercase kebab-case.'];
-        yield 'reserved directive prefix' => ['akashi', 'Marker name akashi is reserved for Akashi directives.'];
+        yield 'empty' => ['', 'Legacy marker name must use lowercase kebab-case.'];
+        yield 'uppercase' => ['Yumemi-example', 'Legacy marker name must use lowercase kebab-case.'];
+        yield 'underscore' => ['yumemi_example', 'Legacy marker name must use lowercase kebab-case.'];
+        yield 'reserved directive prefix' => ['akashi', 'Legacy marker name akashi is reserved for Akashi directives.'];
     }
 
-    #[DataProvider('invalidMarkerIdProvider')]
-    public function testRejectsInvalidMarkerIds(string $value): void
+    #[DataProvider('invalidNamedExampleIdProvider')]
+    public function testRejectsInvalidNamedExampleIds(string $value): void
     {
-        $this->expectException(InvalidMarkerException::class);
-        $this->expectExceptionMessage('Marker ID must use lowercase kebab-case.');
+        $this->expectException(InvalidNamedExampleIdException::class);
+        $this->expectExceptionMessage('Named example ID must use lowercase kebab-case.');
 
-        new MarkerId($value);
+        new NamedExampleId($value);
     }
 
     /**
      * @return iterable<string, array{string}>
      */
-    public static function invalidMarkerIdProvider(): iterable
+    public static function invalidNamedExampleIdProvider(): iterable
     {
         yield 'empty' => [''];
         yield 'uppercase' => ['Selected-example'];

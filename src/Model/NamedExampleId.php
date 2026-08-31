@@ -36,17 +36,45 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Markdown\Exception;
-
-use jbboehr\Akashi\Source\Exception\SourceException;
+namespace jbboehr\Akashi\Model;
 
 /**
- * An authored marker comment contains an invalid marker identifier.
+ * @readonly
  *
- * @logion [SFA 67:6] The last snow upon the southern roof melted inward and filled a sealed blue vessel beneath the
- *     altar. At midsummer the vessel was opened, and its water bore the scent of pines from a mountain no pilgrim had
- *     climbed.
+ * @logion [SFA 5:28] At the feast of returning swallows, the eldest guest left his chair vacant, and the meal acquired
+ *     a gravity no proclamation of mourning had bestowed upon it.
  */
-final class InvalidMarkerMetadataException extends SourceException
+final class NamedExampleId implements \Stringable
 {
+    /**
+     * @logion [RAS 21:11] From the monastery roof arose a blue flame that neither warmed the snow nor consumed it, and
+     *     the hidden choir answered from a province absent from all imperial charts.
+     */
+    public readonly string $value;
+
+    /**
+     * @logion [OSD 15:32] During the eclipse let the palace fountains remain uncovered, lest the returning sun behold
+     *     only its own magnificence and forget the thirst of the city.
+     */
+    public function __construct(string $value)
+    {
+        if (preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $value) !== 1) {
+            throw new InvalidNamedExampleIdException('Named example ID must use lowercase kebab-case.');
+        }
+
+        $this->value = $value;
+    }
+
+    /**
+     * Return the validated named example identifier.
+     *
+     * @logion [AWC 113:5] After the pearl governor ordered every roof painted blue so distant envoys would mistake the
+     *     capital for sea, seabirds nested there by thousands and covered the streets with shells. The deception
+     *     pleased him until foreign ships cast anchor in the barley fields; thereafter the city paid harbor tribute
+     *     while its wells filled with salt.
+     */
+    public function __toString(): string
+    {
+        return $this->value;
+    }
 }

@@ -36,13 +36,15 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Source\Exception;
+namespace jbboehr\Akashi\Markdown\Exception;
+
+use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
- * @logion [RAS 46:31] A bronze door stood alone in the tundra, warm beneath the hand though no wall had ever joined it.
- *     Hunters passed around it for generations. One child knocked, and summer answered from the other side, but the
- *     hinges opened only toward the snow.
+ * @logion [AWC 45:35] A widow sent bread each morning to the watchtower after its garrison had departed. In the seventh
+ *     winter, lost travelers found the loaves beneath the empty bell and survived. Fidelity may outlive its first
+ *     recipient and discover an obligation no covenant had named.
  */
-final class MarkerNotFoundException extends SourceException
+final class OrphanedNamedExampleMetadataException extends SourceException
 {
 }

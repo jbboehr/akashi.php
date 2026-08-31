@@ -40,13 +40,13 @@ namespace jbboehr\Akashi\Metadata;
 
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\ExpectedException;
-use jbboehr\Akashi\Model\InvalidMarkerException;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\MetadataLocation;
 
 /**
@@ -143,8 +143,8 @@ final class ExampleMetadataParser
             $first = $byProperty[$name] ?? null;
             if ($first !== null) {
                 if ($clause->property === ExampleMetadataProperty::Example) {
-                    throw new DuplicateMarkerException(sprintf(
-                        'Duplicate Akashi example marker at %s:%d; first declared at %s:%d.',
+                    throw new DuplicateNamedExampleIdException(sprintf(
+                        'Duplicate Akashi named example metadata at %s:%d; first declared at %s:%d.',
                         $document->path->value,
                         $clause->sourceLine,
                         $document->path->value,
@@ -165,16 +165,16 @@ final class ExampleMetadataParser
             $byProperty[$name] = $clause;
         }
 
-        $markerClause = $byProperty[ExampleMetadataProperty::Example->value] ?? null;
-        $markerId = null;
-        if ($markerClause !== null) {
+        $namedIdClause = $byProperty[ExampleMetadataProperty::Example->value] ?? null;
+        $namedId = null;
+        if ($namedIdClause !== null) {
             try {
-                $markerId = new MarkerId($markerClause->value ?? '');
-            } catch (InvalidMarkerException $exception) {
-                throw new InvalidMarkerMetadataException(sprintf(
-                    'Invalid Akashi example marker at %s:%d: %s',
+                $namedId = new NamedExampleId($namedIdClause->value ?? '');
+            } catch (InvalidNamedExampleIdException $exception) {
+                throw new InvalidNamedExampleMetadataException(sprintf(
+                    'Invalid Akashi named example metadata at %s:%d: %s',
                     $document->path->value,
-                    $markerClause->sourceLine,
+                    $namedIdClause->sourceLine,
                     $exception->getMessage(),
                 ), previous: $exception);
             }
@@ -248,11 +248,11 @@ final class ExampleMetadataParser
         }
 
         return new ExampleMetadata(
-            $markerId,
+            $namedId,
             new DirectiveSet(...$directives),
             $expectedException,
             new MetadataLocation(
-                markerLine: $markerClause?->sourceLine,
+                namedIdLine: $namedIdClause?->sourceLine,
                 separateProcessDirectiveLine: $byProperty[ExampleMetadataProperty::SeparateProcess->value]
                     ->sourceLine ?? null,
                 skipDirectiveLine: $byProperty[ExampleMetadataProperty::Skip->value]->sourceLine ?? null,

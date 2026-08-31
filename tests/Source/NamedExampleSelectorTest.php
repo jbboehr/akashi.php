@@ -42,25 +42,25 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
-use jbboehr\Akashi\Model\InvalidMarkerException;
+use jbboehr\Akashi\Model\InvalidNamedExampleIdException;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
-use jbboehr\Akashi\Source\Exception\MarkerNotFoundException;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
+use jbboehr\Akashi\Source\Exception\NamedExampleNotFoundException;
+use jbboehr\Akashi\Source\NamedExampleSelector;
 use PHPUnit\Framework\TestCase;
 
-final class MarkedExampleSelectorTest extends TestCase
+final class NamedExampleSelectorTest extends TestCase
 {
-    private MarkedExampleSelector $selector;
+    private NamedExampleSelector $selector;
     private ExampleCorpus $corpus;
 
     protected function setUp(): void
     {
-        $this->selector = new MarkedExampleSelector();
+        $this->selector = new NamedExampleSelector();
         $this->corpus = new ExampleCorpus(
             $this->example('example-a-01', 1),
             $this->example('example-a-02', 2, 'first'),
@@ -68,27 +68,27 @@ final class MarkedExampleSelectorTest extends TestCase
         );
     }
 
-    public function testSelectsAnExampleUsingAStringOrTypedMarkerId(): void
+    public function testSelectsAnExampleUsingAStringOrTypedNamedExampleId(): void
     {
-        self::assertSame('example-a-02', $this->selector->select($this->corpus, 'first')->id->value);
+        self::assertSame('example-a-02', $this->selector->select($this->corpus, 'first')->corpusId->value);
         self::assertSame(
             'example-a-03',
-            $this->selector->select($this->corpus, new MarkerId('second'))->id->value,
+            $this->selector->select($this->corpus, new NamedExampleId('second'))->corpusId->value,
         );
     }
 
-    public function testRejectsAnInvalidMarkerIdBeforeSelection(): void
+    public function testRejectsAnInvalidNamedExampleIdBeforeSelection(): void
     {
-        $this->expectException(InvalidMarkerException::class);
-        $this->expectExceptionMessage('Marker ID must use lowercase kebab-case.');
+        $this->expectException(InvalidNamedExampleIdException::class);
+        $this->expectExceptionMessage('Named example ID must use lowercase kebab-case.');
 
         $this->selector->select($this->corpus, 'Invalid_ID');
     }
 
-    public function testRejectsAMissingMarkerId(): void
+    public function testRejectsAMissingNamedExampleId(): void
     {
-        $this->expectException(MarkerNotFoundException::class);
-        $this->expectExceptionMessage('Marker ID missing was not found in the example corpus.');
+        $this->expectException(NamedExampleNotFoundException::class);
+        $this->expectExceptionMessage('Named example ID missing was not found in the example corpus.');
 
         $this->selector->select($this->corpus, 'missing');
     }
@@ -96,12 +96,12 @@ final class MarkedExampleSelectorTest extends TestCase
     /**
      * @param positive-int $ordinal
      */
-    private function example(string $id, int $ordinal, ?string $markerId = null): Example
+    private function example(string $id, int $ordinal, ?string $namedId = null): Example
     {
         $contents = "```php\necho 1;\n```\n";
 
         return Example::fromInline(
-            id: new ExampleId($id),
+            corpusId: new CorpusExampleId($id),
             label: sprintf('docs/a.md PHP example %d', $ordinal),
             document: new Document('docs/a.md', $contents),
             location: new SourceLocation(1, 2, 2, 3, new SourceSpan(0, 19), new SourceSpan(7, 15)),
@@ -109,7 +109,7 @@ final class MarkedExampleSelectorTest extends TestCase
             code: new ExampleCode("echo 1;\n"),
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: $ordinal,
-            explicitMarkerId: $markerId === null ? null : new MarkerId($markerId),
+            namedId: $namedId === null ? null : new NamedExampleId($namedId),
         );
     }
 }

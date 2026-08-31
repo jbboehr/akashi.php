@@ -56,7 +56,7 @@ final class MetadataLocation
      *     Their lesser fruit hath already borne a greater harvest, and the table that honors only sweetness shall grow
      *     barren while its branches yet appear abundant.
      */
-    public readonly ?int $markerLine;
+    public readonly ?int $namedIdLine;
 
     /**
      * @var positive-int|null
@@ -94,7 +94,7 @@ final class MetadataLocation
     public readonly ?int $compileOnlyDirectiveLine;
 
     /**
-     * @param positive-int|null $markerLine
+     * @param positive-int|null $namedIdLine
      * @param positive-int|null $separateProcessDirectiveLine
      * @param positive-int|null $skipDirectiveLine
      * @param positive-int|null $expectedExceptionDirectiveLine
@@ -105,21 +105,21 @@ final class MetadataLocation
      *     leaving salt upon the highest sails.
      */
     public function __construct(
-        ?int $markerLine = null,
+        ?int $namedIdLine = null,
         ?int $separateProcessDirectiveLine = null,
         ?int $skipDirectiveLine = null,
         ?int $expectedExceptionDirectiveLine = null,
         ?int $compileOnlyDirectiveLine = null,
     ) {
         self::validateLines(
-            $markerLine,
+            $namedIdLine,
             $separateProcessDirectiveLine,
             $skipDirectiveLine,
             $expectedExceptionDirectiveLine,
             $compileOnlyDirectiveLine,
         );
 
-        $this->markerLine = $markerLine;
+        $this->namedIdLine = $namedIdLine;
         $this->separateProcessDirectiveLine = $separateProcessDirectiveLine;
         $this->skipDirectiveLine = $skipDirectiveLine;
         $this->expectedExceptionDirectiveLine = $expectedExceptionDirectiveLine;
@@ -132,14 +132,14 @@ final class MetadataLocation
      *     turned their faces toward the living.
      */
     private static function validateLines(
-        ?int $markerLine,
+        ?int $namedIdLine,
         ?int $separateProcessDirectiveLine,
         ?int $skipDirectiveLine,
         ?int $expectedExceptionDirectiveLine,
         ?int $compileOnlyDirectiveLine,
     ): void {
-        if ($markerLine !== null && $markerLine < 1) {
-            throw new \InvalidArgumentException('Marker line must be positive.');
+        if ($namedIdLine !== null && $namedIdLine < 1) {
+            throw new \InvalidArgumentException('Named example ID line must be positive.');
         }
 
         if ($separateProcessDirectiveLine !== null && $separateProcessDirectiveLine < 1) {

@@ -42,10 +42,10 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\SourceLocation;
 use jbboehr\Akashi\Model\SourceSpan;
 use PHPUnit\Framework\TestCase;
@@ -71,10 +71,10 @@ final class ExampleCorpusTest extends TestCase
         new ExampleCorpus();
     }
 
-    public function testRejectsDuplicateExampleIds(): void
+    public function testRejectsDuplicateCorpusExampleIds(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicate example ID example-a-01.');
+        $this->expectExceptionMessage('Duplicate corpus example ID example-a-01.');
 
         new ExampleCorpus(
             $this->example('example-a-01', 'docs/a.md', 1),
@@ -82,10 +82,10 @@ final class ExampleCorpusTest extends TestCase
         );
     }
 
-    public function testRejectsDuplicateExplicitMarkerIds(): void
+    public function testRejectsDuplicateExplicitNamedExampleIds(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicate marker ID selected-example.');
+        $this->expectExceptionMessage('Duplicate named example ID selected-example.');
 
         new ExampleCorpus(
             $this->example('example-a-01', 'docs/a.md', 1, 'selected-example'),
@@ -96,7 +96,7 @@ final class ExampleCorpusTest extends TestCase
     public function testRejectsDocumentPathOrderViolations(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and corpus example ID.');
 
         new ExampleCorpus(
             $this->example('example-b-01', 'docs/b.md', 1),
@@ -107,7 +107,7 @@ final class ExampleCorpusTest extends TestCase
     public function testRejectsSourceLineOrderViolationsWithinADocument(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and corpus example ID.');
 
         new ExampleCorpus(
             $this->example('example-a-02', 'docs/a.md', 2),
@@ -126,7 +126,7 @@ final class ExampleCorpusTest extends TestCase
     public function testRejectsStableIdOrderViolationsOnTheSameSourceLine(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and example ID.');
+        $this->expectExceptionMessage('Examples must be ordered by canonical source path, source line, and corpus example ID.');
 
         new ExampleCorpus(
             $this->example('example-a-02', 'docs/a.md', 1),
@@ -137,10 +137,10 @@ final class ExampleCorpusTest extends TestCase
     /**
      * @param positive-int $ordinal
      */
-    private function example(string $id, string $path, int $ordinal, ?string $markerId = null): Example
+    private function example(string $id, string $path, int $ordinal, ?string $namedId = null): Example
     {
         return Example::fromInline(
-            id: new ExampleId($id),
+            corpusId: new CorpusExampleId($id),
             label: sprintf('%s PHP example %d', $path, $ordinal),
             document: new Document($path, ''),
             location: new SourceLocation(
@@ -155,7 +155,7 @@ final class ExampleCorpusTest extends TestCase
             code: new ExampleCode("echo 1;\n"),
             fence: new FenceMetadata('php', '`', 3, 0),
             ordinal: $ordinal,
-            explicitMarkerId: $markerId === null ? null : new MarkerId($markerId),
+            namedId: $namedId === null ? null : new NamedExampleId($namedId),
         );
     }
 }

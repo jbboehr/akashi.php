@@ -80,7 +80,7 @@ final class PhpUnitRuntime
         if ($example->directives->contains(Directive::Skip)) {
             Assert::markTestSkipped(sprintf(
                 'Documentation example %s (%s) at %s:%d is marked to skip runtime execution.',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->label,
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->metadata->skipDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
@@ -93,7 +93,7 @@ final class PhpUnitRuntime
             if ($example->directives->contains(Directive::SeparateProcess)) {
                 throw new UnsupportedExampleException(sprintf(
                     'Example %s at %s:%d cannot combine compile-only and separate-process directives.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $directiveLine,
                 ));
@@ -101,7 +101,7 @@ final class PhpUnitRuntime
             if ($example->expectedException !== null) {
                 throw new UnsupportedExampleException(sprintf(
                     'Example %s at %s:%d cannot combine compile-only with an expected exception.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $directiveLine,
                 ));
@@ -109,7 +109,7 @@ final class PhpUnitRuntime
             if ($example->expectedOutput !== null) {
                 throw new UnsupportedExampleException(sprintf(
                     'Example %s at %s:%d cannot combine compile-only with expected output.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $directiveLine,
                 ));
@@ -118,7 +118,7 @@ final class PhpUnitRuntime
             $parsed = (new PhpExampleParser())->parse($example);
             Assert::assertNotEmpty($parsed->tokens, sprintf(
                 'Documentation example %s passed compile-only validation.',
-                $example->id->value,
+                $example->corpusId->value,
             ));
 
             return;
@@ -136,7 +136,7 @@ final class PhpUnitRuntime
                 throw new RuntimeConfigurationException(sprintf(
                     'Example %s at %s:%d requires RuntimeConfiguration with an explicit project root for '
                     . 'separate-process execution.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->metadata->separateProcessDirectiveLine ?? $example->codeOrigin()->firstCodeLine,
                 ));

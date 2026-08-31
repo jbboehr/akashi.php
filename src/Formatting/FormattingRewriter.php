@@ -88,7 +88,7 @@ final class FormattingRewriter
 
         $originalById = [];
         foreach ($originalExamples as $example) {
-            $originalById[$example->id->value] = $example;
+            $originalById[$example->corpusId->value] = $example;
         }
 
         $edits = [];
@@ -98,7 +98,7 @@ final class FormattingRewriter
             if (!$example->source instanceof InlineExampleSource) {
                 throw new FormattingRewriteException(sprintf(
                     'Formatting mismatch %s does not describe an inline documentation example.',
-                    $example->id->value,
+                    $example->corpusId->value,
                 ));
             }
 
@@ -106,7 +106,7 @@ final class FormattingRewriter
             if ($origin->document->path->value !== $document->path->value) {
                 throw new FormattingRewriteException(sprintf(
                     'Formatting mismatch %s belongs to %s, not %s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $origin->document->path->value,
                     $document->path->value,
                 ));
@@ -114,18 +114,18 @@ final class FormattingRewriter
             if ($origin->document->contents !== $document->contents) {
                 throw new FormattingRewriteException(sprintf(
                     'Formatting mismatch %s is stale because %s has changed since it was checked.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $document->path->value,
                 ));
             }
-            if (isset($expectedById[$example->id->value])) {
+            if (isset($expectedById[$example->corpusId->value])) {
                 throw new FormattingRewriteException(sprintf(
                     'Formatting mismatch %s was supplied more than once.',
-                    $example->id->value,
+                    $example->corpusId->value,
                 ));
             }
 
-            $current = $originalById[$example->id->value] ?? null;
+            $current = $originalById[$example->corpusId->value] ?? null;
             if (
                 $current === null
                 || $current->ordinal !== $example->ordinal
@@ -133,7 +133,7 @@ final class FormattingRewriter
             ) {
                 throw new FormattingRewriteException(sprintf(
                     'Formatting mismatch %s does not match the current inline example in %s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $document->path->value,
                 ));
             }
@@ -147,12 +147,12 @@ final class FormattingRewriter
                 'end' => $current->source->location->codeSpan->endOffsetExclusive,
                 'replacement' => $replacement,
             ];
-            $expectedById[$example->id->value] = $mismatch->formattedCode->source;
+            $expectedById[$example->corpusId->value] = $mismatch->formattedCode->source;
 
             self::assertCandidate(
                 new Document($document->path, SourceEditApplier::apply($document->contents, [$edit])),
                 $originalExamples,
-                [$example->id->value => $mismatch->formattedCode->source],
+                [$example->corpusId->value => $mismatch->formattedCode->source],
                 $example,
             );
             $edits[] = $edit;
@@ -265,7 +265,7 @@ final class FormattingRewriter
             ? sprintf('Combined formatting replacements cannot be rendered safely in %s.', $candidate->path->value)
             : sprintf(
                 'Formatter output for inline example %s at %s:%d cannot be rendered safely.',
-                $attributedExample->id->value,
+                $attributedExample->corpusId->value,
                 $candidate->path->value,
                 $attributedExample->codeOrigin()->firstCodeLine,
             );
@@ -283,9 +283,9 @@ final class FormattingRewriter
             $rewritten = $candidateExamples[$index] ?? null;
             if (
                 $rewritten === null
-                || $rewritten->id->value !== $original->id->value
-                || $rewritten->code->source !== ($expectedById[$original->id->value] ?? $original->code->source)
-                || $rewritten->explicitMarkerId?->value !== $original->explicitMarkerId?->value
+                || $rewritten->corpusId->value !== $original->corpusId->value
+                || $rewritten->code->source !== ($expectedById[$original->corpusId->value] ?? $original->code->source)
+                || $rewritten->namedId?->value !== $original->namedId?->value
                 || $rewritten->expectedException?->className !== $original->expectedException?->className
                 || $rewritten->expectedException?->message !== $original->expectedException?->message
                 || $rewritten->expectedException?->code !== $original->expectedException?->code

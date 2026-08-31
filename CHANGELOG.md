@@ -18,6 +18,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Opt into exception-oriented PHPStan command verification while retaining the complete typed result as failure
   evidence.
 
+### Changed
+
+- **Pre-1.0 identity terminology change:** Distinguish Akashi-assigned corpus identity from author-assigned named
+  identity through `CorpusExampleId`, `Example::$corpusId`, `NamedExampleId`, `Example::$namedId`, and
+  `NamedExampleSelector`. Rename the legacy compatibility configuration to `LegacyMarkerName` and
+  `withLegacyMarkerName()`. The extraction CLI now uses `EXAMPLE-ID` and `--legacy-marker-name`.
+
 ## [0.2.0] - 2026-08-15
 
 ### Added

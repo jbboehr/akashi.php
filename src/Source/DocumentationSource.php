@@ -42,11 +42,11 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NamedExampleOnNonPhpFenceException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\PhpDocTagName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
@@ -107,7 +107,7 @@ final class DocumentationSource
      *     the factories beyond the sea. Whenever a vow was kept at cost, one spark descended into the sanctuary lamp;
      *     whenever praise was purchased, one crane closed its wings. By winter only the hidden flame remained.
      */
-    private readonly ?MarkerName $markerName;
+    private readonly ?LegacyMarkerName $legacyMarkerName;
 
     /**
      * @var non-empty-list<PhpDocTagName>
@@ -131,13 +131,13 @@ final class DocumentationSource
         ProjectRoot $projectRoot,
         array $includes,
         array $exclusions,
-        ?MarkerName $markerName,
+        ?LegacyMarkerName $legacyMarkerName,
         array $phpDocReferenceTags,
     ) {
         $this->projectRoot = $projectRoot;
         $this->includes = $includes;
         $this->exclusions = $exclusions;
-        $this->markerName = $markerName;
+        $this->legacyMarkerName = $legacyMarkerName;
         $this->phpDocReferenceTags = $phpDocReferenceTags;
     }
 
@@ -184,7 +184,7 @@ final class DocumentationSource
             $this->projectRoot,
             [...$this->includes, new IncludeRule(IncludeKind::File, $path)],
             $this->exclusions,
-            $this->markerName,
+            $this->legacyMarkerName,
             $this->phpDocReferenceTags,
         );
     }
@@ -235,7 +235,7 @@ final class DocumentationSource
                 is_string($path) ? new ProjectPath($path) : $path,
             )],
             $this->exclusions,
-            $this->markerName,
+            $this->legacyMarkerName,
             $this->phpDocReferenceTags,
         );
     }
@@ -253,7 +253,7 @@ final class DocumentationSource
             $this->projectRoot,
             $this->includes,
             [...$this->exclusions, is_string($path) ? new ProjectPath($path) : $path],
-            $this->markerName,
+            $this->legacyMarkerName,
             $this->phpDocReferenceTags,
         );
     }
@@ -265,13 +265,13 @@ final class DocumentationSource
      *     sweet, speak nothing and depart from office; for the mouth that delighteth in the burden of an oath hath
      *     already mistaken ceremony for fidelity.
      */
-    public function withMarkerName(MarkerName|string $markerName): self
+    public function withLegacyMarkerName(LegacyMarkerName|string $legacyMarkerName): self
     {
         return new self(
             $this->projectRoot,
             $this->includes,
             $this->exclusions,
-            is_string($markerName) ? new MarkerName($markerName) : $markerName,
+            is_string($legacyMarkerName) ? new LegacyMarkerName($legacyMarkerName) : $legacyMarkerName,
             $this->phpDocReferenceTags,
         );
     }
@@ -307,7 +307,7 @@ final class DocumentationSource
             $this->projectRoot,
             $this->includes,
             $this->exclusions,
-            $this->markerName,
+            $this->legacyMarkerName,
             $normalized,
         );
     }
@@ -317,13 +317,13 @@ final class DocumentationSource
      *
      * @throws DirectiveException
      * @throws DuplicateDocumentException
-     * @throws DuplicateMarkerException
+     * @throws DuplicateNamedExampleIdException
      * @throws InvalidExampleReferenceException
-     * @throws InvalidMarkerMetadataException
+     * @throws InvalidNamedExampleMetadataException
      * @throws NoDocumentsFoundException
      * @throws NoExamplesFoundException
-     * @throws NonPhpMarkerException
-     * @throws OrphanedMarkerException
+     * @throws NamedExampleOnNonPhpFenceException
+     * @throws OrphanedNamedExampleMetadataException
      * @throws ProjectRootNotFoundException
      * @throws SourcePathNotFoundException
      * @throws SourceReadException
@@ -336,12 +336,12 @@ final class DocumentationSource
      */
     public function load(): ExampleCorpus
     {
-        $markdown = new CommonMarkExampleExtractor($this->markerName);
-        $phpDoc = new PhpDocExampleExtractor($this->markerName);
+        $markdown = new CommonMarkExampleExtractor($this->legacyMarkerName);
+        $phpDoc = new PhpDocExampleExtractor($this->legacyMarkerName);
         $referenceExtractor = new PhpDocReferenceExtractor($this->phpDocReferenceTags);
         $examples = [];
         $references = [];
-        $markerLocations = [];
+        $namedIdLocations = [];
 
         foreach ($this->loadDocuments() as $document) {
             $extracted = match (true) {
@@ -358,31 +358,31 @@ final class DocumentationSource
             }
 
             foreach ($extracted as $example) {
-                $markerId = $example->explicitMarkerId?->value;
-                if ($markerId === null) {
+                $namedId = $example->namedId?->value;
+                if ($namedId === null) {
                     continue;
                 }
 
-                $markerLine = $example->codeOrigin()->metadata->markerLine;
-                if ($markerLine === null) {
-                    throw new \LogicException('An explicitly marked example is missing its marker source line.');
+                $namedIdLine = $example->codeOrigin()->metadata->namedIdLine;
+                if ($namedIdLine === null) {
+                    throw new \LogicException('An explicitly marked example is missing its named example ID source line.');
                 }
 
-                $first = $markerLocations[$markerId] ?? null;
+                $first = $namedIdLocations[$namedId] ?? null;
                 if ($first !== null) {
-                    throw new DuplicateMarkerException(sprintf(
-                        'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
-                        $markerId,
+                    throw new DuplicateNamedExampleIdException(sprintf(
+                        'Duplicate named example ID %s at %s:%d; first declared at %s:%d.',
+                        $namedId,
                         $example->codeOrigin()->document->path->value,
-                        $markerLine,
+                        $namedIdLine,
                         $first['path'],
                         $first['line'],
                     ));
                 }
 
-                $markerLocations[$markerId] = [
+                $namedIdLocations[$namedId] = [
                     'path' => $example->codeOrigin()->document->path->value,
-                    'line' => $markerLine,
+                    'line' => $namedIdLine,
                 ];
             }
 
@@ -391,31 +391,31 @@ final class DocumentationSource
 
         $externalExamples = (new ExternalExampleResolver())->resolve($this->projectRoot, $references);
         foreach ($externalExamples as $example) {
-            $markerId = $example->explicitMarkerId?->value;
-            if ($markerId === null) {
+            $namedId = $example->namedId?->value;
+            if ($namedId === null) {
                 continue;
             }
 
-            $markerLine = $example->codeOrigin()->metadata->markerLine;
-            if ($markerLine === null) {
-                throw new \LogicException('An explicitly marked external example is missing its marker source line.');
+            $namedIdLine = $example->codeOrigin()->metadata->namedIdLine;
+            if ($namedIdLine === null) {
+                throw new \LogicException('An explicitly marked external example is missing its named example ID source line.');
             }
 
-            $first = $markerLocations[$markerId] ?? null;
+            $first = $namedIdLocations[$namedId] ?? null;
             if ($first !== null) {
-                throw new DuplicateMarkerException(sprintf(
-                    'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
-                    $markerId,
+                throw new DuplicateNamedExampleIdException(sprintf(
+                    'Duplicate named example ID %s at %s:%d; first declared at %s:%d.',
+                    $namedId,
                     $example->codeOrigin()->document->path->value,
-                    $markerLine,
+                    $namedIdLine,
                     $first['path'],
                     $first['line'],
                 ));
             }
 
-            $markerLocations[$markerId] = [
+            $namedIdLocations[$namedId] = [
                 'path' => $example->codeOrigin()->document->path->value,
-                'line' => $markerLine,
+                'line' => $namedIdLine,
             ];
         }
         array_push($examples, ...$externalExamples);
@@ -425,7 +425,7 @@ final class DocumentationSource
                 $left->codeOrigin()->document->path->value,
                 $right->codeOrigin()->document->path->value,
             ) ?: $left->codeOrigin()->firstCodeLine <=> $right->codeOrigin()->firstCodeLine
-                ?: strcmp($left->id->value, $right->id->value);
+                ?: strcmp($left->corpusId->value, $right->corpusId->value);
         });
 
         if ($examples === []) {

@@ -48,7 +48,7 @@ use jbboehr\Akashi\Execution\FailurePhase;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Model\DocumentPath;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -275,7 +275,7 @@ final class ExecutionResultTest extends TestCase
     {
         $source = 'echo 1;';
         $example = Example::fromInline(
-            id: new ExampleId('example-execution-result-01'),
+            corpusId: new CorpusExampleId('example-execution-result-01'),
             label: 'Execution result fixture',
             document: new Document('docs/execution.md', $source),
             location: new SourceLocation(1, 2, 2, 3, new SourceSpan(0, 7), new SourceSpan(0, 7)),

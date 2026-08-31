@@ -80,7 +80,7 @@ final class PhpExampleParser
         if ($statements === null) {
             throw new PhpParseException(sprintf(
                 'Unable to parse example %s at %s:%d.',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->firstCodeLine,
             ));
@@ -140,7 +140,7 @@ final class PhpExampleParser
 
         return new PhpParseException(sprintf(
             'Unable to parse example %s at %s:%d: %s',
-            $example->id->value,
+            $example->corpusId->value,
             $example->codeOrigin()->document->path->value,
             $sourceLine ?? $example->codeOrigin()->firstCodeLine,
             $error->getRawMessage(),

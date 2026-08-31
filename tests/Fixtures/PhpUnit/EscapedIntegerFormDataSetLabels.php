@@ -43,7 +43,7 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -74,7 +74,7 @@ final class EscapedIntegerFormDataSetLabels extends TestCase
         $code = 'assert(true);';
 
         return Example::fromInline(
-            id: new ExampleId($id),
+            corpusId: new CorpusExampleId($id),
             label: $label,
             document: new Document('docs/escaped-data-set-labels.md', $code),
             location: new SourceLocation(

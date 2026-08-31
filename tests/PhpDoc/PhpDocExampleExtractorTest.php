@@ -41,10 +41,10 @@ namespace jbboehr\Akashi\Tests\PhpDoc;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\InlineExampleSource;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\PhpDoc\PhpDocExampleExtractor;
 use jbboehr\Akashi\PhpDoc\PhpDocMarkdownProjector;
 use PHPUnit\Framework\TestCase;
@@ -88,14 +88,14 @@ PHP;
         self::assertCount(2, $examples);
         self::assertSame('src/answer.php PHPDoc example 1', $examples[0]->label);
         self::assertSame('src/answer.php PHPDoc example 2', $examples[1]->label);
-        self::assertSame('first-value', $examples[0]->explicitMarkerId?->value);
+        self::assertSame('first-value', $examples[0]->namedId?->value);
         self::assertTrue($examples[0]->directives->contains(Directive::SeparateProcess));
         self::assertSame("\$value = 41 + 1;\r\nassert(\$value === 42);\r\n", $examples[0]->code->source);
         self::assertSame(9, $this->inlineSource($examples[0])->location->openingFenceLine);
         self::assertSame(10, $this->inlineSource($examples[0])->location->firstCodeLine);
         self::assertSame(11, $this->inlineSource($examples[0])->location->lastCodeLine);
         self::assertSame(12, $this->inlineSource($examples[0])->location->closingFenceLine);
-        self::assertSame(6, $this->inlineSource($examples[0])->location->metadata->markerLine);
+        self::assertSame(6, $this->inlineSource($examples[0])->location->metadata->namedIdLine);
         self::assertSame(7, $this->inlineSource($examples[0])->location->metadata->separateProcessDirectiveLine);
         self::assertSame('RuntimeException', $examples[1]->expectedException?->className);
         self::assertSame('expected', $examples[1]->expectedException->message);
@@ -140,8 +140,8 @@ PHP);
 
         self::assertCount(2, $examples);
         self::assertSame(['example-47019d4862eb-01', 'example-47019d4862eb-02'], [
-            $examples[0]->id->value,
-            $examples[1]->id->value,
+            $examples[0]->corpusId->value,
+            $examples[1]->corpusId->value,
         ]);
         self::assertSame("echo 'first';\n", $examples[0]->code->source);
         self::assertSame("echo 'second';\n", $examples[1]->code->source);
@@ -250,12 +250,12 @@ PHP);
  */
 PHP);
 
-        $this->expectException(OrphanedMarkerException::class);
+        $this->expectException(OrphanedNamedExampleMetadataException::class);
         $this->expectExceptionMessage(
-            'Marker misplaced at src/examples.php:3 is not followed by a fenced code block.',
+            'Named example ID misplaced at src/examples.php:3 is not followed by a fenced code block.',
         );
 
-        (new PhpDocExampleExtractor(new MarkerName('akashi-example')))->extract($document);
+        (new PhpDocExampleExtractor(new LegacyMarkerName('akashi-example')))->extract($document);
     }
 
     public function testIgnoresOrdinaryCommentsAndFenceContentOnDelimiterLines(): void

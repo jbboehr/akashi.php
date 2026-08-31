@@ -42,7 +42,7 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -383,7 +383,7 @@ PHP;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-fixture-01'),
+            corpusId: new CorpusExampleId('example-fixture-01'),
             label: 'Transform fixture',
             document: new Document('docs/example.md', $source),
             location: new SourceLocation(

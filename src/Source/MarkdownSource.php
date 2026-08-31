@@ -42,11 +42,11 @@ use jbboehr\Akashi\Document;
 use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Markdown\CommonMarkExampleExtractor;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
-use jbboehr\Akashi\Markdown\Exception\InvalidMarkerMetadataException;
-use jbboehr\Akashi\Markdown\Exception\NonPhpMarkerException;
-use jbboehr\Akashi\Markdown\Exception\OrphanedMarkerException;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
+use jbboehr\Akashi\Markdown\Exception\InvalidNamedExampleMetadataException;
+use jbboehr\Akashi\Markdown\Exception\NamedExampleOnNonPhpFenceException;
+use jbboehr\Akashi\Markdown\Exception\OrphanedNamedExampleMetadataException;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
 use jbboehr\Akashi\Source\Exception\DuplicateDocumentException;
@@ -95,7 +95,7 @@ final class MarkdownSource
      *     were taken by war. His harvest filled no granary, yet each returning household received one bowl and knew
      *     where to rebuild. Small provision may preserve the shape of abundance.
      */
-    private readonly ?MarkerName $markerName;
+    private readonly ?LegacyMarkerName $legacyMarkerName;
 
     /**
      * @param list<IncludeRule> $includes
@@ -108,12 +108,12 @@ final class MarkdownSource
         ProjectRoot $projectRoot,
         array $includes,
         array $exclusions,
-        ?MarkerName $markerName,
+        ?LegacyMarkerName $legacyMarkerName,
     ) {
         $this->projectRoot = $projectRoot;
         $this->includes = $includes;
         $this->exclusions = $exclusions;
-        $this->markerName = $markerName;
+        $this->legacyMarkerName = $legacyMarkerName;
     }
 
     /**
@@ -160,7 +160,7 @@ final class MarkdownSource
                 $path,
             )],
             $this->exclusions,
-            $this->markerName,
+            $this->legacyMarkerName,
         );
     }
 
@@ -209,7 +209,7 @@ final class MarkdownSource
                 is_string($path) ? new ProjectPath($path) : $path,
             )],
             $this->exclusions,
-            $this->markerName,
+            $this->legacyMarkerName,
         );
     }
 
@@ -225,7 +225,7 @@ final class MarkdownSource
             $this->projectRoot,
             $this->includes,
             [...$this->exclusions, is_string($path) ? new ProjectPath($path) : $path],
-            $this->markerName,
+            $this->legacyMarkerName,
         );
     }
 
@@ -236,13 +236,13 @@ final class MarkdownSource
      *     weighed. Though he answer no accusation and receive no wage, his absence rebuketh every account that would
      *     call the field self-sown.
      */
-    public function withMarkerName(MarkerName|string $markerName): self
+    public function withLegacyMarkerName(LegacyMarkerName|string $legacyMarkerName): self
     {
         return new self(
             $this->projectRoot,
             $this->includes,
             $this->exclusions,
-            is_string($markerName) ? new MarkerName($markerName) : $markerName,
+            is_string($legacyMarkerName) ? new LegacyMarkerName($legacyMarkerName) : $legacyMarkerName,
         );
     }
 
@@ -251,12 +251,12 @@ final class MarkdownSource
      *
      * @throws DuplicateDocumentException
      * @throws DirectiveException
-     * @throws DuplicateMarkerException
-     * @throws InvalidMarkerMetadataException
+     * @throws DuplicateNamedExampleIdException
+     * @throws InvalidNamedExampleMetadataException
      * @throws NoDocumentsFoundException
      * @throws NoExamplesFoundException
-     * @throws NonPhpMarkerException
-     * @throws OrphanedMarkerException
+     * @throws NamedExampleOnNonPhpFenceException
+     * @throws OrphanedNamedExampleMetadataException
      * @throws ProjectRootNotFoundException
      * @throws SourcePathNotFoundException
      * @throws SourceReadException
@@ -267,39 +267,39 @@ final class MarkdownSource
      */
     public function load(): ExampleCorpus
     {
-        $extractor = new CommonMarkExampleExtractor($this->markerName);
+        $extractor = new CommonMarkExampleExtractor($this->legacyMarkerName);
         $examples = [];
-        $markerLocations = [];
+        $namedIdLocations = [];
 
         foreach ($this->loadDocuments() as $document) {
             $extracted = $extractor->extract($document);
 
             foreach ($extracted as $example) {
-                $markerId = $example->explicitMarkerId?->value;
-                if ($markerId === null) {
+                $namedId = $example->namedId?->value;
+                if ($namedId === null) {
                     continue;
                 }
 
-                $markerLine = $example->codeOrigin()->metadata->markerLine;
-                if ($markerLine === null) {
-                    throw new \LogicException('An explicitly marked example is missing its marker source line.');
+                $namedIdLine = $example->codeOrigin()->metadata->namedIdLine;
+                if ($namedIdLine === null) {
+                    throw new \LogicException('An explicitly marked example is missing its named example ID source line.');
                 }
 
-                $first = $markerLocations[$markerId] ?? null;
+                $first = $namedIdLocations[$namedId] ?? null;
                 if ($first !== null) {
-                    throw new DuplicateMarkerException(sprintf(
-                        'Duplicate marker ID %s at %s:%d; first declared at %s:%d.',
-                        $markerId,
+                    throw new DuplicateNamedExampleIdException(sprintf(
+                        'Duplicate named example ID %s at %s:%d; first declared at %s:%d.',
+                        $namedId,
                         $example->codeOrigin()->document->path->value,
-                        $markerLine,
+                        $namedIdLine,
                         $first['path'],
                         $first['line'],
                     ));
                 }
 
-                $markerLocations[$markerId] = [
+                $namedIdLocations[$namedId] = [
                     'path' => $example->codeOrigin()->document->path->value,
-                    'line' => $markerLine,
+                    'line' => $namedIdLine,
                 ];
             }
 

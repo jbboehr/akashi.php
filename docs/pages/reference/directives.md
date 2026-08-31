@@ -127,10 +127,11 @@ because their canonical code is not physically adjacent to the PHPDoc reference.
 
 Legacy one-property directives remain accepted, including `<!-- akashi: expect-exception RuntimeException -->` and
 `// akashi: expect-exception-message invalid documentation input`. Projects may additionally recognize one legacy
-identity comment such as `<!-- yumemi-example: conversion-basic -->` through `withMarkerName('yumemi-example')` or the
-CLI's `--marker-name` option. Canonical and legacy metadata share the same typed result and duplicate-property checks.
-The legacy space form consumes the rest of its comment, including commas and `=`. Use canonical `key=value` syntax or an
-adjacent metadata comment when combining an exception constraint with another property.
+identity comment such as `<!-- yumemi-example: conversion-basic -->` through `withLegacyMarkerName('yumemi-example')` or
+the CLI's `--legacy-marker-name` option. Canonical and legacy metadata share the same typed result and
+duplicate-property checks. The legacy space form consumes the rest of its comment, including commas and `=`. Use
+canonical `key=value` syntax or an adjacent metadata comment when combining an exception constraint with another
+property.
 
 Structural constructs remain separate because they delimit or reference source rather than describe one example:
 `akashi-region` and `akashi-region-end` delimit canonical named regions, `akashi-sync` and `akashi-sync-end` delimit

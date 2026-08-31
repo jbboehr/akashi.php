@@ -96,7 +96,7 @@ final class NativeAssertionRewriter
             ) {
                 throw new \LogicException(sprintf(
                     'PHP parser did not provide assertion source spans for example %s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                 ));
             }
 
@@ -134,7 +134,7 @@ final class NativeAssertionRewriter
         if ($errors->hasErrors() || $statements === null) {
             throw new \LogicException(sprintf(
                 'Rewritten assertions in example %s could not be parsed.',
-                $example->id->value,
+                $example->corpusId->value,
             ));
         }
 
@@ -287,7 +287,7 @@ final class NativeAssertionRewriter
     ): never {
         throw new UnsupportedExampleException(sprintf(
             'Unable to transform native assertion in example %s at %s:%d: %s.',
-            $example->id->value,
+            $example->corpusId->value,
             $example->codeOrigin()->document->path->value,
             $this->sourceLine($example, $parsed, $node),
             $reason,

@@ -64,7 +64,7 @@ final class YumemiCompatibilityTest extends TestCase
         foreach ($corpus as $example) {
             try {
                 $scope = new ExecutionScope(
-                    'Akashi\\Compatibility\\Example_' . str_replace(['-', '.'], '_', $example->id->value),
+                    'Akashi\\Compatibility\\Example_' . str_replace(['-', '.'], '_', $example->corpusId->value),
                 );
                 $prepared = $transformer->transform($example, $scope);
                 $errors = new Collecting();

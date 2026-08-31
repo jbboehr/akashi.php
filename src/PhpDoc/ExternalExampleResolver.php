@@ -44,7 +44,7 @@ use jbboehr\Akashi\Metadata\ExampleMetadataParser;
 use jbboehr\Akashi\Markdown\InlineDirectiveParser;
 use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
@@ -243,13 +243,13 @@ final class ExternalExampleResolver
             $identity = $path . ($source['region'] === null ? '' : '#' . $source['region']->value);
 
             $examples[] = new Example(
-                id: new ExampleId('example-' . substr(sha1('external:' . $identity), 0, 16)),
+                corpusId: new CorpusExampleId('example-' . substr(sha1('external:' . $identity), 0, 16)),
                 label: $identity . ' referenced PHP example',
                 source: new ReferencedExampleSource($origin, $source['region'], $source['references']),
                 language: new Language('php'),
                 code: new ExampleCode($source['code']),
                 ordinal: $ordinal,
-                explicitMarkerId: $metadata->markerId,
+                namedId: $metadata->namedId,
                 directives: $metadata->directives,
                 expectedException: $metadata->expectedException,
                 expectedOutput: $metadata->expectedOutput,

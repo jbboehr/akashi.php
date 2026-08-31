@@ -103,7 +103,7 @@ trait VerifiesPhpStanExamples
                 } catch (\Throwable $cause) {
                     throw new PhpStanVerificationException(sprintf(
                         'Unable to load PHPStan example %s at %s:%d: %s: %s',
-                        $file['example']->id->value,
+                        $file['example']->corpusId->value,
                         $file['example']->codeOrigin()->document->path->value,
                         $file['example']->codeOrigin()->firstCodeLine,
                         $cause::class,
@@ -248,7 +248,7 @@ trait VerifiesPhpStanExamples
 
                 throw new PhpStanVerificationException(sprintf(
                     'Unable to write the private PHPStan analysis file for example %s.',
-                    $entry['example']->id->value,
+                    $entry['example']->corpusId->value,
                 ));
             }
 
@@ -261,7 +261,7 @@ trait VerifiesPhpStanExamples
 
                     throw new PhpStanVerificationException(sprintf(
                         'Unable to secure the private PHPStan analysis file for example %s.',
-                        $entry['example']->id->value,
+                        $entry['example']->corpusId->value,
                     ));
                 }
             }
@@ -322,7 +322,7 @@ trait VerifiesPhpStanExamples
             if (trim($message) === '') {
                 throw new PhpStanVerificationException(sprintf(
                     'PHPStan returned an empty diagnostic message for example %s at %s:%d%s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $sourceLine ?? $example->codeOrigin()->firstCodeLine,
                     $identifier !== null && trim($identifier) !== '' ? sprintf(' [%s]', $identifier) : '',
@@ -349,7 +349,7 @@ trait VerifiesPhpStanExamples
     private static function mismatchReport(Example $example, DiagnosticsMismatched $mismatch): string
     {
         $lines = [
-            sprintf('PHPStan diagnostics did not match documentation example %s.', $example->id->value),
+            sprintf('PHPStan diagnostics did not match documentation example %s.', $example->corpusId->value),
             sprintf('Label: %s', $example->label),
             sprintf('Location: %s:%d', $example->codeOrigin()->document->path->value, $example->codeOrigin()->firstCodeLine),
             sprintf('Mismatch: %s', $mismatch->kind->value),

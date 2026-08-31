@@ -88,19 +88,19 @@ compile-only change PHPUnit disposition without deleting the example.
 
 `Document` owns the project-relative path, maintained Markdown or PHP source bytes, and line index. `Example` owns:
 
-- generated identity and human-readable label;
+- corpus identity and human-readable label;
 - an `InlineExampleSource` or `ReferencedExampleSource`;
 - one canonical `CodeOrigin` containing maintained document, line, byte, and directive locations;
 - fence metadata for inline examples or an optional region and all PHPDoc `ReferenceLocation` values for referenced
   examples;
 - normalized language;
 - the unmodified extracted PHP source;
-- document ordinal and optional author-assigned marker ID; and
+- document ordinal and optional author-assigned named example ID; and
 - a typed set of runtime directives and an optional typed expected-exception contract.
 
 Small value objects validate paths, identifiers, source coordinates, languages, and directives at construction time.
-`ExampleCorpus` enforces nonemptiness, unique generated and marker IDs, and deterministic canonical path, source-line,
-and stable-ID order.
+`ExampleCorpus` enforces nonemptiness, unique corpus and named example IDs, and deterministic canonical path,
+source-line, and corpus-ID order.
 
 Original example code remains separate from transformed code. This is necessary for diagnostics and prevents execution
 preparation from silently becoming the maintained representation.
@@ -218,9 +218,9 @@ Symfony Console supplies declarative command definitions, generated help, comman
 output routing, and cross-platform terminal handling. Akashi wraps that replaceable router with exact command names,
 single-occurrence options, stable statuses, and explicit stdout/stderr contracts. The extraction command loads one
 Markdown or PHP file, selects one author-assigned `example` identity, and writes the original code with its documented
-final-newline contract. An optional marker-name option adds a legacy marker-comment dialect. The command does not enter
-either execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected document is
-below the project root; reference targets themselves are not marker IDs.
+final-newline contract. The optional `--legacy-marker-name` option adds a legacy marker-comment dialect. The command
+does not enter either execution pipeline. `--project-root` supplies the reference-resolution boundary when the selected
+document is below the project root; reference targets themselves are not named example IDs.
 
 The synchronization layer recognizes an `akashi-sync` comment, one closed PHP fence, and an `akashi-sync-end` comment as
 consecutive Markdown blocks; blank separator lines are allowed so normal Markdown formatters preserve a valid structure.

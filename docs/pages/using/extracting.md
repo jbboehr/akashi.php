@@ -17,7 +17,7 @@ example without making a second copy the source of truth. Extraction does not ex
 
 ## Mark the Example
 
-Assign a stable example ID in the Akashi metadata associated with a PHP fence:
+Assign a stable named example ID in the Akashi metadata associated with a PHP fence:
 
 ````markdown
 <!-- akashi: example=greeting -->
@@ -59,9 +59,9 @@ byte-for-byte consumer fixtures predictable. Diagnostics go to stderr.
 When the input is below the project root and its PHPDoc uses external references, add
 `--project-root=/absolute/project/path` so those project-relative targets resolve against the intended boundary.
 
-Example IDs use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate, orphaned,
-or non-PHP identity metadata fails explicitly. See the [CLI reference](../reference/cli.md) for the complete stream and
-exit-status contract.
+Named example IDs use lowercase kebab-case and must be unique across the loaded corpus. Invalid, missing, duplicate,
+orphaned, or non-PHP identity metadata fails explicitly. See the [CLI reference](../reference/cli.md) for the complete
+stream and exit-status contract.
 
 ## Select It in PHP
 
@@ -71,19 +71,19 @@ The same operation is available without the CLI:
 <?php
 
 use jbboehr\Akashi\Source\DocumentationSource;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
+use jbboehr\Akashi\Source\NamedExampleSelector;
 
 $corpus = DocumentationSource::forProject(dirname(__DIR__))
     ->withFile('docs/examples.md')
     ->load();
 
-$example = (new MarkedExampleSelector())->select($corpus, 'greeting');
+$example = (new NamedExampleSelector())->select($corpus, 'greeting');
 ```
 
 Use ordinary corpus loading for PHPUnit and PHPStan. An `example` property adds a stable author-assigned identity; it
 does not filter unnamed examples from either workflow.
 
 For compatibility, a project may retain an existing marker such as `<!-- yumemi-example: greeting -->`. Add that dialect
-with `withMarkerName('yumemi-example')` when loading in PHP, and pass `--marker-name=yumemi-example` to `extract`.
-Canonical `akashi:` metadata remains recognized at the same time. Duplicate identities across canonical and legacy forms
-fail rather than one taking precedence.
+with `withLegacyMarkerName('yumemi-example')` when loading in PHP, and pass `--legacy-marker-name=yumemi-example` to
+`extract`. Canonical `akashi:` metadata remains recognized at the same time. Duplicate identities across canonical and
+legacy forms fail rather than one taking precedence.

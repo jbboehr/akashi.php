@@ -41,7 +41,7 @@ namespace jbboehr\Akashi\Tests\Metadata;
 use jbboehr\Akashi\Document;
 use jbboehr\Akashi\Metadata\ExampleMetadataParser;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
 use jbboehr\Akashi\Model\Directive;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -61,13 +61,13 @@ final class ExampleMetadataParserTest extends TestCase
         );
         $metadata = $parser->resolve($document, $clauses);
 
-        self::assertSame('conversion-basic', $metadata->markerId?->value);
+        self::assertSame('conversion-basic', $metadata->namedId?->value);
         self::assertTrue($metadata->directives->contains(Directive::SeparateProcess));
         self::assertSame('RuntimeException', $metadata->expectedException?->className);
         self::assertSame('invalid, "quoted" input', $metadata->expectedException->message);
         self::assertSame(73, $metadata->expectedException->code);
         self::assertSame("Hello, Akashi!\n", $metadata->expectedOutput);
-        self::assertSame(4, $metadata->location->markerLine);
+        self::assertSame(4, $metadata->location->namedIdLine);
     }
 
     public function testAcceptsAnExplicitlyEmptyExpectedOutput(): void
@@ -140,7 +140,7 @@ METADATA;
             self::assertStringContainsString('Duplicate Akashi metadata property skip', $exception->getMessage());
         }
 
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $parser->resolve($document, [
             ...$parser->parse($document, 'example=first', 1),
             ...$parser->parse($document, 'example=second', 2),

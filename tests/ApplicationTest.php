@@ -148,7 +148,7 @@ final class ApplicationTest extends TestCase
         $result = $this->runApplication(['extract', '--help']);
 
         self::assertSame(ExitCode::Success->value, $result['status']);
-        self::assertStringContainsString('--marker-name=MARKER-NAME', $result['stdout']);
+        self::assertStringContainsString('--legacy-marker-name=LEGACY-MARKER-NAME', $result['stdout']);
         self::assertStringNotContainsString('multiple values allowed', $result['stdout']);
         self::assertSame('', $result['stderr']);
     }
@@ -215,7 +215,7 @@ final class ApplicationTest extends TestCase
         $success = $this->runApplication([
             'extract',
             '--quiet',
-            '--marker-name',
+            '--legacy-marker-name',
             'selected-example',
             $file,
             'chosen',
@@ -223,7 +223,7 @@ final class ApplicationTest extends TestCase
         $failure = $this->runApplication([
             'extract',
             '--quiet',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'missing',
         ]);
@@ -307,7 +307,7 @@ final class ApplicationTest extends TestCase
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'chosen',
         ]);
@@ -317,7 +317,7 @@ final class ApplicationTest extends TestCase
         self::assertSame('', $result['stderr']);
     }
 
-    public function testExtractsCanonicalAkashiMetadataWithoutAMarkerNameOption(): void
+    public function testExtractsCanonicalAkashiMetadataWithoutALegacyMarkerNameOption(): void
     {
         $file = $this->workspace . '/canonical.md';
         self::assertNotFalse(file_put_contents(
@@ -343,7 +343,7 @@ final class ApplicationTest extends TestCase
         $result = $this->runApplication([
             '--ansi',
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'markup',
         ]);
@@ -370,7 +370,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'chosen',
         ]);
@@ -420,7 +420,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             '--project-root=' . $this->workspace,
             $file,
             'chosen',
@@ -451,17 +451,17 @@ PHP));
     {
         yield 'unknown command' => [['unknown'], 'Command "unknown" is not defined.'];
         yield 'duplicate marker name' => [
-            ['extract', '--marker-name=first', '--marker-name=second', 'examples.md', 'chosen'],
-            'The --marker-name option may be specified only once.',
+            ['extract', '--legacy-marker-name=first', '--legacy-marker-name=second', 'examples.md', 'chosen'],
+            'The --legacy-marker-name option may be specified only once.',
         ];
         yield 'duplicate marker name surrounding command' => [
-            ['--marker-name=first', 'extract', '--marker-name=second', 'examples.md', 'chosen'],
-            'The --marker-name option may be specified only once.',
+            ['--legacy-marker-name=first', 'extract', '--legacy-marker-name=second', 'examples.md', 'chosen'],
+            'The --legacy-marker-name option may be specified only once.',
         ];
         yield 'duplicate project root' => [
             [
                 'extract',
-                '--marker-name=selected-example',
+                '--legacy-marker-name=selected-example',
                 '--project-root=first',
                 '--project-root=second',
                 'examples.md',
@@ -470,12 +470,12 @@ PHP));
             'The --project-root option may be specified only once.',
         ];
         yield 'unknown extract option' => [
-            ['extract', '--marker-name=selected-example', '--unknown', 'examples.md', 'chosen'],
+            ['extract', '--legacy-marker-name=selected-example', '--unknown', 'examples.md', 'chosen'],
             'The "--unknown" option does not exist.',
         ];
         yield 'missing positional argument' => [
-            ['extract', '--marker-name=selected-example', 'examples.md'],
-            'Not enough arguments (missing: "marker-id").',
+            ['extract', '--legacy-marker-name=selected-example', 'examples.md'],
+            'Not enough arguments (missing: "example-id").',
         ];
         yield 'missing sync mode' => [
             ['sync', 'README.md'],
@@ -556,7 +556,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'missing',
         ]);
@@ -564,7 +564,7 @@ PHP));
         self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
         self::assertStringContainsString(
-            'Marker ID missing was not found in the example corpus.',
+            'Named example ID missing was not found in the example corpus.',
             $result['stderr'],
         );
     }
@@ -577,7 +577,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'chosen',
         ]);
@@ -599,7 +599,7 @@ PHP));
         yield 'duplicate marker' => [
             "<!-- selected-example: chosen -->\n```php\necho 1;\n```\n\n"
                 . "<!-- selected-example: chosen -->\n```php\necho 2;\n```\n",
-            'Duplicate marker ID chosen',
+            'Duplicate named example ID chosen',
         ];
         yield 'invalid marker' => [
             "<!-- selected-example: Invalid_ID -->\n```php\necho 1;\n```\n",
@@ -615,18 +615,18 @@ PHP));
         ];
     }
 
-    public function testValidatesTheMarkerIdBeforeReadingTheFile(): void
+    public function testValidatesTheNamedExampleIdBeforeReadingTheFile(): void
     {
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $this->workspace . '/missing.md',
             'Invalid ID',
         ]);
 
         self::assertSame(ExitCode::CommandFailure->value, $result['status']);
         self::assertSame('', $result['stdout']);
-        self::assertStringContainsString('Marker ID must use lowercase kebab-case.', $result['stderr']);
+        self::assertStringContainsString('Named example ID must use lowercase kebab-case.', $result['stderr']);
         self::assertStringNotContainsString('does not exist', $result['stderr']);
     }
 
@@ -634,7 +634,7 @@ PHP));
     {
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             '  ',
             'chosen',
         ]);
@@ -658,7 +658,7 @@ PHP));
         try {
             $result = $this->runApplication([
                 'extract',
-                '--marker-name=selected-example',
+                '--legacy-marker-name=selected-example',
                 'relative.md',
                 'chosen',
             ]);
@@ -681,7 +681,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             str_replace('/', '\\', $file),
             'chosen',
         ]);
@@ -701,7 +701,7 @@ PHP));
 
         $result = $this->runApplication([
             'extract',
-            '--marker-name=selected-example',
+            '--legacy-marker-name=selected-example',
             $file,
             'chosen',
         ]);

@@ -153,14 +153,14 @@ final class SourceLocation
             throw new \InvalidArgumentException('An empty code location must have an empty source span.');
         }
 
-        if ($metadata->markerLine !== null) {
-            $isExternal = $metadata->markerLine < $openingFenceLine;
+        if ($metadata->namedIdLine !== null) {
+            $isExternal = $metadata->namedIdLine < $openingFenceLine;
             $isInline = $lastCodeLine !== null
-                && $metadata->markerLine >= $firstCodeLine
-                && $metadata->markerLine <= $lastCodeLine;
+                && $metadata->namedIdLine >= $firstCodeLine
+                && $metadata->namedIdLine <= $lastCodeLine;
             if (!$isExternal && !$isInline) {
                 throw new \InvalidArgumentException(
-                    'Marker line must precede the opening fence or lie within its code content.',
+                    'Named example ID line must precede the opening fence or lie within its code content.',
                 );
             }
         }

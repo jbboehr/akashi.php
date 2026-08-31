@@ -149,7 +149,7 @@ PHP);
                 continue;
             }
 
-            self::fail(sprintf('Documentation example %s must fail at its maintained source.', $example->id->value));
+            self::fail(sprintf('Documentation example %s must fail at its maintained source.', $example->corpusId->value));
         }
     }
 

@@ -155,7 +155,7 @@ final class FormattingChecker
                 if ($exitCode !== 0) {
                     throw new FormattingExecutionException(sprintf(
                         'PHP-CS-Fixer failed for inline example %s at %s:%d with status %d.%s',
-                        $example->id->value,
+                        $example->corpusId->value,
                         $example->codeOrigin()->document->path->value,
                         $example->codeOrigin()->firstCodeLine,
                         $exitCode,
@@ -167,7 +167,7 @@ final class FormattingChecker
                 if ($formattedWrapper === false) {
                     throw new FormattingExecutionException(sprintf(
                         'Unable to read PHP-CS-Fixer output for inline example %s at %s:%d.',
-                        $example->id->value,
+                        $example->corpusId->value,
                         $example->codeOrigin()->document->path->value,
                         $example->codeOrigin()->firstCodeLine,
                     ));
@@ -175,7 +175,7 @@ final class FormattingChecker
             } catch (ProcessTimedOutException $exception) {
                 throw new FormattingExecutionException(sprintf(
                     'PHP-CS-Fixer exceeded the 60-second timeout for inline example %s at %s:%d.%s',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->firstCodeLine,
                     self::processEvidence($exception->getProcess(), $temporary['file'], $example),
@@ -183,7 +183,7 @@ final class FormattingChecker
             } catch (SymfonyProcessException $exception) {
                 throw new FormattingExecutionException(sprintf(
                     'Unable to run PHP-CS-Fixer for inline example %s at %s:%d: %s',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->firstCodeLine,
                     self::sanitized($exception->getMessage(), $temporary['file'], $example),
@@ -200,7 +200,7 @@ final class FormattingChecker
                 sprintf(
                     '%s Inline example %s at %s:%d.%s',
                     $cleanupFailure,
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->firstCodeLine,
                     $failure === null ? '' : ' The formatter operation also failed: ' . $failure->getMessage(),
@@ -218,7 +218,7 @@ final class FormattingChecker
         if (substr_count($formattedWrapper, $marker) !== 1) {
             throw new FormattingOutputException(sprintf(
                 'PHP-CS-Fixer did not preserve the body boundary for inline example %s at %s:%d.',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->firstCodeLine,
             ));
@@ -233,7 +233,7 @@ final class FormattingChecker
         if (preg_match('/\A\h*(?:\r\n|\r|\n)/', $afterMarker, $separator) !== 1) {
             throw new FormattingOutputException(sprintf(
                 'PHP-CS-Fixer moved the body boundary onto maintained code for inline example %s at %s:%d.',
-                $example->id->value,
+                $example->corpusId->value,
                 $example->codeOrigin()->document->path->value,
                 $example->codeOrigin()->firstCodeLine,
             ));
@@ -301,7 +301,7 @@ final class FormattingChecker
                 throw new UnsupportedFormattingExampleException(sprintf(
                     'Inline example %s at %s:%d uses closing tags, additional PHP segments, inline HTML, short echo '
                         . 'tags, or __halt_compiler(), which cannot be safely enclosed for formatter checking.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->firstCodeLine,
                 ));

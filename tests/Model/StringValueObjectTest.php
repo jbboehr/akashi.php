@@ -40,10 +40,10 @@ namespace jbboehr\Akashi\Tests\Model;
 
 use jbboehr\Akashi\Model\AbsoluteFilePath;
 use jbboehr\Akashi\Model\DocumentPath;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
-use jbboehr\Akashi\Model\MarkerName;
+use jbboehr\Akashi\Model\NamedExampleId;
+use jbboehr\Akashi\Model\LegacyMarkerName;
 use jbboehr\Akashi\Model\PhpDocTagName;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ProjectRoot;
@@ -67,10 +67,10 @@ final class StringValueObjectTest extends TestCase
     {
         yield 'absolute file path' => [new AbsoluteFilePath('/project/file.php/'), '/project/file.php'];
         yield 'document path' => [new DocumentPath('docs\\./guide.md'), 'docs/guide.md'];
-        yield 'example ID' => [new ExampleId('example-one'), 'example-one'];
+        yield 'corpus example ID' => [new CorpusExampleId('example-one'), 'example-one'];
         yield 'language' => [new Language(' PHP '), 'php'];
-        yield 'marker ID' => [new MarkerId('example-one'), 'example-one'];
-        yield 'marker name' => [new MarkerName('akashi-example'), 'akashi-example'];
+        yield 'named example ID' => [new NamedExampleId('example-one'), 'example-one'];
+        yield 'legacy marker name' => [new LegacyMarkerName('akashi-example'), 'akashi-example'];
         yield 'PHPDoc tag name' => [new PhpDocTagName('akashi-example'), 'akashi-example'];
         yield 'project path' => [new ProjectPath('docs\\./guide.md'), 'docs/guide.md'];
         yield 'project root' => [new ProjectRoot('/project/'), '/project'];

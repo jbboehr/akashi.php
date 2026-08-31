@@ -41,10 +41,12 @@ namespace jbboehr\Akashi\Markdown\Exception;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
- * @logion [OSD 46:7] Bring not the river-stone to the jeweler merely because moonlight maketh it shine. Return it to
- *     the ford, where its weight steadies the feet of children. A thing removed from its appointed service may gain a
- *     price while losing the honor proper to its form.
+ * Authored metadata contains an invalid named example identifier.
+ *
+ * @logion [SFA 67:6] The last snow upon the southern roof melted inward and filled a sealed blue vessel beneath the
+ *     altar. At midsummer the vessel was opened, and its water bore the scent of pines from a mountain no pilgrim had
+ *     climbed.
  */
-final class NonPhpMarkerException extends SourceException
+final class InvalidNamedExampleMetadataException extends SourceException
 {
 }

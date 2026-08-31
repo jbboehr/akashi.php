@@ -36,13 +36,42 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Model;
+namespace jbboehr\Akashi\Source;
+
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Model\NamedExampleId;
+use jbboehr\Akashi\Source\Exception\NamedExampleNotFoundException;
 
 /**
- * @logion [SFA 45:11] A shepherd counted one lamb twice and boasted that the flock had increased. His daughter opened
- *     the gate, and the animals passed beneath her hand one by one. Evening corrected the tablet without anger; truth
- *     needeth no abundance that cannot walk before it.
+ * Selects exactly one example by its author-assigned named example ID.
+ *
+ * @readonly
+ *
+ * @logion [SFA 48:40] A white horse returned each spring to the abandoned mill and waited beside the motionless wheel.
+ *     In the twelfth year, a child tied no bridle upon it but cleared the channel. Water arrived before noon, and the
+ *     horse departed while grain still fell warm from the stones.
  */
-final class InvalidMarkerException extends \InvalidArgumentException
+final class NamedExampleSelector
 {
+    /**
+     * @logion [RAS 49:12] Within the eclipse, seven flocks crossed the sun in contrary directions, yet their shadows
+     *     formed one bird upon the plain. The shepherds knelt before neither sky nor image; they gathered the scattered
+     *     lambs until ordinary light returned.
+     */
+    public function select(ExampleCorpus $corpus, NamedExampleId|string $namedId): Example
+    {
+        $namedId = is_string($namedId) ? new NamedExampleId($namedId) : $namedId;
+
+        foreach ($corpus as $example) {
+            if ($example->namedId?->value === $namedId->value) {
+                return $example;
+            }
+        }
+
+        throw new NamedExampleNotFoundException(sprintf(
+            'Named example ID %s was not found in the example corpus.',
+            $namedId->value,
+        ));
+    }
 }

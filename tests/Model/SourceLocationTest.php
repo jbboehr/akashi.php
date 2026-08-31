@@ -196,10 +196,10 @@ final class SourceLocationTest extends TestCase
             8,
             new SourceSpan(10, 50),
             new SourceSpan(20, 40),
-            new MetadataLocation(markerLine: 6),
+            new MetadataLocation(namedIdLine: 6),
         );
 
-        self::assertSame(6, $location->metadata->markerLine);
+        self::assertSame(6, $location->metadata->namedIdLine);
     }
 
     public function testRejectsACompileOnlyDirectiveOutsideTheFenceAndCode(): void
@@ -221,14 +221,14 @@ final class SourceLocationTest extends TestCase
     }
 
     /**
-     * @param positive-int|null $markerLine
+     * @param positive-int|null $namedIdLine
      * @param positive-int|null $directiveLine
      * @param positive-int|null $skipDirectiveLine
      * @param positive-int|null $expectedExceptionDirectiveLine
      */
     #[DataProvider('invalidMetadataLineProvider')]
     public function testRejectsMetadataThatDoesNotPrecedeTheFence(
-        ?int $markerLine,
+        ?int $namedIdLine,
         ?int $directiveLine,
         ?int $skipDirectiveLine,
         ?int $expectedExceptionDirectiveLine,
@@ -245,7 +245,7 @@ final class SourceLocationTest extends TestCase
             new SourceSpan(10, 50),
             new SourceSpan(20, 40),
             new MetadataLocation(
-                $markerLine,
+                $namedIdLine,
                 $directiveLine,
                 $skipDirectiveLine,
                 $expectedExceptionDirectiveLine,
@@ -263,7 +263,7 @@ final class SourceLocationTest extends TestCase
             null,
             null,
             null,
-            'Marker line must precede the opening fence or lie within its code content.',
+            'Named example ID line must precede the opening fence or lie within its code content.',
         ];
         yield 'separate-process directive after fence' => [
             null,

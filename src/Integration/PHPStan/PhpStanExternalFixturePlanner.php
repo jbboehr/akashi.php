@@ -83,7 +83,7 @@ final class PhpStanExternalFixturePlanner
             if (!$example->source instanceof ReferencedExampleSource) {
                 throw new PhpStanConfigurationException(sprintf(
                     'External PHPStan fixture selection includes inline example %s at %s:%d.',
-                    $example->id->value,
+                    $example->corpusId->value,
                     $example->codeOrigin()->document->path->value,
                     $example->codeOrigin()->firstCodeLine,
                 ));

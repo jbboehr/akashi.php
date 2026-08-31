@@ -39,7 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Akashi\Tests\Integration\PhpUnit;
 
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
-use jbboehr\Akashi\Source\MarkedExampleSelector;
+use jbboehr\Akashi\Source\NamedExampleSelector;
 use jbboehr\Akashi\Source\MarkdownSource;
 use PHPUnit\Framework\TestCase;
 
@@ -51,7 +51,7 @@ final class ExpectedExceptionDocumentationTest extends TestCase
         $corpus = MarkdownSource::forProject($projectRoot)
             ->withFile('docs/pages/using/phpunit.md')
             ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'expected-domain-exception');
+        $example = (new NamedExampleSelector())->select($corpus, 'expected-domain-exception');
 
         PhpUnitRuntime::assertExample($example);
     }
@@ -62,7 +62,7 @@ final class ExpectedExceptionDocumentationTest extends TestCase
         $corpus = MarkdownSource::forProject($projectRoot)
             ->withFile('docs/pages/reference/directives.md')
             ->load();
-        $example = (new MarkedExampleSelector())->select($corpus, 'compile-only-runtime');
+        $example = (new NamedExampleSelector())->select($corpus, 'compile-only-runtime');
 
         PhpUnitRuntime::assertExample($example);
     }

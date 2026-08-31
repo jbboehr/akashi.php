@@ -40,7 +40,7 @@ namespace jbboehr\Akashi\Tests\Source;
 
 use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Markdown\Exception\DirectiveException;
-use jbboehr\Akashi\Markdown\Exception\DuplicateMarkerException;
+use jbboehr\Akashi\Markdown\Exception\DuplicateNamedExampleIdException;
 use jbboehr\Akashi\Model\Directive;
 use jbboehr\Akashi\Model\ProjectPath;
 use jbboehr\Akashi\Model\ReferenceLocation;
@@ -219,14 +219,14 @@ PHP);
  */
 PHP);
 
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $this->expectExceptionMessage(
-            'Duplicate marker ID duplicate at b.php:3; first declared at a.md:1.',
+            'Duplicate named example ID duplicate at b.php:3; first declared at a.md:1.',
         );
 
         DocumentationSource::forProject($this->projectRoot)
             ->withFiles(['a.md', 'b.php'])
-            ->withMarkerName('akashi-example')
+            ->withLegacyMarkerName('akashi-example')
             ->load();
     }
 
@@ -245,9 +245,9 @@ PHP);
             "<?php\n// akashi: example=duplicate\necho 'referenced';\n",
         );
 
-        $this->expectException(DuplicateMarkerException::class);
+        $this->expectException(DuplicateNamedExampleIdException::class);
         $this->expectExceptionMessage(
-            'Duplicate marker ID duplicate at examples/canonical.php:2; first declared at docs/example.md:1.',
+            'Duplicate named example ID duplicate at examples/canonical.php:2; first declared at docs/example.md:1.',
         );
 
         DocumentationSource::forProject($this->projectRoot)
@@ -305,13 +305,13 @@ PHP);
                 . "throw new RuntimeException('documented', 73);\n",
             $example->code->source,
         );
-        self::assertSame('conversion-basic', $example->explicitMarkerId?->value);
+        self::assertSame('conversion-basic', $example->namedId?->value);
         self::assertTrue($example->directives->contains(Directive::SeparateProcess));
         self::assertSame('RuntimeException', $example->expectedException?->className);
         self::assertSame('documented', $example->expectedException->message);
         self::assertSame(73, $example->expectedException->code);
         self::assertSame("before\n", $example->expectedOutput);
-        self::assertSame(4, $example->codeOrigin()->metadata->markerLine);
+        self::assertSame(4, $example->codeOrigin()->metadata->namedIdLine);
         self::assertSame(5, $example->codeOrigin()->metadata->separateProcessDirectiveLine);
         self::assertSame(5, $example->codeOrigin()->metadata->expectedExceptionDirectiveLine);
         self::assertSame('basic-conversion', $example->source->region?->value);
@@ -635,7 +635,7 @@ PHP);
         self::assertSame('examples/a-alias.php', $examples[0]->codeOrigin()->document->path->value);
         self::assertSame(
             'example-' . substr(sha1('external:examples/a-alias.php'), 0, 16),
-            $examples[0]->id->value,
+            $examples[0]->corpusId->value,
         );
         self::assertInstanceOf(ReferencedExampleSource::class, $examples[0]->source);
         self::assertCount(2, $examples[0]->source->references);

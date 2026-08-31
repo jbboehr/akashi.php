@@ -85,7 +85,7 @@ final class InlineExampleSource
             || $origin->lastCodeLine !== $location->lastCodeLine
             || $origin->codeSpan->startOffset !== $location->codeSpan->startOffset
             || $origin->codeSpan->endOffsetExclusive !== $location->codeSpan->endOffsetExclusive
-            || $origin->metadata->markerLine !== $location->metadata->markerLine
+            || $origin->metadata->namedIdLine !== $location->metadata->namedIdLine
             || $origin->metadata->separateProcessDirectiveLine
                 !== $location->metadata->separateProcessDirectiveLine
             || $origin->metadata->skipDirectiveLine !== $location->metadata->skipDirectiveLine

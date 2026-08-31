@@ -166,7 +166,7 @@ try {
         'bin/akashi',
         'composer.json',
         'docs/LICENSE_EXCEPTION.md',
-        'examples/example-id.php',
+        'examples/corpus-example-id.php',
     ];
     foreach ($requiredFiles as $requiredFile) {
         if (!array_key_exists($requiredFile, $files)) {

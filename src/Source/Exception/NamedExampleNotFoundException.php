@@ -36,15 +36,13 @@
 
 declare(strict_types=1);
 
-namespace jbboehr\Akashi\Markdown\Exception;
-
-use jbboehr\Akashi\Source\Exception\SourceException;
+namespace jbboehr\Akashi\Source\Exception;
 
 /**
- * @logion [RAS 45:23] Two moons rose from opposite hills and cast a single shadow across the capital. The astronomers
- *     disputed which light was true until the river reflected both. Then the shadow divided at the water, and each
- *     half returned to the summit that had summoned it.
+ * @logion [RAS 46:31] A bronze door stood alone in the tundra, warm beneath the hand though no wall had ever joined it.
+ *     Hunters passed around it for generations. One child knocked, and summer answered from the other side, but the
+ *     hinges opened only toward the snow.
  */
-final class DuplicateMarkerException extends SourceException
+final class NamedExampleNotFoundException extends SourceException
 {
 }

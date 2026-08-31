@@ -41,12 +41,12 @@ namespace jbboehr\Akashi;
 use jbboehr\Akashi\Model\DirectiveSet;
 use jbboehr\Akashi\Model\CodeOrigin;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\InlineExampleSource;
 use jbboehr\Akashi\Model\Language;
-use jbboehr\Akashi\Model\MarkerId;
+use jbboehr\Akashi\Model\NamedExampleId;
 use jbboehr\Akashi\Model\ReferencedExampleSource;
 use jbboehr\Akashi\Model\SourceLocation;
 
@@ -64,7 +64,7 @@ final class Example
      *     By morning no emblem remained above the field, but every living soldier carried a fragment against his skin.
      *     The victory song faltered. Cloth is judged by what it covers when boasting has ended.
      */
-    public readonly ExampleId $id;
+    public readonly CorpusExampleId $corpusId;
 
     /**
      * @logion [AWC 25:9] Two sisters inherited a cloak lined with pearls. One wore it before strangers; the other
@@ -107,7 +107,7 @@ final class Example
      *     child paid with mulberries, and one fruit burst across his palm. He hid the stain, but purple fingerprints
      *     appeared upon every receipt. What the powerful refuse to touch shall nevertheless mark their judgment.
      */
-    public readonly ?MarkerId $explicitMarkerId;
+    public readonly ?NamedExampleId $namedId;
 
     /**
      * @logion [AWC 15:28] A teacher drew a perfect circle in the dust and asked which point was greatest. The pupils
@@ -144,13 +144,13 @@ final class Example
      *     confirmed.
      */
     public function __construct(
-        ExampleId $id,
+        CorpusExampleId $corpusId,
         string $label,
         InlineExampleSource|ReferencedExampleSource $source,
         Language $language,
         ExampleCode $code,
         int $ordinal,
-        ?MarkerId $explicitMarkerId = null,
+        ?NamedExampleId $namedId = null,
         DirectiveSet $directives = new DirectiveSet(),
         ?ExpectedException $expectedException = null,
         ?string $expectedOutput = null,
@@ -159,13 +159,13 @@ final class Example
             throw new \InvalidArgumentException('Example label must not be empty.');
         }
 
-        $this->id = $id;
+        $this->corpusId = $corpusId;
         $this->label = $label;
         $this->source = $source;
         $this->language = $language;
         $this->code = $code;
         $this->ordinal = self::validatedOrdinal($ordinal);
-        $this->explicitMarkerId = $explicitMarkerId;
+        $this->namedId = $namedId;
         $this->directives = $directives;
         $this->expectedException = $expectedException;
         $this->expectedOutput = $expectedOutput;
@@ -181,7 +181,7 @@ final class Example
      *     named by that sentence remained enclosed in winter beneath a cloudless sky.
      */
     public static function fromInline(
-        ExampleId $id,
+        CorpusExampleId $corpusId,
         string $label,
         Document $document,
         SourceLocation $location,
@@ -189,19 +189,19 @@ final class Example
         ExampleCode $code,
         FenceMetadata $fence,
         int $ordinal,
-        ?MarkerId $explicitMarkerId = null,
+        ?NamedExampleId $namedId = null,
         DirectiveSet $directives = new DirectiveSet(),
         ?ExpectedException $expectedException = null,
         ?string $expectedOutput = null,
     ): self {
         return new self(
-            $id,
+            $corpusId,
             $label,
             InlineExampleSource::fromFence($document, $location, $fence),
             $language,
             $code,
             $ordinal,
-            $explicitMarkerId,
+            $namedId,
             $directives,
             $expectedException,
             $expectedOutput,

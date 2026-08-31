@@ -43,7 +43,7 @@ use jbboehr\Akashi\Example;
 use jbboehr\Akashi\Execution\ExecutionMode;
 use jbboehr\Akashi\Model\DocumentPath;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
 use jbboehr\Akashi\Model\SourceLocation;
@@ -246,7 +246,7 @@ final class TransformValueTest extends TestCase
         $seed = hash('sha256', 'akashi transform test', true);
         $firstFactory = new ExecutionScopeFactory(new Randomizer(new Xoshiro256StarStar($seed)));
         $secondFactory = new ExecutionScopeFactory(new Randomizer(new Xoshiro256StarStar($seed)));
-        $exampleId = new ExampleId('example-docs-guide-01');
+        $exampleId = new CorpusExampleId('example-docs-guide-01');
 
         $first = $firstFactory->create($exampleId);
         $repeat = $secondFactory->create($exampleId);
@@ -283,7 +283,7 @@ final class TransformValueTest extends TestCase
     private function example(): Example
     {
         return Example::fromInline(
-            id: new ExampleId('example-value-01'),
+            corpusId: new CorpusExampleId('example-value-01'),
             label: 'Value fixture',
             document: new Document('docs/example.md', "echo 1;\n"),
             location: new SourceLocation(1, 2, 2, 3, new SourceSpan(0, 8), new SourceSpan(0, 8)),

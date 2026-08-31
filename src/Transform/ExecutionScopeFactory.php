@@ -38,7 +38,7 @@ declare(strict_types=1);
 
 namespace jbboehr\Akashi\Transform;
 
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use Random\Engine\Secure;
 use Random\Randomizer;
 
@@ -71,11 +71,11 @@ final class ExecutionScopeFactory
      * @logion [AWC 53:10] During the census of lamps, each household received a shard from the same blue crystal; no
      *     two shards bore one fracture, yet all answered when the mountain beacon was uncovered.
      */
-    public function create(ExampleId $exampleId): ExecutionScope
+    public function create(CorpusExampleId $corpusExampleId): ExecutionScope
     {
-        $exampleSegment = preg_replace('/[^a-z0-9]+/i', '_', $exampleId->value);
+        $exampleSegment = preg_replace('/[^a-z0-9]+/i', '_', $corpusExampleId->value);
         if ($exampleSegment === null) {
-            throw new \LogicException('Unable to normalize the example ID for an execution namespace.');
+            throw new \LogicException('Unable to normalize the corpus example ID for an execution namespace.');
         }
 
         return new ExecutionScope(sprintf(

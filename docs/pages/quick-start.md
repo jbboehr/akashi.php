@@ -81,8 +81,8 @@ autoloader remains available to the example.
 
 ## 5. Break It Deliberately
 
-Change the expected value to `Akashi` and run PHPUnit again. The test fails with the example ID, label, and originating
-`README.md` line. Restore `AKASHI` to make it pass.
+Change the expected value to `Akashi` and run PHPUnit again. The test fails with the corpus example ID, label, and
+originating `README.md` line. Restore `AKASHI` to make it pass.
 
 Akashi rewrites supported native `assert()` calls to PHPUnit assertions, so the check still runs when the host has
 `zend.assertions=-1`. Details and edge cases are in [PHPUnit](using/phpunit.md#assertion-behavior).

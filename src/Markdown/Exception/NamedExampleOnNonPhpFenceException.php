@@ -41,10 +41,10 @@ namespace jbboehr\Akashi\Markdown\Exception;
 use jbboehr\Akashi\Source\Exception\SourceException;
 
 /**
- * @logion [AWC 45:35] A widow sent bread each morning to the watchtower after its garrison had departed. In the seventh
- *     winter, lost travelers found the loaves beneath the empty bell and survived. Fidelity may outlive its first
- *     recipient and discover an obligation no covenant had named.
+ * @logion [OSD 46:7] Bring not the river-stone to the jeweler merely because moonlight maketh it shine. Return it to
+ *     the ford, where its weight steadies the feet of children. A thing removed from its appointed service may gain a
+ *     price while losing the honor proper to its form.
  */
-final class OrphanedMarkerException extends SourceException
+final class NamedExampleOnNonPhpFenceException extends SourceException
 {
 }

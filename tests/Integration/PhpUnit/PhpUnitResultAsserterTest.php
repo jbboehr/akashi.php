@@ -52,7 +52,7 @@ use jbboehr\Akashi\Execution\SeparateProcessFailureKind;
 use jbboehr\Akashi\Execution\StateResource;
 use jbboehr\Akashi\Integration\PhpUnit\PhpUnitResultAsserter;
 use jbboehr\Akashi\Model\ExampleCode;
-use jbboehr\Akashi\Model\ExampleId;
+use jbboehr\Akashi\Model\CorpusExampleId;
 use jbboehr\Akashi\Model\ExpectedException;
 use jbboehr\Akashi\Model\FenceMetadata;
 use jbboehr\Akashi\Model\Language;
@@ -701,7 +701,7 @@ TEXT;
         $closingFenceLine = $lastCodeLine === null ? $firstCodeLine : $lastCodeLine + 1;
 
         return Example::fromInline(
-            id: new ExampleId('example-phpunit-result-01'),
+            corpusId: new CorpusExampleId('example-phpunit-result-01'),
             label: 'PHPUnit result fixture',
             document: new Document('docs/phpunit-result.md', $source),
             location: new SourceLocation(

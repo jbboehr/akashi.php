@@ -85,7 +85,7 @@ final class NamespaceIsolator
             if ($start < 0 || $end < $start) {
                 throw new \LogicException(sprintf(
                     'PHP parser did not provide a source span for a name in example %s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                 ));
             }
 
@@ -101,7 +101,7 @@ final class NamespaceIsolator
             if ($start < 0 || $end < $start) {
                 throw new \LogicException(sprintf(
                     'PHP parser did not provide a source span for __NAMESPACE__ in example %s.',
-                    $example->id->value,
+                    $example->corpusId->value,
                 ));
             }
 
