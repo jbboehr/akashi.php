@@ -45,7 +45,7 @@ use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandNotCompleted;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandResult;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerificationCompleted;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerifier;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExternalFixturePlan;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanJsonResult;
@@ -121,7 +121,7 @@ final class PhpStanCommandVerifierTest extends TestCase
             )]],
         );
 
-        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
+        self::assertInstanceOf(PhpStanCommandVerificationCompleted::class, $result);
         self::assertSame(1, $result->commandResult->exitCode);
         self::assertSame('analysis warning', $result->commandResult->stderr);
         self::assertSame(1, $result->analyzerResult->fileErrorCount);
@@ -255,7 +255,7 @@ final class PhpStanCommandVerifierTest extends TestCase
                 'PHPStan command diagnostics did not match: 0 analyzer-wide errors and 1 mismatched file.',
                 $failure->getMessage(),
             );
-            self::assertInstanceOf(PhpStanCommandVerified::class, $failure->result);
+            self::assertInstanceOf(PhpStanCommandVerificationCompleted::class, $failure->result);
             self::assertFalse($failure->result->verificationResult->isSuccessful());
             self::assertArrayHasKey($file, $failure->result->verificationResult->mismatchesByFile);
             self::assertSame('analysis warning', $failure->result->commandResult->stderr);
@@ -408,7 +408,7 @@ final class PhpStanCommandVerifierTest extends TestCase
                 'PHPStan command diagnostics did not match: 1 analyzer-wide error and 0 mismatched files.',
                 $failure->getMessage(),
             );
-            self::assertInstanceOf(PhpStanCommandVerified::class, $failure->result);
+            self::assertInstanceOf(PhpStanCommandVerificationCompleted::class, $failure->result);
             self::assertSame(['Configuration could not be loaded.'], $failure->result->analyzerResult->globalErrors);
             self::assertSame(
                 ['Configuration could not be loaded.'],
@@ -618,7 +618,7 @@ final class PhpStanCommandVerifierTest extends TestCase
             )]],
         );
 
-        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
+        self::assertInstanceOf(PhpStanCommandVerificationCompleted::class, $result);
         self::assertFalse($result->verificationResult->isSuccessful());
         self::assertArrayHasKey($file, $result->verificationResult->mismatchesByFile);
     }
@@ -644,7 +644,7 @@ final class PhpStanCommandVerifierTest extends TestCase
             [$file => [new DiagnosticExpectation('Expected diagnostic', 4)]],
         );
 
-        self::assertInstanceOf(PhpStanCommandVerified::class, $result);
+        self::assertInstanceOf(PhpStanCommandVerificationCompleted::class, $result);
         self::assertFalse($result->verificationResult->isSuccessful());
         self::assertSame(['Analyzer-wide failure'], $result->verificationResult->globalErrors);
         self::assertArrayHasKey($file, $result->verificationResult->mismatchesByFile);
@@ -850,7 +850,7 @@ final class PhpStanCommandVerifierTest extends TestCase
         ];
     }
 
-    public function testVerifiedOutcomeRejectsNonCompletedEvidence(): void
+    public function testCompletedVerificationRejectsNonCompletedCommandEvidence(): void
     {
         $timedOut = new PhpStanCommandResult(
             PhpStanCommandTermination::TimedOut,
@@ -862,8 +862,8 @@ final class PhpStanCommandVerifierTest extends TestCase
         $analysis = new PhpStanJsonResult(0, 0, [], []);
         $verification = new PhpStanVerificationResult([], [], []);
         self::expectException(\InvalidArgumentException::class);
-        self::expectExceptionMessage('Verified PHPStan command evidence must have completed.');
-        new PhpStanCommandVerified($timedOut, $analysis, $verification);
+        self::expectExceptionMessage('Completed PHPStan command verification requires completed command evidence.');
+        new PhpStanCommandVerificationCompleted($timedOut, $analysis, $verification);
     }
 
     public function testCommandVerificationFailureRejectsSuccessfulEvidence(): void
@@ -875,7 +875,7 @@ final class PhpStanCommandVerifierTest extends TestCase
             0,
             exitCode: 0,
         );
-        $verified = new PhpStanCommandVerified(
+        $completedVerification = new PhpStanCommandVerificationCompleted(
             $completed,
             new PhpStanJsonResult(0, 0, [], []),
             new PhpStanVerificationResult([], [], []),
@@ -883,7 +883,7 @@ final class PhpStanCommandVerifierTest extends TestCase
 
         self::expectException(\InvalidArgumentException::class);
         self::expectExceptionMessage('Successful PHPStan command verification cannot be represented as a failure.');
-        new PhpStanCommandVerificationFailedException($verified);
+        new PhpStanCommandVerificationFailedException($completedVerification);
     }
 
     public function testCommandVerificationFailureRetainsTheExactFailedResult(): void
@@ -895,15 +895,15 @@ final class PhpStanCommandVerifierTest extends TestCase
             42,
             exitCode: 1,
         );
-        $verified = new PhpStanCommandVerified(
+        $completedVerification = new PhpStanCommandVerificationCompleted(
             $completed,
             new PhpStanJsonResult(1, 0, ['Analyzer-wide failure.'], []),
             new PhpStanVerificationResult(['Analyzer-wide failure.'], [], []),
         );
 
-        $failure = new PhpStanCommandVerificationFailedException($verified);
+        $failure = new PhpStanCommandVerificationFailedException($completedVerification);
 
-        self::assertSame($verified, $failure->result);
+        self::assertSame($completedVerification, $failure->result);
         self::assertSame($completed, $failure->result->commandResult);
         self::assertSame(['Analyzer-wide failure.'], $failure->result->verificationResult->globalErrors);
     }

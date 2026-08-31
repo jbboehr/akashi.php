@@ -42,7 +42,7 @@ use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandNotCompleted;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandOutputRejected;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerificationResult;
-use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerificationCompleted;
 
 /**
  * A typed command-verification failure from the exception-oriented convenience API.
@@ -71,7 +71,7 @@ final class PhpStanCommandVerificationFailedException extends PhpStanException
      */
     public function __construct(PhpStanCommandVerificationResult $result)
     {
-        if ($result instanceof PhpStanCommandVerified && $result->verificationResult->isSuccessful()) {
+        if ($result instanceof PhpStanCommandVerificationCompleted && $result->verificationResult->isSuccessful()) {
             throw new \InvalidArgumentException(
                 'Successful PHPStan command verification cannot be represented as a failure.',
             );
@@ -103,7 +103,7 @@ final class PhpStanCommandVerificationFailedException extends PhpStanException
                 'PHPStan command output was rejected: %s',
                 $result->cause->getMessage(),
             ),
-            $result instanceof PhpStanCommandVerified => sprintf(
+            $result instanceof PhpStanCommandVerificationCompleted => sprintf(
                 'PHPStan command diagnostics did not match: %d analyzer-wide error%s and %d mismatched file%s.',
                 count($result->verificationResult->globalErrors),
                 count($result->verificationResult->globalErrors) === 1 ? '' : 's',

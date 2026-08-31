@@ -70,7 +70,7 @@ final class PhpStanCommandVerifier
         AbsoluteFilePath|string $executable,
         array $argumentsBeforePaths,
         float $timeoutSeconds = 60.0,
-    ): PhpStanCommandVerified {
+    ): PhpStanCommandVerificationCompleted {
         return self::requireSuccessful($this->verifyPlan(
             $plan,
             $executable,
@@ -158,7 +158,7 @@ final class PhpStanCommandVerifier
             return new PhpStanCommandOutputRejected($commandResult, $exception);
         }
 
-        return new PhpStanCommandVerified(
+        return new PhpStanCommandVerificationCompleted(
             $commandResult,
             $analyzerResult,
             (new PhpStanResultVerifier())->verify($analyzerResult, $expectationsByFile),
@@ -184,7 +184,7 @@ final class PhpStanCommandVerifier
         array $arguments,
         array $expectationsByFile,
         float $timeoutSeconds = 60.0,
-    ): PhpStanCommandVerified {
+    ): PhpStanCommandVerificationCompleted {
         return self::requireSuccessful($this->verify(
             $projectRoot,
             $executable,
@@ -202,8 +202,8 @@ final class PhpStanCommandVerifier
      */
     private static function requireSuccessful(
         PhpStanCommandVerificationResult $result,
-    ): PhpStanCommandVerified {
-        if (!$result instanceof PhpStanCommandVerified || !$result->verificationResult->isSuccessful()) {
+    ): PhpStanCommandVerificationCompleted {
+        if (!$result instanceof PhpStanCommandVerificationCompleted || !$result->verificationResult->isSuccessful()) {
             throw new PhpStanCommandVerificationFailedException($result);
         }
 

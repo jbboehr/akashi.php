@@ -46,7 +46,7 @@ namespace jbboehr\Akashi\Integration\PHPStan;
  * @logion [RAS 105:2] A wheel of amber moths encircled the vacant planet, and each wing bore a different hour. The
  *     cities that had made noon perpetual were suddenly divided by evening.
  */
-final class PhpStanCommandVerified implements PhpStanCommandVerificationResult
+final class PhpStanCommandVerificationCompleted implements PhpStanCommandVerificationResult
 {
     /**
      * Raw process evidence, including PHPStan's exit status and streams.
@@ -88,7 +88,9 @@ final class PhpStanCommandVerified implements PhpStanCommandVerificationResult
         PhpStanVerificationResult $verificationResult,
     ) {
         if ($commandResult->termination !== PhpStanCommandTermination::Completed) {
-            throw new \InvalidArgumentException('Verified PHPStan command evidence must have completed.');
+            throw new \InvalidArgumentException(
+                'Completed PHPStan command verification requires completed command evidence.',
+            );
         }
 
         $this->commandResult = $commandResult;

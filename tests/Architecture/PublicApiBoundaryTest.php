@@ -116,7 +116,7 @@ final class PublicApiBoundaryTest extends TestCase
             \jbboehr\Akashi\Integration\PHPStan\PhpStanCommandResult::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanCommandTermination::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerificationResult::class,
-            \jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerified::class,
+            \jbboehr\Akashi\Integration\PHPStan\PhpStanCommandVerificationCompleted::class,
             \jbboehr\Akashi\Integration\PHPStan\PhpStanExternalFixturePlan::class,
         ],
         'synchronization model' => [

@@ -202,10 +202,10 @@ analyzes the complete physical file, a diagnostic outside a selected named regio
 `PhpStanCommandVerifier::verifyPlanOrThrow()` consumes the complete plan, appends an owned `--` delimiter and its
 analysis paths, and passes the plan's canonical root and expectation map through the lower-level verifier. Do not
 include `--` in `argumentsBeforePaths`; the plan verifier rejects its owned delimiter there before launching PHPStan. It
-returns concrete `PhpStanCommandVerified` evidence only when diagnostics match. Non-completion, rejected JSON output,
-global analyzer errors, and diagnostic mismatches raise `PhpStanCommandVerificationFailedException`; its `result`
-property retains the original typed variant, including command streams and any decoder cause. A nonzero analyzer exit
-status is not independently a failure because expected diagnostics commonly produce one.
+returns concrete `PhpStanCommandVerificationCompleted` evidence only when diagnostics match. Non-completion, rejected
+JSON output, global analyzer errors, and diagnostic mismatches raise `PhpStanCommandVerificationFailedException`; its
+`result` property retains the original typed variant, including command streams and any decoder cause. A nonzero
+analyzer exit status is not independently a failure because expected diagnostics commonly produce one.
 
 Use `verifyPlan()` instead when policy code needs every outcome as data. Callers that already own an expectation map may
 use the parallel `verifyOrThrow()` or `verify()` methods without the planner. A project using both verification paths
@@ -213,8 +213,8 @@ should give them distinct selection tokens, or use a custom `forProject()` predi
 sources.
 
 The three result variants distinguish a command that did not complete, completed command output that could not be
-decoded, and a completed verification. On the data-returning path, `PhpStanCommandVerified` means that verification ran;
-inspect `verificationResult->isSuccessful()` to determine whether diagnostics matched.
+decoded, and a completed verification. On the data-returning path, `PhpStanCommandVerificationCompleted` means that
+verification ran; inspect `verificationResult->isSuccessful()` to determine whether diagnostics matched.
 
 `PhpStanJsonResult` keeps analyzer-wide errors separate from diagnostics associated with files. Each
 `AnalyzerDiagnostic` retains its message, optional line, optional identifier and tip, and PHPStan's `ignorable` flag.

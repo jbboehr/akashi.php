@@ -32,6 +32,10 @@ that each call returns a new configuration. Replace source-manifest calls as fol
 Arguments, validation, ordering, and loading behavior are unchanged. Continue chaining or assigning every builder call;
 ignoring the returned instance leaves the earlier immutable configuration unchanged.
 
+Rename `PhpStanCommandVerified` imports and type checks to `PhpStanCommandVerificationCompleted`. The data-returning
+`verify()` and `verifyPlan()` methods use this variant whenever execution and diagnostic comparison completed, including
+when diagnostics mismatch. The exception-oriented methods continue to return it only after a successful comparison.
+
 ## Migrating from 0.1
 
 Projects that build a corpus through `MarkdownSource` and execute or analyze it through the PHPUnit and PHPStan traits
@@ -241,19 +245,21 @@ become typed infrastructure evidence.
 
 `PhpStanCommandVerificationResult` has three public variants. `PhpStanCommandNotCompleted` carries timeout, signal, or
 infrastructure evidence. `PhpStanCommandOutputRejected` carries completed command evidence and the JSON decode failure.
-`PhpStanCommandVerified` carries the completed command, decoded analyzer result, and diagnostic verification result; its
-name means verification completed, not that expectations matched. `PhpStanCommandVerifier` validates expectations before
-launching the command and returns one of these variants. `verifyPlan()` consumes a `PhpStanExternalFixturePlan`, inserts
-the option delimiter before its analysis paths, rejects that owned delimiter in the caller-supplied preceding arguments,
-and keeps the plan's project root, paths, and expectations together; `verify()` remains the lower-level operation for
-callers that already own an expectation map. Both apply the same 60-second default timeout as the runner; callers may
-provide another finite positive duration. Nonzero completed statuses remain evidence rather than an automatic failure.
+`PhpStanCommandVerificationCompleted` carries the completed command, decoded analyzer result, and diagnostic
+verification result; its name means verification completed, not that expectations matched. `PhpStanCommandVerifier`
+validates expectations before launching the command and returns one of these variants. `verifyPlan()` consumes a
+`PhpStanExternalFixturePlan`, inserts the option delimiter before its analysis paths, rejects that owned delimiter in
+the caller-supplied preceding arguments, and keeps the plan's project root, paths, and expectations together; `verify()`
+remains the lower-level operation for callers that already own an expectation map. Both apply the same 60-second default
+timeout as the runner; callers may provide another finite positive duration. Nonzero completed statuses remain evidence
+rather than an automatic failure.
 
 `verifyPlanOrThrow()` and `verifyOrThrow()` provide the exception-oriented form of those operations. They return a
-`PhpStanCommandVerified` only when the command completes, its JSON is accepted, and diagnostics match. Every other typed
-outcome raises `PhpStanCommandVerificationFailedException`. The exception's `result` property preserves the original
-`PhpStanCommandNotCompleted`, `PhpStanCommandOutputRejected`, or unsuccessful `PhpStanCommandVerified` evidence;
-rejected-output exceptions also chain the decoder failure as their previous exception.
+`PhpStanCommandVerificationCompleted` only when the command completes, its JSON is accepted, and diagnostics match.
+Every other typed outcome raises `PhpStanCommandVerificationFailedException`. The exception's `result` property
+preserves the original `PhpStanCommandNotCompleted`, `PhpStanCommandOutputRejected`, or unsuccessful
+`PhpStanCommandVerificationCompleted` evidence; rejected-output exceptions also chain the decoder failure as their
+previous exception.
 
 `PhpStanExternalFixturePlan` contains one canonical project root, a sorted nonempty list of project-relative `.php`
 analysis paths, and exactly one platform-native canonical absolute expectation-map entry for each path.
