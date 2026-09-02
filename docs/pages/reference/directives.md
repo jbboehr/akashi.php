@@ -13,7 +13,17 @@ prepares dignity for the moment it cannot remain upright.</p>
 </figure>
 
 Akashi uses one small metadata grammar for an example's stable identity, runtime disposition, execution mode, and
-expected runtime behavior. Write it in an HTML comment associated with the next Markdown or PHPDoc fence:
+expected runtime behavior. The normal authoring form is a tokenized PHP line comment inside a fence or referenced
+canonical PHP file:
+
+```php
+// akashi: example=invalid-input, expect-exception=RuntimeException
+// akashi: expect-exception-message="invalid documentation input", expect-exception-code=73
+
+throw new RuntimeException('invalid documentation input', 73);
+```
+
+Use an associated HTML comment when the metadata should remain outside the maintained or extracted PHP:
 
 ````markdown
 <!-- akashi: example=isolated-greeting, separate-process -->
@@ -23,22 +33,13 @@ echo "Hello!\n";
 ```
 ````
 
-The same grammar works as a tokenized PHP line comment inside a fence or referenced canonical PHP file:
-
-```php
-// akashi: example=invalid-input, expect-exception=RuntimeException
-// akashi: expect-exception-message="invalid documentation input", expect-exception-code=73
-
-throw new RuntimeException('invalid documentation input', 73);
-```
-
 ## Grammar
 
 Each comment contains a comma-separated list of flags and keyed properties:
 
 ```text
-<!-- akashi: flag, key=value, key="quoted value" -->
 // akashi: flag, key=value, key="quoted value"
+<!-- akashi: flag, key=value, key="quoted value" -->
 ```
 
 Whitespace around commas and `=` is ignored. Unquoted values are nonempty single tokens. Double-quoted values use JSON
@@ -81,8 +82,14 @@ require `expect-exception` on that example.
 
 ## Association Rules
 
-Place HTML metadata immediately before a fenced PHP block. Blank lines and adjacent Akashi metadata comments are
-allowed:
+Inline metadata may appear anywhere as an actual PHP line comment and applies to the whole example. Place an
+expected-exception comment immediately before the operation expected to throw when that makes the example easier to
+read; Akashi does not infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside
+strings or heredocs is not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters,
+static analyzers, direct execution, and named extraction all see it unchanged.
+
+Place HTML metadata immediately before a fenced PHP block when the PHP should not contain the metadata. Blank lines and
+adjacent Akashi metadata comments are allowed:
 
 ````markdown
 <!-- akashi: example=isolated-greeting, separate-process -->
@@ -113,15 +120,9 @@ applying the same association rules, and metadata never crosses from one PHPDoc 
 Metadata is deliberately not encoded in the fence info string; ordinary `php` language tags remain readable to renderers
 and syntax highlighters.
 
-Any inline metadata comment may appear anywhere as an actual PHP line comment and applies to the whole example. Place an
-expected-exception comment immediately before the operation expected to throw when that makes the example easier to
-read; Akashi does not infer or enforce control-flow order. Recognition uses PHP comment tokens, so matching text inside
-strings or heredocs is not metadata. The comment remains part of the ordinary PHP source, so readers, IDEs, formatters,
-static analyzers, direct execution, and marked extraction all see it unchanged.
-
-Use the HTML form for documentation fences when surrounding prose already establishes the behavior or an extracted
-consumer fixture should not contain Akashi metadata. External whole-file and named-region examples use inline comments
-because their canonical code is not physically adjacent to the PHPDoc reference.
+Use the HTML form when surrounding prose already establishes the behavior or an extracted consumer fixture should not
+contain Akashi metadata. External whole-file and named-region examples use inline comments because their canonical code
+is not physically adjacent to the PHPDoc reference.
 
 ## Compatibility and Structural Syntax
 

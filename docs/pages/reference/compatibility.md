@@ -72,8 +72,8 @@ does not select Parser 4 for PHPStan 2's process.
   modes are not implemented.
 - PHPDoc extraction inspects every `T_DOC_COMMENT` in selected `.php` files. Only interior docblock lines participate;
   content beside `/**` or `*/` is not interpreted as Markdown, and symbol attachment is not exposed as model metadata.
-- Canonical example metadata uses comma-separated flags and `key=value` properties in associated `<!-- akashi: ... -->`
-  comments or token-aware `// akashi: ...` PHP comments. It covers `example`, `skip`, `compile-only`,
+- Canonical example metadata uses comma-separated flags and `key=value` properties in token-aware `// akashi: ...` PHP
+  comments or associated `<!-- akashi: ... -->` comments. It covers `example`, `skip`, `compile-only`,
   `separate-process`, typed `expect-exception`, and optional message and integer-code constraints. Adjacent HTML and
   inline properties merge, but every property may occur at most once. Legacy one-property directives and one explicitly
   configured marker-comment dialect remain accepted for compatibility.

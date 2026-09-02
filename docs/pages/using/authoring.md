@@ -304,37 +304,38 @@ special name unless another consumer needs a durable identity.
 
 ## Add a Named Example ID
 
-For consumer extraction, assign an `example` property in an Akashi metadata comment:
+Assign an `example` property in an inline Akashi metadata comment when an example needs a durable identity:
 
 ````markdown
-<!-- akashi: example=conversion-basic -->
-
 ```php
+// akashi: example=conversion-basic
+
 $result = convert(1, 'meter', 'centimeter');
 ```
 ````
 
 Named example IDs use lowercase kebab-case and must be unique across the corpus. Identity is optional metadata: `load()`
-still returns every PHP fence. The same property may appear as `// akashi: example=conversion-basic` inside fenced or
-referenced canonical PHP. Continue to [Extracting Named Examples](extracting.md) when a consumer needs one named
-example.
+still returns every PHP fence. Use an associated `<!-- akashi: example=conversion-basic -->` comment instead when an
+extracted consumer fixture should not contain the metadata. Continue to [Extracting Named Examples](extracting.md) when
+a consumer needs one named example.
 
 Projects retaining an older marker comment such as `<!-- yumemi-example: conversion-basic -->` can add that dialect with
 `withLegacyMarkerName('yumemi-example')`. Canonical `akashi:` metadata remains recognized alongside it.
 
 ## Add a Runtime Directive
 
-Akashi currently recognizes `skip`, `compile-only`, and `separate-process`. Place metadata immediately before the PHP
-fence; adjacent comments and blank lines may be stacked together. Prose or an unrelated block breaks the association.
+Akashi currently recognizes `skip`, `compile-only`, and `separate-process`. Put runtime metadata in a PHP line comment
+inside the example:
 
 ````markdown
-<!-- akashi: separate-process -->
-
 ```php
+// akashi: separate-process
+
 exit(0);
 ```
 ````
 
-Unknown, duplicated, orphaned, or non-PHP metadata fails during extraction. See
-[Example Metadata](../reference/directives.md) for grammar and precedence and
+Use an associated HTML comment when the metadata should not remain in the PHP. Adjacent HTML comments and blank lines
+may be stacked together; prose or an unrelated block breaks the association. Unknown, duplicated, orphaned, or non-PHP
+metadata fails during extraction. See [Example Metadata](../reference/directives.md) for grammar and precedence and
 [Separate-Process Execution](separate-process.md) for backend configuration.

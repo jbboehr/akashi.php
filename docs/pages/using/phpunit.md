@@ -209,8 +209,9 @@ appear in failure diagnostics but cannot be asserted in this release.
 
 ## Skips and Failures
 
-An authored `<!-- akashi: skip -->` directive remains a named data set, but PHPUnit reports it as skipped before Akashi
-configures, transforms, bootstraps, or executes the example. It does not remove the example from PHPStan or extraction.
+An authored `// akashi: skip` directive remains a named data set, but PHPUnit reports it as skipped before Akashi
+configures, transforms, bootstraps, or executes the example. The equivalent HTML form remains available when the PHP
+should not contain metadata. A skip does not remove the example from PHPStan or extraction.
 
 An authored `compile-only` directive also remains a named data set. Akashi validates its PHP syntax against the running
 host version and records one assertion without applying runtime transforms, loading a bootstrap, or executing the code.

@@ -16,15 +16,18 @@ through normal PHPUnit assertions. Select a child process for an example whose b
 
 ## Choose It for One Example
 
-Place the directive immediately before the PHP fence:
+Put the directive inside the PHP fence:
 
 ````markdown
-<!-- akashi: separate-process -->
-
 ```php
+// akashi: separate-process
+
 exit(0);
 ```
 ````
+
+An associated `<!-- akashi: separate-process -->` comment is equivalent when the PHP should remain free of Akashi
+metadata.
 
 Use the suite-based integration when discovery and execution should share one project root:
 
