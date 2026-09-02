@@ -156,6 +156,27 @@ PHP);
         );
     }
 
+    public function testBulkPathsRejectMalformedElementsWithoutEmittingWarnings(): void
+    {
+        set_error_handler(static function (int $severity, string $message, string $file, int $line): never {
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        });
+
+        try {
+            try {
+                (new \ReflectionMethod(DocumentationSource::class, 'withFiles'))->invoke(
+                    DocumentationSource::forProject($this->projectRoot),
+                    [42],
+                );
+                self::fail('A malformed bulk path was accepted.');
+            } catch (\TypeError) {
+                self::addToAssertionCount(1);
+            }
+        } finally {
+            restore_error_handler();
+        }
+    }
+
     public function testRejectsUnsupportedExplicitFilesButIgnoresThemInDirectories(): void
     {
         $this->write('docs/example.md', "```php\necho 'included';\n```\n");

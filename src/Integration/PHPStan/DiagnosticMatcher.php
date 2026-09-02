@@ -62,6 +62,7 @@ final class DiagnosticMatcher
             return new DiagnosticsMismatched(DiagnosticMismatchKind::Count, $expectations, $diagnostics);
         }
 
+        $searchableDiagnostics = [];
         $compatibleDiagnostics = [];
         foreach ($expectations as $expectation) {
             $compatible = [];
@@ -69,7 +70,10 @@ final class DiagnosticMatcher
                 $identifierMatches = $expectation->identifier === null
                     || $diagnostic->identifier === $expectation->identifier;
                 $textMatches = $expectation->text === null
-                    || str_contains($diagnostic->searchableText(), $expectation->text);
+                    || str_contains(
+                        $searchableDiagnostics[$diagnosticIndex] ??= $diagnostic->searchableText(),
+                        $expectation->text,
+                    );
                 $diagnosticLine = $diagnostic->sourceLine ?? $diagnostic->analyzerLine;
                 $lineMatches = $expectation->sourceLineRange === null
                     || ($diagnosticLine !== null
@@ -85,16 +89,14 @@ final class DiagnosticMatcher
         $diagnosticToExpectation = array_fill(0, count($diagnostics), null);
         foreach (array_keys($expectations) as $expectationIndex) {
             $visitedDiagnostics = array_fill(0, count($diagnostics), false);
-            $assignment = self::assignExpectation(
+            if (!self::assignExpectation(
                 $expectationIndex,
                 $compatibleDiagnostics,
                 $visitedDiagnostics,
                 $diagnosticToExpectation,
-            );
-            if (!$assignment['matched']) {
+            )) {
                 return new DiagnosticsMismatched(DiagnosticMismatchKind::Assignment, $expectations, $diagnostics);
             }
-            $diagnosticToExpectation = $assignment['assignments'];
         }
 
         $expectationToDiagnostic = [];
@@ -122,17 +124,15 @@ final class DiagnosticMatcher
      * @param list<bool> $visitedDiagnostics
      * @param array<int, int|null> $diagnosticToExpectation
      *
-     * @return array{matched: bool, visited: list<bool>, assignments: array<int, int|null>}
-     *
      * @logion [SFA 64:36] When one answer was already corded, the clerk followed its former promise and sought another
      *     lawful answer for it, moving cords without ever assigning one judgment twice.
      */
     private static function assignExpectation(
         int $expectationIndex,
         array $compatibleDiagnostics,
-        array $visitedDiagnostics,
-        array $diagnosticToExpectation,
-    ): array {
+        array &$visitedDiagnostics,
+        array &$diagnosticToExpectation,
+    ): bool {
         foreach ($compatibleDiagnostics[$expectationIndex] as $diagnosticIndex) {
             if ($visitedDiagnostics[$diagnosticIndex]) {
                 continue;
@@ -141,15 +141,12 @@ final class DiagnosticMatcher
 
             $previousExpectation = $diagnosticToExpectation[$diagnosticIndex];
             if ($previousExpectation !== null) {
-                $assignment = self::assignExpectation(
+                if (!self::assignExpectation(
                     $previousExpectation,
                     $compatibleDiagnostics,
                     $visitedDiagnostics,
                     $diagnosticToExpectation,
-                );
-                $visitedDiagnostics = $assignment['visited'];
-                $diagnosticToExpectation = $assignment['assignments'];
-                if (!$assignment['matched']) {
+                )) {
                     // Retain failed branches' visited marks so sibling searches do not revisit the same subtree.
                     continue;
                 }
@@ -157,17 +154,9 @@ final class DiagnosticMatcher
 
             $diagnosticToExpectation[$diagnosticIndex] = $expectationIndex;
 
-            return [
-                'matched' => true,
-                'visited' => $visitedDiagnostics,
-                'assignments' => $diagnosticToExpectation,
-            ];
+            return true;
         }
 
-        return [
-            'matched' => false,
-            'visited' => $visitedDiagnostics,
-            'assignments' => $diagnosticToExpectation,
-        ];
+        return false;
     }
 }

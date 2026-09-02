@@ -172,21 +172,7 @@ final class DocumentationSource
      */
     public function withFile(ProjectPath|string $path): self
     {
-        $path = is_string($path) ? new ProjectPath($path) : $path;
-        if (!str_ends_with($path->value, '.md') && !str_ends_with($path->value, '.php')) {
-            throw new UnsupportedSourcePathException(sprintf(
-                'Configured documentation file must use the case-sensitive .md or .php extension: %s.',
-                $path->value,
-            ));
-        }
-
-        return new self(
-            $this->projectRoot,
-            [...$this->includes, new IncludeRule(IncludeKind::File, $path)],
-            $this->exclusions,
-            $this->legacyMarkerName,
-            $this->phpDocReferenceTags,
-        );
+        return $this->withFiles([$path]);
     }
 
     /**
@@ -205,17 +191,38 @@ final class DocumentationSource
      */
     public function withFiles(iterable $paths): self
     {
-        $source = $this;
+        $includes = $this->includes;
+        $include = static function (ProjectPath|string $path) use (&$includes): void {
+            $path = is_string($path) ? new ProjectPath($path) : $path;
+            if (!str_ends_with($path->value, '.md') && !str_ends_with($path->value, '.php')) {
+                throw new UnsupportedSourcePathException(sprintf(
+                    'Configured documentation file must use the case-sensitive .md or .php extension: %s.',
+                    $path->value,
+                ));
+            }
+
+            $includes[] = new IncludeRule(IncludeKind::File, $path);
+        };
 
         foreach ($paths as $path) {
             if ($path instanceof \SplFileInfo) {
                 $path = ProjectDocumentLoader::projectPath($this->projectRoot, $path, 'documentation');
             }
 
-            $source = $source->withFile($path);
+            $include($path);
         }
 
-        return $source;
+        if (count($includes) === count($this->includes)) {
+            return $this;
+        }
+
+        return new self(
+            $this->projectRoot,
+            $includes,
+            $this->exclusions,
+            $this->legacyMarkerName,
+            $this->phpDocReferenceTags,
+        );
     }
 
     /**
