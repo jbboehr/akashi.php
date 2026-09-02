@@ -1,7 +1,7 @@
 # Reuse Examples for Runtime and PHPStan
 
 <figure class="logion" data-logion="RAS 31:24">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Beneath the glass mountain two processions appeared, one ascending and one descending, yet every pilgrim bore the same
 wound upon the left hand.</p>

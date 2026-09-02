@@ -1,0 +1,93 @@
+{
+    "base-url": "https://jbboehr.github.io/akashi.php/",
+    "pages": {
+        "index.html": {
+            "title": "Akashi - Executable documentation testing for PHP",
+            "description": "Turn PHP examples in Markdown and PHPDoc into PHPUnit tests, reuse them with PHPStan, and retain source-aware failures."
+        },
+        "quick-start.html": {
+            "title": "Test PHP Documentation with PHPUnit - Akashi",
+            "description": "Install Akashi, add a PHP example to Markdown, connect it to PHPUnit, and report failures at the maintained documentation source."
+        },
+        "using/index.html": {
+            "title": "Use Akashi for PHP Documentation Tests",
+            "description": "Build one Akashi example corpus and use it with PHPUnit, PHPStan, child-process execution, or named-example extraction."
+        },
+        "using/authoring.html": {
+            "title": "Author PHP Examples in Markdown and PHPDoc - Akashi",
+            "description": "Select documentation sources, write PHP fences and PHPDoc examples, reference canonical PHP, and attach typed example metadata."
+        },
+        "using/phpunit.html": {
+            "title": "Run Documentation Examples with PHPUnit - Akashi",
+            "description": "Expose Akashi documentation examples as PHPUnit tests with source-aware assertions, expected exceptions, output, skips, and compile-only checks."
+        },
+        "using/phpstan.html": {
+            "title": "Verify Documentation Examples with PHPStan - Akashi",
+            "description": "Reuse Akashi examples as PHPStan fixtures, express expected diagnostics, and verify RuleTestCase or external analyzer results."
+        },
+        "using/separate-process.html": {
+            "title": "Run PHP Documentation Examples in Child Processes - Akashi",
+            "description": "Select Akashi child-process execution for examples that use exit, authored namespaces, fatal behavior, or process-global state."
+        },
+        "using/extracting.html": {
+            "title": "Extract Named PHP Examples from Documentation - Akashi",
+            "description": "Assign a stable identity to a Markdown or PHPDoc example and extract its exact authored PHP as a reusable consumer fixture."
+        },
+        "guides/index.html": {
+            "title": "Akashi Guides for PHP Documentation Testing",
+            "description": "Follow task-oriented Akashi guides for testing documentation, sharing examples with PHPStan, and diagnosing source-aware failures."
+        },
+        "guides/test-documentation.html": {
+            "title": "Test a README and Documentation Directory - Akashi",
+            "description": "Build an Akashi corpus from a root README and recursive documentation directory while excluding generated or illustrative files."
+        },
+        "guides/reuse-runtime-phpstan.html": {
+            "title": "Reuse PHP Examples with PHPUnit and PHPStan - Akashi",
+            "description": "Define one maintained Akashi corpus, execute it with PHPUnit, and analyze a relevant subset with PHPStan."
+        },
+        "guides/diagnosing-failures.html": {
+            "title": "Diagnose PHP Documentation Test Failures - Akashi",
+            "description": "Trace Akashi discovery, transformation, execution, assertion, and PHPStan failures back to their maintained documentation source."
+        },
+        "reference/index.html": {
+            "title": "Akashi Reference for PHP Documentation Testing",
+            "description": "Find exact Akashi contracts for configuration, example metadata, CLI behavior, public APIs, compatibility, and runtime safety."
+        },
+        "reference/configuration.html": {
+            "title": "Configure Akashi Sources, Runtime, and PHPStan",
+            "description": "Configure immutable Akashi documentation sources, PHP-CS-Fixer integration, execution backends, bootstraps, and PHPStan verification."
+        },
+        "reference/directives.html": {
+            "title": "Akashi Example Metadata and Runtime Directives",
+            "description": "Reference the Akashi metadata grammar for named examples, skips, compile-only checks, child processes, expected exceptions, and output."
+        },
+        "reference/cli.html": {
+            "title": "Akashi CLI: Extract, Format, and Sync PHP Examples",
+            "description": "Use the Akashi CLI to extract named examples, check or write inline formatting, synchronize presentations, and interpret exit statuses."
+        },
+        "reference/api.html": {
+            "title": "Akashi Public API Reference for PHP",
+            "description": "Review Akashi public source, corpus, synchronization, formatting, PHPUnit, PHPStan, model, and exception APIs."
+        },
+        "reference/compatibility.html": {
+            "title": "Akashi Compatibility, Safety, and Runtime Boundaries",
+            "description": "Check supported PHP, PHPUnit, PHPStan, operating systems, authoring limits, execution isolation, source mapping, and trust boundaries."
+        },
+        "project/index.html": {
+            "title": "Akashi Project Design and Roadmap",
+            "description": "Read the current Akashi architecture, durable behavioral invariants, compatibility evidence, and restrained roadmap."
+        },
+        "project/architecture.html": {
+            "title": "Akashi Architecture for Executable PHP Documentation",
+            "description": "Follow Akashi examples from source discovery through the canonical model, transformation, execution, verification, and integration boundaries."
+        },
+        "project/invariants.html": {
+            "title": "Akashi Behavioral Invariants and Compatibility Gates",
+            "description": "Review the discovery, source-fidelity, execution, verification, CLI, package, and replacement guarantees Akashi must preserve."
+        },
+        "project/roadmap.html": {
+            "title": "Akashi Roadmap for PHP Documentation Testing",
+            "description": "See completed Akashi capabilities and deferred work for support code, renderer integration, runtime controls, and verification."
+        }
+    }
+}

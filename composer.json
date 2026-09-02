@@ -60,6 +60,7 @@
             "/docs/book.toml",
             "/docs/development",
             "/docs/pages",
+            "/docs/seo.json",
             "/docs/theme",
             "/flake.lock",
             "/flake.nix",

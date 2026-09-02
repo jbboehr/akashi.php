@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Add canonical URLs, page-specific search metadata, and a generated sitemap to mdBook builds and previews; keep
+  ceremonial plates out of search snippets, serve the landing-page banner as an optimized WebP with explicit dimensions,
+  and retain the published PNG URL for compatibility.
 - Present inline PHP example metadata as the normal authoring form while retaining associated HTML comments for metadata
   that should remain outside maintained or extracted PHP.
 - **Pre-1.0 identity terminology change:** Distinguish Akashi-assigned corpus identity from author-assigned named

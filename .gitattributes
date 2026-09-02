@@ -36,6 +36,7 @@ docs/development export-ignore
 docs/development/images/logia/*-hq* export-ignore
 docs/pages export-ignore
 docs/pages/** export-ignore
+docs/seo.json export-ignore
 docs/theme export-ignore
 flake.lock export-ignore
 flake.nix export-ignore

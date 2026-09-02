@@ -1,7 +1,7 @@
 # Quick Start
 
 <figure class="logion" data-logion="OSD 18:2">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Above the unformed marsh, thunder wandered without echo until it entered a hollow bone. The bone answered, and reeds
 lifted from the mud to hear. Thereafter every creature carried an emptiness by which the world might speak. Guard the

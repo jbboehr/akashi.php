@@ -1,7 +1,7 @@
 # Roadmap
 
 <figure class="logion" data-logion="RAS 33:21">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>A wheel of violet fire descended behind the cedar ridge, and every abandoned milestone spoke the name of a kingdom
 that would not be founded for seven generations.</p>

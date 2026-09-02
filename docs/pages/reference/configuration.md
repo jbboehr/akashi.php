@@ -1,7 +1,7 @@
 # Configuration
 
 <figure class="logion" data-logion="RAS 61:9">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The steward kept one immutable chart naming the court, the optional scroll read before testimony, and the ordinary
 road; each revision produced a new chart while the former hearing retained its own.</p>

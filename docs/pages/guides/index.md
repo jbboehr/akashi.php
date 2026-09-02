@@ -1,7 +1,7 @@
 # Guides
 
 <figure class="logion" data-logion="AWC 42:3">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>A midwife carried a silk cloth and a rough linen cloth. The silk adorned the cradle; the linen gripped the newborn
 when her hands were wet. She taught her daughters to honor what serves before what is displayed. Welcome arrives safely

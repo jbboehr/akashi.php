@@ -1,7 +1,7 @@
 # Public API
 
 <figure class="logion" data-logion="OSD 6:14">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>High above the world, the wandering lights crowded one another until the outermost loosened its circle and moved away.
 Silence widened behind it, giving each light room to burn. Space began as permission granted to departure. Bless what

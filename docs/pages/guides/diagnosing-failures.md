@@ -1,7 +1,7 @@
 # Diagnose Failures
 
 <figure class="logion" data-logion="AWC 57:15">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The physician marked whether the wound arose beneath the blade or beneath the bandage, for one grief may require two
 remedies and neither is served by an unnamed hour.</p>

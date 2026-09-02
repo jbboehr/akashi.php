@@ -1,7 +1,7 @@
 # Example Metadata
 
 <figure class="logion" data-logion="AWC 4:37">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>A dancer rehearsed her falls as carefully as her leaps. When a stage board split, she descended without injury and
 guided another performer down. The audience praised her grace; she thanked the hours spent learning the ground. Wisdom

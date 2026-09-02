@@ -1,7 +1,7 @@
 # PHPUnit
 
 <figure class="logion" data-logion="OSD 59:1">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The judge received the common stone without asking whether the quarry had named it white; he weighed it once beneath
 the lamp, and the court recorded the measure even when no accusation followed.</p>

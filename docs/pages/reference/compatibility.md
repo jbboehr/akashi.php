@@ -1,7 +1,7 @@
 # Compatibility and Safety
 
 <figure class="logion" data-logion="AWC 55:2">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The wardens walked the whole circumference before admitting the procession, marking each broken hinge and hidden
 passage; the singers waited without complaint, for ceremony cannot restore a gate while passing through it.</p>

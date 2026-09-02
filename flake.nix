@@ -202,10 +202,14 @@
           documentation =
             pkgs.runCommand "akashi-documentation"
               {
-                nativeBuildInputs = [ pkgs.mdbook ];
+                nativeBuildInputs = [
+                  pkgs.mdbook
+                  php-unwrapped
+                ];
               }
               ''
                 mdbook build ${src}/docs --dest-dir "$out"
+                php ${src}/tools/finalize-docs.php "$out" ${src}/docs/seo.json
               '';
           formatting = treefmt.config.build.check self;
         }

@@ -1,7 +1,7 @@
 # Test a README and docs/
 
 <figure class="logion" data-logion="RAS 47:26">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>At midnight the snow upon the observatory dome rose into the air and revealed old repairs in the copper. The
 astronomers beheld no star; they saw instead the patient hands that had preserved their sight, and kept vigil until the

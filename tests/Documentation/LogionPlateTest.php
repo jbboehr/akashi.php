@@ -82,6 +82,21 @@ final class LogionPlateTest extends TestCase
 
             if ('README.md' === $chapterPath) {
                 self::assertSame(0, $plateCount, 'The Introduction uses its existing banner instead of a logion plate.');
+                self::assertMatchesRegularExpression(
+                    '/<img src="images\/akashi-banner\.webp" '
+                        . 'alt="Probatio Verborum Viventium Akashi" width="2172" height="724" '
+                        . 'loading="eager" fetchpriority="high">/',
+                    $page,
+                );
+
+                $deliveryBanner = $documentationRoot . '/images/akashi-banner.webp';
+                $compatibilityBanner = $documentationRoot . '/images/akashi-banner.png';
+                $archivalBanner = $projectRoot . '/.github/assets/akashi-banner-hq.png';
+                self::assertImageDimensions($deliveryBanner, 2172, 724);
+                self::assertImageDimensions($compatibilityBanner, 2172, 724);
+                self::assertImageDimensions($archivalBanner, 2172, 724);
+                self::assertLessThan(350_000, filesize($deliveryBanner));
+                self::assertGreaterThan(filesize($deliveryBanner), filesize($archivalBanner));
 
                 continue;
             }
@@ -94,6 +109,7 @@ final class LogionPlateTest extends TestCase
             );
             $plate = $plateMatches[0];
             $citation = $plate['citation'];
+            self::assertStringContainsString('<div class="logion-text" data-nosnippet>', $plate['plate']);
 
             self::assertArrayNotHasKey($citation, $seenCitations, $citation . ' is used by more than one public page.');
             $seenCitations[$citation] = $chapterPath;

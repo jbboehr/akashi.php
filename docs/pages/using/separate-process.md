@@ -1,7 +1,7 @@
 # Separate-Process Execution
 
 <figure class="logion" data-logion="AWC 62:10">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>In the year of the divided tribunal, each witness crossed alone into a chamber beyond the city; the wardens returned
 voice, alarm, sentence, and elapsed hour, then erased the borrowed threshold behind him.</p>

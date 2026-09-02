@@ -1,7 +1,7 @@
 # Invariants
 
 <figure class="logion" data-logion="SFA 53:20">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The margin ended where the final lamp stood, though darkness continued beyond it; measure confesseth its own frontier
 and therefore remaineth trustworthy within the light.</p>

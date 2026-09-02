@@ -1,7 +1,7 @@
 # CLI
 
 <figure class="logion" data-logion="SFA 52:45">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Do not pity the silver mask when the actor departeth. It was fashioned to bear one sorrow before the multitude, and
 fulfillment is not diminished because the face beneath it hath returned to ordinary joy.</p>

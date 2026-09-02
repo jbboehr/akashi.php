@@ -1,4 +1,4 @@
-![Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜 — executable documentation testing for PHP](https://jbboehr.github.io/akashi.php/images/akashi-banner.png)
+![Probatio Verborum Viventium『証』〜ＡＫＡＳＨＩ〜 — executable documentation testing for PHP](https://jbboehr.github.io/akashi.php/images/akashi-banner.webp)
 
 # Akashi
 

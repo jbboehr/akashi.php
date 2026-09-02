@@ -1,7 +1,7 @@
 # Project
 
 <figure class="logion" data-logion="AWC 17:42">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>The moon entered a deep well as a silver coin, and three merchants lowered hooks to claim it. A child drank from her
 hands and scattered their prize into ripples. Wisdom is not diminished by the thirsty, but possession troubles even the

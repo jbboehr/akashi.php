@@ -1,7 +1,7 @@
 # Architecture
 
 <figure class="logion" data-logion="OSD 53:1">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Set the cedar vessel beside the bronze and fill each from the same spring; for the feast requireth both fragrance and
 endurance, and wisdom appointeth unlike offices without making either ashamed.</p>

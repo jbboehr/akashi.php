@@ -1,7 +1,7 @@
 # Extracting Named Examples
 
 <figure class="logion" data-logion="SFA 48:40">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>A white horse returned each spring to the abandoned mill and waited beside the motionless wheel. In the twelfth year,
 a child tied no bridle upon it but cleared the channel. Water arrived before noon, and the horse departed while grain

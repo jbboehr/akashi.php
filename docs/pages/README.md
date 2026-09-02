@@ -1,6 +1,6 @@
 {{#title Akashi - Executable documentation testing for PHP}}
 
-![Probatio Verborum Viventium Akashi](images/akashi-banner.png)
+<img src="images/akashi-banner.webp" alt="Probatio Verborum Viventium Akashi" width="2172" height="724" loading="eager" fetchpriority="high">
 
 # Akashi
 

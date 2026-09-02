@@ -1,7 +1,7 @@
 # PHPStan
 
 <figure class="logion" data-logion="RAS 66:9">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Above the city of glass there appeared seven dim stars, each reflected in a different well. The priests drew no water
 until every reflection had been compared with its appointed star, and dawn found the vessels empty but the heavens

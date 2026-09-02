@@ -1,7 +1,7 @@
 # Reference
 
 <figure class="logion" data-logion="AWC 2:31">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>An old scholar kept a basket of walnuts beside his books. For every answer he gave, he cracked one; for every question
 he could not answer, he planted one. His garden outlived his library. Let uncertainty take root before certainty has

@@ -1,7 +1,7 @@
 # Using Akashi
 
 <figure class="logion" data-logion="OSD 13:44">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Before the oceans knew motion, they lay heavy and still beneath a copper sky. A flock of black swans beat their wings
 across the surface, raising the first waves and teaching depth to travel without departure. Since then the sea has borne

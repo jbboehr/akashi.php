@@ -1,7 +1,7 @@
 # Authoring Examples
 
 <figure class="logion" data-logion="OSD 30:27">
-<div class="logion-text">
+<div class="logion-text" data-nosnippet>
 <blockquote>
 <p>Receive the stranger who beareth one seed as gladly as the caravan bearing a thousand jars; harvest judgeth the gift
 by what awakeneth, not by the noise of its arrival.</p>
