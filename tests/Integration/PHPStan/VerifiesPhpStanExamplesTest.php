@@ -55,10 +55,13 @@ use jbboehr\Akashi\Transform\PhpExampleParser;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Echo_;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\Container;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Testing\RuleTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\ExpectationFailedException;
 
 trait PhpStanHostCollisionTrait
@@ -116,6 +119,11 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
 
     private static ?string $recordedAnalysisPath = null;
 
+    private static ?\Closure $afterGetContainer = null;
+
+    /** @var list<string> */
+    private static array $initializationLifecycleEvents = [];
+
     private ?string $requiredClassDuringAnalysis = null;
 
     /** @var list<\PHPStan\Analyser\Error>|null */
@@ -135,6 +143,8 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
 
         $this->projectRoot = $projectRoot;
         self::$recordedAnalysisPath = null;
+        self::$afterGetContainer = null;
+        self::$initializationLifecycleEvents = [];
         $this->controlledErrors = null;
         $this->recordedAnalysisWorkingDirectories = [];
     }
@@ -142,6 +152,8 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
     protected function tearDown(): void
     {
         try {
+            self::$afterGetContainer = null;
+
             if (is_dir($this->projectRoot)) {
                 self::assertTrue(rmdir($this->projectRoot));
             }
@@ -155,9 +167,25 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         return new DocumentationEchoRule($this->requiredClassDuringAnalysis);
     }
 
+    public static function getContainer(): Container
+    {
+        $container = parent::getContainer();
+
+        if (self::$afterGetContainer !== null) {
+            (self::$afterGetContainer)();
+        }
+
+        return $container;
+    }
+
     public static function recordAnalysisPath(string $path): void
     {
         self::$recordedAnalysisPath = $path;
+    }
+
+    public static function recordInitializationLifecycleEvent(string $event): void
+    {
+        self::$initializationLifecycleEvents[] = $event;
     }
 
     /**
@@ -205,6 +233,115 @@ final class VerifiesPhpStanExamplesTest extends RuleTestCase
         self::assertNotNull(self::$recordedAnalysisPath);
         self::assertFileDoesNotExist(self::$recordedAnalysisPath);
         self::assertDirectoryDoesNotExist(dirname(self::$recordedAnalysisPath));
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testInitializesPhpStanBeforeLoadingExamplesThatCallItsRuntimeHelpers(): void
+    {
+        $this->controlledErrors = [];
+        self::assertFalse(function_exists('PHPStan\\dumpType'));
+
+        $this->assertControlledPhpStanExamples($this->example(
+            'example-runtime-helper-01',
+            'docs/runtime-helper.md',
+            1,
+            '<?php \PHPStan\dumpType(1);',
+        ));
+
+        self::assertTrue(function_exists('PHPStan\\dumpType'));
+    }
+
+    public function testInitializesAtTheProjectRootBeforeLoadingOnEveryVerificationCall(): void
+    {
+        $this->controlledErrors = [];
+        $originalWorkingDirectory = getcwd();
+        self::assertIsString($originalWorkingDirectory);
+        $initializationWorkingDirectories = [];
+        self::$afterGetContainer = static function () use (&$initializationWorkingDirectories): void {
+            self::recordInitializationLifecycleEvent('container');
+            $workingDirectory = getcwd();
+            self::assertIsString($workingDirectory);
+            $initializationWorkingDirectories[] = $workingDirectory;
+            self::assertTrue(chdir(sys_get_temp_dir()));
+        };
+        $recordLoad = sprintf(
+            "if (getcwd() !== %s) { throw new RuntimeException('wrong load root'); }\n"
+            . '\\%s::recordInitializationLifecycleEvent(\'load\');',
+            var_export($this->projectRoot, true),
+            self::class,
+        );
+
+        try {
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-initialization-order-a-01',
+                'docs/initialization-order-a.md',
+                1,
+                "<?php\n{$recordLoad}",
+            ));
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-initialization-order-b-01',
+                'docs/initialization-order-b.md',
+                1,
+                "<?php\n{$recordLoad}",
+            ));
+        } finally {
+            self::$afterGetContainer = null;
+        }
+
+        self::assertSame(['container', 'load', 'container', 'load'], self::$initializationLifecycleEvents);
+        self::assertSame([$this->projectRoot, $this->projectRoot], $initializationWorkingDirectories);
+        self::assertSame($originalWorkingDirectory, getcwd());
+    }
+
+    public function testRestoresStateAndRemovesAnalysisFilesWhenInitializationFails(): void
+    {
+        $this->controlledErrors = [];
+        $originalWorkingDirectory = getcwd();
+        self::assertIsString($originalWorkingDirectory);
+        $initializationFailure = new \RuntimeException('controlled PHPStan initialization failure');
+        $analysisDirectory = null;
+        $analysisFilesBefore = glob(sys_get_temp_dir() . '/akashi-phpstan-*/example-0001.php');
+        self::assertIsArray($analysisFilesBefore);
+        self::$afterGetContainer = static function () use (
+            &$analysisDirectory,
+            $analysisFilesBefore,
+            $initializationFailure,
+        ): void {
+            $analysisFiles = glob(sys_get_temp_dir() . '/akashi-phpstan-*/example-0001.php');
+            self::assertIsArray($analysisFiles);
+
+            foreach (array_diff($analysisFiles, $analysisFilesBefore) as $analysisFile) {
+                $source = @file_get_contents($analysisFile);
+                if (is_string($source) && str_contains($source, 'initialization_failure_fixture')) {
+                    $analysisDirectory = dirname($analysisFile);
+                    break;
+                }
+            }
+
+            self::assertNotNull($analysisDirectory);
+
+            throw $initializationFailure;
+        };
+        $caught = null;
+
+        try {
+            $this->assertControlledPhpStanExamples($this->example(
+                'example-initialization-failure-01',
+                'docs/initialization-failure.md',
+                1,
+                "<?php\n\$initialization_failure_fixture = true;",
+            ));
+        } catch (\Throwable $failure) {
+            $caught = $failure;
+        } finally {
+            self::$afterGetContainer = null;
+        }
+
+        self::assertSame($initializationFailure, $caught);
+        self::assertSame($originalWorkingDirectory, getcwd());
+        self::assertNotNull($analysisDirectory);
+        self::assertDirectoryDoesNotExist($analysisDirectory);
     }
 
     public function testMapsMismatchDiagnosticsBackToMaintainedMarkdownLines(): void

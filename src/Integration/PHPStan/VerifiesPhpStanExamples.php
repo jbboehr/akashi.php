@@ -96,6 +96,8 @@ trait VerifiesPhpStanExamples
             self::writeAnalysisFiles($directory, $parsedExamples, $files);
             $guard = new InProcessStateGuard();
             self::establishProjectRoot($configuration);
+            self::getContainer();
+            self::establishProjectRoot($configuration);
 
             foreach ($files as $file) {
                 try {

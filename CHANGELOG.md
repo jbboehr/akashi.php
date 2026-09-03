@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Opt into exception-oriented PHPStan command verification while retaining the complete typed result as failure
   evidence.
 
+### Fixed
+
+- Initialize PHPStan's `RuleTestCase` container before loading selected examples so runtime helpers such as
+  `PHPStan\dumpType()` do not depend on prior test execution order.
+
 ### Changed
 
 - Add canonical URLs, page-specific search metadata, and a generated sitemap to mdBook builds and previews; keep

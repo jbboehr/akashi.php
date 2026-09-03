@@ -54,7 +54,11 @@ final class DocumentationPhpStanExamplesCompatibility extends RuleTestCase
     {
         $this->assertPhpStanExamples(
             self::corpus(),
-            PhpStanExampleConfiguration::forTokens(dirname(__DIR__), '@akashi-phpstan-error'),
+            PhpStanExampleConfiguration::forTokens(
+                dirname(__DIR__),
+                '@akashi-phpstan-error',
+                '@akashi-phpstan-example',
+            ),
         );
     }
 
@@ -67,6 +71,7 @@ final class DocumentationPhpStanExamplesCompatibility extends RuleTestCase
     {
         return MarkdownSource::forProject(dirname(__DIR__))
             ->withFile('docs/examples.md')
+            ->withFile('docs/phpstan-runtime-helper.md')
             ->load();
     }
 }
