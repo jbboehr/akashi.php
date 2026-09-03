@@ -83,11 +83,12 @@ named-region origins. Hidden support code will require the next mapping step: ea
 artifact must identify its visible origin, its external setup origin, or the absence of an exact maintained line.
 
 The accepted hidden-support design uses one explicit `setup=path.php` or `setup=path.php#region` metadata property per
-example. The target is an ordinary PHP file or stable named region, executed once immediately before the visible body in
-the same variable scope but as a separate compilation segment. Rust-style hidden-line preprocessing is not planned.
-Setup exceptions and output cannot satisfy visible expected-exception or expected-output contracts. Ordinary extraction
-remains lexical and returns only the visible authored code. Runtime behavior remains unimplemented; the complete design
-and staged acceptance criteria are recorded in `docs/development/hidden-support-code.md`.
+example. A path-only target selects the whole ordinary PHP file; `#region` selects a stable named region. Setup executes
+once immediately before the visible body in the same variable scope but as a separate compilation segment. Rust-style
+hidden-line preprocessing is not planned. Setup exceptions and output cannot satisfy visible expected-exception or
+expected-output contracts. Ordinary extraction remains lexical and returns only the visible authored code. Runtime
+behavior remains unimplemented; the complete design and staged acceptance criteria are recorded in
+`docs/development/hidden-support-code.md`.
 
 Akashi integrates with configured formatters rather than becoming a PHP formatter. The checker and pure rewriter remain
 independent of the CLI persistence boundary.

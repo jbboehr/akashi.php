@@ -778,11 +778,12 @@ hidden-line behavior is acceptable as high-level behavioral inspiration, but Aka
 * explicit setup references may be more PHP-idiomatic.
 
 The MVP did not select a syntax. Post-MVP planning now selects one explicit `setup=path.php` or
-`setup=path.php#region` metadata property that references an ordinary PHP file or stable named region. Setup and visible
-code remain separate maintained sources and compilation segments, and implementation must add typed multi-origin
-diagnostics before the behavior is advertised. Rust-style inline hidden lines and renderer preprocessing remain
-deferred. The complete contract is recorded in `docs/development/hidden-support-code.md`; runtime support is not
-implemented.
+`setup=path.php#region` metadata property. A path-only reference selects an ordinary PHP file; a fragment selects a
+stable named region. Setup and visible code remain separate maintained sources and compilation segments, and
+implementation must add typed multi-origin diagnostics before the behavior is advertised. Rust-style inline hidden
+lines and renderer preprocessing remain deferred. The complete contract is recorded in
+`docs/development/hidden-support-code.md`; only internal source resolution is implemented, while the public model and
+runtime behavior remain unavailable.
 
 > Prefer an explicit, PHP-idiomatic design that remains compatible with PHP parsers, formatters, IDEs, documentation
 > renderers, and static analyzers.

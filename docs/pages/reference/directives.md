@@ -211,5 +211,6 @@ evidence and has no expectation property in this release.
 
 Akashi does not currently implement a global ignore directive, expected compilation failure, general expected runtime
 failure, expected stderr, conditional or platform-specific skip, custom skip reasons, or hidden support-code execution.
-The accepted roadmap reserves `setup=path.php` and `setup=path.php#region` for that future behavior, but current
-releases reject them. The other items must not be inferred from Rust or PHPUnit terminology.
+The accepted roadmap reserves `setup=path.php` and `setup=path.php#region` for that future behavior. A path-only setup
+selects the whole file; a fragment selects a named region. Current releases reject the `setup` property. The other items
+must not be inferred from Rust or PHPUnit terminology.

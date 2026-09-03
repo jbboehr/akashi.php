@@ -1,6 +1,6 @@
 # Hidden Support Code Design
 
-Status: accepted design; not implemented.
+Status: accepted design; source resolution implemented, public model and execution not implemented.
 
 Hidden support code lets an example use per-example setup without showing that setup to readers. The first
 implementation will reference an ordinary PHP file or one stable named region within it. Akashi will not adopt
@@ -72,8 +72,9 @@ $result = convert($input, $from, $to);
 ```
 ````
 
-Use a named region when one ordinary PHP file contains several reusable setups. Whole files and regions must contain
-valid PHP and are subject to the same transform and safety rules as visible code. Line-number ranges remain unsupported.
+Use a named region when one ordinary PHP file contains several reusable setups. Whole files and selected slices must
+contain valid PHP and are subject to the same transform and safety rules as visible code. A selected slice must contain
+one or more complete top-level statements in the full-file AST. Line-number ranges remain unsupported.
 
 Only one setup source may be attached to an example. Repeating `setup` is a duplicate keyed property and fails at the
 second declaration:
@@ -235,8 +236,8 @@ visible example. Cleanup and infrastructure failures keep their existing meaning
 
 Each slice must be working and reviewable without advertising incomplete behavior:
 
-1. Parse and resolve the dormant `setup` property into a whole-file or named-region target; validate region boundaries
-   against the complete file AST.
+1. **Implemented:** resolve setup targets internally as whole files or named regions and validate selected boundaries
+   against the complete file AST. The metadata grammar does not expose the dormant `setup` property yet.
 2. Add the immutable support value to `Example` and preserve the typed metadata reference, canonical support origin, and
    optional region.
 3. Generalize internal generated-line mappings to typed setup, body, and harness segments with optional maintained
@@ -274,3 +275,8 @@ and execution backends.
 - setup teardown or suite-level lifecycle hooks;
 - renderer-specific inclusion; and
 - an extraction mode that materializes setup and visible code into one fixture.
+
+A separate future authoring mode may let one canonical PHP file execute as a whole while an unnamed delimited window
+identifies only the code presented to readers. That is a presentation boundary, not an anonymous setup selection. Its
+delimiters and its interaction with source mapping, expected outcomes, extraction, and synchronization remain unsettled;
+the initial hidden-support implementation does not include it.

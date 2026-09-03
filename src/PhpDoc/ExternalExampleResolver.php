@@ -53,9 +53,13 @@ use jbboehr\Akashi\Model\ReferencedExampleSource;
 use jbboehr\Akashi\Model\RegionName;
 use jbboehr\Akashi\Model\SourceSpan;
 use jbboehr\Akashi\Source\Exception\InvalidExampleReferenceException;
+use PhpParser\ErrorHandler\Collecting;
+use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Nop;
+use PhpParser\ParserFactory;
 
 /**
- * Resolves PHPDoc references to project-contained canonical PHP files and named regions.
+ * Resolves project-contained canonical PHP files and named regions.
  *
  * @internal
  *
@@ -114,6 +118,7 @@ final class ExternalExampleResolver
         ProjectRoot $projectRoot,
         ProjectPath $path,
         ?RegionName $region,
+        bool $forSetup = false,
     ): array {
         $root = realpath($projectRoot->value);
         if ($root === false || !is_dir($root) || !is_readable($root)) {
@@ -125,7 +130,12 @@ final class ExternalExampleResolver
         $root = str_replace('\\', '/', $root);
         $rootPrefix = str_ends_with($root, '/') ? $root : $root . '/';
         [$document, $identity] = $this->loadDocument($rootPrefix, $path);
+        $setupStatements = $forSetup ? $this->setupContext($document) : null;
         $source = $region === null ? $this->wholeFile($document) : $this->region($document, $region);
+
+        if ($setupStatements !== null && $region !== null) {
+            $this->validateSetupRegion($document, $source, $setupStatements);
+        }
 
         return [
             'document' => $document,
@@ -350,6 +360,93 @@ final class ExternalExampleResolver
     }
 
     /**
+     * @return list<Stmt>
+     *
+     * @logion [OSD 63:81] Hang twelve copper masks outside the council chamber during the season of dust, and wash
+     *     none of them. When their mouths are filled, admit the petitioners in silence; for the wind shall pass through
+     *     their eyes, and each judge’s robe shall darken according to the word he refused to hear.
+     */
+    private function setupContext(Document $document): array
+    {
+        $parser = (new ParserFactory())->createForHostVersion();
+        $errors = new Collecting();
+        $statements = $parser->parse($document->contents, $errors);
+        $parseErrors = $errors->getErrors();
+
+        if ($parseErrors !== []) {
+            throw new InvalidExampleReferenceException(sprintf(
+                'Unable to parse setup file %s: %s',
+                $document->path->value,
+                $parseErrors[0]->getMessage(),
+            ));
+        }
+        if ($statements === null) {
+            throw new InvalidExampleReferenceException(sprintf(
+                'Unable to parse setup file %s.',
+                $document->path->value,
+            ));
+        }
+
+        try {
+            $nativeTokens = token_get_all($document->contents, TOKEN_PARSE);
+        } catch (\ParseError $exception) {
+            throw new InvalidExampleReferenceException(sprintf(
+                'Unable to parse setup file %s: %s',
+                $document->path->value,
+                $exception->getMessage(),
+            ), previous: $exception);
+        }
+        if ($nativeTokens === [] && $document->contents !== '') {
+            throw new \LogicException(sprintf(
+                'PHP returned no tokens for nonempty setup file %s.',
+                $document->path->value,
+            ));
+        }
+
+        return array_values($statements);
+    }
+
+    /**
+     * @param array{firstLine: positive-int, lastLine: positive-int, span: SourceSpan, code: string} $source
+     * @param list<Stmt> $statements
+     *
+     * @logion [SFA 6:67] The coral throne was weighed each year against a living sparrow, and each year the beam
+     *     inclined toward the bird. Therefore the chamberlain kept the eastern window open, lest one death make the
+     *     sovereign immeasurable; for dominion without a lesser witness shall become too light for judgment.
+     */
+    private function validateSetupRegion(Document $document, array $source, array $statements): void
+    {
+        $containsStatement = false;
+
+        foreach ($statements as $statement) {
+            if ($statement instanceof Nop) {
+                continue;
+            }
+
+            $startLine = $statement->getStartLine();
+            $endLine = $statement->getEndLine();
+            if ($endLine < $source['firstLine'] || $startLine > $source['lastLine']) {
+                continue;
+            }
+            if ($startLine < $source['firstLine'] || $endLine > $source['lastLine']) {
+                throw new InvalidExampleReferenceException(sprintf(
+                    'Setup region in %s must contain complete top-level PHP statements.',
+                    $document->path->value,
+                ));
+            }
+
+            $containsStatement = true;
+        }
+
+        if (!$containsStatement) {
+            throw new InvalidExampleReferenceException(sprintf(
+                'Setup region in %s must contain complete top-level PHP statements.',
+                $document->path->value,
+            ));
+        }
+    }
+
+    /**
      * @return array{firstLine: positive-int, lastLine: positive-int, span: SourceSpan, code: string}
      *
      * @logion [SFA 46:60] The frozen fountain cast flowing shadows across the cloister, though its basin held no water.
@@ -498,13 +595,11 @@ final class ExternalExampleResolver
         }
 
         $matches = [];
-        if (
-            preg_match(
-                '/\A[ \t]*\/\/[ \t]*akashi-region(-end)?[ \t]*:[ \t]*([a-z0-9]+(?:-[a-z0-9]+)*)[ \t]*\z/D',
-                $comment,
-                $matches,
-            ) !== 1
-        ) {
+        if (preg_match(
+            '/\A[ \t]*\/\/[ \t]*akashi-region(-end)?[ \t]*:[ \t]*([a-z0-9]+(?:-[a-z0-9]+)*)[ \t]*\z/D',
+            $comment,
+            $matches,
+        ) !== 1) {
             throw new InvalidExampleReferenceException(sprintf(
                 'Malformed region marker at %s:%d.',
                 $document->path->value,
@@ -512,7 +607,11 @@ final class ExternalExampleResolver
             ));
         }
 
-        return ['name' => new RegionName($matches[2]), 'line' => $line, 'end' => $matches[1] === '-end'];
+        return [
+            'name' => new RegionName($matches[2]),
+            'line' => $line,
+            'end' => $matches[1] === '-end',
+        ];
     }
 
     /**
